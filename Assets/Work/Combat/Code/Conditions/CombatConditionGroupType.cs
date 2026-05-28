@@ -1,4 +1,4 @@
-namespace Work.Combat
+namespace Work.Combat.Code.Conditions
 {
     /// <summary>
     /// 조건 그룹 평가 방식

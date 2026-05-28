@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Core
 {
     /// <summary>
     /// 플레이어 무기의 공격 타입과 기본 공격 범위 데이터

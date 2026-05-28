@@ -1,6 +1,7 @@
 using UnityEngine;
+using Work.Combat.Code.Core;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Runtime
 {
     /// <summary>
     /// 적의 사망 상태 전환과 사망 연출 처리 컴포넌트

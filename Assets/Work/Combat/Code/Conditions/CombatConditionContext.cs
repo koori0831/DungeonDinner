@@ -1,6 +1,7 @@
 using UnityEngine;
+using Work.Combat.Code.Runtime;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Conditions
 {
     /// <summary>
     /// 조건 평가에 필요한 피격 대상 런타임 정보

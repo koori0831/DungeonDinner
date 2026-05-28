@@ -1,6 +1,6 @@
 using System;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Core
 {
     /// <summary>
     /// 공격의 물리적 전투 타입

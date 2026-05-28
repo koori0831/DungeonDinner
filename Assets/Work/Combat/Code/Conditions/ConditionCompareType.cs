@@ -1,4 +1,4 @@
-namespace Work.Combat
+namespace Work.Combat.Code.Conditions
 {
     /// <summary>
     /// 조건 비교 방식

@@ -1,4 +1,4 @@
-namespace Work.Combat
+namespace Work.Combat.Code.Runtime
 {
     /// <summary>
     /// 적의 전투 상태

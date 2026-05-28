@@ -1,4 +1,4 @@
-namespace Work.Combat
+namespace Work.Combat.Code.Core
 {
     /// <summary>
     /// 피격 가능한 오브젝트가 구현하는 인터페이스

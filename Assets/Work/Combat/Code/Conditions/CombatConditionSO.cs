@@ -1,6 +1,7 @@
 using UnityEngine;
+using Work.Combat.Code.Core;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Conditions
 {
     /// <summary>
     /// 전투 조건 평가용 ScriptableObject 기반 모듈

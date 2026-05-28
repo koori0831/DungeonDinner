@@ -1,4 +1,4 @@
-namespace Work.Combat
+namespace Work.Combat.Code.Core
 {
     /// <summary>
     /// 피격 처리 결과 타입

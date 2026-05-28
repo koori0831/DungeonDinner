@@ -1,6 +1,7 @@
 using UnityEngine;
+using Work.Combat.Code.Core;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Conditions
 {
     /// <summary>
     /// 지정 공격 타입을 맞았는지 평가하는 조건 SO

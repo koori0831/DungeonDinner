@@ -1,6 +1,7 @@
 using UnityEngine;
+using Work.Combat.Code.Core;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Runtime
 {
     /// <summary>
     /// 적 피격 시 발생하는 넉백과 연출 처리 컴포넌트

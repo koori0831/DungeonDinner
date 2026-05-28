@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Runtime
 {
     /// <summary>
     /// 적의 현재 전투 상태 보관 컴포넌트

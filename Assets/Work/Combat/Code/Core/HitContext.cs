@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Core
 {
     /// <summary>
     /// 공격 1회 또는 피격 1회에 필요한 읽기 전용 정보

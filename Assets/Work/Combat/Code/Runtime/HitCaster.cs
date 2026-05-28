@@ -1,6 +1,7 @@
 using UnityEngine;
+using Work.Combat.Code.Core;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Runtime
 {
     /// <summary>
     /// 공격 범위 내의 피격 가능 대상 탐색 담당 컴포넌트

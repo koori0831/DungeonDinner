@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Core
 {
     /// <summary>
     /// 타격 범위 탐색에 필요한 읽기 전용 정보

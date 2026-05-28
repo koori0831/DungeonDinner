@@ -1,6 +1,8 @@
 using UnityEngine;
+using Work.Combat.Code.Core;
+using Work.Combat.Code.Runtime;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Conditions
 {
     /// <summary>
     /// 적의 현재 상태를 평가하는 조건 SO

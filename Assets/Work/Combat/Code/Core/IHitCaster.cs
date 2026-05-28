@@ -1,4 +1,4 @@
-namespace Work.Combat
+namespace Work.Combat.Code.Core
 {
     /// <summary>
     /// 지정 범위 안에서 피격 가능한 대상을 탐색하는 인터페이스

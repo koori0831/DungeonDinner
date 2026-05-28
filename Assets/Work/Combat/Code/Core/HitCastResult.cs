@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Core
 {
     /// <summary>
     /// 타격 범위 탐색으로 확인된 대상별 피격 정보

@@ -1,6 +1,8 @@
 using UnityEngine;
+using Work.Combat.Code.Conditions;
+using Work.Combat.Code.Core;
 
-namespace Work.Combat
+namespace Work.Combat.Code.Runtime
 {
     /// <summary>
     /// 적에게 등록된 사망 조건 SO 검사 담당 컴포넌트
