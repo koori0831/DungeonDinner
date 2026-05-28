@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00012, type: 3}
-  m_Name: TestSlashWeaponData
+  m_Name: TestSlashAttackData
   m_EditorClassIdentifier:
-  <WeaponId>k__BackingField: TestSlashWeapon
+  <AttackId>k__BackingField: TestSlashAttack
   <AttackType>k__BackingField: 1
   <Range>k__BackingField: 3
   <Radius>k__BackingField: 1.25
