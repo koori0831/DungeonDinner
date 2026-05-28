@@ -1,0 +1,66 @@
+﻿using UnityEngine;
+using Work.FSM.Code;
+
+namespace Work.Entities.Code
+{
+    [RequireComponent(typeof(Animator))]
+    public class EntityAnimationModule : MonoBehaviour, IEntityModule
+    {
+        public Entity _owner;
+        public Animator _animator;
+
+        private EntityMovementModule _movementModule;
+        private EntityStateModule _stateModule;
+
+        public void Initialize(Entity entity)
+        {
+            _owner = entity;
+            _animator = GetComponent<Animator>();
+            _movementModule = _owner.GetModule<EntityMovementModule>(false);
+            _stateModule = _owner.GetModule<EntityStateModule>(false);
+        }
+
+        public void SetParam(int animHash, float value) => _animator.SetFloat(animHash, value);
+        public void SetParam(int animHash, int value) => _animator.SetInteger(animHash, value);
+        public void SetParam(int animHash, bool value) => _animator.SetBool(animHash, value);
+        public void SetTrigger(int animHash) => _animator.SetTrigger(animHash);
+
+        public void SetApplyRootMotion(bool apply)
+        {
+            _animator.applyRootMotion = apply;
+        }
+
+        private void OnAnimatorMove()
+        {
+            if (!_animator.applyRootMotion)
+            {
+                return;
+            }
+
+            if (_movementModule != null)
+            {
+                _movementModule.ApplyRootMotion(_animator.deltaPosition);
+            }
+            else
+            {
+                _owner.transform.position += _animator.deltaPosition;
+            }
+
+            if (_animator.deltaRotation != Quaternion.identity)
+            {
+                _owner.transform.rotation *= _animator.deltaRotation;
+            }
+
+            if (_owner.transform != transform)
+            {
+                transform.localPosition = Vector3.zero;
+                transform.localRotation = Quaternion.identity;
+            }
+        }
+
+        public void AnimationEvent(AnimationEventType eventType)
+        {
+            _stateModule?.TriggerEvent(eventType);
+        }
+    }
+}
