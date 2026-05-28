@@ -41,15 +41,41 @@ namespace Work.Combat
                 hitReaction.PlayHitReaction(in hitContext);
             }
 
-            bool canKill = killConditionResolver == null || killConditionResolver.CanKill(in hitContext);
-
-            if (canKill == true && deathHandler != null)
+            if (killConditionResolver == null)
             {
+                LogMissingKillConditionResolver();
+                return new HitResult(true, false, HitResultType.InvalidConfiguration);
+            }
+
+            bool canKill = killConditionResolver.CanKill(in hitContext);
+
+            if (canKill == true)
+            {
+                if (deathHandler == null)
+                {
+                    LogMissingDeathHandler();
+                    return new HitResult(true, false, HitResultType.InvalidConfiguration);
+                }
+
                 deathHandler.Die(in hitContext);
                 return new HitResult(true, true, HitResultType.Killed);
             }
 
             return new HitResult(true, false, HitResultType.HitButNotKilled);
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogMissingKillConditionResolver()
+        {
+            Debug.LogError($"{nameof(EnemyKillConditionResolver)} is missing.", this);
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogMissingDeathHandler()
+        {
+            Debug.LogError($"{nameof(EnemyDeathHandler)} is missing while kill condition is satisfied.", this);
         }
     }
 }

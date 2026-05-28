@@ -11,7 +11,8 @@ namespace Work.Combat
         Killed,
         Ignored,
         AlreadyDead,
-        InvalidTarget
+        InvalidTarget,
+        InvalidConfiguration
     }
 
     /// <summary>
