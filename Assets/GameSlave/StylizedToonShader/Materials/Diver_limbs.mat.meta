@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 88f90528a8e271c429db1f4367264c46
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 282721
+  packageName: Stylized Toon Shader Graph
+  packageVersion: 1.0
+  assetPath: Assets/GameSlave/StylizedToonShader/Materials/Diver_limbs.mat
+  uploadId: 664071
