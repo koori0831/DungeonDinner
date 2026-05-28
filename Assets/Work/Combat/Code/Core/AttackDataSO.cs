@@ -3,19 +3,19 @@ using UnityEngine;
 namespace Work.Combat.Code.Core
 {
     /// <summary>
-    /// 플레이어 무기의 공격 타입과 기본 공격 범위 데이터
+    /// 공격 판정에 필요한 공격 타입과 기본 범위 데이터
     /// </summary>
-    [CreateAssetMenu(menuName = "Combat/Weapon Data")]
-    public sealed class WeaponDataSO : ScriptableObject
+    [CreateAssetMenu(menuName = "Combat/Attack Data")]
+    public sealed class AttackDataSO : ScriptableObject
     {
         /// <summary>
-        /// 무기 식별자
+        /// 공격 식별자
         /// </summary>
         [field: SerializeField]
-        public string WeaponId { get; private set; }
+        public string AttackId { get; private set; }
 
         /// <summary>
-        /// 무기 공격 타입
+        /// 공격 타입
         /// </summary>
         [field: SerializeField]
         public AttackType AttackType { get; private set; }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Work.Combat.Code.Core;
 using Work.Combat.Code.Runtime;
 
 namespace Work.Combat.Code.Test
@@ -9,7 +10,7 @@ namespace Work.Combat.Code.Test
     public sealed class CombatTestScenarioRunner : MonoBehaviour
     {
         [SerializeField]
-        private PlayerAttackExecutor playerAttackExecutor;
+        private CombatAttackExecutor combatAttackExecutor;
 
         [SerializeField]
         private EnemyDeathHandler slashWeakEnemyDeathHandler;
@@ -36,18 +37,18 @@ namespace Work.Combat.Code.Test
         [ContextMenu("Run Attack Test")]
         public void RunAttackTest()
         {
-            if (playerAttackExecutor == null)
+            if (combatAttackExecutor == null)
             {
-                Debug.LogError($"{nameof(playerAttackExecutor)} is missing.", this);
+                Debug.LogError($"{nameof(combatAttackExecutor)} is missing.", this);
                 return;
             }
 
-            playerAttackExecutor.ExecuteAttack();
+            AttackExecutionResult result = combatAttackExecutor.ExecuteAttack();
 
             Debug.Log(
-                $"CombatTest Result - HitSuccessCount: {playerAttackExecutor.LastHitSuccessCount}, " +
-                $"KilledCount: {playerAttackExecutor.LastKilledCount}, " +
-                $"LastResult: {playerAttackExecutor.LastHitResult.ResultType}, " +
+                $"CombatTest Result - HitSuccessCount: {result.HitSuccessCount}, " +
+                $"KilledCount: {result.KilledCount}, " +
+                $"LastResult: {result.LastHitResult.ResultType}, " +
                 $"SlashEnemyDead: {GetIsDead(slashWeakEnemyDeathHandler)}, " +
                 $"PierceEnemyDead: {GetIsDead(pierceWeakEnemyDeathHandler)}",
                 this
