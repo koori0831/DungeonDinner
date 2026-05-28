@@ -1,0 +1,5 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <engine:TextField label="State name" placeholder-text="filler text" binding-path="stateName" name="StateNameField"/>
+    <engine:DropdownField label="Class Selector" binding-path="targetClass" name="ClassDropdownField"/>
+    <engine:Toggle label="Is Skill Motion" binding-path="isSkillAnimation" name="IsSkillAnimationToggle"/>
+</engine:UXML>
