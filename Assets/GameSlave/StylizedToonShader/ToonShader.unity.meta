@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4f6d79cba9280f342970746748c5d1d7
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 282721
+  packageName: Stylized Toon Shader Graph
+  packageVersion: 1.0
+  assetPath: Assets/GameSlave/StylizedToonShader/ToonShader.unity
+  uploadId: 664071
