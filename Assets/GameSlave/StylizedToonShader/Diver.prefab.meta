@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 007a5ad2502e2754e9451de81ea7ddde
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 282721
+  packageName: Stylized Toon Shader Graph
+  packageVersion: 1.0
+  assetPath: Assets/GameSlave/StylizedToonShader/Diver.prefab
+  uploadId: 664071
