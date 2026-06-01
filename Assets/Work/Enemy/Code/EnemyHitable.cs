@@ -1,10 +1,10 @@
 using UnityEngine;
 using Work.Combat.Code.Core;
 
-namespace Work.Combat.Code.Runtime
+namespace Work.Enemy.Code
 {
     /// <summary>
-    /// 적의 피격 처리 담당 컴포넌트
+    /// 적의 피격 처리 담당 컴포넌트.
     /// </summary>
     public sealed class EnemyHitable : MonoBehaviour, IHitable
     {
@@ -21,10 +21,10 @@ namespace Work.Combat.Code.Runtime
         private EnemyKillConditionResolver killConditionResolver;
 
         /// <summary>
-        /// 피격 반응 처리 후 사망 조건 검사
+        /// 피격 반응 처리 후 사망 조건 검사.
         /// </summary>
-        /// <param name="hitContext">이번 피격 정보</param>
-        /// <returns>피격 처리 결과</returns>
+        /// <param name="hitContext">이번 피격 정보.</param>
+        /// <returns>피격 처리 결과.</returns>
         public HitResult ReceiveHit(in HitContext hitContext)
         {
             if (deathHandler != null && deathHandler.IsDead == true)

@@ -1,10 +1,10 @@
 using UnityEngine;
 using Work.Combat.Code.Core;
 
-namespace Work.Combat.Code.Runtime
+namespace Work.Enemy.Code
 {
     /// <summary>
-    /// 적 피격 시 발생하는 넉백과 연출 처리 컴포넌트
+    /// 적 피격 시 발생하는 넉백과 연출 처리 컴포넌트.
     /// </summary>
     public sealed class EnemyHitReaction : MonoBehaviour
     {
@@ -33,9 +33,9 @@ namespace Work.Combat.Code.Runtime
         }
 
         /// <summary>
-        /// 피격 반응 연출 실행
+        /// 피격 반응 연출 실행.
         /// </summary>
-        /// <param name="hitContext">이번 피격 정보</param>
+        /// <param name="hitContext">이번 피격 정보.</param>
         public void PlayHitReaction(in HitContext hitContext)
         {
             ApplyKnockback(in hitContext);

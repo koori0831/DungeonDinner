@@ -2,10 +2,10 @@ using UnityEngine;
 using Work.Combat.Code.Conditions;
 using Work.Combat.Code.Core;
 
-namespace Work.Combat.Code.Runtime
+namespace Work.Enemy.Code
 {
     /// <summary>
-    /// 적에게 등록된 사망 조건 SO 검사 담당 컴포넌트
+    /// 적에게 등록된 사망 조건 SO 검사 담당 컴포넌트.
     /// </summary>
     public sealed class EnemyKillConditionResolver : MonoBehaviour
     {
@@ -26,10 +26,10 @@ namespace Work.Combat.Code.Runtime
         }
 
         /// <summary>
-        /// 모든 사망 조건의 충족 여부 반환
+        /// 모든 사망 조건의 충족 여부 반환.
         /// </summary>
-        /// <param name="hitContext">이번 피격 정보</param>
-        /// <returns>사망 가능 여부</returns>
+        /// <param name="hitContext">이번 피격 정보.</param>
+        /// <returns>사망 가능 여부.</returns>
         public bool CanKill(in HitContext hitContext)
         {
             if (killConditions == null || killConditions.Length == 0)

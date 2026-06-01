@@ -1,6 +1,7 @@
 using UnityEngine;
 using Work.Combat.Code.Core;
 using Work.Combat.Code.Runtime;
+using Work.Enemy.Code;
 
 namespace Work.Combat.Code.Test
 {
@@ -13,10 +14,13 @@ namespace Work.Combat.Code.Test
         private CombatAttackExecutor combatAttackExecutor;
 
         [SerializeField]
-        private EnemyDeathHandler slashWeakEnemyDeathHandler;
+        private EnemyDeathHandler rabbitSlimeDeathHandler;
 
         [SerializeField]
-        private EnemyDeathHandler pierceWeakEnemyDeathHandler;
+        private EnemyDeathHandler chickSlimeDeathHandler;
+
+        [SerializeField]
+        private EnemyDeathHandler minsuSlimeDeathHandler;
 
         [SerializeField]
         private bool executeOnStart = true;
@@ -49,8 +53,9 @@ namespace Work.Combat.Code.Test
                 $"CombatTest Result - HitSuccessCount: {result.HitSuccessCount}, " +
                 $"KilledCount: {result.KilledCount}, " +
                 $"LastResult: {result.LastHitResult.ResultType}, " +
-                $"SlashEnemyDead: {GetIsDead(slashWeakEnemyDeathHandler)}, " +
-                $"PierceEnemyDead: {GetIsDead(pierceWeakEnemyDeathHandler)}",
+                $"RabbitSlimeDead: {GetIsDead(rabbitSlimeDeathHandler)}, " +
+                $"ChickSlimeDead: {GetIsDead(chickSlimeDeathHandler)}, " +
+                $"MinsuSlimeDead: {GetIsDead(minsuSlimeDeathHandler)}",
                 this
             );
         }

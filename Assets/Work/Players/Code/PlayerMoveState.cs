@@ -20,7 +20,7 @@ namespace Work.Players.Code
 
         public override void Update()
         {
-            var moveVector = Player.InputContainer.MoveVector;
+            Vector2 moveVector = Player.InputContainer.MoveVector;
             bool hasMoveInput = moveVector.sqrMagnitude > MoveInputThreshold;
             float targetSpeed = hasMoveInput ? Mathf.Clamp01(moveVector.magnitude) : 0f;
             float speedChangeRate = hasMoveInput ? SpeedAcceleration : SpeedDeceleration;

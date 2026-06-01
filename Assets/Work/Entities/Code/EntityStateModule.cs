@@ -20,7 +20,7 @@ namespace Work.Entities.Code
 
         public void AfterInitialize()
         {
-            foreach (var data in stateDataList)
+            foreach (StateSO data in stateDataList)
             {
                 if (data == null)
                 {

@@ -1,13 +1,19 @@
 using UnityEngine;
 using Work.Combat.Code.Core;
 
-namespace Work.Combat.Code.Runtime
+namespace Work.Enemy.Code
 {
     /// <summary>
-    /// 적의 사망 상태 전환과 사망 연출 처리 컴포넌트
+    /// 적의 사망 상태 전환과 사망 연출 처리 컴포넌트.
     /// </summary>
     public sealed class EnemyDeathHandler : MonoBehaviour
     {
+        [SerializeField]
+        private EnemyBase enemy;
+
+        [SerializeField]
+        private EnemyStateController stateController;
+
         [SerializeField]
         private Collider[] collidersToDisable;
 
@@ -21,20 +27,35 @@ namespace Work.Combat.Code.Runtime
         private string deathTriggerName = "Death";
 
         /// <summary>
-        /// 사망 처리 완료 여부
+        /// 사망 처리 완료 여부.
         /// </summary>
         public bool IsDead { get; private set; }
 
         private void Reset()
         {
+            enemy = GetComponent<EnemyBase>();
+            stateController = GetComponent<EnemyStateController>();
             collidersToDisable = GetComponentsInChildren<Collider>();
             animator = GetComponentInChildren<Animator>();
         }
 
+        private void Awake()
+        {
+            if (enemy == null)
+            {
+                enemy = GetComponent<EnemyBase>();
+            }
+
+            if (stateController == null)
+            {
+                stateController = GetComponent<EnemyStateController>();
+            }
+        }
+
         /// <summary>
-        /// 피격 정보에 따른 사망 처리 실행
+        /// 피격 정보에 따른 사망 처리 실행.
         /// </summary>
-        /// <param name="hitContext">이번 피격 정보</param>
+        /// <param name="hitContext">이번 피격 정보.</param>
         public void Die(in HitContext hitContext)
         {
             if (IsDead == true)
@@ -44,6 +65,8 @@ namespace Work.Combat.Code.Runtime
 
             IsDead = true;
 
+            stateController?.SetState(EnemyState.Dead);
+            enemy?.Die();
             DisableColliders();
             DisableBehaviours();
             PlayDeathAnimation();

@@ -13,7 +13,7 @@ namespace Work.FSM.Code
         {
             _stateMachine = stateMachine;
             _owner = owner;
-            _animator = _owner.GetModule<EntityAnimationModule>(true);
+            _owner.TryGetModule<EntityAnimationModule>(out _animator, true);
             _animationHash = animationHash;
         }
 
