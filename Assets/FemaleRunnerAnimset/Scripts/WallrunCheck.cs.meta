@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: e58bb4458ff180a47a4d9267dcb28dfc
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 301499
+  packageName: Female Runner Animset - FreeWalk&Jog
+  packageVersion: 1.1.2
+  assetPath: Assets/FemaleRunnerAnimset/Scripts/WallrunCheck.cs
+  uploadId: 896938

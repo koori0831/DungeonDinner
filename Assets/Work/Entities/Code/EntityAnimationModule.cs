@@ -6,8 +6,8 @@ namespace Work.Entities.Code
     [RequireComponent(typeof(Animator))]
     public class EntityAnimationModule : MonoBehaviour, IEntityModule
     {
-        public Entity _owner;
-        public Animator _animator;
+        private Entity _owner;
+        private Animator _animator;
 
         private EntityMovementModule _movementModule;
         private EntityStateModule _stateModule;
@@ -44,11 +44,6 @@ namespace Work.Entities.Code
             else
             {
                 _owner.transform.position += _animator.deltaPosition;
-            }
-
-            if (_animator.deltaRotation != Quaternion.identity)
-            {
-                _owner.transform.rotation *= _animator.deltaRotation;
             }
 
             if (_owner.transform != transform)

@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Work.Core.Utils.EventBus.Analyzers
+namespace Work.Core.EventBus.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class EventDeclarationAnalyzer : DiagnosticAnalyzer
@@ -29,7 +29,7 @@ namespace Work.Core.Utils.EventBus.Analyzers
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                var eventInterface = startContext.Compilation.GetTypeByMetadataName("Work.Core.Utils.EventBus.IEvent");
+                var eventInterface = startContext.Compilation.GetTypeByMetadataName("Work.Core.EventBus.IEvent");
                 if (eventInterface == null)
                 {
                     return;

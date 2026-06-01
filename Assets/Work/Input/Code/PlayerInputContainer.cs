@@ -54,14 +54,11 @@ namespace Work.Input.Code
         {
             UpdateCurrentDeviceType(context);
             MoveVector = context.ReadValue<Vector2>();
-            if (context.performed)
-                Bus<InputMoveEvent>.Raise(new InputMoveEvent(MoveVector));
         }
 
         public void OnJump(InputAction.CallbackContext context)
         {
             UpdateCurrentDeviceType(context);
-            MoveVector = Vector2.zero;
             if (context.performed)
                 Bus<InputJumpEvent>.Raise(new InputJumpEvent());
         }

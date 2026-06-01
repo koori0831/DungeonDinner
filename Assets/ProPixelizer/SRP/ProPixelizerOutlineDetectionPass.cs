@@ -219,6 +219,7 @@ namespace ProPixelizer
         }
 #endif
 
+#if !UNITY_6000_0_OR_NEWER
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var outlineDescriptor = cameraTextureDescriptor;
@@ -252,6 +253,7 @@ namespace ProPixelizer
             ConfigureTarget(_OutlineObjectBuffer, _OutlineObjectBuffer_Depth);
 #endif
         }
+#endif
         public override void FrameCleanup(CommandBuffer cmd)
         {
 #if URP_13
@@ -277,6 +279,7 @@ namespace ProPixelizer
 
         public const string PROFILER_TAG = "ProPixelizerOutlines";
 
+#if !UNITY_6000_0_OR_NEWER
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             Prepare(cmd, ref renderingData);
@@ -368,5 +371,6 @@ namespace ProPixelizer
             context.ExecuteCommandBuffer(buffer);
             CommandBufferPool.Release(buffer);
         }
+#endif
     }
 }
