@@ -57,7 +57,7 @@ namespace ProPixelizer
                 ProPixelizerVerification.GenerateWarnings();
         }
 
-#if BLIT_API
+#if BLIT_API && !UNITY_6000_0_OR_NEWER
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {
         _PixelisationPass.ConfigureInput(ScriptableRenderPassInput.Color);
