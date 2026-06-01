@@ -22,13 +22,18 @@ namespace Work.Entities.Code
         {
             foreach (var data in stateDataList)
             {
-                Type type = Type.GetType(data.targetClass);
+                if (data == null)
+                {
+                    continue;
+                }
+
+                Type type = data.ResolveStateType();
                 if (type != null)
                 {
                     try
                     {
                         int animationHash = data.animationHash;
-                        State state = Activator.CreateInstance(type, StateMachine, Owner, animationHash, data.isSkillAnimation) as State;
+                        State state = Activator.CreateInstance(type, StateMachine, Owner, animationHash) as State;
                         StateMachine.AddState(data.stateName, state);
                     }
                     catch (Exception e)
@@ -38,7 +43,7 @@ namespace Work.Entities.Code
                 }
                 else
                 {
-                    Debug.LogError($"[StateCompo] Class not found: {data.targetClass}");
+                    Debug.LogError($"[StateCompo] Class not found or invalid: {data.targetClass}");
                 }
             }
 

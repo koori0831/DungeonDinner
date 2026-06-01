@@ -341,6 +341,7 @@ namespace ProPixelizer
         }
 #endif
 
+#if !UNITY_6000_0_OR_NEWER
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             base.OnCameraSetup(cmd, ref renderingData);
@@ -645,6 +646,7 @@ namespace ProPixelizer
             context.ExecuteCommandBuffer(buffer);
             CommandBufferPool.Release(buffer);
         }
+#endif
 
 
 #if URP_13

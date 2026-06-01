@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Work.FSM.Code
 {
@@ -7,8 +8,6 @@ namespace Work.FSM.Code
     {
         public string stateName;
         public string targetClass;
-        public bool isSkillAnimation = false;
-
         [SerializeField, HideInInspector] private int _animationHash;
 
         public int animationHash
@@ -21,6 +20,36 @@ namespace Work.FSM.Code
                 }
                 return _animationHash;
             }
+        }
+
+        public Type ResolveStateType()
+        {
+            if (string.IsNullOrWhiteSpace(targetClass))
+            {
+                return null;
+            }
+
+            Type type = Type.GetType(targetClass);
+            if (IsValidStateType(type))
+            {
+                return type;
+            }
+
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                type = assembly.GetType(targetClass);
+                if (IsValidStateType(type))
+                {
+                    return type;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsValidStateType(Type type)
+        {
+            return type != null && type.IsAbstract == false && type.IsSubclassOf(typeof(State));
         }
 
         private void OnValidate()
