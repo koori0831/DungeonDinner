@@ -35,7 +35,7 @@ namespace Work.FSM.Code
                 return type;
             }
 
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 type = assembly.GetType(targetClass);
                 if (IsValidStateType(type))
@@ -55,7 +55,9 @@ namespace Work.FSM.Code
         private void OnValidate()
         {
             if (!string.IsNullOrEmpty(stateName))
+            {
                 _animationHash = Animator.StringToHash(stateName);
+            }
         }
     }
 }

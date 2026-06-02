@@ -16,8 +16,8 @@ namespace Work.Entities.Code
         {
             _owner = entity;
             _animator = GetComponent<Animator>();
-            _movementModule = _owner.GetModule<EntityMovementModule>(false);
-            _stateModule = _owner.GetModule<EntityStateModule>(false);
+            _owner.TryGetModule<EntityMovementModule>(out _movementModule);
+            _owner.TryGetModule<EntityStateModule>(out _stateModule);
         }
 
         public void SetParam(int animHash, float value) => _animator.SetFloat(animHash, value);

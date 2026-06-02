@@ -47,7 +47,7 @@ namespace Work.FSM.Editor
                 dropdown.choices.Add(displayName);
             }
 
-            var targetClassProperty = serializedObject.FindProperty(nameof(StateSO.targetClass));
+            UnityEditor.SerializedProperty targetClassProperty = serializedObject.FindProperty(nameof(StateSO.targetClass));
             dropdown.value = GetDisplayName(targetClassProperty.stringValue);
             dropdown.RegisterValueChangedCallback(evt =>
             {

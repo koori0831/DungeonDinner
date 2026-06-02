@@ -30,7 +30,7 @@ namespace Work.Combat.Code.Core
         /// 공격 반지름
         /// </summary>
         [field: SerializeField]
-        public float Radius { get; private set; }
+        public float Radius { get; private set; } 
 
         /// <summary>
         /// 넉백 강도
