@@ -11,13 +11,7 @@ namespace Work.Enemy.Code
         private const float MIN_DIRECTION_SQR_MAGNITUDE = 0.0001f;
 
         [SerializeField]
-        private Rigidbody targetRigidbody;
-
-        [SerializeField]
-        private Animator animator;
-
-        [SerializeField]
-        private string hitTriggerName = "Hit";
+        private EnemyMovementModule movementModule;
 
         [SerializeField]
         private ParticleSystem hitEffect;
@@ -27,9 +21,16 @@ namespace Work.Enemy.Code
 
         private void Reset()
         {
-            targetRigidbody = GetComponent<Rigidbody>();
-            animator = GetComponentInChildren<Animator>();
+            movementModule = GetComponent<EnemyMovementModule>();
             hitAudioSource = GetComponent<AudioSource>();
+        }
+
+        private void Awake()
+        {
+            if (movementModule == null)
+            {
+                movementModule = GetComponent<EnemyMovementModule>();
+            }
         }
 
         /// <summary>
@@ -39,14 +40,13 @@ namespace Work.Enemy.Code
         public void PlayHitReaction(in HitContext hitContext)
         {
             ApplyKnockback(in hitContext);
-            PlayHitAnimation();
             PlayHitEffect(in hitContext);
             PlayHitSound();
         }
 
         private void ApplyKnockback(in HitContext hitContext)
         {
-            if (targetRigidbody == null)
+            if (movementModule == null)
             {
                 return;
             }
@@ -61,18 +61,7 @@ namespace Work.Enemy.Code
                 return;
             }
 
-            Vector3 force = hitContext.HitDirection.normalized * hitContext.KnockbackPower;
-            targetRigidbody.AddForce(force, ForceMode.Impulse);
-        }
-
-        private void PlayHitAnimation()
-        {
-            if (animator == null || string.IsNullOrEmpty(hitTriggerName) == true)
-            {
-                return;
-            }
-
-            animator.SetTrigger(hitTriggerName);
+            movementModule.ApplyImpulse(hitContext.HitDirection, hitContext.KnockbackPower);
         }
 
         private void PlayHitEffect(in HitContext hitContext)

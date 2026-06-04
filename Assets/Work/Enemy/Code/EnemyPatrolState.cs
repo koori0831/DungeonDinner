@@ -10,6 +10,10 @@ namespace Work.Enemy.Code
     public class EnemyPatrolState : EnemyBehaviourState
     {
         private Vector3 _patrolPoint;
+        private Vector3 _movePoint;
+        private float _patrolEndTime;
+        private float _nextMovePointTime;
+        private bool _isMovingAroundPatrolPoint;
 
         protected override EnemyState StateType => EnemyState.Patrol;
 
@@ -31,6 +35,10 @@ namespace Work.Enemy.Code
             }
 
             _patrolPoint = _enemy.GetNextPatrolPoint();
+            _movePoint = _patrolPoint;
+            _patrolEndTime = 0f;
+            _nextMovePointTime = 0f;
+            _isMovingAroundPatrolPoint = false;
             _enemy.MoveTo(_patrolPoint);
         }
 
@@ -50,13 +58,44 @@ namespace Work.Enemy.Code
                 return;
             }
 
-            if (_enemy.HasReached(_patrolPoint) == true)
+            if (_isMovingAroundPatrolPoint == false)
+            {
+                if (_enemy.HasReached(_patrolPoint) == true)
+                {
+                    StartMovingAroundPatrolPoint();
+                    return;
+                }
+
+                _enemy.MoveTo(_patrolPoint);
+                return;
+            }
+
+            if (Time.time >= _patrolEndTime)
             {
                 ChangeState(EnemyStateNames.IDLE);
                 return;
             }
 
-            _enemy.MoveTo(_patrolPoint);
+            if (_enemy.HasReached(_movePoint) == true && Time.time >= _nextMovePointTime)
+            {
+                SelectNextMovePoint();
+            }
+
+            _enemy.MoveTo(_movePoint);
+        }
+
+        private void StartMovingAroundPatrolPoint()
+        {
+            _isMovingAroundPatrolPoint = true;
+            _patrolEndTime = Time.time + _enemy.PatrolPointStayTime;
+            SelectNextMovePoint();
+        }
+
+        private void SelectNextMovePoint()
+        {
+            _movePoint = _enemy.GetNextPatrolMovePoint(_patrolPoint);
+            _nextMovePointTime = Time.time + _enemy.PatrolPointMoveInterval;
+            _enemy.MoveTo(_movePoint);
         }
     }
 }

@@ -20,10 +20,14 @@ namespace Work.Enemy.Code
         [SerializeField]
         private float stoppingDistance = 0.15f;
 
+        [SerializeField]
+        private float impulseDamping = 8f;
+
         private Entity _owner;
         private CharacterController _controller;
         private Vector3 _moveTarget;
         private Vector3 _manualMoveDirection;
+        private Vector3 _externalVelocity;
         private float _verticalVelocity;
         private bool _hasMoveTarget;
         private bool _hasManualMoveDirection;
@@ -84,6 +88,28 @@ namespace Work.Enemy.Code
         }
 
         /// <summary>
+        /// 외부 충격 기반 밀림 적용.
+        /// </summary>
+        /// <param name="direction">밀림 방향.</param>
+        /// <param name="power">밀림 강도.</param>
+        public void ApplyImpulse(Vector3 direction, float power)
+        {
+            if (power <= 0f)
+            {
+                return;
+            }
+
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
+            {
+                return;
+            }
+
+            _externalVelocity += direction.normalized * power;
+        }
+
+        /// <summary>
         /// 지정 위치 도착 여부 반환.
         /// </summary>
         /// <param name="targetPosition">도착 확인 위치.</param>
@@ -128,9 +154,10 @@ namespace Work.Enemy.Code
             }
 
             Vector3 horizontalVelocity = GetHorizontalVelocity();
+            Vector3 externalVelocity = GetExternalVelocity();
             ApplyGravity();
 
-            Vector3 totalVelocity = horizontalVelocity + new Vector3(0f, _verticalVelocity, 0f);
+            Vector3 totalVelocity = horizontalVelocity + externalVelocity + new Vector3(0f, _verticalVelocity, 0f);
             _controller.Move(totalVelocity * Time.deltaTime);
         }
 
@@ -170,6 +197,20 @@ namespace Work.Enemy.Code
             }
 
             _verticalVelocity += Physics.gravity.y * Time.deltaTime;
+        }
+
+        private Vector3 GetExternalVelocity()
+        {
+            if (_externalVelocity.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
+            {
+                _externalVelocity = Vector3.zero;
+                return Vector3.zero;
+            }
+
+            Vector3 currentVelocity = _externalVelocity;
+            _externalVelocity = Vector3.Lerp(_externalVelocity, Vector3.zero, impulseDamping * Time.deltaTime);
+
+            return currentVelocity;
         }
 
         private void RotateToDirection(Vector3 direction)

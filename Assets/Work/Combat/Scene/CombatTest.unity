@@ -332,7 +332,7 @@ GameObject:
   - component: {fileID: 2000000413}
   - component: {fileID: 2000000414}
   - component: {fileID: 2000000415}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: ChickSlime
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -709,7 +709,7 @@ GameObject:
   - component: {fileID: 2000000313}
   - component: {fileID: 2000000314}
   - component: {fileID: 2000000315}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: RabbitSlime
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1091,7 +1091,7 @@ GameObject:
   - component: {fileID: 2000000513}
   - component: {fileID: 2000000514}
   - component: {fileID: 2000000515}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: MinsuSlime
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1164,7 +1164,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00008, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  queryTriggerInteraction: 0
+  queryTriggerInteraction: 2
   maxColliderCount: 64
 --- !u!114 &2000000104
 MonoBehaviour:
@@ -1183,7 +1183,7 @@ MonoBehaviour:
   attackOrigin: {fileID: 2000000102}
   targetLayerMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 512
 --- !u!114 &2000000105
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1291,7 +1291,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2000000302}
   - component: {fileID: 2000000303}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Hitbox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1328,7 +1328,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -1362,9 +1362,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf0000a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetRigidbody: {fileID: 0}
-  animator: {fileID: 0}
-  hitTriggerName: Hit
+  movementModule: {fileID: 2000000311}
   hitEffect: {fileID: 0}
   hitAudioSource: {fileID: 0}
 --- !u!114 &2000000306
@@ -1460,7 +1458,10 @@ MonoBehaviour:
   detectionRadius: 5
   attackDistance: 1.5
   patrolRadius: 4
+  patrolPointMoveRadius: 1
   patrolWaitTime: 1.2
+  patrolPointStayTime: 3
+  patrolPointMoveInterval: 0.6
   attackCooldown: 1.25
   targetLayerMask:
     serializedVersion: 2
@@ -1481,6 +1482,7 @@ MonoBehaviour:
   moveSpeed: 2.4
   rotationSpeed: 540
   stoppingDistance: 0.18
+  impulseDamping: 8
 --- !u!114 &2000000312
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1511,7 +1513,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00008, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  queryTriggerInteraction: 0
+  queryTriggerInteraction: 2
   maxColliderCount: 64
 --- !u!114 &2000000314
 MonoBehaviour:
@@ -1538,7 +1540,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1101889110}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1010, type: 3}
   m_Name: 
@@ -1566,7 +1568,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2000000402}
   - component: {fileID: 2000000403}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Hitbox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1603,7 +1605,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -1637,9 +1639,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf0000a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetRigidbody: {fileID: 0}
-  animator: {fileID: 0}
-  hitTriggerName: Hit
+  movementModule: {fileID: 2000000411}
   hitEffect: {fileID: 0}
   hitAudioSource: {fileID: 0}
 --- !u!114 &2000000406
@@ -1735,7 +1735,10 @@ MonoBehaviour:
   detectionRadius: 5
   attackDistance: 1.5
   patrolRadius: 4
+  patrolPointMoveRadius: 1
   patrolWaitTime: 1.2
+  patrolPointStayTime: 3
+  patrolPointMoveInterval: 0.6
   attackCooldown: 1.25
   targetLayerMask:
     serializedVersion: 2
@@ -1756,6 +1759,7 @@ MonoBehaviour:
   moveSpeed: 2.4
   rotationSpeed: 540
   stoppingDistance: 0.18
+  impulseDamping: 8
 --- !u!114 &2000000412
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1786,7 +1790,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00008, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  queryTriggerInteraction: 0
+  queryTriggerInteraction: 2
   maxColliderCount: 64
 --- !u!114 &2000000414
 MonoBehaviour:
@@ -1813,7 +1817,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 321222857}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1010, type: 3}
   m_Name: 
@@ -1841,7 +1845,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2000000502}
   - component: {fileID: 2000000503}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Hitbox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1878,7 +1882,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -1912,9 +1916,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf0000a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetRigidbody: {fileID: 0}
-  animator: {fileID: 0}
-  hitTriggerName: Hit
+  movementModule: {fileID: 2000000511}
   hitEffect: {fileID: 0}
   hitAudioSource: {fileID: 0}
 --- !u!114 &2000000506
@@ -2009,7 +2011,10 @@ MonoBehaviour:
   detectionRadius: 5
   attackDistance: 1.5
   patrolRadius: 4
+  patrolPointMoveRadius: 1
   patrolWaitTime: 1.2
+  patrolPointStayTime: 3
+  patrolPointMoveInterval: 0.6
   attackCooldown: 1.25
   targetLayerMask:
     serializedVersion: 2
@@ -2030,6 +2035,7 @@ MonoBehaviour:
   moveSpeed: 2.4
   rotationSpeed: 540
   stoppingDistance: 0.18
+  impulseDamping: 8
 --- !u!114 &2000000512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2060,7 +2066,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00008, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  queryTriggerInteraction: 0
+  queryTriggerInteraction: 2
   maxColliderCount: 64
 --- !u!114 &2000000514
 MonoBehaviour:
@@ -2087,7 +2093,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1955403664}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1010, type: 3}
   m_Name: 

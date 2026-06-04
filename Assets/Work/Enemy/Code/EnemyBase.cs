@@ -38,9 +38,18 @@ namespace Work.Enemy.Code
         [SerializeField]
         private float patrolRadius = 5f;
 
+        [SerializeField]
+        private float patrolPointMoveRadius = 1f;
+
         [Header("Timing")]
         [SerializeField]
         private float patrolWaitTime = 1.5f;
+
+        [SerializeField]
+        private float patrolPointStayTime = 3f;
+
+        [SerializeField]
+        private float patrolPointMoveInterval = 0.6f;
 
         [SerializeField]
         private float attackCooldown = 1.25f;
@@ -90,6 +99,16 @@ namespace Work.Enemy.Code
         /// 순찰 대기 시간.
         /// </summary>
         public float PatrolWaitTime => patrolWaitTime;
+
+        /// <summary>
+        /// 순찰 지점 주변 체류 시간.
+        /// </summary>
+        public float PatrolPointStayTime => patrolPointStayTime;
+
+        /// <summary>
+        /// 순찰 지점 주변 다음 이동점 선택 간격.
+        /// </summary>
+        public float PatrolPointMoveInterval => patrolPointMoveInterval;
 
         /// <summary>
         /// 공격 쿨타임.
@@ -239,6 +258,25 @@ namespace Work.Enemy.Code
 
             Vector2 offset = Random.insideUnitCircle * radius;
             return _activityCenter + new Vector3(offset.x, 0f, offset.y);
+        }
+
+        /// <summary>
+        /// 순찰 위치 주변의 다음 세부 이동 위치 반환.
+        /// </summary>
+        /// <param name="patrolPoint">기준 순찰 위치.</param>
+        /// <returns>세부 이동 위치.</returns>
+        public virtual Vector3 GetNextPatrolMovePoint(Vector3 patrolPoint)
+        {
+            float radius = Mathf.Min(activityRadius, patrolPointMoveRadius);
+
+            if (radius <= MIN_RANGE)
+            {
+                return ClampToActivityRange(patrolPoint);
+            }
+
+            Vector2 offset = Random.insideUnitCircle * radius;
+            Vector3 nextPoint = patrolPoint + new Vector3(offset.x, 0f, offset.y);
+            return ClampToActivityRange(nextPoint);
         }
 
         /// <summary>
@@ -460,7 +498,10 @@ namespace Work.Enemy.Code
             detectionRadius = Mathf.Max(MIN_RANGE, detectionRadius);
             attackDistance = Mathf.Max(MIN_RANGE, attackDistance);
             patrolRadius = Mathf.Max(MIN_RANGE, patrolRadius);
+            patrolPointMoveRadius = Mathf.Max(MIN_RANGE, patrolPointMoveRadius);
             patrolWaitTime = Mathf.Max(MIN_RANGE, patrolWaitTime);
+            patrolPointStayTime = Mathf.Max(MIN_RANGE, patrolPointStayTime);
+            patrolPointMoveInterval = Mathf.Max(MIN_RANGE, patrolPointMoveInterval);
             attackCooldown = Mathf.Max(MIN_RANGE, attackCooldown);
         }
 
@@ -515,6 +556,22 @@ namespace Work.Enemy.Code
             }
 
             return _stateModule;
+        }
+
+        private Vector3 ClampToActivityRange(Vector3 position)
+        {
+            Vector3 offset = position - _activityCenter;
+            offset.y = 0f;
+
+            if (activityRadius <= MIN_RANGE || offset.sqrMagnitude <= activityRadius * activityRadius)
+            {
+                position.y = _activityCenter.y;
+                return position;
+            }
+
+            Vector3 clampedPosition = _activityCenter + offset.normalized * activityRadius;
+            clampedPosition.y = _activityCenter.y;
+            return clampedPosition;
         }
 
         private static float GetHorizontalSqrDistance(Vector3 from, Vector3 to)
