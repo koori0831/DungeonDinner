@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6606157326208233748}
   - component: {fileID: 8001172885840747736}
+  - component: {fileID: 7607601116747409603}
   m_Layer: 0
-  m_Name: ChatBundleLeft
+  m_Name: NpcChatGroup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62,3 +63,16 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &7607601116747409603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3058638784832558671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64450ba4852fe4e4dbb891bbc022ea3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Chat.Code.ChatGroupField
+  chatTextPrefab: {fileID: -5143488397142188733, guid: 50138cba3a67b55468bbaac8ae7d572e, type: 3}

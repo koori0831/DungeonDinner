@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa23aec0fccc9c2419c477741307ecc5, type: 3}
+  m_Name: CookingDataCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.CookingDataCatalogSO
+  categories:
+  - {fileID: 11400000, guid: 39979cb035d3d3a47b5a874d830cb6de, type: 2}
+  tags:
+  - {fileID: 11400000, guid: b3aec1f75e1dd614c84d9a96d589e272, type: 2}
+  - {fileID: 11400000, guid: f81f586f511794047a2e8ea6d78bc11a, type: 2}
+  - {fileID: 11400000, guid: 76f1481372fcd5d46ae97e20a07ec3b3, type: 2}
+  - {fileID: 11400000, guid: 6d6cf797ec870ab4fb73562c12ad9363, type: 2}
+  - {fileID: 11400000, guid: 60676d69127fb7b4a9aa26fbeb5ae813, type: 2}
+  - {fileID: 11400000, guid: 4b458e5173b0a70428a8942223b32d92, type: 2}
+  - {fileID: 11400000, guid: fd6c757b4fb991746b062ccc094f548b, type: 2}
+  preparationMethods:
+  - {fileID: 11400000, guid: 9dabfeac4b2786c4193ac07edfb9f066, type: 2}
+  - {fileID: 11400000, guid: 0829c3525e31b6142a1a5c6d3c8a0621, type: 2}
+  - {fileID: 11400000, guid: d6fb4052050b2c14fbcbd78dc30d6f20, type: 2}
+  - {fileID: 11400000, guid: 0bf27689e2933414e9d821f203b1c8ea, type: 2}
+  - {fileID: 11400000, guid: 907b04a187eb05d4a845f42e71b3eab5, type: 2}
+  - {fileID: 11400000, guid: c9483caddec3df34b9dd3f1c9394bb0f, type: 2}
+  - {fileID: 11400000, guid: c5b7dc4a32cec2144a701d35039157e6, type: 2}
+  - {fileID: 11400000, guid: 56dddb483dda1084f86431d8d6b73bb4, type: 2}
+  - {fileID: 11400000, guid: 5b5c868b121af2c4b9247aca9eaa8261, type: 2}
+  - {fileID: 11400000, guid: ef77a15d61fd2924b9d5f1b96be16e74, type: 2}
+  ingredients:
+  - {fileID: 11400000, guid: c041f012203d18f4ca779895e3466231, type: 2}
+  - {fileID: 11400000, guid: 1d36f78b627d6164bb6428b48f30473a, type: 2}
+  - {fileID: 11400000, guid: dd76080170621b340be06e1e8961046c, type: 2}
+  - {fileID: 11400000, guid: 52bc682fa3069754f95d8f3eac1877c0, type: 2}
+  - {fileID: 11400000, guid: 1862880296ddaa94fa43920a3bc5e047, type: 2}
+  recipes:
+  - {fileID: 11400000, guid: 9a9e4a45b911c284eb2e71bb29880f3a, type: 2}

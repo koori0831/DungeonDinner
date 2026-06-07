@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: kimchi_stew
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: kimchi_stew
+  displayName: "\uAE40\uCE58\uCC0C\uAC1C"
+  description: 
+  category: {fileID: 11400000, guid: 39979cb035d3d3a47b5a874d830cb6de, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 6d6cf797ec870ab4fb73562c12ad9363, type: 2}
+  - {fileID: 11400000, guid: 60676d69127fb7b4a9aa26fbeb5ae813, type: 2}
+  requiredIngredients:
+  - ingredient: {fileID: 11400000, guid: 1862880296ddaa94fa43920a3bc5e047, type: 2}
+    alternatives: []
+    alternativeOptions:
+    - ingredient: {fileID: 11400000, guid: 52bc682fa3069754f95d8f3eac1877c0, type: 2}
+      resultNameModifier: "\uD638\uAE00\uB9B0 \uACE0\uAE30\uB85C \uB9CC\uB4E0"
+  - ingredient: {fileID: 11400000, guid: 1d36f78b627d6164bb6428b48f30473a, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: dd76080170621b340be06e1e8961046c, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: c041f012203d18f4ca779895e3466231, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  perfectPreparationRules:
+  - ingredient: {fileID: 11400000, guid: 1862880296ddaa94fa43920a3bc5e047, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 907b04a187eb05d4a845f42e71b3eab5, type: 2}
+  - ingredient: {fileID: 11400000, guid: 1d36f78b627d6164bb6428b48f30473a, type: 2}
+    perfectMethod: {fileID: 11400000, guid: ef77a15d61fd2924b9d5f1b96be16e74, type: 2}
+  - ingredient: {fileID: 11400000, guid: dd76080170621b340be06e1e8961046c, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 5b5c868b121af2c4b9247aca9eaa8261, type: 2}
+  - ingredient: {fileID: 11400000, guid: c041f012203d18f4ca779895e3466231, type: 2}
+    perfectMethod: {fileID: 11400000, guid: c9483caddec3df34b9dd3f1c9394bb0f, type: 2}
