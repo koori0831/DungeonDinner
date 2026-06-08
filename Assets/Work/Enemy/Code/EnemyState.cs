@@ -15,6 +15,7 @@ namespace Work.Enemy.Code
         Hidden = 7,
         Exposed = 8,
         Dead = 9,
-        Chase = 10
+        Chase = 10,
+        Return = 11
     }
 }

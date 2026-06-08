@@ -12,6 +12,8 @@ namespace Work.Enemy.Code
     public class EnemyBase : Entity
     {
         private const int MAX_TARGET_COLLIDER_COUNT = 16;
+        private const int PATROL_MOVE_POINT_SAMPLE_COUNT = 6;
+        private const float MIN_DIRECTION_SQR_MAGNITUDE = 0.0001f;
         private const float MIN_RANGE = 0f;
 
         [Header("Initialize")]
@@ -36,6 +38,12 @@ namespace Work.Enemy.Code
         private float attackDistance = 1.5f;
 
         [SerializeField]
+        private float returnInsideMargin = 1.5f;
+
+        [SerializeField]
+        private float attackEnterAngle = 12f;
+
+        [SerializeField]
         private float patrolRadius = 5f;
 
         [SerializeField]
@@ -53,6 +61,9 @@ namespace Work.Enemy.Code
 
         [SerializeField]
         private float attackCooldown = 1.25f;
+
+        [SerializeField]
+        private float chaseReturnDelay = 1.5f;
 
         [Header("Detection")]
         [SerializeField]
@@ -96,6 +107,11 @@ namespace Work.Enemy.Code
         public float AttackDistance => attackDistance;
 
         /// <summary>
+        /// 공격 상태 진입 허용 각도.
+        /// </summary>
+        public float AttackEnterAngle => attackEnterAngle;
+
+        /// <summary>
         /// 순찰 대기 시간.
         /// </summary>
         public float PatrolWaitTime => patrolWaitTime;
@@ -114,6 +130,11 @@ namespace Work.Enemy.Code
         /// 공격 쿨타임.
         /// </summary>
         public float AttackCooldown => attackCooldown;
+
+        /// <summary>
+        /// 활동 범위 이탈 후 복귀 전환까지 대기 시간.
+        /// </summary>
+        public float ChaseReturnDelay => chaseReturnDelay;
 
         /// <summary>
         /// 사망 여부.
@@ -244,6 +265,49 @@ namespace Work.Enemy.Code
         }
 
         /// <summary>
+        /// 복귀 완료 영역 안쪽 포함 여부 반환.
+        /// </summary>
+        /// <returns>복귀 완료 영역 포함 여부.</returns>
+        public virtual bool IsInsideReturnArea()
+        {
+            float insideRadius = Mathf.Max(MIN_RANGE, activityRadius - returnInsideMargin);
+            float sqrDistance = GetHorizontalSqrDistance(_activityCenter, transform.position);
+            return sqrDistance <= insideRadius * insideRadius;
+        }
+
+        /// <summary>
+        /// 현재 타겟을 지정 각도 이내로 바라보는지 반환.
+        /// </summary>
+        /// <param name="maxAngle">허용 각도.</param>
+        /// <returns>타겟 방향 정렬 여부.</returns>
+        public virtual bool IsFacingTarget(float maxAngle)
+        {
+            if (_target == null)
+            {
+                return false;
+            }
+
+            Vector3 targetDirection = _target.position - transform.position;
+            targetDirection.y = 0f;
+
+            if (targetDirection.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
+            {
+                return true;
+            }
+
+            Vector3 forward = transform.forward;
+            forward.y = 0f;
+
+            if (forward.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
+            {
+                return true;
+            }
+
+            float angle = Vector3.Angle(forward.normalized, targetDirection.normalized);
+            return angle <= maxAngle;
+        }
+
+        /// <summary>
         /// 활동 범위 내 다음 순찰 위치 반환.
         /// </summary>
         /// <returns>순찰 위치.</returns>
@@ -274,9 +338,38 @@ namespace Work.Enemy.Code
                 return ClampToActivityRange(patrolPoint);
             }
 
-            Vector2 offset = Random.insideUnitCircle * radius;
-            Vector3 nextPoint = patrolPoint + new Vector3(offset.x, 0f, offset.y);
-            return ClampToActivityRange(nextPoint);
+            float minimumSqrDistance = GetPatrolMoveMinimumSqrDistance();
+            Vector3 selectedPoint = ClampToActivityRange(patrolPoint);
+            float selectedSqrDistance = GetHorizontalSqrDistance(transform.position, selectedPoint);
+
+            for (int i = 0; i < PATROL_MOVE_POINT_SAMPLE_COUNT; i++)
+            {
+                Vector2 offset = Random.insideUnitCircle * radius;
+                Vector3 nextPoint = ClampToActivityRange(patrolPoint + new Vector3(offset.x, 0f, offset.y));
+                float sqrDistance = GetHorizontalSqrDistance(transform.position, nextPoint);
+
+                if (sqrDistance >= minimumSqrDistance)
+                {
+                    return nextPoint;
+                }
+
+                if (sqrDistance > selectedSqrDistance)
+                {
+                    selectedPoint = nextPoint;
+                    selectedSqrDistance = sqrDistance;
+                }
+            }
+
+            return selectedPoint;
+        }
+
+        /// <summary>
+        /// 복귀 목표 위치 반환.
+        /// </summary>
+        /// <returns>복귀 목표 위치.</returns>
+        public virtual Vector3 GetReturnPoint()
+        {
+            return _activityCenter;
         }
 
         /// <summary>
@@ -346,7 +439,6 @@ namespace Work.Enemy.Code
             }
 
             _nextAttackTime = Time.time + attackCooldown;
-            FaceTarget();
             OnBeforeAttack();
 
             if (attackExecutor == null)
@@ -497,12 +589,15 @@ namespace Work.Enemy.Code
             activityRadius = Mathf.Max(MIN_RANGE, activityRadius);
             detectionRadius = Mathf.Max(MIN_RANGE, detectionRadius);
             attackDistance = Mathf.Max(MIN_RANGE, attackDistance);
+            returnInsideMargin = Mathf.Max(MIN_RANGE, returnInsideMargin);
+            attackEnterAngle = Mathf.Max(MIN_RANGE, attackEnterAngle);
             patrolRadius = Mathf.Max(MIN_RANGE, patrolRadius);
             patrolPointMoveRadius = Mathf.Max(MIN_RANGE, patrolPointMoveRadius);
             patrolWaitTime = Mathf.Max(MIN_RANGE, patrolWaitTime);
             patrolPointStayTime = Mathf.Max(MIN_RANGE, patrolPointStayTime);
             patrolPointMoveInterval = Mathf.Max(MIN_RANGE, patrolPointMoveInterval);
             attackCooldown = Mathf.Max(MIN_RANGE, attackCooldown);
+            chaseReturnDelay = Mathf.Max(MIN_RANGE, chaseReturnDelay);
         }
 
         protected virtual void OnDrawGizmosSelected()
@@ -556,6 +651,13 @@ namespace Work.Enemy.Code
             }
 
             return _stateModule;
+        }
+
+        private float GetPatrolMoveMinimumSqrDistance()
+        {
+            EnemyMovementModule movementModule = GetMovementModule();
+            float minimumDistance = movementModule != null ? movementModule.StoppingDistance * 2f : MIN_RANGE;
+            return minimumDistance * minimumDistance;
         }
 
         private Vector3 ClampToActivityRange(Vector3 position)

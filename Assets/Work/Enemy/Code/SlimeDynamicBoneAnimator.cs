@@ -143,17 +143,17 @@ namespace Work.Enemy.Code
                 return 0f;
             }
 
-            if (currentState == EnemyState.Patrol || currentState == EnemyState.Chase)
+            if (frameMovement.sqrMagnitude <= MIN_MOVE_SQR_MAGNITUDE)
+            {
+                return 0f;
+            }
+
+            if (currentState == EnemyState.Patrol || currentState == EnemyState.Chase || currentState == EnemyState.Return)
             {
                 return 1f;
             }
 
-            if (frameMovement.sqrMagnitude > MIN_MOVE_SQR_MAGNITUDE)
-            {
-                return 0.75f;
-            }
-
-            return 0f;
+            return 0.75f;
         }
 
         private float GetPulseSpeed(EnemyState currentState, float motionWeight)

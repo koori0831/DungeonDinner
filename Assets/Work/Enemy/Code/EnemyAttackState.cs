@@ -43,14 +43,7 @@ namespace Work.Enemy.Code
 
             if (_enemy.Target == null && _enemy.TryAcquireTarget() == false)
             {
-                ChangeState(EnemyStateNames.IDLE);
-                return;
-            }
-
-            if (_enemy.IsTargetInActivityRange() == false)
-            {
-                _enemy.ClearTarget();
-                ChangeState(EnemyStateNames.IDLE);
+                ChangeState(EnemyStateNames.RETURN);
                 return;
             }
 
@@ -60,8 +53,13 @@ namespace Work.Enemy.Code
                 return;
             }
 
+            if (_enemy.IsFacingTarget(_enemy.AttackEnterAngle) == false)
+            {
+                ChangeState(EnemyStateNames.CHASE);
+                return;
+            }
+
             _enemy.StopMoving();
-            _enemy.FaceTarget();
             TryExecuteAttack();
         }
 

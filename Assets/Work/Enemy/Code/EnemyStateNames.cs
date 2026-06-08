@@ -9,6 +9,7 @@ namespace Work.Enemy.Code
         public const string PATROL = "Patrol";
         public const string CHASE = "Chase";
         public const string ATTACK = "Attack";
+        public const string RETURN = "Return";
         public const string DEAD = "Dead";
     }
 }
