@@ -332,6 +332,9 @@ GameObject:
   - component: {fileID: 2000000413}
   - component: {fileID: 2000000414}
   - component: {fileID: 2000000415}
+  - component: {fileID: 2000000416}
+  - component: {fileID: 2000000417}
+  - component: {fileID: 2000000418}
   m_Layer: 9
   m_Name: ChickSlime
   m_TagString: Untagged
@@ -709,6 +712,9 @@ GameObject:
   - component: {fileID: 2000000313}
   - component: {fileID: 2000000314}
   - component: {fileID: 2000000315}
+  - component: {fileID: 2000000316}
+  - component: {fileID: 2000000317}
+  - component: {fileID: 2000000318}
   m_Layer: 9
   m_Name: RabbitSlime
   m_TagString: Untagged
@@ -1091,6 +1097,9 @@ GameObject:
   - component: {fileID: 2000000513}
   - component: {fileID: 2000000514}
   - component: {fileID: 2000000515}
+  - component: {fileID: 2000000516}
+  - component: {fileID: 2000000517}
+  - component: {fileID: 2000000518}
   m_Layer: 9
   m_Name: MinsuSlime
   m_TagString: Untagged
@@ -1360,8 +1369,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf0000a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name: ""
+  m_EditorClassIdentifier: ""
   movementModule: {fileID: 2000000311}
   hitEffect: {fileID: 0}
   hitAudioSource: {fileID: 0}
@@ -1453,23 +1462,59 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initializeOnAwake: 1
   stateController: {fileID: 2000000308}
-  attackExecutor: {fileID: 2000000314}
+--- !u!114 &2000000316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1101889110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1013, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
   activityRadius: 8
-  detectionRadius: 5
-  attackDistance: 1.5
   returnInsideMargin: 1.5
-  attackEnterAngle: 12
   patrolRadius: 4
   patrolPointMoveRadius: 1
   patrolWaitTime: 1.2
   patrolPointStayTime: 3
   patrolPointMoveInterval: 0.6
-  attackCooldown: 1.25
   chaseReturnDelay: 1.5
+--- !u!114 &2000000317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1101889110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1014, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
+  detectionRadius: 5
   targetLayerMask:
     serializedVersion: 2
     m_Bits: 256
   targetQueryTriggerInteraction: 1
+--- !u!114 &2000000318
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1101889110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1015, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
+  attackExecutor: {fileID: 2000000314}
+  attackDistance: 1.5
+  attackEnterAngle: 12
+  attackCooldown: 1.25
 --- !u!114 &2000000311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1641,8 +1686,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf0000a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name: ""
+  m_EditorClassIdentifier: ""
   movementModule: {fileID: 2000000411}
   hitEffect: {fileID: 0}
   hitAudioSource: {fileID: 0}
@@ -1734,23 +1779,59 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initializeOnAwake: 1
   stateController: {fileID: 2000000408}
-  attackExecutor: {fileID: 2000000414}
+--- !u!114 &2000000416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321222857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1013, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
   activityRadius: 8
-  detectionRadius: 5
-  attackDistance: 1.5
   returnInsideMargin: 1.5
-  attackEnterAngle: 12
   patrolRadius: 4
   patrolPointMoveRadius: 1
   patrolWaitTime: 1.2
   patrolPointStayTime: 3
   patrolPointMoveInterval: 0.6
-  attackCooldown: 1.25
   chaseReturnDelay: 1.5
+--- !u!114 &2000000417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321222857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1014, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
+  detectionRadius: 5
   targetLayerMask:
     serializedVersion: 2
     m_Bits: 256
   targetQueryTriggerInteraction: 1
+--- !u!114 &2000000418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321222857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1015, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
+  attackExecutor: {fileID: 2000000414}
+  attackDistance: 1.5
+  attackEnterAngle: 12
+  attackCooldown: 1.25
 --- !u!114 &2000000411
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1922,8 +2003,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf0000a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name: ""
+  m_EditorClassIdentifier: ""
   movementModule: {fileID: 2000000511}
   hitEffect: {fileID: 0}
   hitAudioSource: {fileID: 0}
@@ -2014,23 +2095,59 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initializeOnAwake: 1
   stateController: {fileID: 2000000508}
-  attackExecutor: {fileID: 2000000514}
+--- !u!114 &2000000516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1955403664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1013, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
   activityRadius: 8
-  detectionRadius: 5
-  attackDistance: 1.5
   returnInsideMargin: 1.5
-  attackEnterAngle: 12
   patrolRadius: 4
   patrolPointMoveRadius: 1
   patrolWaitTime: 1.2
   patrolPointStayTime: 3
   patrolPointMoveInterval: 0.6
-  attackCooldown: 1.25
   chaseReturnDelay: 1.5
+--- !u!114 &2000000517
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1955403664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1014, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
+  detectionRadius: 5
   targetLayerMask:
     serializedVersion: 2
     m_Bits: 256
   targetQueryTriggerInteraction: 1
+--- !u!114 &2000000518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1955403664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1015, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
+  attackExecutor: {fileID: 2000000514}
+  attackDistance: 1.5
+  attackEnterAngle: 12
+  attackCooldown: 1.25
 --- !u!114 &2000000511
 MonoBehaviour:
   m_ObjectHideFlags: 0

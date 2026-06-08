@@ -148,7 +148,7 @@ namespace Work.Enemy.Code
 
         private void Update()
         {
-            if (_controller == null)
+            if (_controller == null || _controller.enabled == false || gameObject.activeInHierarchy == false)
             {
                 return;
             }
