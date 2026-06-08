@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: dark_ale
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: dark_ale
+  displayName: "\uAC80\uC740 \uB9E5\uC8FC"
+  description: "\uB4DC\uC6CC\uD504\uB4E4\uC774 \uBD88\uC758 \uB0A0\uC5D0 \uC790\uC8FC \uC62C\uB9AC\uB294 \uC9C4\uD55C \uB9E5\uC8FC\uC785\uB2C8\uB2E4."
+  baseTags:
+  - {fileID: 11400000, guid: 35061ca0c89f43f48f2be9a41b797464, type: 2}
+  - {fileID: 11400000, guid: 42767d7f7b184cbfa4a6fdf2ee7f9006, type: 2}
+  - {fileID: 11400000, guid: 341b32994b2c40499bcf898bf2cc6d34, type: 2}
+  preparationOptions:
+  - method: {fileID: 11400000, guid: 99cdbb4b6ee840cf8c453522c8f1ea85, type: 2}
+    displayNameOverride: "\uB9C8\uC9C0\uB9C9\uC5D0 \uBD93\uAE30"
+    description: "\uC220\uD5A5\uC744 \uC0B4\uB824 \uC74C\uC2DD\uC5D0 \uAE4A\uC774\uB97C \uB354\uD569\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: d85c3609b19d45238ce3a6179e90b20f, type: 2}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: ""
+  - method: {fileID: 11400000, guid: 978ded8a9c9843839eb559f758a156e3, type: 2}
+    displayNameOverride: "\uD5A5 \uB0A0\uB824\uBC84\uB9AC\uAE30"
+    description: "\uC220\uD5A5\uC774 \uB0A0\uC544\uAC00 \uC4F4\uB9DB\uB9CC \uB0A8\uC2B5\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 42767d7f7b184cbfa4a6fdf2ee7f9006, type: 2}
+    removeTags:
+    - {fileID: 11400000, guid: 35061ca0c89f43f48f2be9a41b797464, type: 2}
+    qualityDelta: -1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: "\uC4F4"
+  - method: {fileID: 11400000, guid: 52ba5fd02ebe4304a0aaca02c7810876, type: 2}
+    displayNameOverride: "\uC270 \uB9E5\uC8FC \uBD93\uAE30"
+    description: "\uC270 \uB0C4\uC0C8\uAC00 \uC62C\uB77C\uC640 \uAD34\uC2DD\uC774 \uB429\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 8c88cef2dded4c899d022234232f1bca, type: 2}
+    - {fileID: 11400000, guid: a38e124cd84d43ab8584a911e6a8f037, type: 2}
+    removeTags: []
+    qualityDelta: -3
+    causesDisgusting: 1
+    addsPoison: 0
+    resultNameModifier: "\uC270"

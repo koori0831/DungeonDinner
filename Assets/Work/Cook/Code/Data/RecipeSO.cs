@@ -61,7 +61,29 @@ namespace Work.Cook.Code.Data
             for (int i = 0; i < perfectPreparationRules.Count; i++)
             {
                 RecipePreparationRule rule = perfectPreparationRules[i];
-                if (rule != null && rule.IsSatisfiedBy(ingredient, method))
+                if (rule != null
+                    && rule.PerfectMethod == method
+                    && IsRequirementIngredientMatchedBy(rule.Ingredient, ingredient))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool IsRequirementIngredientMatchedBy(IngredientSO requirementIngredient, IngredientSO candidate)
+        {
+            if (requirementIngredient == null || candidate == null)
+                return false;
+
+            if (candidate == requirementIngredient)
+                return true;
+
+            for (int i = 0; i < requiredIngredients.Count; i++)
+            {
+                RecipeIngredientRequirement requirement = requiredIngredients[i];
+                if (requirement != null
+                    && requirement.Ingredient == requirementIngredient
+                    && requirement.IsMatchedBy(candidate))
                     return true;
             }
 

@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: Marel_TofuTideBowl
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: Marel_TofuTideBowl
+  displayName: "\uB450\uBD80 \uBB3C\uACB0 \uC218\uD504"
+  description: "\uB450\uBD80\uC640 \uB2E4\uC2DC\uB9C8\uB97C \uCC28\uAC8C \uC720\uC9C0\uD574 \uC5B4\uC778\uB3C4 \uD3B8\uD558\uAC8C \uBA39\uC744 \uC218 \uC788\uB294 \uC218\uD504\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: cf71c194ead345ddb132e77e9798c914, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 554c2104076941379581787648732e2f, type: 2}
+  - {fileID: 11400000, guid: 5b6888cfbe3e4cf58e49279be35581fb, type: 2}
+  - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}
+  - {fileID: 11400000, guid: f83e7e5d446642a58184065b23a9db48, type: 2}
+  - {fileID: 11400000, guid: 6687bfbad1aa46e5b10044be28cf0ecc, type: 2}
+  requiredIngredients:
+  - ingredient: {fileID: 11400000, guid: e9b2794197fc41c89dbeb57b08ebb263, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: 081fb62d7e564d03a6f6768adf36a1be, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: fdecdc16d97f4b18b50cbc18dd2c6991, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  perfectPreparationRules:
+  - ingredient: {fileID: 11400000, guid: e9b2794197fc41c89dbeb57b08ebb263, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 11de8ca744894504a53023b474b6c1df, type: 2}
+  - ingredient: {fileID: 11400000, guid: 081fb62d7e564d03a6f6768adf36a1be, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 2b698a6dcf834791aac6d8594f3de0b3, type: 2}
+  - ingredient: {fileID: 11400000, guid: fdecdc16d97f4b18b50cbc18dd2c6991, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 537a756678c8447e870f17502c470cc2, type: 2}

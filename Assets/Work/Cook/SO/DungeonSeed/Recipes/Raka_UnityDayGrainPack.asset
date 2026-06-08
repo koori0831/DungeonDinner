@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: Raka_UnityDayGrainPack
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: Raka_UnityDayGrainPack
+  displayName: "\uB300\uD1B5\uD569 \uACE1\uBB3C \uAFB8\uB7EC\uBBF8"
+  description: "\uC218\uC778 \uB300\uD1B5\uD569\uC758 \uB0A0\uC744 \uB5A0\uC62C\uB9AC\uAC8C \uD558\uB294 \uACE1\uBB3C \uAC04\uC2DD \uAFB8\uB7EC\uBBF8\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 248f4576b868489aaf71e2a6ec90ecf2, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 23801e839340456f9cdf1a2a8534e6e5, type: 2}
+  - {fileID: 11400000, guid: ed39be636feb4c0fa5eab3f7b1eb0986, type: 2}
+  - {fileID: 11400000, guid: 4267bfc0ea9b4484a88d6ff3944a2266, type: 2}
+  - {fileID: 11400000, guid: 7831f451243c44f9850fc9160ab6aa5f, type: 2}
+  - {fileID: 11400000, guid: a7eeab56863c4e8aafa56b21cf85f40b, type: 2}
+  requiredIngredients:
+  - ingredient: {fileID: 11400000, guid: 7aa26f9b1f594ee28167d491bc51374c, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: 434adee8b1d84936963c75275bc11137, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: c1cf8974ca7741aeb10651d03f847dd2, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  perfectPreparationRules:
+  - ingredient: {fileID: 11400000, guid: 7aa26f9b1f594ee28167d491bc51374c, type: 2}
+    perfectMethod: {fileID: 11400000, guid: dc2a81df538f4fbaa8d3bce902a59b6e, type: 2}
+  - ingredient: {fileID: 11400000, guid: 434adee8b1d84936963c75275bc11137, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 5b9a5e374fe04b6eb540377ef6012710, type: 2}
+  - ingredient: {fileID: 11400000, guid: c1cf8974ca7741aeb10651d03f847dd2, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 9018483ad3074ed5b8ad24ea837cb988, type: 2}

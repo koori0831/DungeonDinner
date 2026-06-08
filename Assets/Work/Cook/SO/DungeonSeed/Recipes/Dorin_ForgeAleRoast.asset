@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: Dorin_ForgeAleRoast
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: Dorin_ForgeAleRoast
+  displayName: "\uB300\uC7A5\uAC04 \uB9E5\uC8FC \uAD6C\uC774"
+  description: "\uAC80\uC740 \uB9E5\uC8FC \uD5A5\uC744 \uB9C8\uC9C0\uB9C9\uC5D0 \uC785\uD78C \uB728\uAC70\uC6B4 \uACE0\uAE30\uAD6C\uC774\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 9dd7a2cb0d664f48b0413196dc773171, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 0e58aec8594f447cbfe42c7acc6de3ad, type: 2}
+  - {fileID: 11400000, guid: 341b32994b2c40499bcf898bf2cc6d34, type: 2}
+  - {fileID: 11400000, guid: 75ab2c8b1c02485d8471ee0de3404b72, type: 2}
+  - {fileID: 11400000, guid: 72116030b59a4f898375907171ba34d9, type: 2}
+  - {fileID: 11400000, guid: 35061ca0c89f43f48f2be9a41b797464, type: 2}
+  requiredIngredients:
+  - ingredient: {fileID: 11400000, guid: fe00b6c1c8e045c4aa7468f6b1a75d84, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: fdbeef51e64c4aaeb6e2c83eabf51086, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: be6ef96f304c48a680dd91952971151c, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  perfectPreparationRules:
+  - ingredient: {fileID: 11400000, guid: fe00b6c1c8e045c4aa7468f6b1a75d84, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 0722b32616c04964874be231b3e7e785, type: 2}
+  - ingredient: {fileID: 11400000, guid: fdbeef51e64c4aaeb6e2c83eabf51086, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 99cdbb4b6ee840cf8c453522c8f1ea85, type: 2}
+  - ingredient: {fileID: 11400000, guid: be6ef96f304c48a680dd91952971151c, type: 2}
+    perfectMethod: {fileID: 11400000, guid: f9a2833693f14360b18e28f35706e533, type: 2}

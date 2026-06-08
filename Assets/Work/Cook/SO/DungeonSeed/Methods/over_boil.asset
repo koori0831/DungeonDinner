@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74164158a6dc1304e8724f55b2ffb957, type: 3}
+  m_Name: over_boil
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
+  methodId: over_boil
+  displayName: "\uACFC\uD558\uAC8C \uC0B6\uAE30"
+  description: "\uC218\uBD84\uC774 \uBE60\uC9C0\uACE0 \uB9DB\uC774 \uD750\uB824\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4."

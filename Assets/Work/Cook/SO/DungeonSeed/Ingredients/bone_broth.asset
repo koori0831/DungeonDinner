@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: bone_broth
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: bone_broth
+  displayName: "\uBF08 \uC721\uC218"
+  description: "\uC624\uB798 \uB053\uC5EC \uC804\uC0AC\uC758 \uC18D\uC744 \uCC44\uC6B0\uB294 \uC9C4\uD55C \uC721\uC218\uC785\uB2C8\uB2E4."
+  baseTags:
+  - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}
+  - {fileID: 11400000, guid: d85c3609b19d45238ce3a6179e90b20f, type: 2}
+  - {fileID: 11400000, guid: f3048e6f173c4f9b924131e33f7d225d, type: 2}
+  preparationOptions:
+  - method: {fileID: 11400000, guid: a4a50091287445d5b82965f8101ec9ca, type: 2}
+    displayNameOverride: "\uC9C4\uD558\uAC8C \uB053\uC774\uAE30"
+    description: "\uBF08\uC758 \uAE4A\uC740 \uB9DB\uC744 \uB04C\uC5B4\uB0C5\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: ""
+  - method: {fileID: 11400000, guid: a33853f9efb148ce96f942e274ee9201, type: 2}
+    displayNameOverride: "\uBB3C \uD0C0\uAE30"
+    description: "\uD798 \uC788\uB294 \uB9DB\uC774 \uD750\uB824\uC9D1\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 3d89c4abb512435fb92b9dc8b4986bf7, type: 2}
+    removeTags:
+    - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}
+    qualityDelta: -1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: "\uBB3D\uC5B4\uC9C4"
+  - method: {fileID: 11400000, guid: 7073dd4cf58a47b988ffc52c0f6a2304, type: 2}
+    displayNameOverride: "\uC0C1\uD55C \uAD6D\uBB3C \uC4F0\uAE30"
+    description: "\uC624\uB798\uB41C \uAD6D\uBB3C\uC774 \uC74C\uC2DD \uC804\uCCB4\uB97C \uB9DD\uCE69\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 8c88cef2dded4c899d022234232f1bca, type: 2}
+    removeTags: []
+    qualityDelta: -3
+    causesDisgusting: 1
+    addsPoison: 1
+    resultNameModifier: "\uC0C1\uD55C"

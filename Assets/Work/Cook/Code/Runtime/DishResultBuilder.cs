@@ -142,7 +142,9 @@ namespace Work.Cook.Code.Runtime
                 for (int preparedIndex = 0; preparedIndex < session.PreparedIngredients.Count; preparedIndex++)
                 {
                     PreparedIngredientState prepared = session.PreparedIngredients[preparedIndex];
-                    if (prepared != null && rule.IsSatisfiedBy(prepared.Ingredient, prepared.Method))
+                    if (prepared != null
+                        && prepared.Method == rule.PerfectMethod
+                        && recipe.IsRequirementIngredientMatchedBy(rule.Ingredient, prepared.Ingredient))
                     {
                         matched = true;
                         break;

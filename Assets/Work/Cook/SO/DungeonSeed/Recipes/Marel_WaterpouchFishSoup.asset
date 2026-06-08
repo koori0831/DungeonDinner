@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: Marel_WaterpouchFishSoup
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: Marel_WaterpouchFishSoup
+  displayName: "\uBB3C\uC8FC\uBA38\uB2C8 \uC0DD\uC120 \uC218\uD504"
+  description: "\uC5B4\uC778\uC758 \uC544\uAC00\uBBF8\uAC00 \uB9C8\uB974\uC9C0 \uC54A\uB3C4\uB85D \uC218\uBD84\uC744 \uC9C0\uD0A8 \uBD80\uB4DC\uB7EC\uC6B4 \uC0DD\uC120 \uC218\uD504\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: cf71c194ead345ddb132e77e9798c914, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 5590325869c34d169a0df6f2ce184d85, type: 2}
+  - {fileID: 11400000, guid: 5b6888cfbe3e4cf58e49279be35581fb, type: 2}
+  - {fileID: 11400000, guid: 554c2104076941379581787648732e2f, type: 2}
+  - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}
+  - {fileID: 11400000, guid: f3048e6f173c4f9b924131e33f7d225d, type: 2}
+  requiredIngredients:
+  - ingredient: {fileID: 11400000, guid: a8fc5cae54c24f92969f78564c238bba, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: fdecdc16d97f4b18b50cbc18dd2c6991, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  - ingredient: {fileID: 11400000, guid: e9b2794197fc41c89dbeb57b08ebb263, type: 2}
+    alternatives: []
+    alternativeOptions: []
+  perfectPreparationRules:
+  - ingredient: {fileID: 11400000, guid: a8fc5cae54c24f92969f78564c238bba, type: 2}
+    perfectMethod: {fileID: 11400000, guid: dbdf08b656b54ff38eb9840bbb7efe35, type: 2}
+  - ingredient: {fileID: 11400000, guid: fdecdc16d97f4b18b50cbc18dd2c6991, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 2030abb6a30044cb888a191c429ab410, type: 2}
+  - ingredient: {fileID: 11400000, guid: e9b2794197fc41c89dbeb57b08ebb263, type: 2}
+    perfectMethod: {fileID: 11400000, guid: 11de8ca744894504a53023b474b6c1df, type: 2}
