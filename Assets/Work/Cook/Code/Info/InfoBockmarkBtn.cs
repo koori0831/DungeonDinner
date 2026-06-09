@@ -10,7 +10,8 @@ namespace Work.Cook.Code.Info
     {
         private Button _button;
         private float _defaultXValue;
-        private RectTransform _rect => gameObject != null ? transform as RectTransform : null;
+        public RectTransform Rect => gameObject != null ? transform as RectTransform : null;
+        
 
         [SerializeField] private float offset;
         [SerializeField] private float maxMoveDistance;
@@ -25,19 +26,19 @@ namespace Work.Cook.Code.Info
         {
             _button = GetComponent<Button>();
             _button.onClick.AddListener(() => buttonEvent.Invoke());
-            _defaultXValue = _rect.anchoredPosition.x + offset;
+            _defaultXValue = Rect.anchoredPosition.x + offset;
         }
 
         public void MouseEnter()
         {
             Debug.Log("마우스 진입");
-            _rect.DOAnchorPosX(_defaultXValue + maxMoveDistance, moveTime);
+            Rect.DOAnchorPosX(_defaultXValue + maxMoveDistance, moveTime);
         }
 
         public void MouseExit()
         {
             Debug.Log("마우스 탈출");
-            _rect.DOAnchorPosX(_defaultXValue, moveTime);
+            Rect.DOAnchorPosX(_defaultXValue, moveTime);
         }
     }
 }

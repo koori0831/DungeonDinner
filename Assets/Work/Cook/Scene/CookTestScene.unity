@@ -1561,7 +1561,7 @@ GameObject:
   - component: {fileID: 661893997}
   - component: {fileID: 661893996}
   m_Layer: 0
-  m_Name: InfoPanel
+  m_Name: InfoDisplayPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1756,7 +1756,6 @@ GameObject:
   - component: {fileID: 745710733}
   - component: {fileID: 745710732}
   - component: {fileID: 745710731}
-  - component: {fileID: 745710734}
   m_Layer: 0
   m_Name: Chapter
   m_TagString: Untagged
@@ -1780,7 +1779,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -4.72, y: -10}
+  m_AnchoredPosition: {x: -4.7199707, y: -10}
   m_SizeDelta: {x: 225.9, y: 380.39}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &745710731
@@ -1834,32 +1833,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 745710729}
   m_CullTransparentMesh: 1
---- !u!114 &745710734
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 745710729}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
-  m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 0
-  m_Spacing: -115
-  m_ChildForceExpandWidth: 0
-  m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 0
-  m_ChildControlHeight: 0
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
-  m_ReverseArrangement: 0
 --- !u!1 &752288110
 GameObject:
   m_ObjectHideFlags: 0
@@ -3568,10 +3541,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryPanel
   testCount: 4
+  y_Offset: -40
+  default_X_Value: -100
   viewParent: {fileID: 1767051155}
   bockmarkParent: {fileID: 745710730}
   scrollViewPrefavb: {fileID: 3005767808159173009, guid: a08ee6cae3324a4428f13cfce67688cb, type: 3}
-  bockmarkPrefab: {fileID: 5573288790187852850, guid: 63b9e110d035a9046bb10ce024a56dda, type: 3}
+  bockmarkPrefab: {fileID: 3643260068710521077, guid: 63b9e110d035a9046bb10ce024a56dda, type: 3}
 --- !u!1 &1870782087
 GameObject:
   m_ObjectHideFlags: 0

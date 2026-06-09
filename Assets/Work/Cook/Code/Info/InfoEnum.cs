@@ -1,3 +1,5 @@
+using System;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace Work.Cook.Code.Info
@@ -24,5 +26,23 @@ namespace Work.Cook.Code.Info
         Kardum_Underground_Republic,
         Neria_Underwater_Kingdom,
         None = -1,
+    }
+
+    public enum MarkerEnum
+    {
+        Country,
+        Tribe,
+        Ingredient,
+        Monster,
+
+    }
+
+    [Flags]
+    public enum ViewHaveInfoEnum
+    {
+        Image = 1 << 0,
+        Name = 1 << 1,
+        Description = 1 << 2,
+        Index = 1 << 3,
     }
 }

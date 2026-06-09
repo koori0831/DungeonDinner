@@ -12,6 +12,7 @@ namespace Work.Cook.Code.Info
         public string Name { get; private set; }
     }
 
+    [Serializable]
     /// <summary>
     /// 사전의 기본적인 정보
     /// </summary>

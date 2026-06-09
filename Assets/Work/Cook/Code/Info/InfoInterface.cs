@@ -4,13 +4,20 @@ namespace Work.Cook.Code.Info
 {
     public class InfoInterface { }
 
-    public interface IHaveImageInfo 
+    public interface IInfoInterface { }
+
+    public interface IHaveImageInfo : IInfoInterface
     {
         public Sprite Sprite { get; }
     }
 
-    public interface IHaveDescriptionInfo
+    public interface IHaveDescriptionInfo : IInfoInterface
     {
         public string Description { get; }
+    }
+
+    public interface IDisplayInfo
+    {
+
     }
 }
