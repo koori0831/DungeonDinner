@@ -568,6 +568,7 @@ namespace Work.Cook.Code.Editor
             EditorGUILayout.LabelField("카테고리 정보", EditorStyles.boldLabel);
             _categoryDraft.CategoryId = EditorGUILayout.TextField("카테고리 ID", _categoryDraft.CategoryId);
             _categoryDraft.DisplayName = EditorGUILayout.TextField("표시 이름", _categoryDraft.DisplayName);
+            _categoryDraft.Icon = (Sprite)EditorGUILayout.ObjectField("책갈피 아이콘", _categoryDraft.Icon, typeof(Sprite), false);
             EditorGUILayout.LabelField("설명");
             _categoryDraft.Description = EditorGUILayout.TextArea(_categoryDraft.Description, GUILayout.MinHeight(80f));
             EditorGUILayout.HelpBox("카테고리는 음식의 큰 분류입니다. 예: 찌개, 구이, 디저트, 괴식.", MessageType.None);
@@ -932,6 +933,7 @@ namespace Work.Cook.Code.Editor
         {
             SetString(serialized, "categoryId", _categoryDraft.CategoryId);
             SetString(serialized, "displayName", _categoryDraft.DisplayName);
+            SetObject(serialized, "icon", _categoryDraft.Icon);
             SetString(serialized, "description", _categoryDraft.Description);
         }
 
@@ -1793,6 +1795,7 @@ namespace Work.Cook.Code.Editor
         {
             public string CategoryId;
             public string DisplayName;
+            public Sprite Icon;
             public string Description;
 
             public static CategoryDraft From(FoodCategorySO category)
@@ -1802,6 +1805,7 @@ namespace Work.Cook.Code.Editor
                 {
                     CategoryId = ReadString(serialized, "categoryId"),
                     DisplayName = ReadString(serialized, "displayName"),
+                    Icon = ReadObject<Sprite>(serialized, "icon"),
                     Description = ReadString(serialized, "description")
                 };
             }

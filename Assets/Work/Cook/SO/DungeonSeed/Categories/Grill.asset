@@ -14,4 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodCategorySO
   categoryId: Grill
   displayName: "\uAD6C\uC774"
-  description: "\uBD88\uACFC \uC5F4\uB85C \uC9C1\uC811 \uC775\uD788\uB294 \uC694\uB9AC \uACC4\uC5F4\uC785\uB2C8\uB2E4."
+  icon: {fileID: 21300000, guid: f4ba6d09800dbd949b5c969fbb059e3c, type: 3}
+  description: "\uBD88\uACFC \uC5F4\uB85C \uC9C1\uC811 \uC775\uD788\uB294 \uC694\uB9AC
+    \uACC4\uC5F4\uC785\uB2C8\uB2E4."

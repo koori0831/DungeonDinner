@@ -106,6 +106,11 @@ namespace Work.Cook.Code.Runtime
             return true;
         }
 
+        public bool TryPreviewCookingResult(out DishResult result)
+        {
+            return Controller.TryPreviewCookingResult(out result);
+        }
+
         public void ResetFlow()
         {
             Controller.Reset();

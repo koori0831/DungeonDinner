@@ -6,9 +6,14 @@ namespace Work.Cook.Code.Info
 
     public interface IInfoInterface { }
 
-    public interface IHaveImageInfo : IInfoInterface
+    public interface IHaveDisplayNameInfo : IInfoInterface
     {
-        public Sprite Sprite { get; }
+        public string DisplayName { get; }
+    }
+
+    public interface IHaveIconInfo : IInfoInterface
+    {
+        public Sprite Icon { get; }
     }
 
     public interface IHaveDescriptionInfo : IInfoInterface

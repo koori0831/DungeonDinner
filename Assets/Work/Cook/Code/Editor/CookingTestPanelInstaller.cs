@@ -4,6 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime;
+using Work.NPC.Code.Runtime;
 
 namespace Work.Cook.Code.Editor
 {
@@ -18,6 +19,7 @@ namespace Work.Cook.Code.Editor
         {
             CookingDataCatalogSO catalog = FindFirstAsset<CookingDataCatalogSO>();
             TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(DefaultFontPath);
+            NpcConversationRunner npcRunner = Object.FindFirstObjectByType<NpcConversationRunner>();
 
             GameObject root = new GameObject(ObjectName);
             Undo.RegisterCreatedObjectUndo(root, "Create Cooking Test UI");
@@ -26,7 +28,7 @@ namespace Work.Cook.Code.Editor
             CookingTestPanel panel = Undo.AddComponent<CookingTestPanel>(root);
 
             AssignRunner(runner, catalog);
-            AssignPanel(panel, runner, catalog, font);
+            AssignPanel(panel, runner, npcRunner, catalog, font);
 
             EditorUtility.SetDirty(root);
             EditorSceneManager.MarkSceneDirty(root.scene);
@@ -63,6 +65,7 @@ namespace Work.Cook.Code.Editor
         private static void AssignPanel(
             CookingTestPanel panel,
             CookingFlowRunner runner,
+            NpcConversationRunner npcRunner,
             CookingDataCatalogSO catalog,
             TMP_FontAsset font)
         {
@@ -70,6 +73,7 @@ namespace Work.Cook.Code.Editor
 
             SerializedObject serializedPanel = new SerializedObject(panel);
             serializedPanel.FindProperty("runner").objectReferenceValue = runner;
+            serializedPanel.FindProperty("npcRunner").objectReferenceValue = npcRunner;
             serializedPanel.FindProperty("catalog").objectReferenceValue = catalog;
             serializedPanel.FindProperty("fontAsset").objectReferenceValue = font;
             serializedPanel.ApplyModifiedProperties();

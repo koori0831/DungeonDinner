@@ -34,6 +34,7 @@ namespace Work.Cook.Code.Info
         Tribe,
         Ingredient,
         Monster,
+        Recipe,
 
     }
 

@@ -14,4 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodCategorySO
   categoryId: Noodle
   displayName: "\uBA74\uC694\uB9AC"
-  description: "\uBA74\uC774\uB098 \uAE38\uAC8C \uC36C \uC7AC\uB8CC\uB97C \uC911\uC2EC\uC73C\uB85C \uD55C \uC74C\uC2DD\uC785\uB2C8\uB2E4."
+  icon: {fileID: 21300000, guid: 427b880edc6cdb947bd9915b0b343b4b, type: 3}
+  description: "\uBA74\uC774\uB098 \uAE38\uAC8C \uC36C \uC7AC\uB8CC\uB97C \uC911\uC2EC\uC73C\uB85C
+    \uD55C \uC74C\uC2DD\uC785\uB2C8\uB2E4."

@@ -14,4 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodCategorySO
   categoryId: Snack
   displayName: "\uAC04\uC2DD"
-  description: "\uD734\uB300\uD558\uAC70\uB098 \uAC00\uBCCD\uAC8C \uBA39\uAE30 \uC88B\uC740 \uC74C\uC2DD \uACC4\uC5F4\uC785\uB2C8\uB2E4."
+  icon: {fileID: 21300000, guid: b5951b355ace1fb47a93bd046ab9bbb0, type: 3}
+  description: "\uD734\uB300\uD558\uAC70\uB098 \uAC00\uBCCD\uAC8C \uBA39\uAE30 \uC88B\uC740
+    \uC74C\uC2DD \uACC4\uC5F4\uC785\uB2C8\uB2E4."

@@ -1,45 +1,53 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace Work.Cook.Code.Info
 {
-    public class InfoClass { }
-
-    public class DefaultInfo
+    [Serializable]
+    public class InfoDictionaryCategoryData
     {
-        public string Name { get; private set; }
+        [field: SerializeField] public string DisplayName { get; private set; }
+        [field: SerializeField] public Sprite MarkIcon { get; private set; }
+        [field: SerializeField] public MarkerEnum Marker { get; private set; }
+        [field: SerializeField] public ViewHaveInfoEnum ViewType { get; private set; }
+        [field: SerializeField] public List<InfoDictionaryEntryData> Entries { get; private set; } = new List<InfoDictionaryEntryData>();
+
+        public InfoDictionaryCategoryData()
+        {
+        }
+
+        public InfoDictionaryCategoryData(
+            string displayName,
+            Sprite markIcon,
+            MarkerEnum marker,
+            ViewHaveInfoEnum viewType,
+            IEnumerable<InfoDictionaryEntryData> entries)
+        {
+            DisplayName = displayName;
+            MarkIcon = markIcon;
+            Marker = marker;
+            ViewType = viewType;
+            Entries = entries != null ? new List<InfoDictionaryEntryData>(entries) : new List<InfoDictionaryEntryData>();
+        }
     }
 
     [Serializable]
-    /// <summary>
-    /// 사전의 기본적인 정보
-    /// </summary>
-    public class DictionaryInfo : DefaultInfo, IHaveImageInfo, IHaveDescriptionInfo
+    public class InfoDictionaryEntryData : IHaveDisplayNameInfo, IHaveIconInfo, IHaveDescriptionInfo
     {
-        public Sprite Sprite { get; private set; }
-        public string Description {  get; private set; }
-    }
+        [field: SerializeField] public string DisplayName { get; private set; }
+        [field: SerializeField] public Sprite Icon { get; private set; }
+        [field: SerializeField] public string Description { get; private set; }
 
-    /// <summary>
-    /// 나라에 대한 정보
-    /// </summary>
-    public class CountryInfo : DictionaryInfo
-    {
+        public InfoDictionaryEntryData()
+        {
+        }
 
-    }
-
-    /// <summary>
-    /// 종족에 대한 정보
-    /// </summary>
-    public class TribeInfo : DictionaryInfo
-    {
-
-    }
-
-    public class GroomingMethodInfo
-    {
-
+        public InfoDictionaryEntryData(string displayName, Sprite icon, string description)
+        {
+            DisplayName = displayName;
+            Icon = icon;
+            Description = description;
+        }
     }
 }

@@ -243,6 +243,11 @@ namespace Work.NPC.Code.Runtime
 
         public void SubmitDish(string recipeId, string foodType, string tagText)
         {
+            SubmitDish(NpcDishSubmission.FromText(recipeId, foodType, tagText));
+        }
+
+        public void SubmitDish(NpcDishSubmission dish)
+        {
             if (_currentEvent == null)
             {
                 Debug.LogWarning("No active visit event.");
@@ -255,31 +260,25 @@ namespace Work.NPC.Code.Runtime
                 return;
             }
 
-            NpcDishSubmission dish = NpcDishSubmission.FromText(recipeId, foodType, tagText);
-            NpcDishEvaluation evaluation = NpcDishResultEvaluator.Evaluate(_currentEvent, dish);
-            NpcDishResultContext resultContext = new NpcDishResultContext(
-                BuildCurrentOrderContext(),
-                dish,
-                evaluation);
+            if (TryBuildDishResultContext(dish, out NpcDishResultContext resultContext) == false)
+                return;
 
             DishEvaluated?.Invoke(resultContext);
             dishEvaluated.Invoke(resultContext.BuildDebugSummary());
 
             Debug.Log(
-                $"NPC dish evaluated: event={_currentEvent.EventId}, result={evaluation.Result}, " +
-                $"dish=({dish.BuildDebugSummary()}), reason={evaluation.Reason}");
+                $"NPC dish evaluated: event={_currentEvent.EventId}, result={resultContext.Result}, " +
+                $"dish=({dish.BuildDebugSummary()}), reason={resultContext.Reason}");
 
-            PlayResultDialogue(evaluation.Result);
+            PlayResultDialogue(resultContext.Result);
         }
 
         public string PreviewDishResult(string recipeId, string foodType, string tagText)
         {
-            if (_currentEvent == null)
+            if (TryBuildDishMatchReport(recipeId, foodType, tagText, out NpcDishMatchReport report) == false)
                 return "No active NPC order.";
 
-            NpcDishSubmission dish = NpcDishSubmission.FromText(recipeId, foodType, tagText);
-            NpcDishEvaluation evaluation = NpcDishResultEvaluator.Evaluate(_currentEvent, dish);
-            return $"{evaluation.Result}: {evaluation.Reason}";
+            return report.BuildDebugSummary();
         }
 
         public string GetCurrentOrderRequirementSummary()
@@ -294,6 +293,39 @@ namespace Work.NPC.Code.Runtime
                 return false;
 
             orderContext = BuildCurrentOrderContext();
+            return true;
+        }
+
+        public bool TryBuildDishMatchReport(
+            string recipeId,
+            string foodType,
+            string tagText,
+            out NpcDishMatchReport report)
+        {
+            return TryBuildDishMatchReport(NpcDishSubmission.FromText(recipeId, foodType, tagText), out report);
+        }
+
+        public bool TryBuildDishMatchReport(NpcDishSubmission dish, out NpcDishMatchReport report)
+        {
+            report = null;
+            if (_currentEvent == null || dish == null)
+                return false;
+
+            report = NpcDishResultEvaluator.BuildMatchReport(BuildCurrentOrderContext(), dish);
+            return true;
+        }
+
+        public bool TryBuildDishResultContext(NpcDishSubmission dish, out NpcDishResultContext resultContext)
+        {
+            resultContext = null;
+            if (_currentEvent == null || dish == null)
+                return false;
+
+            NpcDishEvaluation evaluation = NpcDishResultEvaluator.Evaluate(_currentEvent, dish);
+            resultContext = new NpcDishResultContext(
+                BuildCurrentOrderContext(),
+                dish,
+                evaluation);
             return true;
         }
 
@@ -671,12 +703,18 @@ namespace Work.NPC.Code.Runtime
         public string RecipeId { get; }
         public string FoodType { get; }
         public IReadOnlyList<string> Tags { get; }
+        public bool IsDisgusting { get; }
 
-        public NpcDishSubmission(string recipeId, string foodType, IReadOnlyList<string> tags)
+        public NpcDishSubmission(
+            string recipeId,
+            string foodType,
+            IReadOnlyList<string> tags,
+            bool isDisgusting = false)
         {
             RecipeId = recipeId?.Trim() ?? string.Empty;
             FoodType = foodType?.Trim() ?? string.Empty;
             Tags = tags ?? new List<string>();
+            IsDisgusting = isDisgusting;
         }
 
         public static NpcDishSubmission FromText(string recipeId, string foodType, string tagText)
@@ -696,12 +734,85 @@ namespace Work.NPC.Code.Runtime
         public string BuildDebugSummary()
         {
             string tags = Tags.Count > 0 ? string.Join("|", Tags) : "None";
-            return $"Recipe={ValueOrNone(RecipeId)}, Type={ValueOrNone(FoodType)}, Tags={tags}";
+            return $"Recipe={ValueOrNone(RecipeId)}, Type={ValueOrNone(FoodType)}, Tags={tags}, Disgusting={IsDisgusting}";
         }
 
         private static string ValueOrNone(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? "None" : value;
+        }
+    }
+
+    public sealed class NpcDishMatchReport
+    {
+        public NpcOrderContext Order { get; }
+        public NpcDishSubmission Dish { get; }
+        public NpcDishEvaluation Evaluation { get; }
+        public bool RecipeMatches { get; }
+        public bool FoodTypeMatches { get; }
+        public IReadOnlyList<string> MatchedRequiredTags { get; }
+        public IReadOnlyList<string> MissingRequiredTags { get; }
+        public IReadOnlyList<string> MatchedPreferredTags { get; }
+        public IReadOnlyList<string> MissingPreferredTags { get; }
+        public IReadOnlyList<string> MatchedAvoidTags { get; }
+        public IReadOnlyList<string> MatchedDisgustingTags { get; }
+        public int MatchScore { get; }
+        public int MaxMatchScore { get; }
+        public float MatchRatio => MaxMatchScore > 0 ? (float)MatchScore / MaxMatchScore : 0f;
+        public bool HasBlockingIssue => Dish != null && Dish.IsDisgusting
+                                        || MatchedAvoidTags.Count > 0
+                                        || MatchedDisgustingTags.Count > 0;
+
+        public NpcDishMatchReport(
+            NpcOrderContext order,
+            NpcDishSubmission dish,
+            NpcDishEvaluation evaluation,
+            bool recipeMatches,
+            bool foodTypeMatches,
+            IReadOnlyList<string> matchedRequiredTags,
+            IReadOnlyList<string> missingRequiredTags,
+            IReadOnlyList<string> matchedPreferredTags,
+            IReadOnlyList<string> missingPreferredTags,
+            IReadOnlyList<string> matchedAvoidTags,
+            IReadOnlyList<string> matchedDisgustingTags,
+            int matchScore,
+            int maxMatchScore)
+        {
+            Order = order;
+            Dish = dish;
+            Evaluation = evaluation;
+            RecipeMatches = recipeMatches;
+            FoodTypeMatches = foodTypeMatches;
+            MatchedRequiredTags = CopyList(matchedRequiredTags);
+            MissingRequiredTags = CopyList(missingRequiredTags);
+            MatchedPreferredTags = CopyList(matchedPreferredTags);
+            MissingPreferredTags = CopyList(missingPreferredTags);
+            MatchedAvoidTags = CopyList(matchedAvoidTags);
+            MatchedDisgustingTags = CopyList(matchedDisgustingTags);
+            MatchScore = Mathf.Max(0, matchScore);
+            MaxMatchScore = Mathf.Max(0, maxMatchScore);
+        }
+
+        public string BuildDebugSummary()
+        {
+            int percent = Mathf.RoundToInt(MatchRatio * 100f);
+            return
+                $"Result={Evaluation?.Result ?? NpcConversationResult.Wrong}, Match={MatchScore}/{MaxMatchScore} ({percent}%), " +
+                $"Recipe={RecipeMatches}, FoodType={FoodTypeMatches}, " +
+                $"Required={ListOrNone(MatchedRequiredTags)}, Missing={ListOrNone(MissingRequiredTags)}, " +
+                $"Preferred={ListOrNone(MatchedPreferredTags)}, Avoid={ListOrNone(MatchedAvoidTags)}, " +
+                $"Disgusting={Dish?.IsDisgusting ?? false}/{ListOrNone(MatchedDisgustingTags)}, " +
+                $"Reason={Evaluation?.Reason ?? string.Empty}";
+        }
+
+        private static IReadOnlyList<string> CopyList(IReadOnlyList<string> values)
+        {
+            return values != null ? values.ToList() : new List<string>();
+        }
+
+        private static string ListOrNone(IReadOnlyList<string> values)
+        {
+            return values != null && values.Count > 0 ? string.Join("|", values) : "None";
         }
     }
 
@@ -724,11 +835,22 @@ namespace Work.NPC.Code.Runtime
             if (visitEvent == null)
                 return new NpcDishEvaluation(NpcConversationResult.Wrong, "Visit event is missing.");
 
+            return Evaluate(NpcOrderContext.FromVisitEvent(visitEvent, 0, 0), dish);
+        }
+
+        public static NpcDishEvaluation Evaluate(NpcOrderContext order, NpcDishSubmission dish)
+        {
+            if (order == null)
+                return new NpcDishEvaluation(NpcConversationResult.Wrong, "NPC order is missing.");
+
             if (dish == null)
                 return new NpcDishEvaluation(NpcConversationResult.Wrong, "Dish submission is missing.");
 
+            if (dish.IsDisgusting)
+                return new NpcDishEvaluation(NpcConversationResult.Disgusting, "Dish was marked as disgusting.");
+
             HashSet<string> dishTags = new HashSet<string>(dish.Tags, StringComparer.OrdinalIgnoreCase);
-            int disgustingMatches = CountMatches(visitEvent.DisgustingTags, dishTags);
+            int disgustingMatches = CountMatches(order.DisgustingTags, dishTags);
             if (disgustingMatches > 0)
             {
                 return new NpcDishEvaluation(
@@ -736,13 +858,13 @@ namespace Work.NPC.Code.Runtime
                     $"Disgusting tag matched. count={disgustingMatches}");
             }
 
-            bool recipeMatches = string.IsNullOrWhiteSpace(visitEvent.CorrectRecipeId) == false
-                                 && string.Equals(visitEvent.CorrectRecipeId, dish.RecipeId, StringComparison.OrdinalIgnoreCase);
-            bool foodTypeMatches = IsFoodTypeMatched(visitEvent.AllowedFoodTypes, dish.FoodType);
-            int requiredMatches = CountMatches(visitEvent.RequiredTags, dishTags);
-            int preferredMatches = CountMatches(visitEvent.PreferredTags, dishTags);
-            int avoidMatches = CountMatches(visitEvent.AvoidTags, dishTags);
-            bool requiredTagsMatched = requiredMatches >= visitEvent.RequiredTags.Count;
+            bool recipeMatches = string.IsNullOrWhiteSpace(order.CorrectRecipeId) == false
+                                 && string.Equals(order.CorrectRecipeId, dish.RecipeId, StringComparison.OrdinalIgnoreCase);
+            bool foodTypeMatches = IsFoodTypeMatched(order.AllowedFoodTypes, dish.FoodType);
+            int requiredMatches = CountMatches(order.RequiredTags, dishTags);
+            int preferredMatches = CountMatches(order.PreferredTags, dishTags);
+            int avoidMatches = CountMatches(order.AvoidTags, dishTags);
+            bool requiredTagsMatched = requiredMatches >= order.RequiredTags.Count;
 
             if (recipeMatches && avoidMatches == 0)
             {
@@ -765,16 +887,92 @@ namespace Work.NPC.Code.Runtime
                     $"Food type and required tags matched. preferred={preferredMatches}");
             }
 
-            if (IsSimilarMatch(visitEvent, foodTypeMatches, requiredMatches, preferredMatches, avoidMatches))
+            if (IsSimilarMatch(order, foodTypeMatches, requiredMatches, preferredMatches, avoidMatches))
             {
                 return new NpcDishEvaluation(
                     NpcConversationResult.Similar,
-                    $"Partial match. type={foodTypeMatches}, required={requiredMatches}/{visitEvent.RequiredTags.Count}, preferred={preferredMatches}, avoid={avoidMatches}");
+                    $"Partial match. type={foodTypeMatches}, required={requiredMatches}/{order.RequiredTags.Count}, preferred={preferredMatches}, avoid={avoidMatches}");
             }
 
             return new NpcDishEvaluation(
                 NpcConversationResult.Wrong,
-                $"Not enough clues matched. type={foodTypeMatches}, required={requiredMatches}/{visitEvent.RequiredTags.Count}, preferred={preferredMatches}, avoid={avoidMatches}");
+                $"Not enough clues matched. type={foodTypeMatches}, required={requiredMatches}/{order.RequiredTags.Count}, preferred={preferredMatches}, avoid={avoidMatches}");
+        }
+
+        public static NpcDishMatchReport BuildMatchReport(NpcOrderContext order, NpcDishSubmission dish)
+        {
+            NpcDishEvaluation evaluation = Evaluate(order, dish);
+
+            if (order == null || dish == null)
+            {
+                return new NpcDishMatchReport(
+                    order,
+                    dish,
+                    evaluation,
+                    false,
+                    false,
+                    new List<string>(),
+                    order?.RequiredTags ?? new List<string>(),
+                    new List<string>(),
+                    order?.PreferredTags ?? new List<string>(),
+                    new List<string>(),
+                    new List<string>(),
+                    0,
+                    0);
+            }
+
+            HashSet<string> dishTags = new HashSet<string>(dish.Tags, StringComparer.OrdinalIgnoreCase);
+            bool recipeMatches = string.IsNullOrWhiteSpace(order.CorrectRecipeId) == false
+                                 && string.Equals(order.CorrectRecipeId, dish.RecipeId, StringComparison.OrdinalIgnoreCase);
+            bool foodTypeMatches = IsFoodTypeMatched(order.AllowedFoodTypes, dish.FoodType);
+            List<string> matchedRequiredTags = FilterMatches(order.RequiredTags, dishTags);
+            List<string> missingRequiredTags = FilterMissing(order.RequiredTags, dishTags);
+            List<string> matchedPreferredTags = FilterMatches(order.PreferredTags, dishTags);
+            List<string> missingPreferredTags = FilterMissing(order.PreferredTags, dishTags);
+            List<string> matchedAvoidTags = FilterMatches(order.AvoidTags, dishTags);
+            List<string> matchedDisgustingTags = FilterMatches(order.DisgustingTags, dishTags);
+
+            int maxScore = 0;
+            int score = 0;
+
+            if (string.IsNullOrWhiteSpace(order.CorrectRecipeId) == false)
+            {
+                maxScore += 2;
+                if (recipeMatches)
+                    score += 2;
+            }
+
+            if (order.AllowedFoodTypes.Count > 0)
+            {
+                maxScore += 1;
+                if (foodTypeMatches)
+                    score += 1;
+            }
+
+            maxScore += order.RequiredTags.Count * 2;
+            score += matchedRequiredTags.Count * 2;
+            maxScore += order.PreferredTags.Count;
+            score += matchedPreferredTags.Count;
+
+            score -= matchedAvoidTags.Count;
+            score -= matchedDisgustingTags.Count * 2;
+            if (dish.IsDisgusting)
+                score -= 2;
+
+            return new NpcDishMatchReport(
+                order,
+                dish,
+                evaluation,
+                recipeMatches,
+                foodTypeMatches,
+                matchedRequiredTags,
+                missingRequiredTags,
+                matchedPreferredTags,
+                missingPreferredTags,
+                matchedAvoidTags,
+                matchedDisgustingTags,
+                Mathf.Clamp(score, 0, maxScore),
+                maxScore);
         }
 
         public static string BuildRequirementSummary(VisitEventData visitEvent)
@@ -824,11 +1022,12 @@ namespace Work.NPC.Code.Runtime
             return new NpcDishSubmission(
                 "Debug_BadDish",
                 visitEvent.AllowedFoodTypes.FirstOrDefault() ?? string.Empty,
-                tags.Distinct(StringComparer.OrdinalIgnoreCase).ToList());
+                tags.Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+                true);
         }
 
         private static bool IsSimilarMatch(
-            VisitEventData visitEvent,
+            NpcOrderContext order,
             bool foodTypeMatches,
             int requiredMatches,
             int preferredMatches,
@@ -837,17 +1036,17 @@ namespace Work.NPC.Code.Runtime
             if (avoidMatches > 0)
                 return foodTypeMatches && requiredMatches > 0;
 
-            if (visitEvent.RequiredTags.Count == 0)
+            if (order.RequiredTags.Count == 0)
                 return foodTypeMatches && preferredMatches > 0;
 
-            int halfRequired = Math.Max(1, (int)Math.Ceiling(visitEvent.RequiredTags.Count * 0.5f));
+            int halfRequired = Math.Max(1, (int)Math.Ceiling(order.RequiredTags.Count * 0.5f));
             if (foodTypeMatches && requiredMatches >= halfRequired)
                 return true;
 
-            if (requiredMatches >= visitEvent.RequiredTags.Count)
+            if (requiredMatches >= order.RequiredTags.Count)
                 return true;
 
-            int preferredThreshold = Math.Min(2, visitEvent.PreferredTags.Count);
+            int preferredThreshold = Math.Min(2, order.PreferredTags.Count);
             return foodTypeMatches && preferredThreshold > 0 && preferredMatches >= preferredThreshold;
         }
 
@@ -873,6 +1072,30 @@ namespace Work.NPC.Code.Runtime
             }
 
             return count;
+        }
+
+        private static List<string> FilterMatches(IReadOnlyList<string> expectedValues, HashSet<string> actualValues)
+        {
+            List<string> matches = new List<string>();
+            foreach (string expectedValue in expectedValues)
+            {
+                if (actualValues.Contains(expectedValue))
+                    matches.Add(expectedValue);
+            }
+
+            return matches;
+        }
+
+        private static List<string> FilterMissing(IReadOnlyList<string> expectedValues, HashSet<string> actualValues)
+        {
+            List<string> missing = new List<string>();
+            foreach (string expectedValue in expectedValues)
+            {
+                if (actualValues.Contains(expectedValue) == false)
+                    missing.Add(expectedValue);
+            }
+
+            return missing;
         }
 
         private static string ListOrNone(IReadOnlyList<string> values)

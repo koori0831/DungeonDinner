@@ -158,6 +158,16 @@ namespace Work.Cook.Code.Runtime
             return true;
         }
 
+        public bool TryPreviewCookingResult(out DishResult result)
+        {
+            result = null;
+            if (CanCompleteCooking() == false)
+                return false;
+
+            result = _resultBuilder.Build(_session);
+            return result != null;
+        }
+
         public bool CanCompleteCooking()
         {
             return _session != null

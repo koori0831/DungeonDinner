@@ -10,6 +10,8 @@ using UnityEngine.InputSystem.UI;
 #endif
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
+using Work.NPC.Code.Data;
+using Work.NPC.Code.Runtime;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -20,6 +22,7 @@ namespace Work.Cook.Code.Runtime
     public sealed class CookingTestPanel : MonoBehaviour
     {
         [SerializeField] private CookingFlowRunner runner;
+        [SerializeField] private NpcConversationRunner npcRunner;
         [SerializeField] private CookingDataCatalogSO catalog;
         [SerializeField] private TMP_FontAsset fontAsset;
         [SerializeField] private bool buildOnAwake = true;
@@ -91,6 +94,9 @@ namespace Work.Cook.Code.Runtime
 
             if (runner == null)
                 runner = gameObject.AddComponent<CookingFlowRunner>();
+
+            if (npcRunner == null)
+                npcRunner = FindFirstObjectByType<NpcConversationRunner>();
 
             if (catalog != null)
                 runner.SetCatalog(catalog);
@@ -419,11 +425,10 @@ namespace Work.Cook.Code.Runtime
                 206f,
                 14f);
 
-            string warnings = BuildPreparedWarnings(activeRecipe);
-            if (string.IsNullOrWhiteSpace(warnings) == false)
+            if (runner.TryPreviewCookingResult(out DishResult previewResult))
             {
-                CreateSectionLabel(_contentRoot, "완성 전 확인");
-                CreateInfoBox(_contentRoot, "PreparedWarnings", warnings, 102f, 14f);
+                CreateSectionLabel(_contentRoot, "현재 NPC 요청 예상 일치도");
+                CreateInfoBox(_contentRoot, "NpcPreviewMatch", BuildNpcMatchText(previewResult), 174f, 14f);
             }
 
             RectTransform row = CreateRow(_contentRoot, "CompleteActions", 42f);
@@ -442,7 +447,10 @@ namespace Work.Cook.Code.Runtime
             SetTitle("요리 결과");
             ClearContent();
 
-            CreateInfoBox(_contentRoot, "ResultSummary", BuildResultText(result), 174f, 14f);
+            CreateInfoBox(_contentRoot, "NpcMatchSummary", BuildNpcMatchText(result), 220f, 14f);
+
+            CreateSectionLabel(_contentRoot, "요리 자체 정보");
+            CreateInfoBox(_contentRoot, "ResultSummary", BuildResultText(result), 138f, 14f);
 
             CreateSectionLabel(_contentRoot, "손질 이력");
             CreateInfoBox(_contentRoot, "ResultPreparations", BuildResultPreparationText(result), 184f, 14f);
@@ -464,6 +472,7 @@ namespace Work.Cook.Code.Runtime
                 return;
 
             DishSubmitted?.Invoke(result);
+            CookingNpcDishAdapter.SubmitToNpc(npcRunner, result);
             Debug.Log(
                 $"NPC 제출 음식: RecipeId={result.RecipeId}, CategoryId={result.CategoryId}, " +
                 $"Tags={result.BuildTagText()}, IsDisgusting={result.IsDisgusting}, Quality={result.Quality}",
@@ -831,6 +840,78 @@ namespace Work.Cook.Code.Runtime
                 builder.AppendLine($"- {result.Reasons[i]}");
 
             return builder.ToString();
+        }
+
+        private string BuildNpcMatchText(DishResult result)
+        {
+            if (result == null)
+                return "요리 결과가 없어 NPC 요청과 비교할 수 없습니다.";
+
+            if (npcRunner == null)
+                npcRunner = FindFirstObjectByType<NpcConversationRunner>();
+
+            if (npcRunner == null)
+                return "현재 씬에서 NpcConversationRunner를 찾지 못했습니다.\nNPC 대화 UI와 연결하면 현재 캐릭터의 요청 일치도를 표시할 수 있습니다.";
+
+            if (CookingNpcDishAdapter.TryBuildMatchReport(npcRunner, result, out NpcDishMatchReport report) == false)
+                return "현재 NPC 주문이 아직 준비되지 않았습니다.\nNPC 대화에서 요리 단계까지 진행한 뒤 다시 확인하세요.";
+
+            int percent = Mathf.RoundToInt(report.MatchRatio * 100f);
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine($"현재 NPC: {ValueOrNone(report.Order.NpcId)}");
+            builder.AppendLine($"판정 예상: {BuildNpcResultText(report.Evaluation.Result)}");
+            builder.AppendLine($"요청 일치도: {report.MatchScore}/{report.MaxMatchScore} ({percent}%)");
+            builder.AppendLine($"레시피: {BuildMatchStateText(report.RecipeMatches)}  목표 {ValueOrNone(report.Order.CorrectRecipeId)} / 제출 {ValueOrNone(report.Dish.RecipeId)}");
+            builder.AppendLine($"분류: {BuildMatchStateText(report.FoodTypeMatches)}  목표 {BuildStringListText(report.Order.AllowedFoodTypes)} / 제출 {ValueOrNone(report.Dish.FoodType)}");
+            builder.AppendLine($"필수 태그: 맞음 {BuildStringListText(report.MatchedRequiredTags)} / 부족 {BuildStringListText(report.MissingRequiredTags)}");
+            builder.AppendLine($"선호 태그: 맞음 {BuildStringListText(report.MatchedPreferredTags)} / 남음 {BuildStringListText(report.MissingPreferredTags)}");
+
+            if (report.MatchedAvoidTags.Count > 0)
+                builder.AppendLine($"회피 태그 감지: {BuildStringListText(report.MatchedAvoidTags)}");
+
+            if (report.Dish.IsDisgusting || report.MatchedDisgustingTags.Count > 0)
+            {
+                string tags = report.MatchedDisgustingTags.Count > 0
+                    ? BuildStringListText(report.MatchedDisgustingTags)
+                    : "요리 결과가 괴식으로 표시됨";
+                builder.AppendLine($"괴식 위험: {tags}");
+            }
+
+            builder.AppendLine($"판정 사유: {report.Evaluation.Reason}");
+            return builder.ToString();
+        }
+
+        private static string BuildNpcResultText(NpcConversationResult result)
+        {
+            switch (result)
+            {
+                case NpcConversationResult.Perfect:
+                    return "완전 일치";
+                case NpcConversationResult.Correct:
+                    return "요청 충족";
+                case NpcConversationResult.Similar:
+                    return "일부 일치";
+                case NpcConversationResult.Disgusting:
+                    return "괴식";
+                case NpcConversationResult.Wrong:
+                default:
+                    return "불일치";
+            }
+        }
+
+        private static string BuildMatchStateText(bool isMatched)
+        {
+            return isMatched ? "일치" : "불일치";
+        }
+
+        private static string BuildStringListText(IReadOnlyList<string> values)
+        {
+            return values != null && values.Count > 0 ? string.Join("|", values) : "없음";
+        }
+
+        private static string ValueOrNone(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "없음" : value;
         }
 
         private static string BuildPreparationEffectText(IngredientPreparationOption option)
