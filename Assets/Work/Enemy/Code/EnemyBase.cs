@@ -90,6 +90,11 @@ namespace Work.Enemy.Code
         /// </summary>
         public bool CanExecuteAttack => GetCombatModule() != null && GetCombatModule().CanExecuteAttack == true;
 
+        /// <summary>
+        /// 현재 이동 상태에서 공격 상태 진입 가능 여부.
+        /// </summary>
+        public bool CanEnterAttack => GetMovementModule() == null || GetMovementModule().CanEnterAttack == true;
+
         protected virtual void Awake()
         {
             if (initializeOnAwake == true)

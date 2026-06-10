@@ -65,7 +65,7 @@ namespace Work.Enemy.Code
 
             ResetReturnTimer();
 
-            if (_enemy.IsTargetInAttackRange() == true)
+            if (_enemy.IsTargetInAttackRange() == true && _enemy.CanEnterAttack == true)
             {
                 _enemy.StopMoving();
                 _enemy.FaceTarget();

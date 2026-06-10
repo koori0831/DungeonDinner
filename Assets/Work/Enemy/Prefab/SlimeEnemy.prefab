@@ -307,13 +307,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 4914190420154180802}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1002, type: 3}
+  m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1022, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2.4
   rotationSpeed: 540
   stoppingDistance: 0.18
   impulseDamping: 8
+  idleCooldown: 0.45
+  moveCooldown: 0.1
+  chargeRetargetInterval: 0.05
+  landingWarpThreshold: 0.05
+  chargeDuration: 0.16
+  jumpDuration: 0.22
+  landDuration: 0.2
+  hopDistance: 1.65
+  minHopDistance: 0.25
+  hopImpulseDamping: 8
 --- !u!114 &6692055883979700493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -512,6 +522,7 @@ MonoBehaviour:
   visualRoot: {fileID: 8105462301994421500}
   dynamicBone: {fileID: 8862636367439609900}
   stateController: {fileID: 6692055883979700493}
+  slimeMovementModule: {fileID: 2090841836946313473}
   idlePulseSpeed: 2.5
   movePulseSpeed: 7
   attackPulseSpeed: 10
@@ -522,6 +533,12 @@ MonoBehaviour:
   bounceForce: 0.16
   poseLerpSpeed: 12
   forceLerpSpeed: 10
+  chargeSquashAmount: 0.12
+  jumpStretchAmount: 0.14
+  jumpLiftAmount: 0.08
+  landSquashAmount: 0.14
+  hopDynamicForce: 0.25
+  landDynamicForce: 0.18
 --- !u!1 &7982013359736212995
 GameObject:
   m_ObjectHideFlags: 0

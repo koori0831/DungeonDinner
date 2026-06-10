@@ -38,10 +38,21 @@ namespace Work.Enemy.Code
         public float StoppingDistance => stoppingDistance;
 
         /// <summary>
+        /// 공격 상태 진입 가능 여부.
+        /// </summary>
+        public virtual bool CanEnterAttack => true;
+
+        protected NavMeshAgent Agent => _agent;
+
+        protected float MoveSpeed => moveSpeed;
+
+        protected float RotationSpeed => rotationSpeed;
+
+        /// <summary>
         /// 모듈 소유자 초기화.
         /// </summary>
         /// <param name="entity">모듈 소유 엔티티.</param>
-        public void Initialize(Entity entity)
+        public virtual void Initialize(Entity entity)
         {
             _owner = entity;
             _agent = GetComponent<NavMeshAgent>();
@@ -53,7 +64,7 @@ namespace Work.Enemy.Code
         /// 지정 위치로 이동 시작.
         /// </summary>
         /// <param name="targetPosition">이동 목표 위치.</param>
-        public void MoveTo(Vector3 targetPosition)
+        public virtual void MoveTo(Vector3 targetPosition)
         {
             if (TryGetNavMeshPosition(targetPosition, out Vector3 navMeshPosition) == false)
             {
@@ -75,7 +86,7 @@ namespace Work.Enemy.Code
         /// 지정 월드 방향으로 이동 시작.
         /// </summary>
         /// <param name="worldDirection">월드 기준 이동 방향.</param>
-        public void Move(Vector3 worldDirection)
+        public virtual void Move(Vector3 worldDirection)
         {
             worldDirection.y = 0f;
 
@@ -98,7 +109,7 @@ namespace Work.Enemy.Code
         /// <summary>
         /// 이동 정지.
         /// </summary>
-        public void Stop()
+        public virtual void Stop()
         {
             _hasManualMoveDirection = false;
             _manualMoveDirection = Vector3.zero;
@@ -117,7 +128,7 @@ namespace Work.Enemy.Code
         /// </summary>
         /// <param name="direction">밀림 방향.</param>
         /// <param name="power">밀림 강도.</param>
-        public void ApplyImpulse(Vector3 direction, float power)
+        public virtual void ApplyImpulse(Vector3 direction, float power)
         {
             if (power <= 0f)
             {
@@ -139,7 +150,7 @@ namespace Work.Enemy.Code
         /// </summary>
         /// <param name="targetPosition">도착 확인 위치.</param>
         /// <returns>도착 여부.</returns>
-        public bool HasReached(Vector3 targetPosition)
+        public virtual bool HasReached(Vector3 targetPosition)
         {
             return HasReached(targetPosition, stoppingDistance);
         }
@@ -150,7 +161,7 @@ namespace Work.Enemy.Code
         /// <param name="targetPosition">도착 확인 위치.</param>
         /// <param name="distance">도착 판정 거리.</param>
         /// <returns>도착 여부.</returns>
-        public bool HasReached(Vector3 targetPosition, float distance)
+        public virtual bool HasReached(Vector3 targetPosition, float distance)
         {
             if (CanUseAgent() == true)
             {
@@ -182,7 +193,7 @@ namespace Work.Enemy.Code
         /// 지정 위치를 향해 회전.
         /// </summary>
         /// <param name="targetPosition">바라볼 위치.</param>
-        public void FaceTowards(Vector3 targetPosition)
+        public virtual void FaceTowards(Vector3 targetPosition)
         {
             Vector3 direction = targetPosition - transform.position;
             direction.y = 0f;
@@ -190,6 +201,11 @@ namespace Work.Enemy.Code
         }
 
         private void Update()
+        {
+            UpdateMovement();
+        }
+
+        protected virtual void UpdateMovement()
         {
             if (CanUseAgent() == false)
             {
@@ -216,7 +232,7 @@ namespace Work.Enemy.Code
             ConfigureAgent();
         }
 
-        private void ConfigureAgent()
+        protected virtual void ConfigureAgent()
         {
             if (_agent == null)
             {
@@ -272,7 +288,7 @@ namespace Work.Enemy.Code
             _agent.Move(currentVelocity * Time.deltaTime);
         }
 
-        private void RotateToDirection(Vector3 direction)
+        protected void RotateToDirection(Vector3 direction)
         {
             if (_owner == null || direction.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
             {
@@ -287,7 +303,7 @@ namespace Work.Enemy.Code
             );
         }
 
-        private bool CanUseAgent()
+        protected bool CanUseAgent()
         {
             if (_agent == null || _agent.enabled == false || gameObject.activeInHierarchy == false)
             {
@@ -297,7 +313,7 @@ namespace Work.Enemy.Code
             return TryPlaceAgentOnNavMesh();
         }
 
-        private bool TryPlaceAgentOnNavMesh()
+        protected bool TryPlaceAgentOnNavMesh()
         {
             if (_agent == null || _agent.isOnNavMesh == true)
             {
@@ -312,7 +328,7 @@ namespace Work.Enemy.Code
             return _agent.Warp(hit.position);
         }
 
-        private static bool TryGetNavMeshPosition(Vector3 position, out Vector3 navMeshPosition)
+        protected static bool TryGetNavMeshPosition(Vector3 position, out Vector3 navMeshPosition)
         {
             if (NavMesh.SamplePosition(position, out NavMeshHit hit, NAV_MESH_SAMPLE_DISTANCE, NavMesh.AllAreas) == true)
             {
