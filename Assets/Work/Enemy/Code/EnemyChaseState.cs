@@ -9,7 +9,10 @@ namespace Work.Enemy.Code
     /// </summary>
     public class EnemyChaseState : EnemyBehaviourState
     {
+        private const float DESTINATION_UPDATE_INTERVAL = 0.2f;
+
         private float _returnEndTime;
+        private float _nextDestinationUpdateTime;
         private bool _isReturnTimerRunning;
 
         protected override EnemyState StateType => EnemyState.Chase;
@@ -26,6 +29,7 @@ namespace Work.Enemy.Code
         {
             base.Enter();
             ResetReturnTimer();
+            _nextDestinationUpdateTime = 0f;
         }
 
         /// <summary>
@@ -55,7 +59,7 @@ namespace Work.Enemy.Code
                     return;
                 }
 
-                _enemy.MoveTo(_enemy.Target.position);
+                UpdateDestination();
                 return;
             }
 
@@ -74,6 +78,17 @@ namespace Work.Enemy.Code
                 return;
             }
 
+            UpdateDestination();
+        }
+
+        private void UpdateDestination()
+        {
+            if (_enemy.Target == null || Time.time < _nextDestinationUpdateTime)
+            {
+                return;
+            }
+
+            _nextDestinationUpdateTime = Time.time + DESTINATION_UPDATE_INTERVAL;
             _enemy.MoveTo(_enemy.Target.position);
         }
 

@@ -1,17 +1,21 @@
 #if UNITY_EDITOR
 using System;
+using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.AI;
 using Work.Combat.Code.Runtime;
 using Work.Enemy.Code;
 using Work.Entities.Code;
+using Work.Players.Code;
 
 namespace Work.FSM.Editor
 {
     /// <summary>
     /// CombatTest 씬 정리 결과 검증 임시 도구.
     /// </summary>
+    [InitializeOnLoad]
     public static class CombatTestSceneValidationTool
     {
         private const string SCENE_PATH = "Assets/Work/Combat/Scene/CombatTest.unity";
@@ -20,9 +24,21 @@ namespace Work.FSM.Editor
         private const string FAILED_KEY = "CombatTestSceneValidationTool.Failed";
         private const string FAILURE_KEY = "CombatTestSceneValidationTool.Failure";
         private const string FRAME_COUNT_KEY = "CombatTestSceneValidationTool.FrameCount";
-        private const string ATTACK_RUN_KEY = "CombatTestSceneValidationTool.AttackRun";
-        private const int ATTACK_FRAME = 5;
+        private const string INITIAL_DISTANCE_KEY = "CombatTestSceneValidationTool.InitialDistance";
+        private const string CHASE_VALIDATED_KEY = "CombatTestSceneValidationTool.ChaseValidated";
+        private const int CHASE_VALIDATION_FRAME = 90;
         private const int PLAY_FRAME_COUNT = 180;
+        private const float MIN_CHASE_PROGRESS = 0.05f;
+        private const float ATTACK_DISTANCE_TOLERANCE = 0.35f;
+        private const float NAV_MESH_SAMPLE_DISTANCE = 1f;
+
+        static CombatTestSceneValidationTool()
+        {
+            if (SessionState.GetBool(RUNNING_KEY, false) == true)
+            {
+                Subscribe();
+            }
+        }
 
         /// <summary>
         /// CombatTest 씬 구조와 플레이모드 180프레임 검증 실행.
@@ -33,7 +49,8 @@ namespace Work.FSM.Editor
             SessionState.SetBool(FAILED_KEY, false);
             SessionState.SetString(FAILURE_KEY, string.Empty);
             SessionState.SetInt(FRAME_COUNT_KEY, 0);
-            SessionState.SetBool(ATTACK_RUN_KEY, false);
+            SessionState.SetFloat(INITIAL_DISTANCE_KEY, -1f);
+            SessionState.SetBool(CHASE_VALIDATED_KEY, false);
 
             Subscribe();
 
@@ -71,7 +88,8 @@ namespace Work.FSM.Editor
             SessionState.EraseBool(FAILED_KEY);
             SessionState.EraseString(FAILURE_KEY);
             SessionState.EraseInt(FRAME_COUNT_KEY);
-            SessionState.EraseBool(ATTACK_RUN_KEY);
+            SessionState.EraseFloat(INITIAL_DISTANCE_KEY);
+            SessionState.EraseBool(CHASE_VALIDATED_KEY);
         }
 
         private static void HandleLogMessage(string condition, string stackTrace, LogType type)
@@ -138,9 +156,14 @@ namespace Work.FSM.Editor
 
             try
             {
-                if (frameCount == ATTACK_FRAME)
+                if (frameCount == 1)
                 {
-                    RunPlayerAttackValidation();
+                    RecordInitialChaseDistance();
+                }
+
+                if (frameCount >= CHASE_VALIDATION_FRAME && SessionState.GetBool(CHASE_VALIDATED_KEY, false) == false)
+                {
+                    ValidateChaseProgress();
                 }
             }
             catch (Exception exception)
@@ -180,14 +203,22 @@ namespace Work.FSM.Editor
             }
 
             ValidateSlime(enemies[0]);
+            ValidatePlayer();
+            ValidateNavMeshSurface();
         }
 
         private static void ValidateSlime(EnemyBase enemy)
         {
             GameObject root = enemy.gameObject;
             RequireRootComponent<EnemyStateController>(root);
-            RequireRootComponent<CharacterController>(root);
+            RequireRootComponent<NavMeshAgent>(root);
             RequireRootComponent<EnemyMovementModule>(root);
+
+            if (root.GetComponent<CharacterController>() != null)
+            {
+                throw new InvalidOperationException("SlimeEnemy must not use CharacterController.");
+            }
+
             RequireChildComponent<EntityStateModule>(root, "AI");
             RequireChildComponent<EnemyTerritoryModule>(root, "AI");
             RequireChildComponent<EnemyTargetingModule>(root, "AI");
@@ -206,16 +237,17 @@ namespace Work.FSM.Editor
             {
                 throw new InvalidOperationException("Hurtbox/Hitbox trigger collider is invalid.");
             }
-        }
 
-        private static void RunPlayerAttackValidation()
-        {
-            if (SessionState.GetBool(ATTACK_RUN_KEY, false) == true)
+            if (NavMesh.SamplePosition(root.transform.position, out NavMeshHit hit, NAV_MESH_SAMPLE_DISTANCE, NavMesh.AllAreas) == false)
             {
-                return;
+                throw new InvalidOperationException("SlimeEnemy must be placed on the NavMesh.");
             }
 
-            SessionState.SetBool(ATTACK_RUN_KEY, true);
+            _ = hit;
+        }
+
+        private static void ValidatePlayer()
+        {
             GameObject player = GameObject.Find("CombatTestPlayer");
 
             if (player == null)
@@ -223,15 +255,116 @@ namespace Work.FSM.Editor
                 throw new InvalidOperationException("CombatTestPlayer is missing.");
             }
 
-            CombatAttackExecutor executor = player.GetComponent<CombatAttackExecutor>();
+            RequireRootComponent<Player>(player);
+            RequireRootComponent<CharacterController>(player);
+            RequireRootComponent<EntityMovementModule>(player);
 
-            if (executor == null)
+            if (NavMesh.SamplePosition(player.transform.position, out NavMeshHit hit, NAV_MESH_SAMPLE_DISTANCE, NavMesh.AllAreas) == false)
             {
-                throw new InvalidOperationException("CombatTestPlayer attack executor is missing.");
+                throw new InvalidOperationException("CombatTestPlayer must be placed on the NavMesh.");
             }
 
-            executor.ExecuteAttack();
-            Debug.Log($"CombatTest player attack validation result: hits={executor.LastHitSuccessCount}, kills={executor.LastKilledCount}.");
+            _ = hit;
+        }
+
+        private static void ValidateNavMeshSurface()
+        {
+            NavMeshSurface[] surfaces = UnityEngine.Object.FindObjectsByType<NavMeshSurface>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            if (surfaces.Length != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one NavMeshSurface, found {surfaces.Length}.");
+            }
+
+            if (surfaces[0].navMeshData == null)
+            {
+                throw new InvalidOperationException("CombatTest NavMeshSurface has no NavMeshData.");
+            }
+        }
+
+        private static void RecordInitialChaseDistance()
+        {
+            EnemyBase enemy = FindRuntimeEnemy();
+            GameObject player = FindRuntimePlayer();
+            NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+
+            if (agent == null || agent.isOnNavMesh == false)
+            {
+                throw new InvalidOperationException("SlimeEnemy NavMeshAgent is not on the NavMesh during playmode.");
+            }
+
+            SessionState.SetFloat(INITIAL_DISTANCE_KEY, GetHorizontalDistance(enemy.transform.position, player.transform.position));
+        }
+
+        private static void ValidateChaseProgress()
+        {
+            EnemyBase enemy = FindRuntimeEnemy();
+            GameObject player = FindRuntimePlayer();
+            NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+
+            if (agent == null || agent.isOnNavMesh == false)
+            {
+                throw new InvalidOperationException("SlimeEnemy NavMeshAgent left the NavMesh during playmode.");
+            }
+
+            if (enemy.Target != player.transform)
+            {
+                throw new InvalidOperationException("SlimeEnemy did not acquire CombatTestPlayer as a target.");
+            }
+
+            if (agent.hasPath == true && agent.pathStatus == NavMeshPathStatus.PathInvalid)
+            {
+                throw new InvalidOperationException("SlimeEnemy generated an invalid NavMesh path.");
+            }
+
+            float initialDistance = SessionState.GetFloat(INITIAL_DISTANCE_KEY, -1f);
+            float currentDistance = GetHorizontalDistance(enemy.transform.position, player.transform.position);
+            bool isNearAttackRange = currentDistance <= enemy.AttackDistance + ATTACK_DISTANCE_TOLERANCE;
+            bool hasMovedCloser = initialDistance >= 0f && currentDistance <= initialDistance - MIN_CHASE_PROGRESS;
+
+            if (isNearAttackRange == false && hasMovedCloser == false)
+            {
+                throw new InvalidOperationException($"SlimeEnemy did not chase the player. initial={initialDistance}, current={currentDistance}.");
+            }
+
+            if (isNearAttackRange == false && agent.hasPath == false)
+            {
+                throw new InvalidOperationException("SlimeEnemy is not in attack range and has no NavMesh path.");
+            }
+
+            SessionState.SetBool(CHASE_VALIDATED_KEY, true);
+            Debug.Log($"CombatTest NavMesh chase validation result: initialDistance={initialDistance}, currentDistance={currentDistance}, targetAcquired=True.");
+        }
+
+        private static EnemyBase FindRuntimeEnemy()
+        {
+            EnemyBase[] enemies = UnityEngine.Object.FindObjectsByType<EnemyBase>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+            if (enemies.Length != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one active enemy, found {enemies.Length}.");
+            }
+
+            return enemies[0];
+        }
+
+        private static GameObject FindRuntimePlayer()
+        {
+            GameObject player = GameObject.Find("CombatTestPlayer");
+
+            if (player == null)
+            {
+                throw new InvalidOperationException("CombatTestPlayer is missing during playmode.");
+            }
+
+            return player;
+        }
+
+        private static float GetHorizontalDistance(Vector3 from, Vector3 to)
+        {
+            from.y = 0f;
+            to.y = 0f;
+            return Vector3.Distance(from, to);
         }
 
         private static void RequireRootComponent<T>(GameObject root) where T : Component

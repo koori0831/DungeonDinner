@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 using Work.Entities.Code;
 
 namespace Work.Enemy.Code
@@ -6,10 +7,12 @@ namespace Work.Enemy.Code
     /// <summary>
     /// 적 AI의 월드 기준 이동 처리 모듈.
     /// </summary>
-    [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(NavMeshAgent))]
     public class EnemyMovementModule : MonoBehaviour, IEntityModule
     {
         private const float MIN_DIRECTION_SQR_MAGNITUDE = 0.0001f;
+        private const float MIN_RANGE = 0f;
+        private const float NAV_MESH_SAMPLE_DISTANCE = 2f;
 
         [SerializeField]
         private float moveSpeed = 3f;
@@ -24,12 +27,9 @@ namespace Work.Enemy.Code
         private float impulseDamping = 8f;
 
         private Entity _owner;
-        private CharacterController _controller;
-        private Vector3 _moveTarget;
+        private NavMeshAgent _agent;
         private Vector3 _manualMoveDirection;
         private Vector3 _externalVelocity;
-        private float _verticalVelocity;
-        private bool _hasMoveTarget;
         private bool _hasManualMoveDirection;
 
         /// <summary>
@@ -44,7 +44,9 @@ namespace Work.Enemy.Code
         public void Initialize(Entity entity)
         {
             _owner = entity;
-            _controller = GetComponent<CharacterController>();
+            _agent = GetComponent<NavMeshAgent>();
+            ConfigureAgent();
+            TryPlaceAgentOnNavMesh();
         }
 
         /// <summary>
@@ -53,9 +55,20 @@ namespace Work.Enemy.Code
         /// <param name="targetPosition">이동 목표 위치.</param>
         public void MoveTo(Vector3 targetPosition)
         {
-            _moveTarget = targetPosition;
-            _hasMoveTarget = true;
+            if (TryGetNavMeshPosition(targetPosition, out Vector3 navMeshPosition) == false)
+            {
+                return;
+            }
+
             _hasManualMoveDirection = false;
+
+            if (CanUseAgent() == false)
+            {
+                return;
+            }
+
+            _agent.isStopped = false;
+            _agent.SetDestination(navMeshPosition);
         }
 
         /// <summary>
@@ -74,7 +87,12 @@ namespace Work.Enemy.Code
 
             _manualMoveDirection = worldDirection.normalized;
             _hasManualMoveDirection = true;
-            _hasMoveTarget = false;
+
+            if (CanUseAgent() == true)
+            {
+                _agent.isStopped = false;
+                _agent.ResetPath();
+            }
         }
 
         /// <summary>
@@ -82,9 +100,16 @@ namespace Work.Enemy.Code
         /// </summary>
         public void Stop()
         {
-            _hasMoveTarget = false;
             _hasManualMoveDirection = false;
             _manualMoveDirection = Vector3.zero;
+
+            if (CanUseAgent() == false)
+            {
+                return;
+            }
+
+            _agent.isStopped = true;
+            _agent.ResetPath();
         }
 
         /// <summary>
@@ -127,6 +152,24 @@ namespace Work.Enemy.Code
         /// <returns>도착 여부.</returns>
         public bool HasReached(Vector3 targetPosition, float distance)
         {
+            if (CanUseAgent() == true)
+            {
+                if (_agent.pathPending == true)
+                {
+                    return false;
+                }
+
+                if (_agent.pathStatus != NavMeshPathStatus.PathInvalid)
+                {
+                    float reachDistance = Mathf.Max(distance, _agent.stoppingDistance);
+
+                    if (_agent.remainingDistance <= reachDistance)
+                    {
+                        return true;
+                    }
+                }
+            }
+
             Vector3 currentPosition = transform.position;
             currentPosition.y = 0f;
             targetPosition.y = 0f;
@@ -148,69 +191,85 @@ namespace Work.Enemy.Code
 
         private void Update()
         {
-            if (_controller == null || _controller.enabled == false || gameObject.activeInHierarchy == false)
+            if (CanUseAgent() == false)
             {
                 return;
             }
 
-            Vector3 horizontalVelocity = GetHorizontalVelocity();
-            Vector3 externalVelocity = GetExternalVelocity();
-            ApplyGravity();
-
-            Vector3 totalVelocity = horizontalVelocity + externalVelocity + new Vector3(0f, _verticalVelocity, 0f);
-            _controller.Move(totalVelocity * Time.deltaTime);
+            UpdateManualMove();
+            UpdateAgentRotation();
+            ApplyExternalMovement();
         }
 
-        private Vector3 GetHorizontalVelocity()
+        private void OnValidate()
         {
-            if (_hasMoveTarget == true)
+            moveSpeed = Mathf.Max(MIN_RANGE, moveSpeed);
+            rotationSpeed = Mathf.Max(MIN_RANGE, rotationSpeed);
+            stoppingDistance = Mathf.Max(MIN_RANGE, stoppingDistance);
+            impulseDamping = Mathf.Max(MIN_RANGE, impulseDamping);
+
+            if (_agent == null)
             {
-                Vector3 direction = _moveTarget - transform.position;
-                direction.y = 0f;
-
-                if (direction.sqrMagnitude <= stoppingDistance * stoppingDistance)
-                {
-                    _hasMoveTarget = false;
-                    return Vector3.zero;
-                }
-
-                Vector3 normalizedDirection = direction.normalized;
-                RotateToDirection(normalizedDirection);
-                return normalizedDirection * moveSpeed;
+                _agent = GetComponent<NavMeshAgent>();
             }
 
+            ConfigureAgent();
+        }
+
+        private void ConfigureAgent()
+        {
+            if (_agent == null)
+            {
+                return;
+            }
+
+            _agent.speed = moveSpeed;
+            _agent.angularSpeed = rotationSpeed;
+            _agent.stoppingDistance = stoppingDistance;
+            _agent.updateRotation = false;
+            _agent.updateUpAxis = true;
+        }
+
+        private void UpdateManualMove()
+        {
+            if (_hasManualMoveDirection == false)
+            {
+                return;
+            }
+
+            RotateToDirection(_manualMoveDirection);
+            _agent.Move(_manualMoveDirection * moveSpeed * Time.deltaTime);
+        }
+
+        private void UpdateAgentRotation()
+        {
             if (_hasManualMoveDirection == true)
             {
-                RotateToDirection(_manualMoveDirection);
-                return _manualMoveDirection * moveSpeed;
-            }
-
-            return Vector3.zero;
-        }
-
-        private void ApplyGravity()
-        {
-            if (_controller.isGrounded == true && _verticalVelocity < 0f)
-            {
-                _verticalVelocity = 0f;
                 return;
             }
 
-            _verticalVelocity += Physics.gravity.y * Time.deltaTime;
+            Vector3 velocity = _agent.desiredVelocity;
+            velocity.y = 0f;
+
+            if (velocity.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
+            {
+                return;
+            }
+
+            RotateToDirection(velocity);
         }
 
-        private Vector3 GetExternalVelocity()
+        private void ApplyExternalMovement()
         {
             if (_externalVelocity.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
             {
                 _externalVelocity = Vector3.zero;
-                return Vector3.zero;
+                return;
             }
 
             Vector3 currentVelocity = _externalVelocity;
             _externalVelocity = Vector3.Lerp(_externalVelocity, Vector3.zero, impulseDamping * Time.deltaTime);
-
-            return currentVelocity;
+            _agent.Move(currentVelocity * Time.deltaTime);
         }
 
         private void RotateToDirection(Vector3 direction)
@@ -226,6 +285,43 @@ namespace Work.Enemy.Code
                 targetRotation,
                 rotationSpeed * Time.deltaTime
             );
+        }
+
+        private bool CanUseAgent()
+        {
+            if (_agent == null || _agent.enabled == false || gameObject.activeInHierarchy == false)
+            {
+                return false;
+            }
+
+            return TryPlaceAgentOnNavMesh();
+        }
+
+        private bool TryPlaceAgentOnNavMesh()
+        {
+            if (_agent == null || _agent.isOnNavMesh == true)
+            {
+                return _agent != null;
+            }
+
+            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, NAV_MESH_SAMPLE_DISTANCE, NavMesh.AllAreas) == false)
+            {
+                return false;
+            }
+
+            return _agent.Warp(hit.position);
+        }
+
+        private static bool TryGetNavMeshPosition(Vector3 position, out Vector3 navMeshPosition)
+        {
+            if (NavMesh.SamplePosition(position, out NavMeshHit hit, NAV_MESH_SAMPLE_DISTANCE, NavMesh.AllAreas) == true)
+            {
+                navMeshPosition = hit.position;
+                return true;
+            }
+
+            navMeshPosition = position;
+            return false;
         }
     }
 }

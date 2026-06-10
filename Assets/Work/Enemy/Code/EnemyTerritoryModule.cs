@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 using Work.Entities.Code;
 
 namespace Work.Enemy.Code
@@ -8,8 +9,10 @@ namespace Work.Enemy.Code
     /// </summary>
     public sealed class EnemyTerritoryModule : MonoBehaviour, IEntityModule
     {
+        private const int PATROL_POINT_SAMPLE_COUNT = 12;
         private const int PATROL_MOVE_POINT_SAMPLE_COUNT = 6;
         private const float MIN_RANGE = 0f;
+        private const float NAV_MESH_SAMPLE_DISTANCE = 2f;
 
         [SerializeField]
         private float activityRadius = 8f;
@@ -111,14 +114,25 @@ namespace Work.Enemy.Code
         public Vector3 GetNextPatrolPoint()
         {
             float radius = Mathf.Min(activityRadius, patrolRadius);
+            Vector3 center = GetActivityCenter();
 
             if (radius <= MIN_RANGE)
             {
-                return GetActivityCenter();
+                return GetNavMeshPointOrFallback(center, NAV_MESH_SAMPLE_DISTANCE);
             }
 
-            Vector2 offset = Random.insideUnitCircle * radius;
-            return GetActivityCenter() + new Vector3(offset.x, 0f, offset.y);
+            for (int i = 0; i < PATROL_POINT_SAMPLE_COUNT; i++)
+            {
+                Vector2 offset = Random.insideUnitCircle * radius;
+                Vector3 candidate = center + new Vector3(offset.x, 0f, offset.y);
+
+                if (TryGetNavMeshPointInActivityRange(candidate, NAV_MESH_SAMPLE_DISTANCE, out Vector3 navMeshPoint) == true)
+                {
+                    return navMeshPoint;
+                }
+            }
+
+            return GetNavMeshPointOrFallback(center, Mathf.Max(NAV_MESH_SAMPLE_DISTANCE, radius));
         }
 
         /// <summary>
@@ -132,17 +146,23 @@ namespace Work.Enemy.Code
 
             if (radius <= MIN_RANGE)
             {
-                return ClampToActivityRange(patrolPoint);
+                return GetNavMeshPointOrFallback(patrolPoint, NAV_MESH_SAMPLE_DISTANCE);
             }
 
             float minimumSqrDistance = GetPatrolMoveMinimumSqrDistance();
-            Vector3 selectedPoint = ClampToActivityRange(patrolPoint);
+            Vector3 selectedPoint = GetNavMeshPointOrFallback(patrolPoint, NAV_MESH_SAMPLE_DISTANCE);
             float selectedSqrDistance = GetHorizontalSqrDistance(transform.position, selectedPoint);
 
             for (int i = 0; i < PATROL_MOVE_POINT_SAMPLE_COUNT; i++)
             {
                 Vector2 offset = Random.insideUnitCircle * radius;
-                Vector3 nextPoint = ClampToActivityRange(patrolPoint + new Vector3(offset.x, 0f, offset.y));
+                Vector3 candidate = patrolPoint + new Vector3(offset.x, 0f, offset.y);
+
+                if (TryGetNavMeshPointInActivityRange(candidate, NAV_MESH_SAMPLE_DISTANCE, out Vector3 nextPoint) == false)
+                {
+                    continue;
+                }
+
                 float sqrDistance = GetHorizontalSqrDistance(transform.position, nextPoint);
 
                 if (sqrDistance >= minimumSqrDistance)
@@ -166,7 +186,7 @@ namespace Work.Enemy.Code
         /// <returns>복귀 목표 위치.</returns>
         public Vector3 GetReturnPoint()
         {
-            return GetActivityCenter();
+            return GetNavMeshPointOrFallback(GetActivityCenter(), NAV_MESH_SAMPLE_DISTANCE);
         }
 
         private void OnValidate()
@@ -227,6 +247,36 @@ namespace Work.Enemy.Code
             Vector3 clampedPosition = center + offset.normalized * activityRadius;
             clampedPosition.y = center.y;
             return clampedPosition;
+        }
+
+        private Vector3 GetNavMeshPointOrFallback(Vector3 position, float sampleDistance)
+        {
+            if (TryGetNavMeshPointInActivityRange(position, sampleDistance, out Vector3 navMeshPoint) == true)
+            {
+                return navMeshPoint;
+            }
+
+            return ClampToActivityRange(position);
+        }
+
+        private bool TryGetNavMeshPointInActivityRange(Vector3 position, float sampleDistance, out Vector3 navMeshPoint)
+        {
+            Vector3 clampedPosition = ClampToActivityRange(position);
+
+            if (NavMesh.SamplePosition(clampedPosition, out NavMeshHit hit, sampleDistance, NavMesh.AllAreas) == false)
+            {
+                navMeshPoint = clampedPosition;
+                return false;
+            }
+
+            if (IsPositionInActivityRange(hit.position) == false)
+            {
+                navMeshPoint = clampedPosition;
+                return false;
+            }
+
+            navMeshPoint = hit.position;
+            return true;
         }
 
         private static float GetHorizontalSqrDistance(Vector3 from, Vector3 to)
