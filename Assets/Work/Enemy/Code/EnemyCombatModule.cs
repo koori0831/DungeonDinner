@@ -88,22 +88,36 @@ namespace Work.Enemy.Code
 
             Vector3 targetDirection = target.position - transform.position;
             targetDirection.y = 0f;
+            float targetSqrMagnitude = targetDirection.sqrMagnitude;
 
-            if (targetDirection.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
+            if (targetSqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
             {
                 return true;
             }
 
             Vector3 forward = transform.forward;
             forward.y = 0f;
+            float forwardSqrMagnitude = forward.sqrMagnitude;
 
-            if (forward.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
+            if (forwardSqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
             {
                 return true;
             }
 
-            float angle = Vector3.Angle(forward.normalized, targetDirection.normalized);
-            return angle <= maxAngle;
+            if (maxAngle < 0f)
+            {
+                return false;
+            }
+
+            if (maxAngle >= 180f)
+            {
+                return true;
+            }
+
+            float dot = Vector3.Dot(forward, targetDirection);
+            float magnitude = Mathf.Sqrt(forwardSqrMagnitude * targetSqrMagnitude);
+            float angleThreshold = Mathf.Cos(maxAngle * Mathf.Deg2Rad);
+            return dot >= magnitude * angleThreshold;
         }
 
         /// <summary>

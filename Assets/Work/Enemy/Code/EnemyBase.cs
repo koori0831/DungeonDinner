@@ -33,52 +33,122 @@ namespace Work.Enemy.Code
         /// <summary>
         /// 활동 범위 중심 위치.
         /// </summary>
-        public Vector3 ActivityCenter => GetTerritoryModule() != null ? GetTerritoryModule().ActivityCenter : transform.position;
+        public Vector3 ActivityCenter
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.ActivityCenter : transform.position;
+            }
+        }
 
         /// <summary>
         /// 활동 반경.
         /// </summary>
-        public float ActivityRadius => GetTerritoryModule() != null ? GetTerritoryModule().ActivityRadius : 0f;
+        public float ActivityRadius
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.ActivityRadius : 0f;
+            }
+        }
 
         /// <summary>
         /// 감지 반경.
         /// </summary>
-        public float DetectionRadius => GetTargetingModule() != null ? GetTargetingModule().DetectionRadius : 0f;
+        public float DetectionRadius
+        {
+            get
+            {
+                EnemyTargetingModule targetingModule = GetTargetingModule();
+                return targetingModule != null ? targetingModule.DetectionRadius : 0f;
+            }
+        }
 
         /// <summary>
         /// 공격 거리.
         /// </summary>
-        public float AttackDistance => GetCombatModule() != null ? GetCombatModule().AttackDistance : 0f;
+        public float AttackDistance
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackDistance : 0f;
+            }
+        }
 
         /// <summary>
         /// 공격 상태 진입 허용 각도.
         /// </summary>
-        public float AttackEnterAngle => GetCombatModule() != null ? GetCombatModule().AttackEnterAngle : 0f;
+        public float AttackEnterAngle
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackEnterAngle : 0f;
+            }
+        }
 
         /// <summary>
         /// 순찰 대기 시간.
         /// </summary>
-        public float PatrolWaitTime => GetTerritoryModule() != null ? GetTerritoryModule().PatrolWaitTime : 0f;
+        public float PatrolWaitTime
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.PatrolWaitTime : 0f;
+            }
+        }
 
         /// <summary>
         /// 순찰 지점 주변 체류 시간.
         /// </summary>
-        public float PatrolPointStayTime => GetTerritoryModule() != null ? GetTerritoryModule().PatrolPointStayTime : 0f;
+        public float PatrolPointStayTime
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.PatrolPointStayTime : 0f;
+            }
+        }
 
         /// <summary>
         /// 순찰 지점 주변 다음 이동점 선택 간격.
         /// </summary>
-        public float PatrolPointMoveInterval => GetTerritoryModule() != null ? GetTerritoryModule().PatrolPointMoveInterval : 0f;
+        public float PatrolPointMoveInterval
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.PatrolPointMoveInterval : 0f;
+            }
+        }
 
         /// <summary>
         /// 공격 쿨타임.
         /// </summary>
-        public float AttackCooldown => GetCombatModule() != null ? GetCombatModule().AttackCooldown : 0f;
+        public float AttackCooldown
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackCooldown : 0f;
+            }
+        }
 
         /// <summary>
         /// 활동 범위 이탈 후 복귀 전환까지 대기 시간.
         /// </summary>
-        public float ChaseReturnDelay => GetTerritoryModule() != null ? GetTerritoryModule().ChaseReturnDelay : 0f;
+        public float ChaseReturnDelay
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.ChaseReturnDelay : 0f;
+            }
+        }
 
         /// <summary>
         /// 사망 여부.
@@ -88,12 +158,26 @@ namespace Work.Enemy.Code
         /// <summary>
         /// 공격 가능 여부.
         /// </summary>
-        public bool CanExecuteAttack => GetCombatModule() != null && GetCombatModule().CanExecuteAttack == true;
+        public bool CanExecuteAttack
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null && combatModule.CanExecuteAttack == true;
+            }
+        }
 
         /// <summary>
         /// 현재 이동 상태에서 공격 상태 진입 가능 여부.
         /// </summary>
-        public bool CanEnterAttack => GetMovementModule() == null || GetMovementModule().CanEnterAttack == true;
+        public bool CanEnterAttack
+        {
+            get
+            {
+                EnemyMovementModule movementModule = GetMovementModule();
+                return movementModule == null || movementModule.CanEnterAttack == true;
+            }
+        }
 
         protected virtual void Awake()
         {

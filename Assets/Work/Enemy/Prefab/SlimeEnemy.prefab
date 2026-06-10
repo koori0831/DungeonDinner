@@ -523,20 +523,20 @@ MonoBehaviour:
   dynamicBone: {fileID: 8862636367439609900}
   stateController: {fileID: 6692055883979700493}
   slimeMovementModule: {fileID: 2090841836946313473}
-  idlePulseSpeed: 6
-  movePulseSpeed: 9
-  attackPulseSpeed: 7
+  idlePulseSpeed: 4
+  movePulseSpeed: 5
+  attackPulseSpeed: 4
   idleSquashAmount: 0.08
   moveSquashAmount: 0.12
   attackSquashAmount: 0.15
   moveForce: 0.15
   bounceForce: 0.09
-  poseLerpSpeed: 11
-  forceLerpSpeed: 6
+  poseLerpSpeed: 9
+  forceLerpSpeed: 3
   chargeSquashAmount: 0.15
   jumpStretchAmount: 0.08
   jumpLiftAmount: 1.2
-  landSquashAmount: 0.07
+  landSquashAmount: 0.45
   hopDynamicForce: 0.07
   landDynamicForce: 0.04
 --- !u!1 &7982013359736212995

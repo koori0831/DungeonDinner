@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Work.Entities.Code;
 using Work.Players.Code;
@@ -22,6 +23,7 @@ namespace Work.Enemy.Code
         private QueryTriggerInteraction targetQueryTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         private readonly Collider[] _targetColliders = new Collider[MAX_TARGET_COLLIDER_COUNT];
+        private readonly Dictionary<int, Player> PLAYER_BY_COLLIDER_ID = new Dictionary<int, Player>();
         private Entity _owner;
         private EnemyTerritoryModule _territoryModule;
         private Transform _target;
@@ -116,6 +118,11 @@ namespace Work.Enemy.Code
             detectionRadius = Mathf.Max(MIN_RANGE, detectionRadius);
         }
 
+        private void OnDisable()
+        {
+            PLAYER_BY_COLLIDER_ID.Clear();
+        }
+
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.cyan;
@@ -125,8 +132,9 @@ namespace Work.Enemy.Code
         private bool TryFindTargetInDetectionRange(out Transform target)
         {
             target = null;
+            Vector3 ownerPosition = transform.position;
             int colliderCount = Physics.OverlapSphereNonAlloc(
-                transform.position,
+                ownerPosition,
                 detectionRadius,
                 _targetColliders,
                 targetLayerMask,
@@ -145,7 +153,7 @@ namespace Work.Enemy.Code
                     continue;
                 }
 
-                Player player = targetCollider.GetComponentInParent<Player>();
+                Player player = GetCachedPlayer(targetCollider);
 
                 if (player == null)
                 {
@@ -159,7 +167,7 @@ namespace Work.Enemy.Code
                     continue;
                 }
 
-                float sqrDistance = GetHorizontalSqrDistance(transform.position, playerTransform.position);
+                float sqrDistance = GetHorizontalSqrDistance(ownerPosition, playerTransform.position);
 
                 if (sqrDistance >= nearestSqrDistance)
                 {
@@ -171,6 +179,20 @@ namespace Work.Enemy.Code
             }
 
             return target != null;
+        }
+
+        private Player GetCachedPlayer(Collider targetCollider)
+        {
+            int colliderId = targetCollider.GetInstanceID();
+
+            if (PLAYER_BY_COLLIDER_ID.TryGetValue(colliderId, out Player cachedPlayer) == true)
+            {
+                return cachedPlayer;
+            }
+
+            Player player = targetCollider.GetComponentInParent<Player>();
+            PLAYER_BY_COLLIDER_ID.Add(colliderId, player);
+            return player;
         }
 
         private EnemyTerritoryModule GetTerritoryModule()

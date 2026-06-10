@@ -254,7 +254,7 @@ namespace Work.Enemy.Code
             }
 
             RotateToDirection(_manualMoveDirection);
-            _agent.Move(_manualMoveDirection * moveSpeed * Time.deltaTime);
+            _agent.Move(_manualMoveDirection * (moveSpeed * Time.deltaTime));
         }
 
         private void UpdateAgentRotation()

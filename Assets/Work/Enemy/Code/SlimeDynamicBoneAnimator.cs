@@ -237,8 +237,8 @@ namespace Work.Enemy.Code
                 _baseLocalScale.y * (1f - amount),
                 _baseLocalScale.z * (1f + amount)
             );
-            targetPosition = _baseLocalPosition + Vector3.down * amount * 0.06f;
-            targetForce = -slimeMovementModule.HopDirection * hopDynamicForce * amount;
+            targetPosition = _baseLocalPosition + Vector3.down * (amount * 0.06f);
+            targetForce = -slimeMovementModule.HopDirection * (hopDynamicForce * amount);
         }
 
         private void GetJumpPose(float phaseTime, out Vector3 targetScale, out Vector3 targetPosition, out Vector3 targetForce)
@@ -250,8 +250,8 @@ namespace Work.Enemy.Code
                 _baseLocalScale.y * (1f + stretch * 0.1f),
                 _baseLocalScale.z * (1f + stretch)
             );
-            targetPosition = _baseLocalPosition + Vector3.up * arc * jumpLiftAmount;
-            targetForce = -slimeMovementModule.HopDirection * hopDynamicForce + Vector3.up * arc * hopDynamicForce * 0.35f;
+            targetPosition = _baseLocalPosition + Vector3.up * (arc * jumpLiftAmount);
+            targetForce = -slimeMovementModule.HopDirection * hopDynamicForce + Vector3.up * (arc * hopDynamicForce * 0.35f);
         }
 
         private void GetLandPose(float phaseTime, out Vector3 targetScale, out Vector3 targetPosition, out Vector3 targetForce)
@@ -264,7 +264,7 @@ namespace Work.Enemy.Code
                 _baseLocalScale.z * (1f + amount)
             );
             targetPosition = _baseLocalPosition;
-            targetForce = slimeMovementModule.HopDirection * landDynamicForce * recovery + Vector3.down * landDynamicForce * recovery;
+            targetForce = slimeMovementModule.HopDirection * (landDynamicForce * recovery) + Vector3.down * (landDynamicForce * recovery);
         }
 
         private float GetMotionWeight(EnemyState currentState, Vector3 frameMovement)
@@ -335,10 +335,10 @@ namespace Work.Enemy.Code
             if (Time.deltaTime > MIN_DELTA_TIME && frameMovement.sqrMagnitude > MIN_MOVE_SQR_MAGNITUDE)
             {
                 Vector3 moveDirection = frameMovement.normalized;
-                targetForce -= moveDirection * moveForce * motionWeight;
+                targetForce -= moveDirection * (moveForce * motionWeight);
             }
 
-            targetForce += Vector3.up * pulse * bounceForce;
+            targetForce += Vector3.up * (pulse * bounceForce);
 
             float forceLerp = 1f - Mathf.Exp(-forceLerpSpeed * Time.deltaTime);
             _currentDynamicForce = Vector3.Lerp(_currentDynamicForce, targetForce, forceLerp);
