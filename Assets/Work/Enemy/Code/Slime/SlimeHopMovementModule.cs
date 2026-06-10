@@ -58,7 +58,7 @@ namespace Work.Enemy.Code.Slime
         private Vector3 _hopStart;
         private Vector3 _hopEnd;
         private Vector3 _hopDirection = Vector3.forward;
-        private Vector3 _externalVelocity;
+        private Vector3 _hopExternalVelocity;
         private float _phaseStartTime;
         private float _phaseDuration;
         private float _nextChargeRetargetTime;
@@ -167,7 +167,7 @@ namespace Work.Enemy.Code.Slime
         public override void Stop()
         {
             _hasDestination = false;
-            _externalVelocity = Vector3.zero;
+            _hopExternalVelocity = Vector3.zero;
             EnterPhase(SlimeHopPhase.Idle, 0f);
 
             if (CanUseAgent() == false)
@@ -198,7 +198,7 @@ namespace Work.Enemy.Code.Slime
                 return;
             }
 
-            _externalVelocity += direction.normalized * power;
+            _hopExternalVelocity += direction.normalized * power;
         }
 
         /// <summary>
@@ -477,14 +477,14 @@ namespace Work.Enemy.Code.Slime
 
         private void ApplyExternalMovement()
         {
-            if (_externalVelocity.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
+            if (_hopExternalVelocity.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
             {
-                _externalVelocity = Vector3.zero;
+                _hopExternalVelocity = Vector3.zero;
                 return;
             }
 
-            Vector3 currentVelocity = _externalVelocity;
-            _externalVelocity = Vector3.Lerp(_externalVelocity, Vector3.zero, hopImpulseDamping * Time.deltaTime);
+            Vector3 currentVelocity = _hopExternalVelocity;
+            _hopExternalVelocity = Vector3.Lerp(_hopExternalVelocity, Vector3.zero, hopImpulseDamping * Time.deltaTime);
             Agent.Move(currentVelocity * Time.deltaTime);
         }
 
