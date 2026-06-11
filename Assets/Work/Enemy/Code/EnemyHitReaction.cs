@@ -1,12 +1,13 @@
 using UnityEngine;
 using Work.Combat.Code.Core;
+using Work.Entities.Code;
 
 namespace Work.Enemy.Code
 {
     /// <summary>
     /// 적 피격 시 발생하는 넉백과 연출 처리 컴포넌트.
     /// </summary>
-    public sealed class EnemyHitReaction : MonoBehaviour
+    public sealed class EnemyHitReaction : MonoBehaviour, IEntityModule
     {
         private const float MIN_DIRECTION_SQR_MAGNITUDE = 0.0001f;
 
@@ -27,10 +28,34 @@ namespace Work.Enemy.Code
 
         private void Awake()
         {
+            ResolveSceneReferences(null);
+        }
+
+        /// <summary>
+        /// 모듈 소유자 초기화.
+        /// </summary>
+        /// <param name="entity">모듈 소유 엔티티.</param>
+        public void Initialize(Entity entity)
+        {
+            ResolveSceneReferences(entity);
+        }
+
+        private void ResolveSceneReferences(Entity entity)
+        {
             if (movementModule == null)
             {
-                movementModule = GetComponent<EnemyMovementModule>();
+                ResolveMovementModule(entity);
             }
+        }
+
+        private void ResolveMovementModule(Entity entity)
+        {
+            if (entity != null && entity.TryGetModule<EnemyMovementModule>(out movementModule, true) == true)
+            {
+                return;
+            }
+
+            movementModule = GetComponentInParent<EnemyMovementModule>();
         }
 
         /// <summary>

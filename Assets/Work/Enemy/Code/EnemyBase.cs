@@ -139,6 +139,30 @@ namespace Work.Enemy.Code
         }
 
         /// <summary>
+        /// 공격 판정 전 준비 시간.
+        /// </summary>
+        public float AttackWindupTime
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackWindupTime : 0f;
+            }
+        }
+
+        /// <summary>
+        /// 공격 판정 후 회복 시간.
+        /// </summary>
+        public float AttackRecoveryTime
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackRecoveryTime : 0f;
+            }
+        }
+
+        /// <summary>
         /// 활동 범위 이탈 후 복귀 전환까지 대기 시간.
         /// </summary>
         public float ChaseReturnDelay

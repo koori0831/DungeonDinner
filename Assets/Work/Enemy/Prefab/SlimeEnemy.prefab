@@ -255,6 +255,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1669982884520962904}
   - component: {fileID: 3821500423925964020}
+  - component: {fileID: 910000000000000001}
   - component: {fileID: 2090841836946313473}
   - component: {fileID: 6692055883979700493}
   - component: {fileID: 7479225985627758717}
@@ -298,6 +299,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initializeOnAwake: 1
   stateController: {fileID: 6692055883979700493}
+--- !u!114 &910000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4914190420154180802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000101, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  maxHealth: 3
 --- !u!114 &2090841836946313473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -549,9 +563,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1360752245627606639}
   - component: {fileID: 8323019224754915910}
+  - component: {fileID: 910000000000000002}
   - component: {fileID: 4487411034954568838}
   - component: {fileID: 7112657450339572718}
-  - component: {fileID: 5560033994858340082}
   m_Layer: 9
   m_Name: Hurtbox
   m_TagString: Untagged
@@ -590,7 +604,34 @@ MonoBehaviour:
   isHitable: 1
   hitReaction: {fileID: 4487411034954568838}
   deathHandler: {fileID: 7112657450339572718}
-  killConditionResolver: {fileID: 5560033994858340082}
+  healthModule: {fileID: 910000000000000001}
+  dropResolver: {fileID: 910000000000000002}
+--- !u!114 &910000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7982013359736212995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000102, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  stateController: {fileID: 6692055883979700493}
+  dropRules:
+  - ruleId: Slash
+    dropConditions:
+    - {fileID: 11400000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000305, type: 2}
+    dropTable: {fileID: 11400000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000303, type: 2}
+  - ruleId: Pierce
+    dropConditions:
+    - {fileID: 11400000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000306, type: 2}
+    dropTable: {fileID: 11400000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000304, type: 2}
+  logDrops: 1
+  lastAttackType: 0
+  lastDropCount: 0
+  lastDropSummary:
 --- !u!114 &4487411034954568838
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -625,20 +666,6 @@ MonoBehaviour:
   behavioursToDisable: []
   animator: {fileID: 0}
   deathTriggerName: Death
---- !u!114 &5560033994858340082
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7982013359736212995}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf0000c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stateController: {fileID: 6692055883979700493}
-  killConditions: []
 --- !u!1001 &8644336750628432663
 PrefabInstance:
   m_ObjectHideFlags: 0

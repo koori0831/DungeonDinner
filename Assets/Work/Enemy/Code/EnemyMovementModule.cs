@@ -13,6 +13,8 @@ namespace Work.Enemy.Code
         private const float MIN_DIRECTION_SQR_MAGNITUDE = 0.0001f;
         private const float MIN_RANGE = 0f;
         private const float NAV_MESH_SAMPLE_DISTANCE = 2f;
+        private const float RAW_DESTINATION_REQUEST_THRESHOLD = 0.15f;
+        private const float NAV_MESH_DESTINATION_REQUEST_THRESHOLD = 0.05f;
 
         [SerializeField]
         private float moveSpeed = 3f;
@@ -30,7 +32,11 @@ namespace Work.Enemy.Code
         private NavMeshAgent _agent;
         private Vector3 _manualMoveDirection;
         private Vector3 _externalVelocity;
+        private Vector3 _lastRequestedDestination;
+        private Vector3 _lastNavMeshDestination;
         private bool _hasManualMoveDirection;
+        private bool _hasLastRequestedDestination;
+        private bool _hasLastNavMeshDestination;
 
         /// <summary>
         /// 이동 도착 판정 거리.
@@ -66,6 +72,11 @@ namespace Work.Enemy.Code
         /// <param name="targetPosition">이동 목표 위치.</param>
         public virtual void MoveTo(Vector3 targetPosition)
         {
+            if (IsSameRawDestinationRequest(targetPosition) == true)
+            {
+                return;
+            }
+
             if (TryGetNavMeshPosition(targetPosition, out Vector3 navMeshPosition) == false)
             {
                 return;
@@ -79,7 +90,18 @@ namespace Work.Enemy.Code
             }
 
             _agent.isStopped = false;
-            _agent.SetDestination(navMeshPosition);
+
+            if (IsSameNavMeshDestination(navMeshPosition) == true)
+            {
+                StoreDestinationRequest(targetPosition);
+                return;
+            }
+
+            if (_agent.SetDestination(navMeshPosition) == true)
+            {
+                StoreDestinationRequest(targetPosition);
+                StoreNavMeshDestination(navMeshPosition);
+            }
         }
 
         /// <summary>
@@ -88,6 +110,7 @@ namespace Work.Enemy.Code
         /// <param name="worldDirection">월드 기준 이동 방향.</param>
         public virtual void Move(Vector3 worldDirection)
         {
+            ClearDestinationRequest();
             worldDirection.y = 0f;
 
             if (worldDirection.sqrMagnitude <= MIN_DIRECTION_SQR_MAGNITUDE)
@@ -111,6 +134,7 @@ namespace Work.Enemy.Code
         /// </summary>
         public virtual void Stop()
         {
+            ClearDestinationRequest();
             _hasManualMoveDirection = false;
             _manualMoveDirection = Vector3.zero;
 
@@ -328,6 +352,46 @@ namespace Work.Enemy.Code
             return _agent.Warp(hit.position);
         }
 
+        private bool IsSameRawDestinationRequest(Vector3 targetPosition)
+        {
+            if (_hasLastRequestedDestination == false)
+            {
+                return false;
+            }
+
+            float sqrThreshold = RAW_DESTINATION_REQUEST_THRESHOLD * RAW_DESTINATION_REQUEST_THRESHOLD;
+            return GetHorizontalSqrDistance(_lastRequestedDestination, targetPosition) <= sqrThreshold;
+        }
+
+        private bool IsSameNavMeshDestination(Vector3 navMeshPosition)
+        {
+            if (_hasLastNavMeshDestination == false)
+            {
+                return false;
+            }
+
+            float sqrThreshold = NAV_MESH_DESTINATION_REQUEST_THRESHOLD * NAV_MESH_DESTINATION_REQUEST_THRESHOLD;
+            return GetHorizontalSqrDistance(_lastNavMeshDestination, navMeshPosition) <= sqrThreshold;
+        }
+
+        private void StoreDestinationRequest(Vector3 targetPosition)
+        {
+            _lastRequestedDestination = targetPosition;
+            _hasLastRequestedDestination = true;
+        }
+
+        private void StoreNavMeshDestination(Vector3 navMeshPosition)
+        {
+            _lastNavMeshDestination = navMeshPosition;
+            _hasLastNavMeshDestination = true;
+        }
+
+        private void ClearDestinationRequest()
+        {
+            _hasLastRequestedDestination = false;
+            _hasLastNavMeshDestination = false;
+        }
+
         protected static bool TryGetNavMeshPosition(Vector3 position, out Vector3 navMeshPosition)
         {
             if (NavMesh.SamplePosition(position, out NavMeshHit hit, NAV_MESH_SAMPLE_DISTANCE, NavMesh.AllAreas) == true)
@@ -338,6 +402,13 @@ namespace Work.Enemy.Code
 
             navMeshPosition = position;
             return false;
+        }
+
+        private static float GetHorizontalSqrDistance(Vector3 from, Vector3 to)
+        {
+            from.y = 0f;
+            to.y = 0f;
+            return (to - from).sqrMagnitude;
         }
     }
 }

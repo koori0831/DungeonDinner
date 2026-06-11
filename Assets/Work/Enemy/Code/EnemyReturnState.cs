@@ -1,3 +1,4 @@
+using UnityEngine;
 using Work.Entities.Code;
 using Work.FSM.Code;
 
@@ -8,6 +9,8 @@ namespace Work.Enemy.Code
     /// </summary>
     public class EnemyReturnState : EnemyBehaviourState
     {
+        private Vector3 _returnPoint;
+
         protected override EnemyState StateType => EnemyState.Return;
 
         public EnemyReturnState(StateMachine stateMachine, Entity owner, int animationHash)
@@ -29,6 +32,8 @@ namespace Work.Enemy.Code
 
             _enemy.StopMoving();
             _enemy.ClearTarget();
+            _returnPoint = _enemy.GetReturnPoint();
+            _enemy.MoveTo(_returnPoint);
         }
 
         /// <summary>
@@ -47,7 +52,7 @@ namespace Work.Enemy.Code
                 return;
             }
 
-            _enemy.MoveTo(_enemy.GetReturnPoint());
+            _enemy.MoveTo(_returnPoint);
         }
     }
 }

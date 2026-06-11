@@ -529,6 +529,7 @@ GameObject:
   - component: {fileID: 2000000104}
   - component: {fileID: 2000000106}
   - component: {fileID: 2000000107}
+  - component: {fileID: 2000000110}
   - component: {fileID: 2000000109}
   - component: {fileID: 2000000108}
   m_Layer: 8
@@ -633,6 +634,20 @@ MonoBehaviour:
   m_Name: ""
   m_EditorClassIdentifier: ""
   isHitable: 1
+  healthModule: {fileID: 2000000110}
+--- !u!114 &2000000110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000101, type: 3}
+  m_Name: ""
+  m_EditorClassIdentifier: ""
+  maxHealth: 5
 --- !u!114 &2000000108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -930,16 +945,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4914190420154180802, guid: bd30e9a90c560314280e9030a940f19a, type: 3}
       propertyPath: m_Name
-      value: PierceKillSlime
+      value: PierceDropSlime
       objectReference: {fileID: 0}
-    - target: {fileID: 5560033994858340082, guid: bd30e9a90c560314280e9030a940f19a, type: 3}
-      propertyPath: killConditions.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5560033994858340082, guid: bd30e9a90c560314280e9030a940f19a, type: 3}
-      propertyPath: 'killConditions.Array.data[0]'
-      value: ""
-      objectReference: {fileID: 11400000, guid: b8737f3d98124e9da728c9f44cf10003, type: 2}
     - target: {fileID: 7112657450339572718, guid: bd30e9a90c560314280e9030a940f19a, type: 3}
       propertyPath: behavioursToDisable.Array.size
       value: 0
@@ -999,16 +1006,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4914190420154180802, guid: bd30e9a90c560314280e9030a940f19a, type: 3}
       propertyPath: m_Name
-      value: SlashKillSlime
+      value: SlashDropSlime
       objectReference: {fileID: 0}
-    - target: {fileID: 5560033994858340082, guid: bd30e9a90c560314280e9030a940f19a, type: 3}
-      propertyPath: killConditions.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5560033994858340082, guid: bd30e9a90c560314280e9030a940f19a, type: 3}
-      propertyPath: 'killConditions.Array.data[0]'
-      value: ""
-      objectReference: {fileID: 11400000, guid: b8737f3d98124e9da728c9f44cf10002, type: 2}
     - target: {fileID: 7112657450339572718, guid: bd30e9a90c560314280e9030a940f19a, type: 3}
       propertyPath: behavioursToDisable.Array.size
       value: 0

@@ -1,5 +1,6 @@
 using UnityEngine;
 using Work.Combat.Code.Core;
+using Work.Entities.Code;
 
 namespace Work.Players.Code
 {
@@ -11,6 +12,9 @@ namespace Work.Players.Code
         [SerializeField]
         private bool isHitable = true;
 
+        [SerializeField]
+        private EntityHealthModule healthModule;
+
         /// <summary>
         /// 마지막 피격 정보.
         /// </summary>
@@ -21,6 +25,11 @@ namespace Work.Players.Code
         /// </summary>
         public HitResult LastHitResult { get; private set; }
 
+        private void Awake()
+        {
+            ResolveSceneReferences();
+        }
+
         /// <summary>
         /// 피격 정보 수신.
         /// </summary>
@@ -28,7 +37,14 @@ namespace Work.Players.Code
         /// <returns>피격 처리 결과.</returns>
         public HitResult ReceiveHit(in HitContext hitContext)
         {
+            ResolveSceneReferences();
             LastHitContext = hitContext;
+
+            if (healthModule != null && healthModule.IsDead == true)
+            {
+                LastHitResult = new HitResult(false, false, HitResultType.AlreadyDead);
+                return LastHitResult;
+            }
 
             if (isHitable == false)
             {
@@ -36,8 +52,41 @@ namespace Work.Players.Code
                 return LastHitResult;
             }
 
-            LastHitResult = new HitResult(true, false, HitResultType.HitButNotKilled);
+            if (healthModule == null)
+            {
+                LogMissingHealthModule();
+                LastHitResult = new HitResult(false, false, HitResultType.InvalidConfiguration);
+                return LastHitResult;
+            }
+
+            if (healthModule.TryApplyHit(out bool isKilled) == false)
+            {
+                LastHitResult = new HitResult(false, false, HitResultType.AlreadyDead);
+                return LastHitResult;
+            }
+
+            LastHitResult = isKilled == true
+                ? new HitResult(true, true, HitResultType.Killed)
+                : new HitResult(true, false, HitResultType.HitButNotKilled);
+
             return LastHitResult;
+        }
+
+        private void ResolveSceneReferences()
+        {
+            if (healthModule != null)
+            {
+                return;
+            }
+
+            healthModule = GetComponentInParent<EntityHealthModule>();
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogMissingHealthModule()
+        {
+            Debug.LogError($"{nameof(EntityHealthModule)} is missing. Player hit stopped.", this);
         }
     }
 }

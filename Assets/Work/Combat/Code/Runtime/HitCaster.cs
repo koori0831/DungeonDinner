@@ -12,7 +12,7 @@ namespace Work.Combat.Code.Runtime
         private const float MIN_DIRECTION_SQR_MAGNITUDE = 0.0001f;
 
         [SerializeField]
-        private QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.UseGlobal;
+        private QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.Collide;
 
         [SerializeField]
         [Min(1)]

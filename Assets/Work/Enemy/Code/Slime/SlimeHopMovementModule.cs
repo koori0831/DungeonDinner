@@ -12,6 +12,8 @@ namespace Work.Enemy.Code.Slime
         private const float MIN_DIRECTION_SQR_MAGNITUDE = 0.0001f;
         private const float MIN_RANGE = 0f;
         private const float NAV_MESH_SAMPLE_DISTANCE = 2f;
+        private const float RAW_DESTINATION_REQUEST_THRESHOLD = 0.15f;
+        private const float NAV_MESH_DESTINATION_REQUEST_THRESHOLD = 0.05f;
 
         [SerializeField]
         [Tooltip("이동 목적지가 없거나 목적지 도착 후 실제 대기 상태에서 유지할 시간.")]
@@ -24,6 +26,10 @@ namespace Work.Enemy.Code.Slime
         [SerializeField]
         [Tooltip("응축 중 최신 목적지 기준으로 도약 방향을 다시 계산하는 간격.")]
         private float chargeRetargetInterval = 0.05f;
+
+        [SerializeField]
+        [Tooltip("응축 중 목적지가 이 거리 이상 바뀐 경우에만 도약 경로를 다시 계산.")]
+        private float chargeRetargetDistance = 0.35f;
 
         [SerializeField]
         [Tooltip("착지 위치 보정 Warp를 수행할 최소 거리. 작을수록 착지 스냅을 더 자주 보정.")]
@@ -59,10 +65,16 @@ namespace Work.Enemy.Code.Slime
         private Vector3 _hopEnd;
         private Vector3 _hopDirection = Vector3.forward;
         private Vector3 _hopExternalVelocity;
+        private Vector3 _lastRequestedDestination;
+        private Vector3 _lastNavMeshDestination;
+        private Vector3 _lastPreparedDestination;
         private float _phaseStartTime;
         private float _phaseDuration;
         private float _nextChargeRetargetTime;
         private bool _hasDestination;
+        private bool _hasLastRequestedDestination;
+        private bool _hasLastNavMeshDestination;
+        private bool _hasPreparedDestination;
 
         /// <summary>
         /// 현재 슬라임 점프 이동 단계.
@@ -122,8 +134,19 @@ namespace Work.Enemy.Code.Slime
         /// <param name="targetPosition">최종 이동 목표 위치.</param>
         public override void MoveTo(Vector3 targetPosition)
         {
+            if (IsSameRawDestinationRequest(targetPosition) == true)
+            {
+                return;
+            }
+
             if (TryGetNavMeshPosition(targetPosition, out Vector3 navMeshPosition) == false)
             {
+                return;
+            }
+
+            if (IsSameNavMeshDestination(navMeshPosition) == true)
+            {
+                StoreDestinationRequest(targetPosition);
                 return;
             }
 
@@ -137,6 +160,8 @@ namespace Work.Enemy.Code.Slime
             }
 
             Agent.isStopped = false;
+            StoreDestinationRequest(targetPosition);
+            StoreNavMeshDestination(navMeshPosition);
 
             if (hadDestination == false && CurrentPhase == SlimeHopPhase.Idle)
             {
@@ -166,7 +191,9 @@ namespace Work.Enemy.Code.Slime
         /// </summary>
         public override void Stop()
         {
+            ClearDestinationRequest();
             _hasDestination = false;
+            _hasPreparedDestination = false;
             _hopExternalVelocity = Vector3.zero;
             EnterPhase(SlimeHopPhase.Idle, 0f);
 
@@ -248,6 +275,7 @@ namespace Work.Enemy.Code.Slime
             idleCooldown = Mathf.Max(MIN_RANGE, idleCooldown);
             moveCooldown = Mathf.Max(MIN_RANGE, moveCooldown);
             chargeRetargetInterval = Mathf.Max(MIN_RANGE, chargeRetargetInterval);
+            chargeRetargetDistance = Mathf.Max(MIN_RANGE, chargeRetargetDistance);
             landingWarpThreshold = Mathf.Max(MIN_RANGE, landingWarpThreshold);
             chargeDuration = Mathf.Max(MIN_RANGE, chargeDuration);
             jumpDuration = Mathf.Max(MIN_RANGE, jumpDuration);
@@ -364,6 +392,12 @@ namespace Work.Enemy.Code.Slime
             }
 
             _nextChargeRetargetTime = Time.time + chargeRetargetInterval;
+
+            if (HasPreparedDestinationChangedEnough() == false)
+            {
+                return;
+            }
+
             TryPrepareHop();
         }
 
@@ -385,6 +419,8 @@ namespace Work.Enemy.Code.Slime
             }
 
             _hopDirection.Normalize();
+            _lastPreparedDestination = _destination;
+            _hasPreparedDestination = true;
             RotateToDirection(_hopDirection);
             return true;
         }
@@ -407,11 +443,21 @@ namespace Work.Enemy.Code.Slime
                 nextDistance = targetDistance;
             }
 
+            if (TryGetDirectHopPoint(startPosition, nextDistance, out nextHopPoint) == true)
+            {
+                return true;
+            }
+
             if (NavMesh.CalculatePath(startPosition, _destination, NavMesh.AllAreas, GetPath()) == true && _path.status != NavMeshPathStatus.PathInvalid)
             {
                 return TryGetPathPoint(startPosition, nextDistance, out nextHopPoint);
             }
 
+            return false;
+        }
+
+        private bool TryGetDirectHopPoint(Vector3 startPosition, float nextDistance, out Vector3 nextHopPoint)
+        {
             Vector3 direction = _destination - startPosition;
             direction.y = 0f;
 
@@ -422,7 +468,18 @@ namespace Work.Enemy.Code.Slime
             }
 
             Vector3 candidate = startPosition + direction.normalized * nextDistance;
-            return TrySampleHopPoint(candidate, out nextHopPoint);
+
+            if (TrySampleHopPoint(candidate, out nextHopPoint) == false)
+            {
+                return false;
+            }
+
+            if (NavMesh.Raycast(startPosition, nextHopPoint, out _, NavMesh.AllAreas) == true)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private bool TryGetPathPoint(Vector3 startPosition, float nextDistance, out Vector3 nextHopPoint)
@@ -473,6 +530,57 @@ namespace Work.Enemy.Code.Slime
 
             hopPoint = hit.position;
             return GetHorizontalSqrDistance(transform.position, hopPoint) > StoppingDistance * StoppingDistance;
+        }
+
+        private bool IsSameRawDestinationRequest(Vector3 targetPosition)
+        {
+            if (_hasDestination == false || _hasLastRequestedDestination == false)
+            {
+                return false;
+            }
+
+            float sqrThreshold = RAW_DESTINATION_REQUEST_THRESHOLD * RAW_DESTINATION_REQUEST_THRESHOLD;
+            return GetHorizontalSqrDistance(_lastRequestedDestination, targetPosition) <= sqrThreshold;
+        }
+
+        private bool IsSameNavMeshDestination(Vector3 navMeshPosition)
+        {
+            if (_hasDestination == false || _hasLastNavMeshDestination == false)
+            {
+                return false;
+            }
+
+            float sqrThreshold = NAV_MESH_DESTINATION_REQUEST_THRESHOLD * NAV_MESH_DESTINATION_REQUEST_THRESHOLD;
+            return GetHorizontalSqrDistance(_lastNavMeshDestination, navMeshPosition) <= sqrThreshold;
+        }
+
+        private void StoreDestinationRequest(Vector3 targetPosition)
+        {
+            _lastRequestedDestination = targetPosition;
+            _hasLastRequestedDestination = true;
+        }
+
+        private void StoreNavMeshDestination(Vector3 navMeshPosition)
+        {
+            _lastNavMeshDestination = navMeshPosition;
+            _hasLastNavMeshDestination = true;
+        }
+
+        private void ClearDestinationRequest()
+        {
+            _hasLastRequestedDestination = false;
+            _hasLastNavMeshDestination = false;
+        }
+
+        private bool HasPreparedDestinationChangedEnough()
+        {
+            if (_hasPreparedDestination == false)
+            {
+                return true;
+            }
+
+            float sqrDistance = chargeRetargetDistance * chargeRetargetDistance;
+            return GetHorizontalSqrDistance(_lastPreparedDestination, _destination) >= sqrDistance;
         }
 
         private void ApplyExternalMovement()

@@ -1,12 +1,13 @@
 using UnityEngine;
 using Work.Combat.Code.Core;
+using Work.Entities.Code;
 
 namespace Work.Enemy.Code
 {
     /// <summary>
     /// 적의 사망 상태 전환과 사망 연출 처리 컴포넌트.
     /// </summary>
-    public sealed class EnemyDeathHandler : MonoBehaviour
+    public sealed class EnemyDeathHandler : MonoBehaviour, IEntityModule
     {
         [SerializeField]
         private EnemyBase enemy;
@@ -41,15 +42,68 @@ namespace Work.Enemy.Code
 
         private void Awake()
         {
+            ResolveSceneReferences(null);
+        }
+
+        /// <summary>
+        /// 모듈 소유자 초기화.
+        /// </summary>
+        /// <param name="entity">모듈 소유 엔티티.</param>
+        public void Initialize(Entity entity)
+        {
+            ResolveSceneReferences(entity);
+        }
+
+        private void ResolveSceneReferences(Entity entity)
+        {
             if (enemy == null)
             {
-                enemy = GetComponent<EnemyBase>();
+                enemy = ResolveEnemy(entity);
             }
 
             if (stateController == null)
             {
-                stateController = GetComponent<EnemyStateController>();
+                stateController = ResolveStateController(entity);
             }
+        }
+
+        private EnemyBase ResolveEnemy(Entity entity)
+        {
+            EnemyBase enemyBase = entity as EnemyBase;
+
+            if (enemyBase != null)
+            {
+                return enemyBase;
+            }
+
+            if (entity != null)
+            {
+                enemyBase = entity.GetComponent<EnemyBase>();
+
+                if (enemyBase != null)
+                {
+                    return enemyBase;
+                }
+            }
+
+            return GetComponentInParent<EnemyBase>();
+        }
+
+        private EnemyStateController ResolveStateController(Entity entity)
+        {
+            EnemyStateController resolvedStateController = null;
+
+            if (entity != null)
+            {
+                resolvedStateController = entity.GetComponent<EnemyStateController>();
+
+                if (resolvedStateController != null)
+                {
+                    return resolvedStateController;
+                }
+            }
+
+            return GetComponentInParent<EnemyStateController>();
         }
 
         /// <summary>

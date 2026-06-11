@@ -24,6 +24,13 @@ namespace Work.Enemy.Code
         [SerializeField]
         private float attackCooldown = 1.25f;
 
+        [SerializeField]
+        private float attackWindupTime = 0.25f;
+
+        [SerializeField]
+        private float attackRecoveryTime = 0.35f;
+
+        private Entity _ownerEntity;
         private float _nextAttackTime;
 
         /// <summary>
@@ -42,6 +49,16 @@ namespace Work.Enemy.Code
         public float AttackCooldown => attackCooldown;
 
         /// <summary>
+        /// 공격 판정 전 준비 시간.
+        /// </summary>
+        public float AttackWindupTime => attackWindupTime;
+
+        /// <summary>
+        /// 공격 판정 후 회복 시간.
+        /// </summary>
+        public float AttackRecoveryTime => attackRecoveryTime;
+
+        /// <summary>
         /// 공격 가능 여부.
         /// </summary>
         public bool CanExecuteAttack => Time.time >= _nextAttackTime;
@@ -52,7 +69,8 @@ namespace Work.Enemy.Code
         /// <param name="entity">모듈 소유 엔티티.</param>
         public void Initialize(Entity entity)
         {
-            ResolveSceneReferences();
+            _ownerEntity = entity;
+            ResolveSceneReferences(entity);
         }
 
         /// <summary>
@@ -131,10 +149,11 @@ namespace Work.Enemy.Code
                 return false;
             }
 
-            ResolveSceneReferences();
+            ResolveSceneReferences(_ownerEntity);
 
             if (attackExecutor == null)
             {
+                _nextAttackTime = Time.time + attackCooldown;
                 LogMissingAttackExecutor();
                 return false;
             }
@@ -149,6 +168,8 @@ namespace Work.Enemy.Code
             attackDistance = Mathf.Max(MIN_RANGE, attackDistance);
             attackEnterAngle = Mathf.Max(MIN_RANGE, attackEnterAngle);
             attackCooldown = Mathf.Max(MIN_RANGE, attackCooldown);
+            attackWindupTime = Mathf.Max(MIN_RANGE, attackWindupTime);
+            attackRecoveryTime = Mathf.Max(MIN_RANGE, attackRecoveryTime);
         }
 
         private void OnDrawGizmosSelected()
@@ -157,12 +178,19 @@ namespace Work.Enemy.Code
             Gizmos.DrawWireSphere(transform.position, attackDistance);
         }
 
-        private void ResolveSceneReferences()
+        private void ResolveSceneReferences(Entity entity)
         {
-            if (attackExecutor == null)
+            if (attackExecutor != null)
             {
-                attackExecutor = GetComponent<CombatAttackExecutor>();
+                return;
             }
+
+            if (entity != null && entity.TryGetModule<CombatAttackExecutor>(out attackExecutor, true) == true)
+            {
+                return;
+            }
+
+            attackExecutor = GetComponentInParent<CombatAttackExecutor>();
         }
 
         private static float GetHorizontalSqrDistance(Vector3 from, Vector3 to)

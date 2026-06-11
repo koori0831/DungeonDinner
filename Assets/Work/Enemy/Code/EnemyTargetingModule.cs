@@ -1,16 +1,23 @@
-using System.Collections.Generic;
 using UnityEngine;
 using Work.Entities.Code;
-using Work.Players.Code;
 
 namespace Work.Enemy.Code
 {
+    /// <summary>
+    /// 확보한 타겟을 유지할 범위 기준.
+    /// </summary>
+    public enum EnemyTargetRetentionMode
+    {
+        DetectionRange,
+        ActivityRange
+    }
+
     /// <summary>
     /// 적 타겟 감지와 보관 담당 모듈.
     /// </summary>
     public sealed class EnemyTargetingModule : MonoBehaviour, IEntityModule
     {
-        private const int MAX_TARGET_COLLIDER_COUNT = 16;
+        private const int DEFAULT_MAX_RESOLVE_COLLIDER_COUNT = 8;
         private const float MIN_RANGE = 0f;
 
         [SerializeField]
@@ -20,18 +27,48 @@ namespace Work.Enemy.Code
         private LayerMask targetLayerMask = ~0;
 
         [SerializeField]
+        private EnemyTargetRetentionMode targetRetentionMode = EnemyTargetRetentionMode.ActivityRange;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("타겟 참조를 찾기 위해 검사할 최대 반경.")]
+        private float targetResolveRadius = 1000f;
+
+        [SerializeField]
+        [Min(1)]
+        [Tooltip("타겟 참조 검색 시 한 번에 받을 Collider 최대 수.")]
+        private int maxResolveColliderCount = DEFAULT_MAX_RESOLVE_COLLIDER_COUNT;
+
+        [SerializeField]
         private QueryTriggerInteraction targetQueryTriggerInteraction = QueryTriggerInteraction.Ignore;
 
-        private readonly Collider[] _targetColliders = new Collider[MAX_TARGET_COLLIDER_COUNT];
-        private readonly Dictionary<int, Player> PLAYER_BY_COLLIDER_ID = new Dictionary<int, Player>();
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("타겟 참조가 없을 때 다음 검색까지 대기할 시간.")]
+        private float resolveInterval = 1f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("타겟 참조 검색 실패가 반복될 때 적용할 최대 재검색 대기 시간.")]
+        private float maxResolveInterval = 5f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("여러 적의 타겟 참조 검색이 한 프레임에 몰리지 않도록 더하는 무작위 시간.")]
+        private float resolveIntervalJitter = 0.2f;
+
         private Entity _owner;
         private EnemyTerritoryModule _territoryModule;
+        private Collider[] _resolveColliders;
+        private Transform _knownTarget;
         private Transform _target;
+        private float _nextResolveTime;
+        private int _resolveFailureCount;
 
         /// <summary>
         /// 현재 추적 대상.
         /// </summary>
-        public Transform Target => _target;
+        public Transform Target => IsValidTarget(_target) == true ? _target : null;
 
         /// <summary>
         /// 감지 반경.
@@ -45,18 +82,25 @@ namespace Work.Enemy.Code
         public void Initialize(Entity entity)
         {
             _owner = entity;
-            entity.TryGetModule<EnemyTerritoryModule>(out _territoryModule, true);
+
+            if (entity != null)
+            {
+                entity.TryGetModule<EnemyTerritoryModule>(out _territoryModule, true);
+            }
+
+            EnsureResolveBuffer();
+            _nextResolveTime = Time.time + GetResolveIntervalJitter();
         }
 
         /// <summary>
-        /// 감지 범위의 플레이어 대상 확보.
+        /// 감지 범위의 대상 확보.
         /// </summary>
         /// <returns>대상 확보 여부.</returns>
         public bool TryAcquireTarget()
         {
-            if (_target != null)
+            if (IsValidTarget(_target) == true)
             {
-                if (IsTargetInActivityRange() == true)
+                if (ShouldRetainTarget(_target) == true)
                 {
                     return true;
                 }
@@ -64,14 +108,27 @@ namespace Work.Enemy.Code
                 ClearTarget();
             }
 
-            Transform foundTarget;
+            if (IsValidTarget(_knownTarget) == false)
+            {
+                ClearKnownTarget();
 
-            if (TryFindTargetInDetectionRange(out foundTarget) == false)
+                if (TryResolveKnownTarget() == false)
+                {
+                    return false;
+                }
+            }
+
+            if (IsTransformInDetectionRange(_knownTarget) == false)
             {
                 return false;
             }
 
-            _target = foundTarget;
+            if (IsTransformInActivityRange(_knownTarget) == false)
+            {
+                return false;
+            }
+
+            _target = _knownTarget;
             return true;
         }
 
@@ -89,13 +146,12 @@ namespace Work.Enemy.Code
         /// <returns>감지 범위 포함 여부.</returns>
         public bool IsTargetInDetectionRange()
         {
-            if (_target == null)
+            if (IsValidTarget(_target) == false)
             {
                 return false;
             }
 
-            float sqrDistance = GetHorizontalSqrDistance(transform.position, _target.position);
-            return sqrDistance <= detectionRadius * detectionRadius && IsTargetInActivityRange() == true;
+            return IsTransformInDetectionRange(_target) == true && IsTargetInActivityRange() == true;
         }
 
         /// <summary>
@@ -104,23 +160,22 @@ namespace Work.Enemy.Code
         /// <returns>활동 범위 포함 여부.</returns>
         public bool IsTargetInActivityRange()
         {
-            if (_target == null)
+            if (IsValidTarget(_target) == false)
             {
                 return false;
             }
 
-            EnemyTerritoryModule territoryModule = GetTerritoryModule();
-            return territoryModule == null || territoryModule.IsPositionInActivityRange(_target.position) == true;
+            return IsTransformInActivityRange(_target);
         }
 
         private void OnValidate()
         {
             detectionRadius = Mathf.Max(MIN_RANGE, detectionRadius);
-        }
-
-        private void OnDisable()
-        {
-            PLAYER_BY_COLLIDER_ID.Clear();
+            targetResolveRadius = Mathf.Max(MIN_RANGE, targetResolveRadius);
+            maxResolveColliderCount = Mathf.Max(1, maxResolveColliderCount);
+            resolveInterval = Mathf.Max(MIN_RANGE, resolveInterval);
+            maxResolveInterval = Mathf.Max(resolveInterval, maxResolveInterval);
+            resolveIntervalJitter = Mathf.Max(MIN_RANGE, resolveIntervalJitter);
         }
 
         private void OnDrawGizmosSelected()
@@ -129,45 +184,44 @@ namespace Work.Enemy.Code
             Gizmos.DrawWireSphere(transform.position, detectionRadius);
         }
 
-        private bool TryFindTargetInDetectionRange(out Transform target)
+        private bool TryResolveKnownTarget()
         {
-            target = null;
+            if (Time.time < _nextResolveTime)
+            {
+                return false;
+            }
+
+            EnsureResolveBuffer();
+
             Vector3 ownerPosition = transform.position;
             int colliderCount = Physics.OverlapSphereNonAlloc(
                 ownerPosition,
-                detectionRadius,
-                _targetColliders,
+                targetResolveRadius,
+                _resolveColliders,
                 targetLayerMask,
                 targetQueryTriggerInteraction
             );
 
+            Transform nearestTarget = null;
             float nearestSqrDistance = float.MaxValue;
-            EnemyTerritoryModule territoryModule = GetTerritoryModule();
 
             for (int i = 0; i < colliderCount; i++)
             {
-                Collider targetCollider = _targetColliders[i];
+                Collider targetCollider = _resolveColliders[i];
 
                 if (targetCollider == null)
                 {
                     continue;
                 }
 
-                Player player = GetCachedPlayer(targetCollider);
+                Transform targetRoot = GetTargetRoot(targetCollider);
 
-                if (player == null)
+                if (IsValidTarget(targetRoot) == false || IsSelfTarget(targetRoot) == true)
                 {
                     continue;
                 }
 
-                Transform playerTransform = player.transform;
-
-                if (territoryModule != null && territoryModule.IsPositionInActivityRange(playerTransform.position) == false)
-                {
-                    continue;
-                }
-
-                float sqrDistance = GetHorizontalSqrDistance(ownerPosition, playerTransform.position);
+                float sqrDistance = GetHorizontalSqrDistance(ownerPosition, targetRoot.position);
 
                 if (sqrDistance >= nearestSqrDistance)
                 {
@@ -175,24 +229,118 @@ namespace Work.Enemy.Code
                 }
 
                 nearestSqrDistance = sqrDistance;
-                target = playerTransform;
+                nearestTarget = targetRoot;
             }
 
-            return target != null;
+            _knownTarget = nearestTarget;
+
+            if (_knownTarget != null)
+            {
+                _resolveFailureCount = 0;
+                ScheduleNextResolveTime();
+                return true;
+            }
+
+            _resolveFailureCount++;
+            ScheduleNextResolveTime();
+            return false;
         }
 
-        private Player GetCachedPlayer(Collider targetCollider)
+        private void EnsureResolveBuffer()
         {
-            int colliderId = targetCollider.GetInstanceID();
+            int capacity = Mathf.Max(1, maxResolveColliderCount);
 
-            if (PLAYER_BY_COLLIDER_ID.TryGetValue(colliderId, out Player cachedPlayer) == true)
+            if (_resolveColliders != null && _resolveColliders.Length == capacity)
             {
-                return cachedPlayer;
+                return;
             }
 
-            Player player = targetCollider.GetComponentInParent<Player>();
-            PLAYER_BY_COLLIDER_ID.Add(colliderId, player);
-            return player;
+            _resolveColliders = new Collider[capacity];
+        }
+
+        private void ScheduleNextResolveTime()
+        {
+            _nextResolveTime = Time.time + GetResolveInterval() + GetResolveIntervalJitter();
+        }
+
+        private float GetResolveInterval()
+        {
+            if (resolveInterval <= MIN_RANGE)
+            {
+                return 0f;
+            }
+
+            float multiplier = Mathf.Pow(2f, _resolveFailureCount);
+            return Mathf.Min(resolveInterval * multiplier, maxResolveInterval);
+        }
+
+        private float GetResolveIntervalJitter()
+        {
+            if (resolveIntervalJitter <= MIN_RANGE)
+            {
+                return 0f;
+            }
+
+            return Random.Range(0f, resolveIntervalJitter);
+        }
+
+        private void ClearKnownTarget()
+        {
+            _knownTarget = null;
+        }
+
+        private bool IsTransformInDetectionRange(Transform target)
+        {
+            if (IsValidTarget(target) == false)
+            {
+                return false;
+            }
+
+            float sqrDistance = GetHorizontalSqrDistance(transform.position, target.position);
+            return sqrDistance <= detectionRadius * detectionRadius;
+        }
+
+        private bool IsTransformInActivityRange(Transform target)
+        {
+            if (IsValidTarget(target) == false)
+            {
+                return false;
+            }
+
+            EnemyTerritoryModule territoryModule = GetTerritoryModule();
+            return territoryModule == null || territoryModule.IsPositionInActivityRange(target.position) == true;
+        }
+
+        private bool ShouldRetainTarget(Transform target)
+        {
+            if (targetRetentionMode == EnemyTargetRetentionMode.DetectionRange)
+            {
+                return IsTransformInDetectionRange(target) == true && IsTransformInActivityRange(target) == true;
+            }
+
+            return IsTransformInActivityRange(target);
+        }
+
+        private bool IsSelfTarget(Transform target)
+        {
+            return target == transform || target.IsChildOf(transform) == true;
+        }
+
+        private static Transform GetTargetRoot(Collider targetCollider)
+        {
+            CharacterController characterController = targetCollider.GetComponentInParent<CharacterController>();
+
+            if (characterController != null)
+            {
+                return characterController.transform;
+            }
+
+            return targetCollider.transform;
+        }
+
+        private static bool IsValidTarget(Transform target)
+        {
+            return target != null && target.gameObject.activeInHierarchy == true;
         }
 
         private EnemyTerritoryModule GetTerritoryModule()

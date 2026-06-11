@@ -70,7 +70,7 @@ namespace Work.Enemy.Code
                 _enemy.StopMoving();
                 _enemy.FaceTarget();
 
-                if (_enemy.IsFacingTarget(_enemy.AttackEnterAngle) == true)
+                if (_enemy.IsFacingTarget(_enemy.AttackEnterAngle) == true && _enemy.CanExecuteAttack == true)
                 {
                     ChangeState(EnemyStateNames.ATTACK);
                 }
