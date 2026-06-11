@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Work.Items.Code;
 
 namespace Work.Enemy.Code.Drops
 {
@@ -13,7 +13,7 @@ namespace Work.Enemy.Code.Drops
         private const int MIN_AMOUNT = 1;
 
         [SerializeField]
-        private EnemyDropItemSO item;
+        private ItemDataSO item;
 
         [SerializeField]
         [Min(MIN_AMOUNT)]

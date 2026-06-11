@@ -3,6 +3,7 @@ using UnityEngine;
 using Work.Combat.Code.Conditions;
 using Work.Combat.Code.Core;
 using Work.Entities.Code;
+using Work.Items.Code;
 
 namespace Work.Enemy.Code.Drops
 {
@@ -48,6 +49,44 @@ namespace Work.Enemy.Code.Drops
         /// 마지막 드랍 로그 요약
         /// </summary>
         public string LastDropSummary => lastDropSummary;
+
+        /// <summary>
+        /// 마지막 드랍 결과 조회
+        /// </summary>
+        /// <param name="index">조회할 드랍 결과 인덱스</param>
+        /// <returns>드랍 결과</returns>
+        public EnemyDropResult GetLastDropResult(int index)
+        {
+            if (index < 0 || index >= lastDropCount)
+            {
+                return default;
+            }
+
+            return DROP_RESULTS[index];
+        }
+
+        /// <summary>
+        /// 마지막 드랍 결과를 외부 버퍼에 복사
+        /// </summary>
+        /// <param name="results">복사 대상 결과 버퍼</param>
+        /// <param name="startIndex">복사를 시작할 인덱스</param>
+        /// <returns>복사된 드랍 결과 수</returns>
+        public int CopyLastDropResults(EnemyDropResult[] results, int startIndex)
+        {
+            if (results == null || startIndex < 0 || startIndex >= results.Length)
+            {
+                return 0;
+            }
+
+            int copyCount = Mathf.Min(lastDropCount, results.Length - startIndex);
+
+            for (int i = 0; i < copyCount; i++)
+            {
+                results[startIndex + i] = DROP_RESULTS[i];
+            }
+
+            return copyCount;
+        }
 
         private void Awake()
         {
@@ -114,7 +153,7 @@ namespace Work.Enemy.Code.Drops
 
             UpdateDropSummary();
 
-            // TODO: 아이템 시스템 구현 후 로그 대신 월드 드랍 또는 인벤토리 지급으로 연결
+            // TODO: 월드 드랍 또는 직접 루팅 흐름 구현 시 계산된 결과 전달
             LogDropResult();
             return lastDropCount;
         }
@@ -172,7 +211,7 @@ namespace Work.Enemy.Code.Drops
                 }
 
                 EnemyDropResult result = DROP_RESULTS[i];
-                EnemyDropItemSO item = result.Item;
+                ItemDataSO item = result.Item;
                 builder.Append(item != null ? item.DisplayName : "Missing Item");
                 builder.Append(" x");
                 builder.Append(result.Amount);

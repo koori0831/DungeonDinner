@@ -1,3 +1,5 @@
+using Work.Items.Code;
+
 namespace Work.Enemy.Code.Drops
 {
     /// <summary>
@@ -5,7 +7,7 @@ namespace Work.Enemy.Code.Drops
     /// </summary>
     public readonly struct EnemyDropResult
     {
-        public readonly EnemyDropItemSO Item;
+        public readonly ItemDataSO Item;
         public readonly int Amount;
 
         /// <summary>
@@ -13,10 +15,19 @@ namespace Work.Enemy.Code.Drops
         /// </summary>
         /// <param name="item">드랍 아이템</param>
         /// <param name="amount">드랍 수량</param>
-        public EnemyDropResult(EnemyDropItemSO item, int amount)
+        public EnemyDropResult(ItemDataSO item, int amount)
         {
             Item = item;
             Amount = amount;
+        }
+
+        /// <summary>
+        /// 인벤토리 추가용 공용 아이템 스택으로 변환
+        /// </summary>
+        /// <returns>아이템 스택 값</returns>
+        public InventoryItemStack ToInventoryItemStack()
+        {
+            return new InventoryItemStack(Item, Amount);
         }
     }
 }
