@@ -9,6 +9,8 @@ namespace Work.Combat.Code.Runtime
     /// </summary>
     public sealed class CombatAttackExecutor : MonoBehaviour, IEntityModule
     {
+        private const int MAX_HIT_RESULT_COUNT = 64;
+
         [SerializeField]
         private AttackDataSO attackData;
 
@@ -21,7 +23,7 @@ namespace Work.Combat.Code.Runtime
         [SerializeField]
         private LayerMask targetLayerMask;
 
-        private readonly HitCastResult[] HIT_RESULTS = new HitCastResult[16];
+        private readonly HitCastResult[] HIT_RESULTS = new HitCastResult[MAX_HIT_RESULT_COUNT];
 
         private Entity _ownerEntity;
         private IHitCaster _hitCaster;

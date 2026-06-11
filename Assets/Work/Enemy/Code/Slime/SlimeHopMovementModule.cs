@@ -14,6 +14,7 @@ namespace Work.Enemy.Code.Slime
         private const float NAV_MESH_SAMPLE_DISTANCE = 2f;
         private const float RAW_DESTINATION_REQUEST_THRESHOLD = 0.15f;
         private const float NAV_MESH_DESTINATION_REQUEST_THRESHOLD = 0.05f;
+        private const int MAX_PATH_CORNER_COUNT = 64;
 
         [SerializeField]
         [Tooltip("이동 목적지가 없거나 목적지 도착 후 실제 대기 상태에서 유지할 시간.")]
@@ -75,6 +76,7 @@ namespace Work.Enemy.Code.Slime
         private bool _hasLastRequestedDestination;
         private bool _hasLastNavMeshDestination;
         private bool _hasPreparedDestination;
+        private readonly Vector3[] PATH_CORNERS = new Vector3[MAX_PATH_CORNER_COUNT];
 
         /// <summary>
         /// 현재 슬라임 점프 이동 단계.
@@ -484,9 +486,27 @@ namespace Work.Enemy.Code.Slime
 
         private bool TryGetPathPoint(Vector3 startPosition, float nextDistance, out Vector3 nextHopPoint)
         {
-            Vector3[] corners = _path.corners;
+            NavMeshPath path = GetPath();
+            int cornerCount = path.GetCornersNonAlloc(PATH_CORNERS);
 
-            if (corners.Length <= 1)
+            if (cornerCount >= PATH_CORNERS.Length)
+            {
+                Vector3[] corners = path.corners;
+                return TryGetPathPointFromCorners(corners, corners.Length, startPosition, nextDistance, out nextHopPoint);
+            }
+
+            return TryGetPathPointFromCorners(PATH_CORNERS, cornerCount, startPosition, nextDistance, out nextHopPoint);
+        }
+
+        private bool TryGetPathPointFromCorners(
+            Vector3[] corners,
+            int cornerCount,
+            Vector3 startPosition,
+            float nextDistance,
+            out Vector3 nextHopPoint
+        )
+        {
+            if (cornerCount <= 1)
             {
                 return TrySampleHopPoint(_destination, out nextHopPoint);
             }
@@ -494,7 +514,7 @@ namespace Work.Enemy.Code.Slime
             Vector3 previousPoint = startPosition;
             float remainingDistance = nextDistance;
 
-            for (int i = 1; i < corners.Length; i++)
+            for (int i = 1; i < cornerCount; i++)
             {
                 Vector3 currentPoint = corners[i];
                 Vector3 segment = currentPoint - previousPoint;
@@ -517,7 +537,7 @@ namespace Work.Enemy.Code.Slime
                 previousPoint = currentPoint;
             }
 
-            return TrySampleHopPoint(corners[corners.Length - 1], out nextHopPoint);
+            return TrySampleHopPoint(corners[cornerCount - 1], out nextHopPoint);
         }
 
         private bool TrySampleHopPoint(Vector3 candidate, out Vector3 hopPoint)

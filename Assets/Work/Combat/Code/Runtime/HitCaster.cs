@@ -20,6 +20,7 @@ namespace Work.Combat.Code.Runtime
 
         private Collider[] _colliderResults;
         private readonly Dictionary<int, IHitable> HITABLE_BY_COLLIDER_ID = new Dictionary<int, IHitable>();
+        private readonly HashSet<IHitable> UNIQUE_HITABLES = new HashSet<IHitable>();
 
         private void Awake()
         {
@@ -63,6 +64,7 @@ namespace Work.Combat.Code.Runtime
             );
 
             int resultCount = 0;
+            UNIQUE_HITABLES.Clear();
 
             for (int i = 0; i < colliderCount; i++)
             {
@@ -85,7 +87,7 @@ namespace Work.Combat.Code.Runtime
                     continue;
                 }
 
-                if (ContainsHitable(results, resultCount, hitable) == true)
+                if (UNIQUE_HITABLES.Add(hitable) == false)
                 {
                     continue;
                 }
@@ -99,6 +101,7 @@ namespace Work.Combat.Code.Runtime
                 }
             }
 
+            UNIQUE_HITABLES.Clear();
             return resultCount;
         }
 
@@ -119,6 +122,7 @@ namespace Work.Combat.Code.Runtime
         private void OnDisable()
         {
             HITABLE_BY_COLLIDER_ID.Clear();
+            UNIQUE_HITABLES.Clear();
         }
 
         private void EnsureColliderBuffer()
@@ -208,17 +212,5 @@ namespace Work.Combat.Code.Runtime
             return false;
         }
 
-        private static bool ContainsHitable(HitCastResult[] results, int count, IHitable target)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                if (ReferenceEquals(results[i].Hitable, target) == true)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 }
