@@ -402,10 +402,15 @@ namespace Work.Cook.Code.Runtime
                 return;
 
             DishSubmitted?.Invoke(result);
-            CookingNpcDishAdapter.SubmitToNpc(npcRunner, result);
+            if (CookingNpcDishAdapter.SubmitToNpc(npcRunner, result, out string submitBlockReason) == false)
+            {
+                Debug.LogWarning($"CookingTestPanel could not submit the dish to NPC. reason={submitBlockReason}", this);
+                return;
+            }
             Debug.Log(
                 $"NPC 제출 음식: RecipeId={result.RecipeId}, CategoryId={result.CategoryId}, " +
-                $"Tags={result.BuildTagText()}, IsDisgusting={result.IsDisgusting}, Quality={result.Quality}",
+                $"Tags={result.BuildTagText()}, IsDisgusting={result.IsDisgusting}, Quality={result.Quality}, " +
+                $"NpcDish=({CookingNpcDishAdapter.BuildSubmissionDebugSummary(result)})",
                 this);
         }
 

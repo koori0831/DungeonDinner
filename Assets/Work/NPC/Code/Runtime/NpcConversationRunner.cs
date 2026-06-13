@@ -32,8 +32,12 @@ namespace Work.NPC.Code.Runtime
 
         [Header("Output")]
         [SerializeField] private ChatPanel chatPanel;
+        [SerializeField] private NpcOrderSlipPanel orderSlipPanel;
         [SerializeField] private bool playOnStart;
         [SerializeField] private bool showSpeakerName;
+        [SerializeField] private bool useDirectChatPanelOutput = true;
+        [SerializeField] private bool writeNpcBoldTextToOrderSlip = true;
+        [SerializeField] private bool autoCreateOrderSlipPanel = true;
         [SerializeField] private string playerDisplayName = "플레이어";
         [SerializeField, Min(0f)] private float lineDelay = 0.15f;
 
@@ -64,6 +68,7 @@ namespace Work.NPC.Code.Runtime
         public event Action<IReadOnlyList<QuestionCategoryData>> QuestionOptionsUpdated;
         public event Action<NpcOrderContext> OrderReady;
         public event Action<NpcDishResultContext> DishEvaluated;
+        public event Action<NpcDialogueLineContext> DialogueLinePlayed;
         public event Action CookingStepReady;
         public event Action ConversationCompleted;
         public event Action<string, NpcConversationResult> ResultDialogueStarted;
@@ -74,7 +79,9 @@ namespace Work.NPC.Code.Runtime
         public string CurrentEventId => _currentEvent?.EventId;
         public string CurrentNpcId => _currentEvent?.NpcId;
         public int CurrentNpcAffinity => _currentEvent != null ? _currentNpcAffinity : 0;
+        public bool DirectChatPanelOutputEnabled => useDirectChatPanelOutput;
         public bool IsReadyForCooking => _currentEvent != null
+                                         && NpcVisitEventRules.RequiresCookingStep(_currentEvent)
                                          && _cookingStepNotified
                                          && _resultDialoguePlayed == false
                                          && _conversationCompleted == false;
@@ -118,7 +125,14 @@ namespace Work.NPC.Code.Runtime
             _resultDialoguePlayed = false;
             _conversationCompleted = false;
             _cookingStepNotified = false;
+            ResetOrderSlipPanel(visitEvent);
+            ClearQuestionOptions();
             _playRoutine = StartCoroutine(PlayStartGroupsRoutine());
+        }
+
+        public void SetDirectChatPanelOutput(bool enabled)
+        {
+            useDirectChatPanelOutput = enabled;
         }
 
         public void SelectQuestionCategory(string categoryId)
@@ -174,6 +188,7 @@ namespace Work.NPC.Code.Runtime
                 return;
             }
 
+            ClearQuestionOptions();
             _usedQuestionCategories.Add(categoryId);
             _remainingQuestionCount--;
             _playRoutine = StartCoroutine(PlayQuestionGroupRoutine(category.DialogueGroup));
@@ -222,8 +237,7 @@ namespace Work.NPC.Code.Runtime
                 return;
             }
 
-            QuestionOptionsUpdated?.Invoke(new List<QuestionCategoryData>());
-            questionOptionsChanged.Invoke(string.Empty);
+            ClearQuestionOptions();
             _remainingQuestionCount = 0;
             _resultDialoguePlayed = true;
             ResultDialogueStarted?.Invoke(_currentEvent.EventId, result);
@@ -260,6 +274,12 @@ namespace Work.NPC.Code.Runtime
                 return;
             }
 
+            if (NpcVisitEventRules.RequiresCookingStep(_currentEvent) == false)
+            {
+                Debug.LogWarning("Current NPC event has no cooking order.");
+                return;
+            }
+
             if (TryBuildDishResultContext(dish, out NpcDishResultContext resultContext) == false)
                 return;
 
@@ -289,7 +309,7 @@ namespace Work.NPC.Code.Runtime
         public bool TryGetCurrentOrderContext(out NpcOrderContext orderContext)
         {
             orderContext = null;
-            if (_currentEvent == null)
+            if (_currentEvent == null || NpcVisitEventRules.RequiresCookingStep(_currentEvent) == false)
                 return false;
 
             orderContext = BuildCurrentOrderContext();
@@ -308,8 +328,12 @@ namespace Work.NPC.Code.Runtime
         public bool TryBuildDishMatchReport(NpcDishSubmission dish, out NpcDishMatchReport report)
         {
             report = null;
-            if (_currentEvent == null || dish == null)
+            if (_currentEvent == null
+                || dish == null
+                || NpcVisitEventRules.RequiresCookingStep(_currentEvent) == false)
+            {
                 return false;
+            }
 
             report = NpcDishResultEvaluator.BuildMatchReport(BuildCurrentOrderContext(), dish);
             return true;
@@ -318,8 +342,12 @@ namespace Work.NPC.Code.Runtime
         public bool TryBuildDishResultContext(NpcDishSubmission dish, out NpcDishResultContext resultContext)
         {
             resultContext = null;
-            if (_currentEvent == null || dish == null)
+            if (_currentEvent == null
+                || dish == null
+                || NpcVisitEventRules.RequiresCookingStep(_currentEvent) == false)
+            {
                 return false;
+            }
 
             NpcDishEvaluation evaluation = NpcDishResultEvaluator.Evaluate(_currentEvent, dish);
             resultContext = new NpcDishResultContext(
@@ -332,7 +360,7 @@ namespace Work.NPC.Code.Runtime
         public bool TryBuildMatchingTestDish(out NpcDishSubmission dish)
         {
             dish = null;
-            if (_currentEvent == null)
+            if (_currentEvent == null || NpcVisitEventRules.RequiresCookingStep(_currentEvent) == false)
                 return false;
 
             dish = NpcDishResultEvaluator.BuildMatchingDish(_currentEvent);
@@ -342,7 +370,7 @@ namespace Work.NPC.Code.Runtime
         public bool TryBuildDisgustingTestDish(out NpcDishSubmission dish)
         {
             dish = null;
-            if (_currentEvent == null)
+            if (_currentEvent == null || NpcVisitEventRules.RequiresCookingStep(_currentEvent) == false)
                 return false;
 
             dish = NpcDishResultEvaluator.BuildDisgustingDish(_currentEvent);
@@ -455,26 +483,51 @@ namespace Work.NPC.Code.Runtime
 
             foreach (DialogueLineData line in lines)
             {
-                AddLine(line);
+                NpcDialogueLineContext context = AddLine(line);
+                yield return new WaitUntil(context.IsPresentationComplete);
 
                 if (lineDelay > 0f)
                     yield return new WaitForSeconds(lineDelay);
             }
         }
 
-        private void AddLine(DialogueLineData line)
+        private NpcDialogueLineContext AddLine(DialogueLineData line)
         {
-            string text = line.Text;
+            string speakerName = GetSpeakerName(line.Speaker);
+            NpcDialogueMarkupResult markup = NpcDialogueMarkupUtility.Parse(line.Text);
+            string text = markup.RichText;
             if (showSpeakerName)
-                text = $"{GetSpeakerName(line.Speaker)}: {text}";
+                text = $"{speakerName}: {text}";
 
-            if (chatPanel != null)
+            IReadOnlyList<string> orderHighlights = line.IsPlayer || writeNpcBoldTextToOrderSlip == false
+                ? Array.Empty<string>()
+                : markup.BoldSegments;
+            bool hasViewSubscriber = DialogueLinePlayed != null;
+            NpcDialogueLineContext context = new NpcDialogueLineContext(
+                _currentEvent?.EventId,
+                _currentEvent?.NpcId,
+                line.Group,
+                line.Speaker,
+                speakerName,
+                line.IsPlayer,
+                line.Text,
+                text,
+                orderHighlights);
+
+            DialogueLinePlayed?.Invoke(context);
+            AppendOrderHighlights(context);
+
+            if (useDirectChatPanelOutput && chatPanel != null)
             {
-                chatPanel.AddChat(text, line.IsPlayer);
-                return;
+                ChatTextField chat = chatPanel.AddChat(text, line.IsPlayer);
+                context.RegisterPresentationWaiter(() => chat == null || chat.IsTyping == false);
+                return context;
             }
 
-            Debug.Log(text);
+            if (hasViewSubscriber == false)
+                Debug.Log(text);
+
+            return context;
         }
 
         private string GetSpeakerName(string speaker)
@@ -486,6 +539,39 @@ namespace Work.NPC.Code.Runtime
                 return npc.DisplayName;
 
             return speaker;
+        }
+
+        private void ResetOrderSlipPanel(VisitEventData visitEvent)
+        {
+            if (writeNpcBoldTextToOrderSlip == false)
+                return;
+
+            ResolveOrderSlipPanel();
+            orderSlipPanel?.ResetForConversation(visitEvent?.EventId, visitEvent?.NpcId);
+        }
+
+        private void AppendOrderHighlights(NpcDialogueLineContext context)
+        {
+            if (writeNpcBoldTextToOrderSlip == false
+                || context == null
+                || context.IsPlayer
+                || context.OrderHighlights.Count == 0)
+            {
+                return;
+            }
+
+            ResolveOrderSlipPanel();
+            orderSlipPanel?.AppendOrderClues(context.OrderHighlights);
+        }
+
+        private void ResolveOrderSlipPanel()
+        {
+            if (orderSlipPanel != null || autoCreateOrderSlipPanel == false)
+                return;
+
+            orderSlipPanel = FindFirstObjectByType<NpcOrderSlipPanel>();
+            if (orderSlipPanel == null)
+                orderSlipPanel = NpcOrderSlipPanel.GetOrCreateGeneratedPanel();
         }
 
         private void NotifyQuestionOptionsOrReady()
@@ -508,11 +594,17 @@ namespace Work.NPC.Code.Runtime
             if (_currentEvent == null || _cookingStepNotified)
                 return;
 
+            if (NpcVisitEventRules.RequiresCookingStep(_currentEvent) == false)
+            {
+                ClearQuestionOptions();
+                NotifyConversationCompleted();
+                return;
+            }
+
             _cookingStepNotified = true;
             NpcOrderContext orderContext = BuildCurrentOrderContext();
 
-            QuestionOptionsUpdated?.Invoke(new List<QuestionCategoryData>());
-            questionOptionsChanged.Invoke(string.Empty);
+            ClearQuestionOptions();
             OrderReady?.Invoke(orderContext);
             orderReady.Invoke(orderContext.BuildDebugSummary());
             CookingStepReady?.Invoke();
@@ -526,6 +618,12 @@ namespace Work.NPC.Code.Runtime
             ConversationCompleted?.Invoke();
             conversationCompleted.Invoke();
             Debug.Log("NPC conversation completed.");
+        }
+
+        private void ClearQuestionOptions()
+        {
+            QuestionOptionsUpdated?.Invoke(new List<QuestionCategoryData>());
+            questionOptionsChanged.Invoke(string.Empty);
         }
 
         private static string GetResultGroup(NpcConversationResult result)
@@ -704,6 +802,9 @@ namespace Work.NPC.Code.Runtime
         public string FoodType { get; }
         public IReadOnlyList<string> Tags { get; }
         public bool IsDisgusting { get; }
+        public bool HasRecipeId => string.IsNullOrWhiteSpace(RecipeId) == false;
+        public bool HasFoodType => string.IsNullOrWhiteSpace(FoodType) == false;
+        public bool HasTags => Tags.Count > 0;
 
         public NpcDishSubmission(
             string recipeId,
@@ -713,7 +814,7 @@ namespace Work.NPC.Code.Runtime
         {
             RecipeId = recipeId?.Trim() ?? string.Empty;
             FoodType = foodType?.Trim() ?? string.Empty;
-            Tags = tags ?? new List<string>();
+            Tags = CopyTags(tags);
             IsDisgusting = isDisgusting;
         }
 
@@ -734,7 +835,19 @@ namespace Work.NPC.Code.Runtime
         public string BuildDebugSummary()
         {
             string tags = Tags.Count > 0 ? string.Join("|", Tags) : "None";
-            return $"Recipe={ValueOrNone(RecipeId)}, Type={ValueOrNone(FoodType)}, Tags={tags}, Disgusting={IsDisgusting}";
+            return $"Recipe={ValueOrNone(RecipeId)}, FoodType={ValueOrNone(FoodType)}, Tags={tags}, Disgusting={IsDisgusting}";
+        }
+
+        private static IReadOnlyList<string> CopyTags(IReadOnlyList<string> tags)
+        {
+            if (tags == null)
+                return new List<string>();
+
+            return tags
+                .Where(tag => string.IsNullOrWhiteSpace(tag) == false)
+                .Select(tag => tag.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         private static string ValueOrNone(string value)
@@ -830,6 +943,14 @@ namespace Work.NPC.Code.Runtime
 
     public static class NpcDishResultEvaluator
     {
+        private const int RecipeMatchScore = 2;
+        private const int FoodTypeMatchScore = 1;
+        private const int RequiredTagMatchScore = 2;
+        private const int PreferredTagMatchScore = 1;
+        private const int AvoidTagPenalty = 1;
+        private const int DisgustingTagPenalty = 2;
+        private const int DisgustingDishPenalty = 2;
+
         public static NpcDishEvaluation Evaluate(VisitEventData visitEvent, NpcDishSubmission dish)
         {
             if (visitEvent == null)
@@ -846,69 +967,18 @@ namespace Work.NPC.Code.Runtime
             if (dish == null)
                 return new NpcDishEvaluation(NpcConversationResult.Wrong, "Dish submission is missing.");
 
-            if (dish.IsDisgusting)
-                return new NpcDishEvaluation(NpcConversationResult.Disgusting, "Dish was marked as disgusting.");
-
-            HashSet<string> dishTags = new HashSet<string>(dish.Tags, StringComparer.OrdinalIgnoreCase);
-            int disgustingMatches = CountMatches(order.DisgustingTags, dishTags);
-            if (disgustingMatches > 0)
-            {
-                return new NpcDishEvaluation(
-                    NpcConversationResult.Disgusting,
-                    $"Disgusting tag matched. count={disgustingMatches}");
-            }
-
-            bool recipeMatches = string.IsNullOrWhiteSpace(order.CorrectRecipeId) == false
-                                 && string.Equals(order.CorrectRecipeId, dish.RecipeId, StringComparison.OrdinalIgnoreCase);
-            bool foodTypeMatches = IsFoodTypeMatched(order.AllowedFoodTypes, dish.FoodType);
-            int requiredMatches = CountMatches(order.RequiredTags, dishTags);
-            int preferredMatches = CountMatches(order.PreferredTags, dishTags);
-            int avoidMatches = CountMatches(order.AvoidTags, dishTags);
-            bool requiredTagsMatched = requiredMatches >= order.RequiredTags.Count;
-
-            if (recipeMatches && avoidMatches == 0)
-            {
-                return new NpcDishEvaluation(
-                    NpcConversationResult.Perfect,
-                    "Correct recipe matched without avoid tags.");
-            }
-
-            if (recipeMatches)
-            {
-                return new NpcDishEvaluation(
-                    NpcConversationResult.Similar,
-                    $"Correct recipe matched, but avoid tags were present. avoid={avoidMatches}");
-            }
-
-            if (foodTypeMatches && requiredTagsMatched && avoidMatches == 0)
-            {
-                return new NpcDishEvaluation(
-                    NpcConversationResult.Correct,
-                    $"Food type and required tags matched. preferred={preferredMatches}");
-            }
-
-            if (IsSimilarMatch(order, foodTypeMatches, requiredMatches, preferredMatches, avoidMatches))
-            {
-                return new NpcDishEvaluation(
-                    NpcConversationResult.Similar,
-                    $"Partial match. type={foodTypeMatches}, required={requiredMatches}/{order.RequiredTags.Count}, preferred={preferredMatches}, avoid={avoidMatches}");
-            }
-
-            return new NpcDishEvaluation(
-                NpcConversationResult.Wrong,
-                $"Not enough clues matched. type={foodTypeMatches}, required={requiredMatches}/{order.RequiredTags.Count}, preferred={preferredMatches}, avoid={avoidMatches}");
+            return EvaluateFacts(BuildMatchFacts(order, dish));
         }
 
         public static NpcDishMatchReport BuildMatchReport(NpcOrderContext order, NpcDishSubmission dish)
         {
-            NpcDishEvaluation evaluation = Evaluate(order, dish);
-
             if (order == null || dish == null)
             {
+                NpcDishEvaluation missingEvaluation = Evaluate(order, dish);
                 return new NpcDishMatchReport(
                     order,
                     dish,
-                    evaluation,
+                    missingEvaluation,
                     false,
                     false,
                     new List<string>(),
@@ -921,56 +991,22 @@ namespace Work.NPC.Code.Runtime
                     0);
             }
 
-            HashSet<string> dishTags = new HashSet<string>(dish.Tags, StringComparer.OrdinalIgnoreCase);
-            bool recipeMatches = string.IsNullOrWhiteSpace(order.CorrectRecipeId) == false
-                                 && string.Equals(order.CorrectRecipeId, dish.RecipeId, StringComparison.OrdinalIgnoreCase);
-            bool foodTypeMatches = IsFoodTypeMatched(order.AllowedFoodTypes, dish.FoodType);
-            List<string> matchedRequiredTags = FilterMatches(order.RequiredTags, dishTags);
-            List<string> missingRequiredTags = FilterMissing(order.RequiredTags, dishTags);
-            List<string> matchedPreferredTags = FilterMatches(order.PreferredTags, dishTags);
-            List<string> missingPreferredTags = FilterMissing(order.PreferredTags, dishTags);
-            List<string> matchedAvoidTags = FilterMatches(order.AvoidTags, dishTags);
-            List<string> matchedDisgustingTags = FilterMatches(order.DisgustingTags, dishTags);
-
-            int maxScore = 0;
-            int score = 0;
-
-            if (string.IsNullOrWhiteSpace(order.CorrectRecipeId) == false)
-            {
-                maxScore += 2;
-                if (recipeMatches)
-                    score += 2;
-            }
-
-            if (order.AllowedFoodTypes.Count > 0)
-            {
-                maxScore += 1;
-                if (foodTypeMatches)
-                    score += 1;
-            }
-
-            maxScore += order.RequiredTags.Count * 2;
-            score += matchedRequiredTags.Count * 2;
-            maxScore += order.PreferredTags.Count;
-            score += matchedPreferredTags.Count;
-
-            score -= matchedAvoidTags.Count;
-            score -= matchedDisgustingTags.Count * 2;
-            if (dish.IsDisgusting)
-                score -= 2;
+            NpcDishMatchFacts facts = BuildMatchFacts(order, dish);
+            NpcDishEvaluation evaluation = EvaluateFacts(facts);
+            CalculateMatchScore(facts, out int score, out int maxScore);
 
             return new NpcDishMatchReport(
                 order,
                 dish,
                 evaluation,
-                recipeMatches,
-                foodTypeMatches,
-                matchedRequiredTags,
-                missingRequiredTags,
-                matchedPreferredTags,
-                missingPreferredTags,
-                matchedAvoidTags,
-                matchedDisgustingTags,
+                facts.RecipeMatches,
+                facts.FoodTypeMatches,
+                facts.MatchedRequiredTags,
+                facts.MissingRequiredTags,
+                facts.MatchedPreferredTags,
+                facts.MissingPreferredTags,
+                facts.MatchedAvoidTags,
+                facts.MatchedDisgustingTags,
                 Mathf.Clamp(score, 0, maxScore),
                 maxScore);
         }
@@ -979,6 +1015,9 @@ namespace Work.NPC.Code.Runtime
         {
             if (visitEvent == null)
                 return "No active NPC order.";
+
+            if (NpcVisitEventRules.RequiresCookingStep(visitEvent) == false)
+                return "This NPC event has no cooking order.";
 
             return
                 $"Recipe: {ValueOrNone(visitEvent.CorrectRecipeId)}\n" +
@@ -1026,28 +1065,120 @@ namespace Work.NPC.Code.Runtime
                 true);
         }
 
-        private static bool IsSimilarMatch(
-            NpcOrderContext order,
-            bool foodTypeMatches,
-            int requiredMatches,
-            int preferredMatches,
-            int avoidMatches)
+        private static NpcDishEvaluation EvaluateFacts(NpcDishMatchFacts facts)
         {
-            if (avoidMatches > 0)
-                return foodTypeMatches && requiredMatches > 0;
+            if (facts.Dish.IsDisgusting)
+                return new NpcDishEvaluation(NpcConversationResult.Disgusting, "Dish was marked as disgusting.");
 
-            if (order.RequiredTags.Count == 0)
-                return foodTypeMatches && preferredMatches > 0;
+            if (facts.MatchedDisgustingTags.Count > 0)
+            {
+                return new NpcDishEvaluation(
+                    NpcConversationResult.Disgusting,
+                    $"Disgusting tag matched. count={facts.MatchedDisgustingTags.Count}");
+            }
 
-            int halfRequired = Math.Max(1, (int)Math.Ceiling(order.RequiredTags.Count * 0.5f));
-            if (foodTypeMatches && requiredMatches >= halfRequired)
+            if (facts.RecipeMatches && facts.MatchedAvoidTags.Count == 0)
+            {
+                return new NpcDishEvaluation(
+                    NpcConversationResult.Perfect,
+                    "Correct recipe matched without avoid tags.");
+            }
+
+            if (facts.RecipeMatches)
+            {
+                return new NpcDishEvaluation(
+                    NpcConversationResult.Similar,
+                    $"Correct recipe matched, but avoid tags were present. avoid={facts.MatchedAvoidTags.Count}");
+            }
+
+            if (facts.FoodTypeMatches && facts.RequiredTagsMatched && facts.MatchedAvoidTags.Count == 0)
+            {
+                return new NpcDishEvaluation(
+                    NpcConversationResult.Correct,
+                    $"Food type and required tags matched. preferred={facts.MatchedPreferredTags.Count}");
+            }
+
+            if (IsSimilarMatch(facts))
+            {
+                return new NpcDishEvaluation(
+                    NpcConversationResult.Similar,
+                    $"Partial match. type={facts.FoodTypeMatches}, required={facts.MatchedRequiredTags.Count}/{facts.Order.RequiredTags.Count}, preferred={facts.MatchedPreferredTags.Count}, avoid={facts.MatchedAvoidTags.Count}");
+            }
+
+            return new NpcDishEvaluation(
+                NpcConversationResult.Wrong,
+                $"Not enough clues matched. type={facts.FoodTypeMatches}, required={facts.MatchedRequiredTags.Count}/{facts.Order.RequiredTags.Count}, preferred={facts.MatchedPreferredTags.Count}, avoid={facts.MatchedAvoidTags.Count}");
+        }
+
+        private static NpcDishMatchFacts BuildMatchFacts(NpcOrderContext order, NpcDishSubmission dish)
+        {
+            HashSet<string> dishTags = new HashSet<string>(dish.Tags, StringComparer.OrdinalIgnoreCase);
+            bool recipeMatches = string.IsNullOrWhiteSpace(order.CorrectRecipeId) == false
+                                 && string.Equals(order.CorrectRecipeId, dish.RecipeId, StringComparison.OrdinalIgnoreCase);
+            bool foodTypeMatches = IsFoodTypeMatched(order.AllowedFoodTypes, dish.FoodType);
+
+            return new NpcDishMatchFacts(
+                order,
+                dish,
+                recipeMatches,
+                foodTypeMatches,
+                FilterMatches(order.RequiredTags, dishTags),
+                FilterMissing(order.RequiredTags, dishTags),
+                FilterMatches(order.PreferredTags, dishTags),
+                FilterMissing(order.PreferredTags, dishTags),
+                FilterMatches(order.AvoidTags, dishTags),
+                FilterMatches(order.DisgustingTags, dishTags));
+        }
+
+        private static void CalculateMatchScore(NpcDishMatchFacts facts, out int score, out int maxScore)
+        {
+            maxScore = 0;
+            score = 0;
+
+            if (string.IsNullOrWhiteSpace(facts.Order.CorrectRecipeId) == false)
+            {
+                maxScore += RecipeMatchScore;
+                if (facts.RecipeMatches)
+                    score += RecipeMatchScore;
+            }
+
+            if (facts.Order.AllowedFoodTypes.Count > 0)
+            {
+                maxScore += FoodTypeMatchScore;
+                if (facts.FoodTypeMatches)
+                    score += FoodTypeMatchScore;
+            }
+
+            maxScore += facts.Order.RequiredTags.Count * RequiredTagMatchScore;
+            score += facts.MatchedRequiredTags.Count * RequiredTagMatchScore;
+            maxScore += facts.Order.PreferredTags.Count * PreferredTagMatchScore;
+            score += facts.MatchedPreferredTags.Count * PreferredTagMatchScore;
+
+            score -= facts.MatchedAvoidTags.Count * AvoidTagPenalty;
+            score -= facts.MatchedDisgustingTags.Count * DisgustingTagPenalty;
+            if (facts.Dish.IsDisgusting)
+                score -= DisgustingDishPenalty;
+        }
+
+        private static bool IsSimilarMatch(NpcDishMatchFacts facts)
+        {
+            if (facts.MatchedAvoidTags.Count > 0)
+                return facts.FoodTypeMatches && facts.MatchedRequiredTags.Count > 0;
+
+            if (facts.Order.RequiredTags.Count == 0)
+                return facts.FoodTypeMatches && facts.MatchedPreferredTags.Count > 0;
+
+            int halfRequired = Math.Max(1, (int)Math.Ceiling(facts.Order.RequiredTags.Count * 0.5f));
+            if (facts.FoodTypeMatches && facts.MatchedRequiredTags.Count >= halfRequired)
                 return true;
 
-            if (requiredMatches >= order.RequiredTags.Count)
+            if (facts.RequiredTagsMatched)
                 return true;
 
-            int preferredThreshold = Math.Min(2, order.PreferredTags.Count);
-            return foodTypeMatches && preferredThreshold > 0 && preferredMatches >= preferredThreshold;
+            int preferredThreshold = Math.Min(2, facts.Order.PreferredTags.Count);
+            return facts.FoodTypeMatches
+                   && preferredThreshold > 0
+                   && facts.MatchedPreferredTags.Count >= preferredThreshold;
         }
 
         private static bool IsFoodTypeMatched(IReadOnlyList<string> allowedFoodTypes, string foodType)
@@ -1106,6 +1237,45 @@ namespace Work.NPC.Code.Runtime
         private static string ValueOrNone(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? "None" : value;
+        }
+
+        private sealed class NpcDishMatchFacts
+        {
+            public NpcOrderContext Order { get; }
+            public NpcDishSubmission Dish { get; }
+            public bool RecipeMatches { get; }
+            public bool FoodTypeMatches { get; }
+            public IReadOnlyList<string> MatchedRequiredTags { get; }
+            public IReadOnlyList<string> MissingRequiredTags { get; }
+            public IReadOnlyList<string> MatchedPreferredTags { get; }
+            public IReadOnlyList<string> MissingPreferredTags { get; }
+            public IReadOnlyList<string> MatchedAvoidTags { get; }
+            public IReadOnlyList<string> MatchedDisgustingTags { get; }
+            public bool RequiredTagsMatched => MatchedRequiredTags.Count >= Order.RequiredTags.Count;
+
+            public NpcDishMatchFacts(
+                NpcOrderContext order,
+                NpcDishSubmission dish,
+                bool recipeMatches,
+                bool foodTypeMatches,
+                IReadOnlyList<string> matchedRequiredTags,
+                IReadOnlyList<string> missingRequiredTags,
+                IReadOnlyList<string> matchedPreferredTags,
+                IReadOnlyList<string> missingPreferredTags,
+                IReadOnlyList<string> matchedAvoidTags,
+                IReadOnlyList<string> matchedDisgustingTags)
+            {
+                Order = order;
+                Dish = dish;
+                RecipeMatches = recipeMatches;
+                FoodTypeMatches = foodTypeMatches;
+                MatchedRequiredTags = matchedRequiredTags;
+                MissingRequiredTags = missingRequiredTags;
+                MatchedPreferredTags = matchedPreferredTags;
+                MissingPreferredTags = missingPreferredTags;
+                MatchedAvoidTags = matchedAvoidTags;
+                MatchedDisgustingTags = matchedDisgustingTags;
+            }
         }
     }
 }

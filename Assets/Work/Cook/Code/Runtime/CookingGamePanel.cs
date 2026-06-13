@@ -684,20 +684,16 @@ namespace Work.Cook.Code.Runtime
                 return false;
             }
 
-            if (npcRunner == null)
-            {
-                Debug.LogWarning("CookingGamePanel could not submit the dish. Check that an active NpcConversationRunner is connected.", this);
-                return false;
-            }
-
             TryBuildNpcMatchReport(result, out NpcDishMatchReport matchReport);
 
             ReturnToNpcConversation();
             Canvas.ForceUpdateCanvases();
 
-            if (CookingNpcDishAdapter.SubmitToNpc(npcRunner, result) == false)
+            if (CookingNpcDishAdapter.SubmitToNpc(npcRunner, result, out string submitBlockReason) == false)
             {
-                Debug.LogWarning("CookingGamePanel could not submit the dish. Check that an active NpcConversationRunner is connected.", this);
+                Debug.LogWarning(
+                    $"CookingGamePanel could not submit the dish. reason={submitBlockReason}",
+                    this);
                 SetScreen(CookingGameScreenState.Result);
                 return false;
             }

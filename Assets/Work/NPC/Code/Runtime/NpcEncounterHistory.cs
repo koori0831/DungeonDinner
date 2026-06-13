@@ -79,13 +79,45 @@ namespace Work.NPC.Code.Runtime
         public bool IsNpcRequestUnlocked(string npcId)
         {
             NpcHistoryRecord record = FindNpcRecord(npcId);
-            return record?.requestUnlocked ?? false;
+            return GetRequestStateRank(ResolveRequestState(record)) >= GetRequestStateRank(NpcRequestState.Unlocked);
         }
 
         public int GetNpcRequestUnlockedDay(string npcId)
         {
             NpcHistoryRecord record = FindNpcRecord(npcId);
             return record?.requestUnlockedDay ?? 0;
+        }
+
+        public NpcRequestState GetNpcRequestState(string npcId)
+        {
+            return ResolveRequestState(FindNpcRecord(npcId));
+        }
+
+        public int GetNpcRequestStateDay(string npcId)
+        {
+            NpcHistoryRecord record = FindNpcRecord(npcId);
+            return GetRequestStateDay(record, ResolveRequestState(record));
+        }
+
+        public string BuildNpcRequestDebugSummary(string npcId)
+        {
+            if (string.IsNullOrWhiteSpace(npcId))
+                return "Request: No active NPC.";
+
+            NpcHistoryRecord record = FindNpcRecord(npcId);
+            if (record == null)
+                return $"Request: {npcId} / Locked";
+
+            return
+                $"Request: {npcId} / {BuildRequestStateSummary(record)}\n" +
+                $"Unlocked={FormatHistoryDay(record.requestUnlockedDay)}   " +
+                $"Offered={FormatHistoryDay(record.requestOfferedDay)}   " +
+                $"Accepted={FormatHistoryDay(record.requestAcceptedDay)}\n" +
+                $"Progress={FormatHistoryDay(record.requestInProgressDay)}   " +
+                $"Ready={FormatHistoryDay(record.requestReadyToCompleteDay)}   " +
+                $"Complete={FormatHistoryDay(record.requestCompletedDay)}\n" +
+                $"Epilogue={FormatHistoryDay(record.requestEpilogueAvailableDay)}   " +
+                $"Done={FormatHistoryDay(record.requestEpilogueCompletedDay)}";
         }
 
         public string LastNpcId => lastNpcId;
@@ -155,6 +187,12 @@ namespace Work.NPC.Code.Runtime
             return record?.lastPlayDay ?? 0;
         }
 
+        public string GetEventLastResult(string eventId)
+        {
+            VisitEventHistoryRecord record = FindEventRecord(eventId);
+            return record?.lastResult ?? string.Empty;
+        }
+
         public bool HasPlayedEvent(string eventId)
         {
             return GetEventPlayCount(eventId) > 0;
@@ -166,12 +204,37 @@ namespace Work.NPC.Code.Runtime
                 return false;
 
             NpcHistoryRecord npcRecord = FindOrCreateNpcRecord(npcId);
-            if (npcRecord.requestUnlocked)
+            return TryAdvanceNpcRequestState(npcRecord, NpcRequestState.Unlocked, currentDay);
+        }
+
+        public bool TryMarkNpcRequestOffered(string npcId, int currentDay)
+        {
+            return TryAdvanceNpcRequestState(npcId, NpcRequestState.Offered, currentDay);
+        }
+
+        public bool TryMarkNpcRequestOfferedFromPlayedEvent(string npcId, string eventId, int currentDay)
+        {
+            if (string.IsNullOrWhiteSpace(npcId)
+                || string.IsNullOrWhiteSpace(eventId)
+                || HasPlayedEvent(eventId) == false)
+            {
+                return false;
+            }
+
+            int playedDay = GetEventLastPlayDay(eventId);
+            return TryAdvanceNpcRequestState(
+                npcId,
+                NpcRequestState.Offered,
+                playedDay > 0 ? playedDay : currentDay);
+        }
+
+        public bool TryAdvanceNpcRequestState(string npcId, NpcRequestState targetState, int currentDay)
+        {
+            if (string.IsNullOrWhiteSpace(npcId))
                 return false;
 
-            npcRecord.requestUnlocked = true;
-            npcRecord.requestUnlockedDay = Mathf.Max(1, currentDay);
-            return true;
+            NpcHistoryRecord npcRecord = FindOrCreateNpcRecord(npcId);
+            return TryAdvanceNpcRequestState(npcRecord, targetState, currentDay);
         }
 
         public void RecordEncounter(VisitEventData visitEvent, int currentDay, string encounterRegionId = null)
@@ -236,12 +299,7 @@ namespace Work.NPC.Code.Runtime
                 builder.Append(", lastResult=");
                 builder.Append(string.IsNullOrWhiteSpace(record.lastResult) ? "None" : record.lastResult);
                 builder.Append(", request=");
-                builder.Append(record.requestUnlocked ? "Unlocked" : "Locked");
-                if (record.requestUnlockedDay > 0)
-                {
-                    builder.Append("@");
-                    builder.Append(FormatHistoryDay(record.requestUnlockedDay));
-                }
+                builder.Append(BuildRequestStateSummary(record));
 
                 builder.AppendLine();
             }
@@ -319,6 +377,11 @@ namespace Work.NPC.Code.Runtime
 
             if (recentEncounters == null)
                 recentEncounters = new List<RecentEncounterRecord>();
+
+            foreach (NpcHistoryRecord record in npcRecords)
+            {
+                NormalizeRequestState(record);
+            }
 
             TrimRecentEncounters();
         }
@@ -449,6 +512,162 @@ namespace Work.NPC.Code.Runtime
                     break;
             }
         }
+
+        private static bool TryAdvanceNpcRequestState(
+            NpcHistoryRecord record,
+            NpcRequestState targetState,
+            int currentDay)
+        {
+            if (record == null || targetState == NpcRequestState.Locked)
+                return false;
+
+            NormalizeRequestState(record);
+            NpcRequestState currentState = ResolveRequestState(record);
+            if (GetRequestStateRank(currentState) >= GetRequestStateRank(targetState))
+                return false;
+
+            ApplyRequestState(record, targetState, currentDay);
+            return true;
+        }
+
+        private static void ApplyRequestState(NpcHistoryRecord record, NpcRequestState targetState, int currentDay)
+        {
+            int safeDay = Mathf.Max(1, currentDay);
+            record.requestState = targetState;
+
+            for (int state = (int)NpcRequestState.Unlocked; state <= (int)targetState; state++)
+            {
+                EnsureRequestStateDay(record, (NpcRequestState)state, safeDay);
+            }
+
+            record.requestUnlocked = true;
+            if (record.requestUnlockedDay <= 0)
+                record.requestUnlockedDay = safeDay;
+        }
+
+        private static void NormalizeRequestState(NpcHistoryRecord record)
+        {
+            if (record == null)
+                return;
+
+            if (record.requestState == NpcRequestState.Locked && record.requestUnlocked)
+                record.requestState = NpcRequestState.Unlocked;
+
+            if (record.requestState == NpcRequestState.Locked)
+                return;
+
+            record.requestUnlocked = true;
+            if (record.requestUnlockedDay <= 0)
+                record.requestUnlockedDay = FindFallbackRequestStateDay(record);
+        }
+
+        private static NpcRequestState ResolveRequestState(NpcHistoryRecord record)
+        {
+            if (record == null)
+                return NpcRequestState.Locked;
+
+            if (record.requestState != NpcRequestState.Locked)
+                return record.requestState;
+
+            return record.requestUnlocked ? NpcRequestState.Unlocked : NpcRequestState.Locked;
+        }
+
+        private static string BuildRequestStateSummary(NpcHistoryRecord record)
+        {
+            NpcRequestState state = ResolveRequestState(record);
+            int day = GetRequestStateDay(record, state);
+            if (day <= 0)
+                return state.ToString();
+
+            return $"{state}@{FormatHistoryDay(day)}";
+        }
+
+        private static int GetRequestStateDay(NpcHistoryRecord record, NpcRequestState state)
+        {
+            if (record == null)
+                return 0;
+
+            return state switch
+            {
+                NpcRequestState.Unlocked => record.requestUnlockedDay,
+                NpcRequestState.Offered => record.requestOfferedDay,
+                NpcRequestState.Accepted => record.requestAcceptedDay,
+                NpcRequestState.InProgress => record.requestInProgressDay,
+                NpcRequestState.ReadyToComplete => record.requestReadyToCompleteDay,
+                NpcRequestState.Completed => record.requestCompletedDay,
+                NpcRequestState.EpilogueAvailable => record.requestEpilogueAvailableDay,
+                NpcRequestState.EpilogueCompleted => record.requestEpilogueCompletedDay,
+                _ => 0
+            };
+        }
+
+        private static void EnsureRequestStateDay(NpcHistoryRecord record, NpcRequestState state, int currentDay)
+        {
+            switch (state)
+            {
+                case NpcRequestState.Unlocked:
+                    if (record.requestUnlockedDay <= 0)
+                        record.requestUnlockedDay = currentDay;
+                    break;
+                case NpcRequestState.Offered:
+                    if (record.requestOfferedDay <= 0)
+                        record.requestOfferedDay = currentDay;
+                    break;
+                case NpcRequestState.Accepted:
+                    if (record.requestAcceptedDay <= 0)
+                        record.requestAcceptedDay = currentDay;
+                    break;
+                case NpcRequestState.InProgress:
+                    if (record.requestInProgressDay <= 0)
+                        record.requestInProgressDay = currentDay;
+                    break;
+                case NpcRequestState.ReadyToComplete:
+                    if (record.requestReadyToCompleteDay <= 0)
+                        record.requestReadyToCompleteDay = currentDay;
+                    break;
+                case NpcRequestState.Completed:
+                    if (record.requestCompletedDay <= 0)
+                        record.requestCompletedDay = currentDay;
+                    break;
+                case NpcRequestState.EpilogueAvailable:
+                    if (record.requestEpilogueAvailableDay <= 0)
+                        record.requestEpilogueAvailableDay = currentDay;
+                    break;
+                case NpcRequestState.EpilogueCompleted:
+                    if (record.requestEpilogueCompletedDay <= 0)
+                        record.requestEpilogueCompletedDay = currentDay;
+                    break;
+            }
+        }
+
+        private static int FindFallbackRequestStateDay(NpcHistoryRecord record)
+        {
+            int fallbackDay = record.requestUnlockedDay;
+            fallbackDay = GetEarlierPositiveDay(fallbackDay, record.requestOfferedDay);
+            fallbackDay = GetEarlierPositiveDay(fallbackDay, record.requestAcceptedDay);
+            fallbackDay = GetEarlierPositiveDay(fallbackDay, record.requestInProgressDay);
+            fallbackDay = GetEarlierPositiveDay(fallbackDay, record.requestReadyToCompleteDay);
+            fallbackDay = GetEarlierPositiveDay(fallbackDay, record.requestCompletedDay);
+            fallbackDay = GetEarlierPositiveDay(fallbackDay, record.requestEpilogueAvailableDay);
+            fallbackDay = GetEarlierPositiveDay(fallbackDay, record.requestEpilogueCompletedDay);
+            return fallbackDay > 0 ? fallbackDay : record.lastVisitDay;
+        }
+
+        private static int GetEarlierPositiveDay(int currentDay, int candidateDay)
+        {
+            if (candidateDay <= 0)
+                return currentDay;
+
+            if (currentDay <= 0)
+                return candidateDay;
+
+            return Math.Min(currentDay, candidateDay);
+        }
+
+        private static int GetRequestStateRank(NpcRequestState state)
+        {
+            return (int)state;
+        }
     }
 
     [Serializable]
@@ -467,6 +686,14 @@ namespace Work.NPC.Code.Runtime
         public int disgustingCount;
         public bool requestUnlocked;
         public int requestUnlockedDay;
+        public NpcRequestState requestState;
+        public int requestOfferedDay;
+        public int requestAcceptedDay;
+        public int requestInProgressDay;
+        public int requestReadyToCompleteDay;
+        public int requestCompletedDay;
+        public int requestEpilogueAvailableDay;
+        public int requestEpilogueCompletedDay;
     }
 
     [Serializable]

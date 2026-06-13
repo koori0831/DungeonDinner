@@ -90,6 +90,7 @@ namespace Work.NPC.Code.Runtime
                 : NpcEncounterHistory.CreateUnsaved();
 
             SyncCurrentDayFromHistory();
+            ReconcileRequestStatesFromPlayedRequestEvents();
 
             if (runner != null)
             {
@@ -156,6 +157,27 @@ namespace Work.NPC.Code.Runtime
             Debug.Log(GetEncounterHistorySummary());
         }
 
+        public NpcDataValidationReport ValidateNpcData(bool logToConsole = true)
+        {
+            if (_database == null)
+                _database = NpcConversationDatabase.LoadFromResources(resourceFolder);
+
+            NpcDataValidationReport report = _database.ValidateData();
+            if (logToConsole)
+                report.LogToUnityConsole();
+
+            return report;
+        }
+
+        public string GetNpcDataValidationSummary()
+        {
+            if (_database == null)
+                return "NPC data is not loaded.";
+
+            NpcDataValidationReport report = _database.LastValidationReport ?? _database.ValidateData();
+            return report.BuildSummary(20);
+        }
+
         public string GetEncounterHistorySummary()
         {
             return _history?.BuildDebugSummary() ?? "NPC encounter history is not loaded.";
@@ -182,13 +204,103 @@ namespace Work.NPC.Code.Runtime
             return _history != null && _history.IsNpcRequestUnlocked(npcId);
         }
 
+        public string GetCurrentOrLastNpcId()
+        {
+            if (runner != null && string.IsNullOrWhiteSpace(runner.CurrentNpcId) == false)
+                return runner.CurrentNpcId;
+
+            return _history?.LastNpcId ?? string.Empty;
+        }
+
+        public string GetCurrentNpcRequestStateSummary()
+        {
+            return GetNpcRequestStateSummary(GetCurrentOrLastNpcId());
+        }
+
+        public string GetNpcRequestStateSummary(string npcId)
+        {
+            if (_database == null || _history == null)
+                return "NPC data is not loaded.";
+
+            if (string.IsNullOrWhiteSpace(npcId))
+                return "Request: No active NPC.";
+
+            if (_database.Npcs.TryGetValue(npcId, out NpcData npc) && npc.RequestAvailable == false)
+                return $"Request: {npcId} / Not configured.";
+
+            return _history.BuildNpcRequestDebugSummary(npcId);
+        }
+
+        public string GetCurrentNpcRequestFlowSummary()
+        {
+            return GetNpcRequestFlowSummary(GetCurrentOrLastNpcId());
+        }
+
+        public string GetNpcRequestFlowSummary(string npcId)
+        {
+            if (_database == null || _history == null)
+                return "NPC data is not loaded.";
+
+            if (string.IsNullOrWhiteSpace(npcId))
+                return "Request Flow: No active NPC.";
+
+            if (_database.Npcs.TryGetValue(npcId, out NpcData npc) == false)
+                return $"Request Flow: NPC data missing. npc={npcId}";
+
+            if (npc.RequestAvailable == false)
+                return $"Request Flow: {npc.DisplayName} ({npcId}) / Not configured.";
+
+            NpcRequestState state = _history.GetNpcRequestState(npcId);
+            StringBuilder builder = new StringBuilder();
+            builder.Append("Request Flow: ");
+            builder.Append(npc.DisplayName);
+            builder.Append(" (");
+            builder.Append(npcId);
+            builder.Append(") / ");
+            builder.AppendLine(state.ToString());
+            builder.AppendLine(BuildRequestFlowActionHint(npcId, npc, state));
+            builder.Append(BuildRequestFlowNextEventHint(npcId));
+            return builder.ToString();
+        }
+
+        public bool AcceptNpcRequest(string npcId)
+        {
+            return TryAdvanceNpcRequestState(npcId, NpcRequestState.Accepted);
+        }
+
+        public bool SetNpcRequestInProgress(string npcId)
+        {
+            return TryAdvanceNpcRequestState(npcId, NpcRequestState.InProgress);
+        }
+
+        public bool MarkNpcRequestReadyToComplete(string npcId)
+        {
+            return TryAdvanceNpcRequestState(npcId, NpcRequestState.ReadyToComplete);
+        }
+
+        public bool CompleteNpcRequest(string npcId)
+        {
+            return TryAdvanceNpcRequestState(npcId, NpcRequestState.Completed);
+        }
+
+        public bool MarkNpcRequestEpilogueAvailable(string npcId)
+        {
+            return TryAdvanceNpcRequestState(npcId, NpcRequestState.EpilogueAvailable);
+        }
+
+        public bool CompleteNpcRequestEpilogue(string npcId)
+        {
+            return TryAdvanceNpcRequestState(npcId, NpcRequestState.EpilogueCompleted);
+        }
+
+        public bool AdvanceCurrentNpcRequestState(NpcRequestState targetState)
+        {
+            return TryAdvanceNpcRequestState(GetCurrentOrLastNpcId(), targetState);
+        }
+
         public string GetCurrentNpcProgressSummary()
         {
-            string npcId = runner != null && string.IsNullOrWhiteSpace(runner.CurrentNpcId) == false
-                ? runner.CurrentNpcId
-                : _history?.LastNpcId;
-
-            return GetNpcProgressSummary(npcId);
+            return GetNpcProgressSummary(GetCurrentOrLastNpcId());
         }
 
         public string GetNpcProgressSummary(string npcId)
@@ -229,6 +341,123 @@ namespace Work.NPC.Code.Runtime
             StartEncounterInternal(true);
         }
 
+        public bool ForceStartEvent(string eventId, bool advanceDay = false)
+        {
+            if (runner == null)
+            {
+                Debug.LogError("NPC conversation runner is not assigned.");
+                return false;
+            }
+
+            if (runner.HasActiveConversation)
+            {
+                Debug.LogWarning("NPC encounter already has an active conversation. Complete the current conversation before forcing another event.");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(eventId))
+            {
+                Debug.LogWarning("Cannot force NPC event. Event ID is empty.");
+                return false;
+            }
+
+            if (_database.TryGetVisitEvent(eventId.Trim(), out VisitEventData visitEvent) == false)
+            {
+                Debug.LogWarning($"Cannot force NPC event. Visit event not found: {eventId}");
+                return false;
+            }
+
+            currentDay = Mathf.Max(1, currentDay);
+            SyncDailySessionState();
+            ReconcileRequestStatesFromPlayedRequestEvents();
+
+            List<string> blockers = GetVisitEventBlockers(visitEvent, true);
+            if (blockers.Count > 0)
+            {
+                Debug.LogWarning(
+                    $"Forcing NPC event with blockers. event={visitEvent.EventId}, " +
+                    $"blockers={string.Join(", ", blockers)}");
+            }
+
+            _activeEncounterDay = currentDay;
+            _activeEventId = visitEvent.EventId;
+            Debug.Log(
+                $"NPC event forced: date={NpcImperialCalendar.FormatDayIndex(_activeEncounterDay)}, " +
+                $"region={regionId}, npc={visitEvent.NpcId}, event={visitEvent.EventId}");
+            runner.PlayEvent(visitEvent.EventId, _history.GetNpcAffinity(visitEvent.NpcId));
+            RecordEncounter(visitEvent, _activeEncounterDay, advanceDay);
+            return true;
+        }
+
+        public string GetEventCandidateDebugSummary(int maxLines = 24)
+        {
+            if (_database == null || _history == null)
+                return "NPC data is not loaded.";
+
+            SyncDailySessionState();
+            ReconcileRequestStatesFromPlayedRequestEvents();
+
+            IReadOnlyList<RegionPoolEntryData> poolEntries = _database.GetRegionPoolEntries(regionId);
+            if (poolEntries.Count == 0)
+                return $"Event Preview: No pool entries. region={regionId}";
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append("Event Preview: ");
+            builder.Append(CurrentDateText);
+            builder.Append(" / ");
+            builder.AppendLine(regionId);
+
+            int lineCount = 0;
+            int readyCount = 0;
+            foreach (RegionPoolEntryData entry in poolEntries)
+            {
+                if (lineCount >= maxLines)
+                    break;
+
+                List<string> entryBlockers = GetPoolEntryBlockers(entry);
+                IReadOnlyList<VisitEventData> events = _database.GetVisitEvents(entry.RegionId, entry.NpcId);
+                if (events.Count == 0)
+                {
+                    AppendCandidateLine(builder, entry.NpcId, "NoEvents", "BLOCKED", "no region events");
+                    lineCount++;
+                    continue;
+                }
+
+                foreach (VisitEventData visitEvent in events
+                             .OrderByDescending(NpcVisitEventRules.GetPriorityTypeRank)
+                             .ThenByDescending(candidate => candidate.Priority)
+                             .ThenBy(candidate => candidate.EventId))
+                {
+                    if (lineCount >= maxLines)
+                        break;
+
+                    List<string> blockers = new List<string>(entryBlockers);
+                    blockers.AddRange(GetVisitEventBlockers(visitEvent, true));
+
+                    string state = blockers.Count == 0 ? "READY" : "BLOCKED";
+                    if (blockers.Count == 0)
+                        readyCount++;
+
+                    AppendCandidateLine(
+                        builder,
+                        visitEvent.NpcId,
+                        visitEvent.EventId,
+                        state,
+                        blockers.Count == 0 ? visitEvent.EventType.ToString() : string.Join(", ", blockers));
+                    lineCount++;
+                }
+            }
+
+            if (lineCount >= maxLines)
+                builder.AppendLine($"... {Mathf.Max(0, CountPreviewableEvents(poolEntries) - maxLines)} more event(s).");
+
+            builder.Append("Ready: ");
+            builder.Append(readyCount);
+            builder.Append(" / Shown: ");
+            builder.Append(lineCount);
+            return builder.ToString();
+        }
+
         private void StartEncounterInternal(bool advanceDay)
         {
             if (runner == null)
@@ -244,6 +473,8 @@ namespace Work.NPC.Code.Runtime
             }
 
             SyncDailySessionState();
+            ReconcileRequestStatesFromPlayedRequestEvents();
+
             if (IsBusinessDayComplete)
             {
                 Debug.LogWarning(
@@ -435,6 +666,25 @@ namespace Work.NPC.Code.Runtime
             return validEntries;
         }
 
+        private List<string> GetPoolEntryBlockers(RegionPoolEntryData entry)
+        {
+            List<string> blockers = new List<string>();
+
+            if (entry.MinDay > currentDay)
+                blockers.Add($"minDay {currentDay}/{entry.MinDay}");
+
+            if (IsNpcBlockedForBusinessDay(entry.NpcId, entry.RegionId))
+                blockers.Add("same day npc");
+
+            if (IsNpcCooldownReady(entry) == false)
+            {
+                int elapsedDays = GetElapsedDaysSince(_history.GetNpcLastVisitDay(entry.NpcId));
+                blockers.Add($"npc cooldown {elapsedDays}/{Mathf.Max(0, entry.CooldownDays)}");
+            }
+
+            return blockers;
+        }
+
         private bool TryPickPriorityVisitEvent(
             string targetRegionId,
             IReadOnlyList<RegionPoolEntryData> validEntries,
@@ -475,24 +725,98 @@ namespace Work.NPC.Code.Runtime
             if (npc.RequestAvailable == false)
                 return "Request: Not configured.";
 
-            bool unlocked = _history.IsNpcRequestUnlocked(npcId);
+            NpcRequestState state = _history.GetNpcRequestState(npcId);
             int unlockLevel = Mathf.Max(0, npc.RequestUnlockLevel);
             int affinity = _history.GetNpcAffinity(npcId);
             int level = NpcAffinityUtility.GetLevel(affinity);
 
-            if (unlocked)
-            {
-                int unlockDay = _history.GetNpcRequestUnlockedDay(npcId);
-                string unlockDate = unlockDay > 0
-                    ? NpcImperialCalendar.FormatDayIndex(unlockDay)
-                    : "Unknown date";
-                return $"Request: Unlocked ({unlockDate})";
-            }
+            if (state != NpcRequestState.Locked)
+                return _history.BuildNpcRequestDebugSummary(npcId);
 
             string eventRequirement = string.IsNullOrWhiteSpace(npc.RequestUnlockEvent)
                 ? string.Empty
                 : $", event={npc.RequestUnlockEvent}";
             return $"Request: Locked (Lv.{level}/{unlockLevel}{eventRequirement})";
+        }
+
+        private string BuildRequestFlowActionHint(string npcId, NpcData npc, NpcRequestState state)
+        {
+            switch (state)
+            {
+                case NpcRequestState.Locked:
+                {
+                    int affinity = _history.GetNpcAffinity(npcId);
+                    int level = NpcAffinityUtility.GetLevel(affinity);
+                    int unlockLevel = Mathf.Max(0, npc.RequestUnlockLevel);
+                    string eventRequirement = GetRequestUnlockEventRequirementText(npc);
+                    return $"Next: unlock request. affinity Lv.{level}/{unlockLevel}, event={eventRequirement}";
+                }
+                case NpcRequestState.Unlocked:
+                    return "Next: start encounter until the Request offer event appears.";
+                case NpcRequestState.Offered:
+                    return "Next: accept the request, then progress it through the external quest/cooking flow.";
+                case NpcRequestState.Accepted:
+                    return "Next: set InProgress when the external request flow starts.";
+                case NpcRequestState.InProgress:
+                    return "Next: mark ReadyToComplete when the request objective is fulfilled.";
+                case NpcRequestState.ReadyToComplete:
+                    return "Next: start encounter to play the completion event.";
+                case NpcRequestState.Completed:
+                    return "Next: make EpilogueAvailable when the later story condition is met.";
+                case NpcRequestState.EpilogueAvailable:
+                    return "Next: start encounter to play the epilogue event.";
+                case NpcRequestState.EpilogueCompleted:
+                    return "Next: request flow finished.";
+                default:
+                    return "Next: unknown request state.";
+            }
+        }
+
+        private string GetRequestUnlockEventRequirementText(NpcData npc)
+        {
+            if (string.IsNullOrWhiteSpace(npc.RequestUnlockEvent))
+                return "none";
+
+            return _history.HasPlayedEvent(npc.RequestUnlockEvent)
+                ? "met"
+                : $"needs {npc.RequestUnlockEvent}";
+        }
+
+        private string BuildRequestFlowNextEventHint(string npcId)
+        {
+            List<VisitEventData> requestEvents = _database
+                .GetVisitEvents(regionId, npcId)
+                .Where(visitEvent => visitEvent.EventType == VisitEventType.Request || HasRequestStateRule(visitEvent))
+                .OrderBy(visitEvent => GetVisitEventBlockers(visitEvent, true).Count)
+                .ThenByDescending(NpcVisitEventRules.GetPriorityTypeRank)
+                .ThenBy(visitEvent => visitEvent.SequenceGroup)
+                .ThenBy(visitEvent => visitEvent.SequenceIndex)
+                .ThenByDescending(visitEvent => visitEvent.Priority)
+                .ThenBy(visitEvent => visitEvent.EventId)
+                .ToList();
+
+            if (requestEvents.Count == 0)
+                return $"Request Events ({regionId}): None configured.";
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append("Request Events (");
+            builder.Append(regionId);
+            builder.AppendLine("):");
+
+            int displayedCount = Mathf.Min(3, requestEvents.Count);
+            for (int i = 0; i < displayedCount; i++)
+            {
+                VisitEventData visitEvent = requestEvents[i];
+                builder.Append("- ");
+                builder.Append(visitEvent.EventId);
+                builder.Append(" / ");
+                builder.AppendLine(BuildRequirementStatus(visitEvent));
+            }
+
+            if (requestEvents.Count > displayedCount)
+                builder.Append("... +").Append(requestEvents.Count - displayedCount).Append(" more");
+
+            return builder.ToString();
         }
 
         private string BuildNextSequenceSummary(string npcId)
@@ -531,8 +855,7 @@ namespace Work.NPC.Code.Runtime
             if (NpcVisitEventRules.IsOneShotEvent(visitEvent) && playCount > 0)
                 blockers.Add("already played");
 
-            if (IsRequestEventUnlocked(visitEvent) == false)
-                blockers.Add("request locked");
+            AddRequestStateBlockers(visitEvent, blockers);
 
             int visits = _history.GetNpcVisitCount(visitEvent.NpcId);
             if (visits < visitEvent.RequiredNpcVisits)
@@ -729,12 +1052,6 @@ namespace Work.NPC.Code.Runtime
             return currentDay - previousDay;
         }
 
-        private bool IsRequestEventUnlocked(VisitEventData visitEvent)
-        {
-            return visitEvent.EventType != VisitEventType.Request
-                   || (_history != null && _history.IsNpcRequestUnlocked(visitEvent.NpcId));
-        }
-
         private bool IsRequiredLastResultMatched(VisitEventData visitEvent)
         {
             if (string.IsNullOrWhiteSpace(visitEvent.RequiredLastResult))
@@ -787,6 +1104,31 @@ namespace Work.NPC.Code.Runtime
             return string.IsNullOrWhiteSpace(value) ? "None" : value;
         }
 
+        private static void AppendCandidateLine(
+            StringBuilder builder,
+            string npcId,
+            string eventId,
+            string state,
+            string detail)
+        {
+            builder.Append(state);
+            builder.Append(" | ");
+            builder.Append(ValueOrNone(npcId));
+            builder.Append(" | ");
+            builder.Append(ValueOrNone(eventId));
+            builder.Append(" | ");
+            builder.AppendLine(ValueOrNone(detail));
+        }
+
+        private int CountPreviewableEvents(IReadOnlyList<RegionPoolEntryData> poolEntries)
+        {
+            int count = 0;
+            foreach (RegionPoolEntryData entry in poolEntries)
+                count += Mathf.Max(1, _database.GetVisitEvents(entry.RegionId, entry.NpcId).Count);
+
+            return count;
+        }
+
         private void HandleResultDialogueStarted(string eventId, NpcConversationResult result)
         {
             if (string.Equals(eventId, _activeEventId, StringComparison.OrdinalIgnoreCase) == false)
@@ -834,6 +1176,7 @@ namespace Work.NPC.Code.Runtime
             }
 
             TryUnlockRequest(visitEvent, afterAffinity);
+            ApplyRequestStateAfterSuccessResult(visitEvent, result, _activeEncounterDay);
 
             if (persistHistory)
                 _history.Save();
@@ -896,6 +1239,8 @@ namespace Work.NPC.Code.Runtime
         private void RecordEncounter(VisitEventData visitEvent, int encounterDay, bool advanceDay)
         {
             _history.RecordEncounter(visitEvent, encounterDay, regionId);
+            ApplyRequestStateAfterEncounter(visitEvent, encounterDay);
+
             _encountersStartedToday = _history.GetEncounterCountOnDay(regionId, encounterDay);
 
             if (persistHistory)
@@ -919,6 +1264,246 @@ namespace Work.NPC.Code.Runtime
                 NpcConversationResult.Disgusting => 0,
                 _ => 0
             };
+        }
+
+        private void ReconcileRequestStatesFromPlayedRequestEvents()
+        {
+            if (_database == null || _history == null)
+                return;
+
+            bool changed = false;
+            foreach (VisitEventData visitEvent in _database.VisitEvents.Values)
+            {
+                if (_history.HasPlayedEvent(visitEvent.EventId) == false)
+                    continue;
+
+                changed |= TryApplyPlayedRequestStateAfterEncounter(visitEvent);
+                changed |= TryApplyPlayedRequestStateAfterSuccessResult(visitEvent);
+            }
+
+            if (changed && persistHistory)
+                _history.Save();
+        }
+
+        private void AddRequestStateBlockers(VisitEventData visitEvent, List<string> blockers)
+        {
+            if (_history == null)
+            {
+                if (HasRequestStateRule(visitEvent) || visitEvent.EventType == VisitEventType.Request)
+                    blockers.Add("request history missing");
+
+                return;
+            }
+
+            NpcRequestState currentState = _history.GetNpcRequestState(visitEvent.NpcId);
+            bool hasRequiredState = TryGetRequestStateRule(
+                visitEvent.RequiredRequestState,
+                "RequiredRequestState",
+                visitEvent.EventId,
+                blockers,
+                out NpcRequestState requiredState);
+            bool hasBlockedState = TryGetRequestStateRule(
+                visitEvent.BlockedAtRequestState,
+                "BlockedAtRequestState",
+                visitEvent.EventId,
+                blockers,
+                out NpcRequestState blockedState);
+
+            if (hasRequiredState && NpcRequestStateUtility.IsAtLeast(currentState, requiredState) == false)
+                blockers.Add($"request {currentState}/{requiredState}");
+
+            if (hasBlockedState && NpcRequestStateUtility.IsBlockedAtOrAfter(currentState, blockedState))
+                blockers.Add($"request blocked at {blockedState}");
+
+            if (visitEvent.EventType != VisitEventType.Request || hasRequiredState || hasBlockedState)
+                return;
+
+            if (currentState == NpcRequestState.Locked)
+            {
+                blockers.Add("request locked");
+                return;
+            }
+
+            if (currentState != NpcRequestState.Unlocked)
+                blockers.Add($"request state {currentState}");
+        }
+
+        private static bool HasRequestStateRule(VisitEventData visitEvent)
+        {
+            return string.IsNullOrWhiteSpace(visitEvent.RequiredRequestState) == false
+                   || string.IsNullOrWhiteSpace(visitEvent.BlockedAtRequestState) == false
+                   || string.IsNullOrWhiteSpace(visitEvent.RequestStateAfterEncounter) == false
+                   || string.IsNullOrWhiteSpace(visitEvent.RequestStateAfterSuccessResult) == false;
+        }
+
+        private static bool TryGetRequestStateRule(
+            string value,
+            string columnName,
+            string eventId,
+            List<string> blockers,
+            out NpcRequestState state)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                state = NpcRequestState.Locked;
+                return false;
+            }
+
+            if (NpcRequestStateUtility.TryParse(value, out state))
+                return true;
+
+            blockers.Add($"invalid {columnName} {value} on {eventId}");
+            return false;
+        }
+
+        private void ApplyRequestStateAfterEncounter(VisitEventData visitEvent, int encounterDay)
+        {
+            if (_history == null || visitEvent == null)
+                return;
+
+            if (TryGetRequestStateAfterEncounter(visitEvent, out NpcRequestState targetState))
+            {
+                _history.TryAdvanceNpcRequestState(visitEvent.NpcId, targetState, encounterDay);
+                return;
+            }
+
+            if (visitEvent.EventType == VisitEventType.Request)
+                _history.TryMarkNpcRequestOffered(visitEvent.NpcId, encounterDay);
+        }
+
+        private bool TryApplyPlayedRequestStateAfterEncounter(VisitEventData visitEvent)
+        {
+            if (TryGetRequestStateAfterEncounter(visitEvent, out NpcRequestState targetState))
+            {
+                int playedDay = _history.GetEventLastPlayDay(visitEvent.EventId);
+                return _history.TryAdvanceNpcRequestState(
+                    visitEvent.NpcId,
+                    targetState,
+                    playedDay > 0 ? playedDay : currentDay);
+            }
+
+            if (visitEvent.EventType != VisitEventType.Request)
+                return false;
+
+            return _history.TryMarkNpcRequestOfferedFromPlayedEvent(
+                visitEvent.NpcId,
+                visitEvent.EventId,
+                currentDay);
+        }
+
+        private void ApplyRequestStateAfterSuccessResult(
+            VisitEventData visitEvent,
+            NpcConversationResult result,
+            int encounterDay)
+        {
+            if (_history == null || visitEvent == null)
+                return;
+
+            if (TryGetRequestStateAfterSuccessResult(visitEvent, result, out NpcRequestState targetState) == false)
+                return;
+
+            _history.TryAdvanceNpcRequestState(visitEvent.NpcId, targetState, encounterDay);
+        }
+
+        private bool TryApplyPlayedRequestStateAfterSuccessResult(VisitEventData visitEvent)
+        {
+            string lastResult = _history.GetEventLastResult(visitEvent.EventId);
+            if (Enum.TryParse(lastResult, true, out NpcConversationResult result) == false)
+                return false;
+
+            if (TryGetRequestStateAfterSuccessResult(visitEvent, result, out NpcRequestState targetState) == false)
+                return false;
+
+            int resultDay = _history.GetEventLastPlayDay(visitEvent.EventId);
+            return _history.TryAdvanceNpcRequestState(
+                visitEvent.NpcId,
+                targetState,
+                resultDay > 0 ? resultDay : currentDay);
+        }
+
+        private static bool TryGetRequestStateAfterEncounter(VisitEventData visitEvent, out NpcRequestState targetState)
+        {
+            return NpcRequestStateUtility.TryParse(visitEvent.RequestStateAfterEncounter, out targetState)
+                   && targetState != NpcRequestState.Locked;
+        }
+
+        private static bool TryGetRequestStateAfterSuccessResult(
+            VisitEventData visitEvent,
+            NpcConversationResult result,
+            out NpcRequestState targetState)
+        {
+            if (NpcRequestStateUtility.TryParse(visitEvent.RequestStateAfterSuccessResult, out targetState) == false
+                || targetState == NpcRequestState.Locked)
+            {
+                return false;
+            }
+
+            if (visitEvent.RequestSuccessResults.Count == 0)
+                return IsDefaultSuccessfulRequestResult(result);
+
+            foreach (string resultName in visitEvent.RequestSuccessResults)
+            {
+                if (Enum.TryParse(resultName, true, out NpcConversationResult successResult)
+                    && successResult == result)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsDefaultSuccessfulRequestResult(NpcConversationResult result)
+        {
+            return result == NpcConversationResult.Perfect
+                   || result == NpcConversationResult.Correct;
+        }
+
+        private bool TryAdvanceNpcRequestState(string npcId, NpcRequestState targetState)
+        {
+            if (_history == null)
+            {
+                Debug.LogWarning("Cannot advance NPC request state. History is not loaded.");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(npcId))
+            {
+                Debug.LogWarning("Cannot advance NPC request state. No active or recent NPC.");
+                return false;
+            }
+
+            if (targetState == NpcRequestState.Locked)
+            {
+                Debug.LogWarning("Cannot advance NPC request state to Locked.");
+                return false;
+            }
+
+            if (_database == null || _database.Npcs.TryGetValue(npcId, out NpcData npc) == false)
+            {
+                Debug.LogWarning($"Cannot advance NPC request state. NPC data is missing. npc={npcId}");
+                return false;
+            }
+
+            if (npc.RequestAvailable == false)
+            {
+                Debug.LogWarning($"Cannot advance NPC request state. Request is not configured. npc={npcId}");
+                return false;
+            }
+
+            if (_history.TryAdvanceNpcRequestState(npcId, targetState, currentDay) == false)
+            {
+                Debug.Log(
+                    $"NPC request state unchanged. npc={npcId}, target={targetState}, " +
+                    $"current={_history.GetNpcRequestState(npcId)}");
+                return false;
+            }
+
+            if (persistHistory)
+                _history.Save();
+
+            Debug.Log($"NPC request state advanced. {GetNpcRequestStateSummary(npcId)}");
+            return true;
         }
 
         private static RegionPoolEntryData PickWeighted(IReadOnlyList<RegionPoolEntryData> entries)
@@ -980,6 +1565,19 @@ namespace Work.NPC.Code.Runtime
         private static bool IsFirstVisitEvent(VisitEventData visitEvent)
         {
             return visitEvent.EventId.IndexOf("FirstVisit", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        public static bool RequiresCookingStep(VisitEventData visitEvent)
+        {
+            if (visitEvent == null)
+                return false;
+
+            return string.IsNullOrWhiteSpace(visitEvent.CorrectRecipeId) == false
+                   || visitEvent.AllowedFoodTypes.Count > 0
+                   || visitEvent.RequiredTags.Count > 0
+                   || visitEvent.PreferredTags.Count > 0
+                   || visitEvent.AvoidTags.Count > 0
+                   || visitEvent.DisgustingTags.Count > 0;
         }
     }
 

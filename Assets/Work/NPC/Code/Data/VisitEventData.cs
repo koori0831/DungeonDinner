@@ -35,6 +35,11 @@ namespace Work.NPC.Code.Data
         public int RequiredCorrectCount { get; }
         public string RequiredLastResult { get; }
         public IReadOnlyList<string> RequiredEventIds { get; }
+        public string RequiredRequestState { get; }
+        public string BlockedAtRequestState { get; }
+        public string RequestStateAfterEncounter { get; }
+        public IReadOnlyList<string> RequestSuccessResults { get; }
+        public string RequestStateAfterSuccessResult { get; }
         public string SequenceGroup { get; }
         public int SequenceIndex { get; }
         public string CorrectRecipeId { get; }
@@ -60,6 +65,11 @@ namespace Work.NPC.Code.Data
             int requiredCorrectCount,
             string requiredLastResult,
             IReadOnlyList<string> requiredEventIds,
+            string requiredRequestState,
+            string blockedAtRequestState,
+            string requestStateAfterEncounter,
+            IReadOnlyList<string> requestSuccessResults,
+            string requestStateAfterSuccessResult,
             string sequenceGroup,
             int sequenceIndex,
             string correctRecipeId,
@@ -84,6 +94,11 @@ namespace Work.NPC.Code.Data
             RequiredCorrectCount = requiredCorrectCount;
             RequiredLastResult = requiredLastResult;
             RequiredEventIds = requiredEventIds;
+            RequiredRequestState = requiredRequestState ?? string.Empty;
+            BlockedAtRequestState = blockedAtRequestState ?? string.Empty;
+            RequestStateAfterEncounter = requestStateAfterEncounter ?? string.Empty;
+            RequestSuccessResults = requestSuccessResults;
+            RequestStateAfterSuccessResult = requestStateAfterSuccessResult ?? string.Empty;
             SequenceGroup = sequenceGroup;
             SequenceIndex = sequenceIndex;
             CorrectRecipeId = correctRecipeId;
@@ -112,6 +127,11 @@ namespace Work.NPC.Code.Data
                 CsvRowReader.GetInt(row, "RequiredCorrectCount"),
                 CsvRowReader.Get(row, "RequiredLastResult"),
                 CsvRowReader.GetList(row, "RequiredEventIds"),
+                CsvRowReader.Get(row, "RequiredRequestState"),
+                CsvRowReader.Get(row, "BlockedAtRequestState"),
+                CsvRowReader.Get(row, "RequestStateAfterEncounter"),
+                CsvRowReader.GetList(row, "RequestSuccessResults"),
+                CsvRowReader.Get(row, "RequestStateAfterSuccessResult"),
                 CsvRowReader.Get(row, "SequenceGroup"),
                 CsvRowReader.GetInt(row, "SequenceIndex"),
                 CsvRowReader.Get(row, "CorrectRecipeId"),

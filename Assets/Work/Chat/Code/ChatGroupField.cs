@@ -40,7 +40,7 @@ namespace Work.Chat.Code
             RefreshHeight();
         }
 
-        public void AddChat(string chat, bool isUserChat)
+        public ChatTextField AddChat(string chat, bool isUserChat)
         {
             EnsureReferences();
 
@@ -51,6 +51,7 @@ namespace Work.Chat.Code
 
             RefreshHeight();
             newChat.PlayAppearAnimation();
+            return newChat;
         }
 
         private void RefreshBubbleMaxWidths()
