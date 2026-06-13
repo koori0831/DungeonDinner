@@ -109,6 +109,26 @@ namespace Work.Players.Code.Inventory
         /// <returns>묶음 추가 처리 결과</returns>
         public InventoryBatchAddResult AddItems(InventoryItemStack[] itemStacks, int startIndex, int count)
         {
+            return AddItems(itemStacks, startIndex, count, null, 0);
+        }
+
+        /// <summary>
+        /// 아이템 스택 배열을 한 번의 변경 알림으로 추가하고 개별 추가 결과를 저장
+        /// </summary>
+        /// <param name="itemStacks">추가할 아이템 스택 배열</param>
+        /// <param name="startIndex">추가를 시작할 배열 인덱스</param>
+        /// <param name="count">처리할 스택 수</param>
+        /// <param name="addResults">개별 추가 결과 저장 버퍼</param>
+        /// <param name="addResultStartIndex">개별 추가 결과 저장 시작 인덱스</param>
+        /// <returns>묶음 추가 처리 결과</returns>
+        public InventoryBatchAddResult AddItems(
+            InventoryItemStack[] itemStacks,
+            int startIndex,
+            int count,
+            InventoryAddResult[] addResults,
+            int addResultStartIndex
+        )
+        {
             EnsureSlots();
 
             if (itemStacks == null || startIndex < 0 || count <= 0 || startIndex >= itemStacks.Length)
@@ -123,6 +143,7 @@ namespace Work.Players.Code.Inventory
             int fullyAddedStackCount = 0;
             int addedAmount = 0;
             int remainingAmount = 0;
+            int addResultIndex = Mathf.Max(0, addResultStartIndex);
 
             for (int i = 0; i < validCount; i++)
             {
@@ -135,6 +156,13 @@ namespace Work.Players.Code.Inventory
 
                 requestedStackCount++;
                 InventoryAddResult result = AddItemInternal(itemStack.Item, itemStack.Amount);
+
+                if (addResults != null && addResultIndex < addResults.Length)
+                {
+                    addResults[addResultIndex] = result;
+                }
+
+                addResultIndex++;
                 addedAmount += result.AddedAmount;
                 remainingAmount += result.RemainingAmount;
 
