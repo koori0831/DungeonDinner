@@ -1,6 +1,6 @@
 NpcId,DisplayName,Race,Role,PreferredTags,PreferredFoodTypes,AvoidTags,Notes,RequestAvailable,RequestUnlockLevel,RequestUnlockEvent
-"Elyndra","엘프 약초학자 엘린드라","엘프","세계수 약초학자","Vegetable|Fresh|Herbal|Magic|Clean","Salad|Tea|Soup","Meat|Fish|Greasy|StrongSmell|Burnt","세계수에서 태어난 약초학자이며 던전 안 마물 식재료를 함부로 쓰는 것을 꺼리는 마물맘 성향의 채식주의자","TRUE","5","Elyndra_Sequence_GlowberryMushroom"
-"Dorin","드워프 화덕장 도린","드워프","레드 드래곤 공양 화덕장","Hot|Smoky|Salty|Hearty|BeerFriendly","Stew|Grill|Bread","Cold|Watery|Light|SweetOnly","화산 드래곤의 비호 아래 자란 장인으로 불의 날 공양 음식에 집착한다","TRUE","5","Dorin_Request_ForgeAleRoast"
-"Raka","토끼 수인 보급병 라카","수인","곡물 호송 보급병","Grain|Portable|Crispy|Savory|Light","RiceBowl|Snack|Grill","Messy|StrongSmell|Heavy|Greasy","수인 곡물지대 출신의 군 보급병으로 빠르게 먹고 움직일 수 있는 음식을 선호한다","TRUE","5","Raka_Sequence_UnityDayGrainPack"
-"Marel","어인 모험가 마렐","어인","물주머니를 든 수로 정찰자","Moist|Cool|Soft|Fish|Clean","Soup|Noodle|Salad","Dry|Hot|Charred|Spicy|StrongSmell","블루 드래곤의 저주로 아가미를 가진 모험가이며 물주머니로 아가미를 적시며 던전을 돈다","TRUE","5","Marel_Request_TofuTideBowl"
-"Borga","바바리안 전사 보르가","바바리안","북방 방어선 전사","Hot|Spicy|Meat|Hearty|AncientRite","Stew|Grill|Soup","Cold|TinyPortion|SweetOnly|Vegetable|Watery","북쪽 마물을 막는 전투민족 출신으로 고대어와 용족 언어는 유창하지만 공용어는 짧게 말한다","TRUE","5","Borga_Sequence_BoneBrothPepperSoup"
+"Elyndra","엘프 약초학자 엘린드라","엘프","세계수 약초학자","Vegetable|Fresh|Herbal|Magic|Clean","Salad|Tea|Soup","Meat|Fish|Greasy|StrongSmell|Burnt","세계수에서 태어난 약초학자이며 던전 안 마물 식재료를 함부로 쓰는 것을 꺼리는 마물맘 성향의 채식주의자","FALSE","5","Elyndra_Sequence_GlowberryMushroom"
+"Dorin","드워프 화덕장 도린","드워프","레드 드래곤 공양 화덕장","Hot|Smoky|Salty|Hearty|BeerFriendly","Stew|Grill|Bread","Cold|Watery|Light|SweetOnly","","TRUE","5","Dorin_First_DragonCoalStew"
+"Raka","토끼 수인 보급병 라카","수인","곡물 호송 보급병","Grain|Portable|Crispy|Savory|Light","RiceBowl|Snack|Grill","Messy|StrongSmell|Heavy|Greasy","수인 곡물지대 출신의 군 보급병으로 빠르게 먹고 움직일 수 있는 음식을 선호한다","FALSE","5","Raka_Sequence_UnityDayGrainPack"
+"Marel","어인 모험가 마렐","어인","물주머니를 든 수로 정찰자","Moist|Cool|Soft|Fish|Clean","Soup|Noodle|Salad","Dry|Hot|Charred|Spicy|StrongSmell","블루 드래곤의 저주로 아가미를 가진 모험가이며 물주머니로 아가미를 적시며 던전을 돈다","TRUE","5","Marel_First_WaterpouchFishSoup"
+"Borga","바바리안 전사 보르가","바바리안","북방 방어선 전사","Hot|Spicy|Meat|Hearty|AncientRite","Stew|Grill|Soup","Cold|TinyPortion|SweetOnly|Vegetable|Watery","북쪽 마물을 막는 전투민족 출신으로 고대어와 용족 언어는 유창하지만 공용어는 짧게 말한다","FALSE","5","Borga_Sequence_BoneBrothPepperSoup"

@@ -82,7 +82,14 @@ namespace Work.NPC.Code.Runtime
                 SetButtonLabel(button, option.DisplayName);
 
                 string categoryId = option.CategoryId;
-                button.onClick.AddListener(() => runner.SelectQuestionCategory(categoryId));
+                button.onClick.AddListener(() =>
+                {
+                    ClearButtons();
+                    if (hideWhenNoOptions)
+                        SetVisible(false);
+
+                    runner.SelectQuestionCategory(categoryId);
+                });
                 _spawnedButtons.Add(button);
             }
 

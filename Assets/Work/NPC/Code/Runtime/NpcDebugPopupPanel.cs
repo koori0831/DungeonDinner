@@ -28,13 +28,18 @@ namespace Work.NPC.Code.Runtime
         private TextMeshProUGUI _relationshipText;
         private TextMeshProUGUI _affinityChangeText;
         private TextMeshProUGUI _requestUnlockText;
+        private TextMeshProUGUI _requestStateText;
+        private TextMeshProUGUI _requestFlowText;
+        private TextMeshProUGUI _eventPreviewText;
         private TextMeshProUGUI _orderRequirementText;
         private TextMeshProUGUI _dishPreviewText;
+        private TextMeshProUGUI _validationText;
         private TextMeshProUGUI _historyText;
         private TMP_InputField _regionInput;
         private TMP_InputField _yearInput;
         private TMP_InputField _monthInput;
         private TMP_InputField _dateDayInput;
+        private TMP_InputField _forceEventInput;
         private TMP_InputField _dishRecipeInput;
         private TMP_InputField _dishFoodTypeInput;
         private TMP_InputField _dishTagsInput;
@@ -159,6 +164,54 @@ namespace Work.NPC.Code.Runtime
         private void LogHistory()
         {
             director?.LogEncounterHistory();
+            RefreshPanel();
+        }
+
+        private void ValidateData()
+        {
+            director?.ValidateNpcData();
+            RefreshPanel();
+        }
+
+        private void ForceStartEvent()
+        {
+            ApplyRegionAndDayInputs();
+
+            string eventId = _forceEventInput != null ? _forceEventInput.text.Trim() : string.Empty;
+            if (string.IsNullOrWhiteSpace(eventId))
+            {
+                Debug.LogWarning("Debug force event ID is empty.");
+                RefreshPanel();
+                return;
+            }
+
+            director?.ForceStartEvent(eventId);
+            RefreshPanel();
+        }
+
+        private void UseCurrentEventId()
+        {
+            if (_forceEventInput == null || runner == null)
+                return;
+
+            string eventId = string.IsNullOrWhiteSpace(runner.CurrentEventId)
+                ? string.Empty
+                : runner.CurrentEventId;
+            _forceEventInput.SetTextWithoutNotify(eventId);
+            RefreshPanel();
+        }
+
+        private void AdvanceRequestState(NpcRequestState targetState)
+        {
+            if (director == null)
+            {
+                Debug.LogWarning("NpcEncounterDirector not found.");
+                return;
+            }
+
+            if (director.AdvanceCurrentNpcRequestState(targetState) == false)
+                Debug.LogWarning($"NPC request state was not advanced. target={targetState}");
+
             RefreshPanel();
         }
 
@@ -300,6 +353,15 @@ namespace Work.NPC.Code.Runtime
             if (_requestUnlockText != null)
                 _requestUnlockText.text = director != null ? director.GetLastRequestUnlockSummary() : "NpcEncounterDirector not found.";
 
+            if (_requestStateText != null)
+                _requestStateText.text = director != null ? director.GetCurrentNpcRequestStateSummary() : "NpcEncounterDirector not found.";
+
+            if (_requestFlowText != null)
+                _requestFlowText.text = director != null ? director.GetCurrentNpcRequestFlowSummary() : "NpcEncounterDirector not found.";
+
+            if (_eventPreviewText != null)
+                _eventPreviewText.text = director != null ? director.GetEventCandidateDebugSummary() : "NpcEncounterDirector not found.";
+
             if (_orderRequirementText != null)
                 _orderRequirementText.text = runner != null ? runner.GetCurrentOrderRequirementSummary() : "NpcConversationRunner not found.";
 
@@ -309,6 +371,9 @@ namespace Work.NPC.Code.Runtime
                     ? runner.PreviewDishResult(GetDishRecipeId(), GetDishFoodType(), GetDishTagText())
                     : "NpcConversationRunner not found.";
             }
+
+            if (_validationText != null)
+                _validationText.text = director != null ? director.GetNpcDataValidationSummary() : "NpcEncounterDirector not found.";
 
             RefreshQuestionButtonStates();
         }
@@ -502,8 +567,18 @@ namespace Work.NPC.Code.Runtime
             CreateButton(encounterRow, "Start Encounter", StartEncounter);
             CreateButton(encounterRow, "Start + Day", StartEncounterAndAdvanceDay);
 
+            RectTransform forceEventRow = CreateRow(contentRoot, "ForceEventRow", 42f);
+            _forceEventInput = CreateInputField(forceEventRow, "ForceEventInput", "EventId");
+            _forceEventInput.GetComponent<LayoutElement>().flexibleWidth = 1f;
+            CreateButton(forceEventRow, "Force", ForceStartEvent, new Vector2(82f, 34f));
+            CreateButton(forceEventRow, "Use Current", UseCurrentEventId, new Vector2(112f, 34f));
+
             RectTransform utilityRow = CreateRow(contentRoot, "UtilityRow", 42f);
             CreateButton(utilityRow, "질문 종료", SkipQuestions);
+            CreateButton(utilityRow, "Validate Data", ValidateData);
+
+            CreateSectionLabel(contentRoot, "Event Preview");
+            _eventPreviewText = CreateInfoBox(contentRoot, "EventPreviewBox", 170f, 12f);
 
             CreateSectionLabel(contentRoot, "관계 진행");
             _relationshipText = CreateInfoBox(contentRoot, "RelationshipBox", 112f, 14f);
@@ -513,6 +588,22 @@ namespace Work.NPC.Code.Runtime
 
             CreateSectionLabel(contentRoot, "Recent Request Unlock");
             _requestUnlockText = CreateInfoBox(contentRoot, "RequestUnlockBox", 58f, 13f);
+
+            CreateSectionLabel(contentRoot, "Request State");
+            _requestStateText = CreateInfoBox(contentRoot, "RequestStateBox", 92f, 12f);
+
+            CreateSectionLabel(contentRoot, "Request Flow");
+            _requestFlowText = CreateInfoBox(contentRoot, "RequestFlowBox", 126f, 12f);
+
+            RectTransform requestRowA = CreateRow(contentRoot, "RequestStateRowA", 42f);
+            CreateButton(requestRowA, "Accept", () => AdvanceRequestState(NpcRequestState.Accepted));
+            CreateButton(requestRowA, "Progress", () => AdvanceRequestState(NpcRequestState.InProgress));
+            CreateButton(requestRowA, "Ready", () => AdvanceRequestState(NpcRequestState.ReadyToComplete));
+
+            RectTransform requestRowB = CreateRow(contentRoot, "RequestStateRowB", 42f);
+            CreateButton(requestRowB, "Complete", () => AdvanceRequestState(NpcRequestState.Completed));
+            CreateButton(requestRowB, "Epilogue", () => AdvanceRequestState(NpcRequestState.EpilogueAvailable));
+            CreateButton(requestRowB, "Done", () => AdvanceRequestState(NpcRequestState.EpilogueCompleted));
 
             CreateSectionLabel(contentRoot, "주문 조건");
             _orderRequirementText = CreateInfoBox(contentRoot, "OrderRequirementBox", 120f, 14f);
@@ -559,6 +650,9 @@ namespace Work.NPC.Code.Runtime
 
             RectTransform resultRowC = CreateRow(contentRoot, "ResultRowC", 42f);
             CreateButton(resultRowC, "Perfect", () => PlayResult(NpcConversationResult.Perfect));
+
+            CreateSectionLabel(contentRoot, "Data Validation");
+            _validationText = CreateInfoBox(contentRoot, "ValidationBox", 156f, 12f);
 
             CreateSectionLabel(contentRoot, "히스토리");
 

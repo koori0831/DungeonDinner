@@ -250,6 +250,7 @@ MonoBehaviour:
   userChatGroupPrefab: {fileID: -7292607655039299636, guid: bd953314abaeeac438fd4154ecac5c8b, type: 3}
   npcChatGroupPrefab: {fileID: 7607601116747409603, guid: 8f119f8827e3066438dd6c081b828d28, type: 3}
   contentTrm: {fileID: 1630925111}
+  enableDebugHotkeys: 0
 --- !u!1 &102947265
 GameObject:
   m_ObjectHideFlags: 0
@@ -895,6 +896,77 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!1 &1003598166
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1003598167}
+  - component: {fileID: 1003598168}
+  m_Layer: 0
+  m_Name: NpcConversationView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1003598167
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003598166}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1156181641}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1003598168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003598166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1775f6bb43d46608b3ca8cf4492fe7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Work.NPC.Code.Runtime.NpcConversationView
+  runner: {fileID: 1054664832}
+  chatPanel: {fileID: 89226530}
+  canvasGroup: {fileID: 0}
+  resolveReferencesOnEnable: 1
+  disableRunnerDirectChatOutput: 1
+  visibleOnEnable: 1
+  showWhenDialogueLinePlayed: 1
+  showWhenQuestionOptionsAvailable: 1
+  showWhenOrderReady: 1
+  hideWhenCookingStepReady: 0
+  hideWhenConversationCompleted: 0
+  showSpeakerNameInBubble: 1
+  completeTypingOnSubmit: 1
+  playerNameColor: '#9FD4FF'
+  npcNameColor: '#D6A85A'
+  conversationShown:
+    m_PersistentCalls:
+      m_Calls: []
+  conversationHidden:
+    m_PersistentCalls:
+      m_Calls: []
+  cookingStepReady:
+    m_PersistentCalls:
+      m_Calls: []
+  conversationCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1054664831
 GameObject:
   m_ObjectHideFlags: 0
@@ -927,8 +999,12 @@ MonoBehaviour:
   resourceFolder: NPCData
   startEventId: Novice_FirstVisit_SweetDrink
   chatPanel: {fileID: 89226530}
+  orderSlipPanel: {fileID: 0}
   playOnStart: 0
-  showSpeakerName: 1
+  showSpeakerName: 0
+  useDirectChatPanelOutput: 1
+  writeNpcBoldTextToOrderSlip: 1
+  autoCreateOrderSlipPanel: 1
   playerDisplayName: "\uD50C\uB808\uC774\uC5B4"
   lineDelay: 0.95
   useAffinityQuestionRules: 1
@@ -1223,6 +1299,7 @@ Transform:
   - {fileID: 1054664833}
   - {fileID: 1324290039}
   - {fileID: 1154906893}
+  - {fileID: 1003598167}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1269012764
@@ -1922,8 +1999,6 @@ MonoBehaviour:
   buildOnAwake: 1
   y_Offset: -40
   default_X_Value: -100
-  resizeBockmarkParentHeight: 1
-  minBockmarkParentHeight: 0
   viewParent: {fileID: 1767051155}
   bockmarkParent: {fileID: 745710730}
   bockmarkPrefab: {fileID: 3643260068710521077, guid: 63b9e110d035a9046bb10ce024a56dda, type: 3}
@@ -2315,8 +2390,6 @@ MonoBehaviour:
   buildOnAwake: 0
   y_Offset: -40
   default_X_Value: -100
-  resizeBockmarkParentHeight: 1
-  minBockmarkParentHeight: 0
   viewParent: {fileID: 2015541530}
   bockmarkParent: {fileID: 1424283809}
   bockmarkPrefab: {fileID: 3643260068710521077, guid: 63b9e110d035a9046bb10ce024a56dda, type: 3}
