@@ -48,6 +48,17 @@ namespace Work.Cook.Code.Runtime
             return true;
         }
 
+        public bool BeginRecipeIngredientSelection(RecipeSO recipe)
+        {
+            if (recipe == null)
+                return false;
+
+            _session = CookingSession.CreateForRecipe(recipe, Array.Empty<IngredientSO>());
+            LastResult = null;
+            SetState(CookingFlowState.SelectingIngredients);
+            return true;
+        }
+
         public void BeginDirectSelection()
         {
             _session = CookingSession.CreateForDirectIngredients(null);
@@ -82,9 +93,21 @@ namespace Work.Cook.Code.Runtime
             return true;
         }
 
+        public bool AddRecipeIngredient(IngredientSO ingredient)
+        {
+            if (ingredient == null || _session == null || _session.Mode != CookingMode.Recipe)
+                return false;
+
+            _session.AddIngredient(ingredient);
+            LastResult = null;
+            SetState(CookingFlowState.SelectingIngredients);
+            return true;
+        }
+
         public bool RemoveDirectIngredient(IngredientSO ingredient)
         {
-            if (_session == null || _session.Mode != CookingMode.DirectIngredients)
+            if (_session == null
+                || (_session.Mode != CookingMode.DirectIngredients && _session.Mode != CookingMode.Recipe))
                 return false;
 
             bool removed = _session.RemoveIngredient(ingredient);
@@ -98,13 +121,18 @@ namespace Work.Cook.Code.Runtime
 
         public bool ConfirmDirectIngredients()
         {
-            if (_session == null || _session.Mode != CookingMode.DirectIngredients)
+            if (_session == null
+                || (_session.Mode != CookingMode.DirectIngredients && _session.Mode != CookingMode.Recipe))
                 return false;
 
             if (_session.SelectedIngredients.Count == 0)
                 return false;
 
-            _session.ClearPreparations();
+            if (_session.Mode == CookingMode.DirectIngredients)
+                _session.ClearPreparations();
+            else
+                _session.ApplyAutomaticRecipePreparations();
+
             LastResult = null;
             SetState(CookingFlowState.PreparingIngredients);
             return true;

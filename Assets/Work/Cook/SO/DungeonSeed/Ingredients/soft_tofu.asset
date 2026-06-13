@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: soft_tofu
   displayName: "\uBD80\uB4DC\uB7EC\uC6B4 \uB450\uBD80"
   description: "\uACE1\uBB3C\uC9C0\uB300 \uCF69\uC73C\uB85C \uB9CC\uB4E0 \uCD09\uCD09\uD55C \uB450\uBD80\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1010, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 554c2104076941379581787648732e2f, type: 2}
   - {fileID: 11400000, guid: 5b6888cfbe3e4cf58e49279be35581fb, type: 2}

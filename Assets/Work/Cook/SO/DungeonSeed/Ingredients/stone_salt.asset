@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: stone_salt
   displayName: "\uB3CC\uC18C\uAE08"
   description: "\uB358\uC804 \uAD11\uB9E5\uC5D0\uC11C \uAE01\uC5B4\uB0B8 \uAC70\uCE5C \uC18C\uAE08\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1012, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 72116030b59a4f898375907171ba34d9, type: 2}
   - {fileID: 11400000, guid: eff11793453647bea8346a98b0af0feb, type: 2}

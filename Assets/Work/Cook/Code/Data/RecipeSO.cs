@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Work.Cook.Code.Runtime;
 
 namespace Work.Cook.Code.Data
 {
@@ -10,6 +11,7 @@ namespace Work.Cook.Code.Data
         [SerializeField] private string displayName;
         [SerializeField, TextArea] private string description;
         [SerializeField] private FoodCategorySO category;
+        [SerializeField] private int priority;
         [SerializeField] private List<FoodTagSO> baseTags = new List<FoodTagSO>();
         [SerializeField] private List<RecipeIngredientRequirement> requiredIngredients = new List<RecipeIngredientRequirement>();
         [SerializeField] private List<RecipePreparationRule> perfectPreparationRules = new List<RecipePreparationRule>();
@@ -18,39 +20,58 @@ namespace Work.Cook.Code.Data
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? recipeId : displayName;
         public string Description => description;
         public FoodCategorySO Category => category;
+        public int Priority => priority;
         public IReadOnlyList<FoodTagSO> BaseTags => baseTags;
         public IReadOnlyList<RecipeIngredientRequirement> RequiredIngredients => requiredIngredients;
         public IReadOnlyList<RecipePreparationRule> PerfectPreparationRules => perfectPreparationRules;
 
         public bool MatchesIngredients(IReadOnlyList<IngredientSO> ingredients)
         {
-            if (ingredients == null || ingredients.Count != requiredIngredients.Count)
+            if (ingredients == null)
                 return false;
 
-            bool[] used = new bool[ingredients.Count];
+            bool[] usedIngredients = new bool[ingredients.Count];
+            int[] counts = new int[requiredIngredients.Count];
+            return TryMatchIngredientsRecursive(ingredients, usedIngredients, counts, 0);
+        }
+
+        public bool MatchesPreparedIngredients(IReadOnlyList<PreparedIngredientState> preparedIngredients)
+        {
+            if (preparedIngredients == null)
+                return false;
+
+            bool[] usedIngredients = new bool[preparedIngredients.Count];
+            int[] counts = new int[requiredIngredients.Count];
+            return TryMatchPreparedRecursive(preparedIngredients, usedIngredients, counts, 0);
+        }
+
+        public int CalculateMatchScore(IReadOnlyList<PreparedIngredientState> preparedIngredients)
+        {
+            if (MatchesPreparedIngredients(preparedIngredients) == false)
+                return -1;
+
+            int score = priority * 1000;
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
-                bool matched = false;
+                if (requirement == null)
+                    continue;
 
-                for (int ingredientIndex = 0; ingredientIndex < ingredients.Count; ingredientIndex++)
-                {
-                    if (used[ingredientIndex])
-                        continue;
+                if (requirement.Ingredient != null)
+                    score += 100;
 
-                    if (requirement != null && requirement.IsMatchedBy(ingredients[ingredientIndex]))
-                    {
-                        used[ingredientIndex] = true;
-                        matched = true;
-                        break;
-                    }
-                }
+                if (requirement.IngredientCategory != null)
+                    score += 40;
 
-                if (matched == false)
-                    return false;
+                score += requirement.RequiredTags.Count * 20;
+
+                if (requirement.RequiredPreparationMethod != null)
+                    score += 80;
+
+                score += requirement.MinCount * 5;
             }
 
-            return true;
+            return score;
         }
 
         public bool IsPerfectPreparation(IngredientSO ingredient, PreparationMethodSO method)
@@ -91,5 +112,109 @@ namespace Work.Cook.Code.Data
         }
 
         public bool HasPerfectPreparationRules => perfectPreparationRules.Count > 0;
+        public bool HasRequiredPreparationMethods
+        {
+            get
+            {
+                for (int i = 0; i < requiredIngredients.Count; i++)
+                {
+                    RecipeIngredientRequirement requirement = requiredIngredients[i];
+                    if (requirement != null && requirement.RequiredPreparationMethod != null)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        private bool TryMatchIngredientsRecursive(
+            IReadOnlyList<IngredientSO> ingredients,
+            bool[] usedIngredients,
+            int[] counts,
+            int ingredientIndex)
+        {
+            if (ingredientIndex >= ingredients.Count)
+                return AreRequirementCountsSatisfied(counts);
+
+            IngredientSO ingredient = ingredients[ingredientIndex];
+            if (ingredient == null)
+                return TryMatchIngredientsRecursive(ingredients, usedIngredients, counts, ingredientIndex + 1);
+
+            for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
+            {
+                RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
+                if (requirement == null
+                    || requirement.CanAcceptMore(counts[requirementIndex]) == false
+                    || requirement.IsMatchedBy(ingredient) == false)
+                {
+                    continue;
+                }
+
+                usedIngredients[ingredientIndex] = true;
+                counts[requirementIndex]++;
+
+                if (TryMatchIngredientsRecursive(ingredients, usedIngredients, counts, ingredientIndex + 1))
+                    return true;
+
+                counts[requirementIndex]--;
+                usedIngredients[ingredientIndex] = false;
+            }
+
+            return false;
+        }
+
+        private bool TryMatchPreparedRecursive(
+            IReadOnlyList<PreparedIngredientState> preparedIngredients,
+            bool[] usedIngredients,
+            int[] counts,
+            int preparedIndex)
+        {
+            if (preparedIndex >= preparedIngredients.Count)
+                return AreRequirementCountsSatisfied(counts);
+
+            PreparedIngredientState prepared = preparedIngredients[preparedIndex];
+            if (prepared == null)
+                return TryMatchPreparedRecursive(preparedIngredients, usedIngredients, counts, preparedIndex + 1);
+
+            for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
+            {
+                RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
+                if (requirement == null
+                    || requirement.CanAcceptMore(counts[requirementIndex]) == false
+                    || requirement.IsPreparedMatch(prepared) == false)
+                {
+                    continue;
+                }
+
+                usedIngredients[preparedIndex] = true;
+                counts[requirementIndex]++;
+
+                if (TryMatchPreparedRecursive(preparedIngredients, usedIngredients, counts, preparedIndex + 1))
+                    return true;
+
+                counts[requirementIndex]--;
+                usedIngredients[preparedIndex] = false;
+            }
+
+            return false;
+        }
+
+        private bool AreRequirementCountsSatisfied(IReadOnlyList<int> counts)
+        {
+            if (counts == null || counts.Count != requiredIngredients.Count)
+                return false;
+
+            for (int i = 0; i < requiredIngredients.Count; i++)
+            {
+                RecipeIngredientRequirement requirement = requiredIngredients[i];
+                if (requirement == null)
+                    continue;
+
+                if (requirement.IsCountSatisfied(counts[i]) == false)
+                    return false;
+            }
+
+            return true;
+        }
     }
 }

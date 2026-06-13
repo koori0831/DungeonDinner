@@ -24,6 +24,11 @@ namespace Work.Cook.Code.Runtime
 
         private CookingRecipeEntryData _currentEntry;
 
+        public void SetGamePanel(CookingGamePanel value)
+        {
+            gamePanel = value;
+        }
+
         public override void InitializeDisplay(Action backAction)
         {
             base.InitializeDisplay(backAction);

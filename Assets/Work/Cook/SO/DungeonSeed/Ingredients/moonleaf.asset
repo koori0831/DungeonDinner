@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: moonleaf
   displayName: "\uB2EC\uC78E \uD5C8\uBE0C"
   description: "\uC138\uACC4\uC218 \uACC4\uD1B5 \uC5D8\uD504\uB4E4\uC774 \uCC28\uB85C \uC990\uAE30\uB294 \uC740\uBE5B \uD5C8\uBE0C\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1012, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 4614956e7dc24a9c918e4058dd0107f8, type: 2}
   - {fileID: 11400000, guid: 13d01b8ca94c4cfca62450f41a34f671, type: 2}

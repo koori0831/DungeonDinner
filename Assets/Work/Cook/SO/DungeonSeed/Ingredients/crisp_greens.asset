@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: crisp_greens
   displayName: "\uC544\uC0AD\uC78E \uCC44\uC18C"
   description: "\uB358\uC804 \uBE5B\uC774 \uB4DC\uB294 \uD2C8\uC5D0\uC11C \uC7AC\uBC30\uD55C \uC544\uC0AD\uD55C \uCC44\uC18C\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1005, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 6687bfbad1aa46e5b10044be28cf0ecc, type: 2}
   - {fileID: 11400000, guid: 13d01b8ca94c4cfca62450f41a34f671, type: 2}

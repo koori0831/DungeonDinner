@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: "\uC870\uC0C1\uBD88\uAF43 \uC804\uD22C \uC2A4\uD29C"
   description: "\uACE0\uAE30\uC640 \uB9E4\uC6B4 \uACE0\uCD94\uB97C \uC9C4\uD55C \uC721\uC218\uB85C \uB053\uC778 \uBC14\uBC14\uB9AC\uC548\uC2DD \uC804\uD22C\uC2DD\uC785\uB2C8\uB2E4."
   category: {fileID: 11400000, guid: 97434e58d12b42ab9012890515d4d19c, type: 2}
+  priority: 1
   baseTags:
   - {fileID: 11400000, guid: 0e58aec8594f447cbfe42c7acc6de3ad, type: 2}
   - {fileID: 11400000, guid: 7e7eadd60ecb45a48cf13a0f1882c12b, type: 2}
@@ -23,22 +24,59 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}
   - {fileID: 11400000, guid: 42bced4acf354b4783ea7a0ed89a71ac, type: 2}
   requiredIngredients:
-  - ingredient: {fileID: 11400000, guid: c031f4e6d55b4915a5972612b2e83bfc, type: 2}
-    alternatives:
-    - {fileID: 11400000, guid: fe00b6c1c8e045c4aa7468f6b1a75d84, type: 2}
-    alternativeOptions:
-    - ingredient: {fileID: 11400000, guid: fe00b6c1c8e045c4aa7468f6b1a75d84, type: 2}
-      resultNameModifier: "\uC815\uC81C\uB41C"
-  - ingredient: {fileID: 11400000, guid: 377d8c0ba09f4b8c9345303c02220f1a, type: 2}
+  - ingredient: {fileID: 0}
+    ingredientCategory: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1001, type: 2}
+    requiredTags: []
     alternatives: []
     alternativeOptions: []
-  - ingredient: {fileID: 11400000, guid: edc7af6d81c144abb194221460c64d16, type: 2}
+    requiredPreparationMethod: {fileID: 11400000, guid: 0722b32616c04964874be231b3e7e785, type: 2}
+    minCount: 2
+    maxCount: 2
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
+  - ingredient: {fileID: 11400000, guid: 377d8c0ba09f4b8c9345303c02220f1a, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
     alternatives: []
     alternativeOptions: []
-  perfectPreparationRules:
-  - ingredient: {fileID: 11400000, guid: c031f4e6d55b4915a5972612b2e83bfc, type: 2}
-    perfectMethod: {fileID: 11400000, guid: 0722b32616c04964874be231b3e7e785, type: 2}
-  - ingredient: {fileID: 11400000, guid: 377d8c0ba09f4b8c9345303c02220f1a, type: 2}
-    perfectMethod: {fileID: 11400000, guid: 909a3bd582f743c79bd70e7d9b9b3e25, type: 2}
+    requiredPreparationMethod: {fileID: 11400000, guid: 909a3bd582f743c79bd70e7d9b9b3e25, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
   - ingredient: {fileID: 11400000, guid: edc7af6d81c144abb194221460c64d16, type: 2}
-    perfectMethod: {fileID: 11400000, guid: a4a50091287445d5b82965f8101ec9ca, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 11400000, guid: a4a50091287445d5b82965f8101ec9ca, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
+  - ingredient: {fileID: 11400000, guid: 908c5d7db91b423389a2f22ac55c2407, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 0
+    autoApplyRequiredPreparation: 0
+    requireManualPreparation: 1
+  - ingredient: {fileID: 11400000, guid: be6ef96f304c48a680dd91952971151c, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 0
+    autoApplyRequiredPreparation: 0
+    requireManualPreparation: 1
+  perfectPreparationRules: []

@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: worldroot_sprout
   displayName: "\uC138\uACC4\uC218 \uC0C8\uC2F9"
   description: "\uB358\uC804 \uD2C8\uC5D0\uC11C \uB9C8\uB825\uC5D0 \uBC18\uC751\uD574 \uB3CB\uC740 \uC791\uC740 \uC0C8\uC2F9\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1005, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 6687bfbad1aa46e5b10044be28cf0ecc, type: 2}
   - {fileID: 11400000, guid: 13d01b8ca94c4cfca62450f41a34f671, type: 2}

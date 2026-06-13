@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: cave_beef
   displayName: "\uB3D9\uAD74 \uC1E0\uACE0\uAE30"
   description: "\uB358\uC804 \uC0C1\uB2E8 \uBAA9\uCD08 \uAD6C\uC5ED\uC5D0\uC11C \uC5BB\uC740 \uBB35\uC9C1\uD55C \uACE0\uAE30\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1001, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 75ab2c8b1c02485d8471ee0de3404b72, type: 2}
   - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}

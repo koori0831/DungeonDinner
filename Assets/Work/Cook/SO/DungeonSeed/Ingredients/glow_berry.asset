@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: glow_berry
   displayName: "\uBC1C\uAD11 \uBCA0\uB9AC"
   description: "\uC5B4\uB450\uC6B4 \uB358\uC804\uC5D0\uC11C \uC740\uC740\uD558\uAC8C \uBE5B\uB098\uB294 \uC0C8\uCF64\uB2EC\uCF64\uD55C \uC5F4\uB9E4\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1013, type: 2}
   baseTags:
   - {fileID: 11400000, guid: c900c594593f4dea9a5d74249ed88c9f, type: 2}
   - {fileID: 11400000, guid: 13d01b8ca94c4cfca62450f41a34f671, type: 2}

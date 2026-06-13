@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: dark_ale
   displayName: "\uAC80\uC740 \uB9E5\uC8FC"
   description: "\uB4DC\uC6CC\uD504\uB4E4\uC774 \uBD88\uC758 \uB0A0\uC5D0 \uC790\uC8FC \uC62C\uB9AC\uB294 \uC9C4\uD55C \uB9E5\uC8FC\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1011, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 35061ca0c89f43f48f2be9a41b797464, type: 2}
   - {fileID: 11400000, guid: 42767d7f7b184cbfa4a6fdf2ee7f9006, type: 2}

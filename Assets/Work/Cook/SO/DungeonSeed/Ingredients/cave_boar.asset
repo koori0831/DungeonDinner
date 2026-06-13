@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: cave_boar
   displayName: "\uB3D9\uAD74 \uBA67\uB3FC\uC9C0 \uACE0\uAE30"
   description: "\uBD81\uBC29 \uBC29\uC5B4\uC120 \uC804\uC0AC\uB4E4\uC774 \uC88B\uC544\uD560 \uB9CC\uD07C \uAC70\uCE5C \uACE0\uAE30\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1001, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 75ab2c8b1c02485d8471ee0de3404b72, type: 2}
   - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}

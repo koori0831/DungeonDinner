@@ -210,8 +210,8 @@ namespace Work.Cook.Code.Editor
             serialized.FindProperty("description").stringValue = BuildRecipeDescription(visitEvent);
             serialized.FindProperty("category").objectReferenceValue = category;
             SetObjectArray(serialized.FindProperty("baseTags"), recipeTags);
-            SetRequiredIngredient(serialized.FindProperty("requiredIngredients"), ingredient);
-            SetPerfectRule(serialized.FindProperty("perfectPreparationRules"), ingredient, finishMethod);
+            SetRequiredIngredient(serialized.FindProperty("requiredIngredients"), ingredient, finishMethod);
+            serialized.FindProperty("perfectPreparationRules").ClearArray();
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(recipe);
             return recipe;
@@ -334,26 +334,25 @@ namespace Work.Cook.Code.Editor
             element.FindPropertyRelative("resultNameModifier").stringValue = resultNameModifier;
         }
 
-        private static void SetRequiredIngredient(SerializedProperty property, IngredientSO ingredient)
-        {
-            property.ClearArray();
-            property.InsertArrayElementAtIndex(0);
-            SerializedProperty element = property.GetArrayElementAtIndex(0);
-            element.FindPropertyRelative("ingredient").objectReferenceValue = ingredient;
-            element.FindPropertyRelative("alternatives").ClearArray();
-            element.FindPropertyRelative("alternativeOptions").ClearArray();
-        }
-
-        private static void SetPerfectRule(
+        private static void SetRequiredIngredient(
             SerializedProperty property,
             IngredientSO ingredient,
-            PreparationMethodSO method)
+            PreparationMethodSO requiredMethod)
         {
             property.ClearArray();
             property.InsertArrayElementAtIndex(0);
             SerializedProperty element = property.GetArrayElementAtIndex(0);
             element.FindPropertyRelative("ingredient").objectReferenceValue = ingredient;
-            element.FindPropertyRelative("perfectMethod").objectReferenceValue = method;
+            element.FindPropertyRelative("ingredientCategory").objectReferenceValue = null;
+            element.FindPropertyRelative("requiredTags").ClearArray();
+            element.FindPropertyRelative("alternatives").ClearArray();
+            element.FindPropertyRelative("alternativeOptions").ClearArray();
+            element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = requiredMethod;
+            element.FindPropertyRelative("minCount").intValue = 1;
+            element.FindPropertyRelative("maxCount").intValue = 1;
+            element.FindPropertyRelative("recipeDefining").boolValue = true;
+            element.FindPropertyRelative("autoApplyRequiredPreparation").boolValue = true;
+            element.FindPropertyRelative("requireManualPreparation").boolValue = false;
         }
 
         private static void UpdateCatalog(CookingDataCatalogSO catalog)

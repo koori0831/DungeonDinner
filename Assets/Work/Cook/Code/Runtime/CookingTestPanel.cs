@@ -167,8 +167,8 @@ namespace Work.Cook.Code.Runtime
             CreateInfoBox(
                 _contentRoot,
                 "Guide",
-                "손질 버튼에는 실제 연결된 손질법 ID, 정석 여부, 이름 수식어, 독/괴식 위험이 함께 표시됩니다.\n" +
-                "정석 손질인데도 수식어가 붙거나 괴식 위험이 있으면 데이터 경고 영역에 바로 표시됩니다.",
+                "손질 버튼에는 실제 연결된 손질법 ID, 이름 수식어, 독/괴식 위험이 함께 표시됩니다.\n" +
+                "요리 결정은 레시피 슬롯의 필수 손질법으로 처리하고, 품질 변화는 각 손질 옵션의 효과로 처리합니다.",
                 88f,
                 14f);
         }
@@ -299,28 +299,6 @@ namespace Work.Cook.Code.Runtime
                 128f,
                 14f);
 
-            if (activeRecipe != null)
-            {
-                RectTransform quickRow = CreateRow(_contentRoot, "PerfectActionRow", 42f);
-                Button perfectCurrent = CreateButton(
-                    quickRow,
-                    "현재 재료 정석 선택",
-                    () => SelectPerfectPreparation(ingredient),
-                    null,
-                    36f,
-                    ButtonTone.Primary);
-                perfectCurrent.interactable = FindPerfectOption(activeRecipe, ingredient) != null;
-
-                Button perfectAll = CreateButton(
-                    quickRow,
-                    "남은 재료 정석 자동 선택",
-                    AutoSelectRemainingPerfectPreparations,
-                    null,
-                    36f,
-                    ButtonTone.Selected);
-                perfectAll.interactable = CanAutoSelectPerfect(activeRecipe);
-            }
-
             CreateSectionLabel(_contentRoot, "선택할 손질법");
             IReadOnlyList<IngredientPreparationOption> options = runner.GetPreparationOptions(ingredient);
             if (options.Count == 0)
@@ -361,54 +339,6 @@ namespace Work.Cook.Code.Runtime
 
             CreateSectionLabel(_contentRoot, "진행 상황");
             CreateInfoBox(_contentRoot, "Progress", BuildPreparationProgressText(activeRecipe), 142f, 14f);
-        }
-
-        private void SelectPerfectPreparation(IngredientSO ingredient)
-        {
-            RecipeSO recipe = GetActiveRecipe();
-            IngredientPreparationOption option = FindPerfectOption(recipe, ingredient);
-            if (option == null)
-                return;
-
-            runner.SelectPreparation(ingredient, option);
-            ShowPreparationScreen();
-        }
-
-        private void AutoSelectRemainingPerfectPreparations()
-        {
-            RecipeSO recipe = GetActiveRecipe();
-            CookingSession session = runner.Controller.CurrentSession;
-            if (recipe == null || session == null)
-                return;
-
-            for (int i = 0; i < session.SelectedIngredients.Count; i++)
-            {
-                IngredientSO ingredient = session.SelectedIngredients[i];
-                if (session.GetPreparedIngredient(ingredient) != null)
-                    continue;
-
-                IngredientPreparationOption option = FindPerfectOption(recipe, ingredient);
-                if (option != null)
-                    runner.SelectPreparation(ingredient, option);
-            }
-
-            ShowPreparationScreen();
-        }
-
-        private bool CanAutoSelectPerfect(RecipeSO recipe)
-        {
-            CookingSession session = runner.Controller.CurrentSession;
-            if (recipe == null || session == null)
-                return false;
-
-            for (int i = 0; i < session.SelectedIngredients.Count; i++)
-            {
-                IngredientSO ingredient = session.SelectedIngredients[i];
-                if (session.GetPreparedIngredient(ingredient) == null && FindPerfectOption(recipe, ingredient) != null)
-                    return true;
-            }
-
-            return false;
         }
 
         private void ShowReadyToCompleteScreen()
@@ -506,36 +436,6 @@ namespace Work.Cook.Code.Runtime
             return null;
         }
 
-        private IngredientPreparationOption FindPerfectOption(RecipeSO recipe, IngredientSO ingredient)
-        {
-            if (TryGetPerfectMethod(recipe, ingredient, out PreparationMethodSO method) == false)
-                return null;
-
-            return ingredient != null ? ingredient.FindPreparationOption(method) : null;
-        }
-
-        private static bool TryGetPerfectMethod(
-            RecipeSO recipe,
-            IngredientSO ingredient,
-            out PreparationMethodSO method)
-        {
-            method = null;
-            if (recipe == null || ingredient == null)
-                return false;
-
-            for (int i = 0; i < recipe.PerfectPreparationRules.Count; i++)
-            {
-                RecipePreparationRule rule = recipe.PerfectPreparationRules[i];
-                if (rule != null && recipe.IsRequirementIngredientMatchedBy(rule.Ingredient, ingredient))
-                {
-                    method = rule.PerfectMethod;
-                    return method != null;
-                }
-            }
-
-            return false;
-        }
-
         private ButtonTone GetPreparationTone(
             RecipeSO recipe,
             IngredientSO ingredient,
@@ -546,9 +446,6 @@ namespace Work.Cook.Code.Runtime
 
             if (option.CausesDisgusting || option.AddsPoison)
                 return ButtonTone.Danger;
-
-            if (recipe != null && recipe.IsPerfectPreparation(ingredient, option.Method))
-                return ButtonTone.Primary;
 
             if (option.QualityDelta < 0 || string.IsNullOrWhiteSpace(option.ResultNameModifier) == false)
                 return ButtonTone.Warning;
@@ -596,16 +493,6 @@ namespace Work.Cook.Code.Runtime
                 builder.AppendLine();
             }
 
-            builder.AppendLine("정석 손질:");
-            for (int i = 0; i < recipe.PerfectPreparationRules.Count; i++)
-            {
-                RecipePreparationRule rule = recipe.PerfectPreparationRules[i];
-                if (rule == null || rule.Ingredient == null || rule.PerfectMethod == null)
-                    continue;
-
-                builder.AppendLine($"- {rule.Ingredient.DisplayName}: {rule.PerfectMethod.DisplayName} ({rule.PerfectMethod.MethodId})");
-            }
-
             return builder.ToString();
         }
 
@@ -640,37 +527,7 @@ namespace Work.Cook.Code.Runtime
 
         private string BuildRecipeWarnings(RecipeSO recipe)
         {
-            if (recipe == null)
-                return string.Empty;
-
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < recipe.PerfectPreparationRules.Count; i++)
-            {
-                RecipePreparationRule rule = recipe.PerfectPreparationRules[i];
-                if (rule == null || rule.Ingredient == null || rule.PerfectMethod == null)
-                {
-                    builder.AppendLine("- 비어 있는 정석 손질 조건이 있습니다.");
-                    continue;
-                }
-
-                IngredientPreparationOption option = rule.Ingredient.FindPreparationOption(rule.PerfectMethod);
-                if (option == null)
-                {
-                    builder.AppendLine($"- {rule.Ingredient.DisplayName}: 정석 손질법이 재료 손질 선택지에 없습니다.");
-                    continue;
-                }
-
-                if (option.CausesDisgusting || option.AddsPoison)
-                    builder.AppendLine($"- {rule.Ingredient.DisplayName}: 정석 손질이 괴식/독 위험을 가지고 있습니다.");
-
-                if (string.IsNullOrWhiteSpace(option.ResultNameModifier) == false)
-                    builder.AppendLine($"- {rule.Ingredient.DisplayName}: 정석 손질에 이름 수식어 \"{option.ResultNameModifier}\"가 있습니다.");
-
-                if (option.QualityDelta < 0)
-                    builder.AppendLine($"- {rule.Ingredient.DisplayName}: 정석 손질의 품질 변화가 {option.QualityDelta}입니다.");
-            }
-
-            return builder.ToString();
+            return string.Empty;
         }
 
         private string BuildDirectSelectionText(RecipeSO previewRecipe)
@@ -704,11 +561,6 @@ namespace Work.Cook.Code.Runtime
             builder.AppendLine($"요리 방식: {(session != null && session.Mode == CookingMode.Recipe ? "레시피 선택" : "재료 직접 선택")}");
             builder.AppendLine($"예상 레시피: {(recipe != null ? $"{recipe.DisplayName} ({recipe.RecipeId})" : "없음")}");
 
-            if (TryGetPerfectMethod(recipe, currentIngredient, out PreparationMethodSO perfectMethod))
-                builder.AppendLine($"이 재료의 정석 손질: {perfectMethod.DisplayName} ({perfectMethod.MethodId})");
-            else
-                builder.AppendLine("이 재료의 정석 손질: 없음");
-
             return builder.ToString();
         }
 
@@ -720,8 +572,7 @@ namespace Work.Cook.Code.Runtime
             if (option == null)
                 return "손질 없음";
 
-            bool isPerfect = recipe != null && recipe.IsPerfectPreparation(ingredient, option.Method);
-            string prefix = isPerfect ? "[정석]" : option.CausesDisgusting || option.AddsPoison ? "[위험]" : "[선택]";
+            string prefix = option.CausesDisgusting || option.AddsPoison ? "[위험]" : "[선택]";
 
             StringBuilder builder = new StringBuilder();
             builder.AppendLine($"{prefix} {option.DisplayName}");
@@ -754,8 +605,7 @@ namespace Work.Cook.Code.Runtime
 
                 string methodName = prepared.Method != null ? prepared.Method.DisplayName : "손질 없음";
                 string methodId = prepared.Method != null ? prepared.Method.MethodId : "none";
-                bool isPerfect = recipe != null && recipe.IsPerfectPreparation(ingredient, prepared.Method);
-                builder.AppendLine($"{methodName} ({methodId}){(isPerfect ? " / 정석" : string.Empty)}");
+                builder.AppendLine($"{methodName} ({methodId})");
 
                 string effects = BuildPreparedEffectText(prepared);
                 if (string.IsNullOrWhiteSpace(effects) == false)
@@ -787,8 +637,6 @@ namespace Work.Cook.Code.Runtime
                 if (string.IsNullOrWhiteSpace(prepared.ResultNameModifier) == false)
                     builder.AppendLine($"- {prepared.Ingredient.DisplayName}: 이름 수식어 \"{prepared.ResultNameModifier}\"가 붙습니다.");
 
-                if (recipe != null && prepared.Method != null && recipe.IsPerfectPreparation(prepared.Ingredient, prepared.Method) == false)
-                    builder.AppendLine($"- {prepared.Ingredient.DisplayName}: 레시피의 정석 손질이 아닙니다.");
             }
 
             return builder.ToString();

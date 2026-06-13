@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: tunnel_chicken
   displayName: "\uAD74\uAE38 \uB2ED\uACE0\uAE30"
   description: "\uACE1\uBB3C \uC218\uC1A1\uB85C \uADFC\uCC98\uC5D0\uC11C \uAE30\uB978 \uB2F4\uBC31\uD55C \uB2ED\uACE0\uAE30\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1002, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 75ab2c8b1c02485d8471ee0de3404b72, type: 2}
   - {fileID: 11400000, guid: d85c3609b19d45238ce3a6179e90b20f, type: 2}

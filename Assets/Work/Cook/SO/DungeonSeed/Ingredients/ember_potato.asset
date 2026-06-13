@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: ember_potato
   displayName: "\uC7BF\uBD88 \uAC10\uC790"
   description: "\uD654\uC0B0 \uC9C0\uB300 \uB4DC\uC6CC\uD504\uB4E4\uC774 \uC990\uAE30\uB294 \uB2E8\uB2E8\uD55C \uAC10\uC790\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1006, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 6687bfbad1aa46e5b10044be28cf0ecc, type: 2}
   - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}

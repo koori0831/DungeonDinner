@@ -8,11 +8,12 @@ using Work.Cook.Code.Data;
 
 namespace Work.Cook.Code.Runtime
 {
-    public sealed class CookingPreparationView : MonoBehaviour
+    public sealed class CookingPreparationView : MonoBehaviour, ICookingPreparationView
     {
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private CookingFlowRunner flowRunner;
+        [SerializeField] private CookingKnowledgeStore knowledgeStore;
 
         [Header("Layout References")]
         [SerializeField] private RectTransform boardRoot;
@@ -70,6 +71,7 @@ namespace Work.Cook.Code.Runtime
         {
             gamePanel = owner;
             flowRunner = runner;
+            knowledgeStore = owner != null ? owner.KnowledgeStore : knowledgeStore;
 
             if (defaultFontAsset != null)
                 SetFontAsset(defaultFontAsset);
@@ -197,11 +199,17 @@ namespace Work.Cook.Code.Runtime
 
         private void SelectPreparation(IngredientSO ingredient, IngredientPreparationOption option)
         {
+            if (gamePanel != null)
+            {
+                gamePanel.SelectPreparation(ingredient, option);
+                return;
+            }
+
             if (flowRunner == null || ingredient == null)
                 return;
 
             if (option != null)
-                _knownEffectKeys.Add(BuildEffectKey(ingredient, option));
+                LearnPreparationEffect(ingredient, option);
 
             flowRunner.SelectPreparation(ingredient, option);
             Refresh();
@@ -224,6 +232,12 @@ namespace Work.Cook.Code.Runtime
 
             if (flowRunner == null)
                 flowRunner = gamePanel != null ? gamePanel.FlowRunner : GetComponentInParent<CookingFlowRunner>();
+
+            if (knowledgeStore == null && gamePanel != null)
+                knowledgeStore = gamePanel.KnowledgeStore;
+
+            if (knowledgeStore == null)
+                knowledgeStore = GetComponentInParent<CookingKnowledgeStore>();
         }
 
         private void EnsureLayout()
@@ -512,7 +526,27 @@ namespace Work.Cook.Code.Runtime
 
         private bool IsKnownEffect(IngredientSO ingredient, IngredientPreparationOption option)
         {
-            return option != null && _knownEffectKeys.Contains(BuildEffectKey(ingredient, option));
+            if (option == null)
+                return false;
+
+            if (knowledgeStore != null)
+                return knowledgeStore.IsPreparationEffectKnown(ingredient, option);
+
+            return _knownEffectKeys.Contains(BuildEffectKey(ingredient, option));
+        }
+
+        private void LearnPreparationEffect(IngredientSO ingredient, IngredientPreparationOption option)
+        {
+            if (option == null)
+                return;
+
+            if (knowledgeStore != null)
+            {
+                knowledgeStore.LearnPreparationEffect(ingredient, option);
+                return;
+            }
+
+            _knownEffectKeys.Add(BuildEffectKey(ingredient, option));
         }
 
         private static string BuildEffectKey(IngredientSO ingredient, IngredientPreparationOption option)

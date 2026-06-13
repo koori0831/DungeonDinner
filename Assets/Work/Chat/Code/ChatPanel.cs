@@ -30,8 +30,18 @@ namespace Work.Chat.Code
 
         private void Awake()
         {
-            if (contentTrm != null)
-                _contentLayoutGroup = contentTrm.GetComponent<VerticalLayoutGroup>();
+            EnsureReferences();
+        }
+
+        private void OnEnable()
+        {
+            RefreshLayout();
+        }
+
+        private void OnRectTransformDimensionsChange()
+        {
+            if (isActiveAndEnabled)
+                RefreshLayout();
         }
 
         public void Update()
@@ -48,6 +58,8 @@ namespace Work.Chat.Code
 
         public void AddChat(string chat, bool isUserChat)
         {
+            Canvas.ForceUpdateCanvases();
+
             ChatGroupField chatGroup;
             if (beforeChatIsUser == null || beforeChatIsUser != isUserChat)
             {
@@ -65,6 +77,14 @@ namespace Work.Chat.Code
             RefreshContentHeight();
 
             beforeChatIsUser = isUserChat;
+        }
+
+        public void RefreshLayout()
+        {
+            EnsureReferences();
+            Canvas.ForceUpdateCanvases();
+            RefreshChatGroupWidths();
+            RefreshContentHeight();
         }
 
         public ChatTextField GetChat(int index)
@@ -89,6 +109,8 @@ namespace Work.Chat.Code
 
         private void RefreshContentHeight()
         {
+            EnsureReferences();
+
             if (contentTrm == null)
                 return;
 
@@ -102,6 +124,19 @@ namespace Work.Chat.Code
 
             contentTrm.sizeDelta = new Vector2(contentTrm.sizeDelta.x, height);
             LayoutRebuilder.ForceRebuildLayoutImmediate(contentTrm);
+        }
+
+        private void RefreshChatGroupWidths()
+        {
+            float width = GetContentWidth();
+            if (width <= 0f)
+                return;
+
+            for (int i = 0; i < _chatGroups.Count; i++)
+            {
+                if (_chatGroups[i]?.Group != null)
+                    _chatGroups[i].Group.SetWidth(width);
+            }
         }
 
         private float GetContentWidth()
@@ -121,6 +156,8 @@ namespace Work.Chat.Code
 
         private float GetContentVerticalPadding()
         {
+            EnsureReferences();
+
             if (_contentLayoutGroup == null)
                 return 0f;
 
@@ -129,7 +166,14 @@ namespace Work.Chat.Code
 
         private float GetContentSpacing()
         {
+            EnsureReferences();
             return _contentLayoutGroup != null ? _contentLayoutGroup.spacing : 0f;
+        }
+
+        private void EnsureReferences()
+        {
+            if (contentTrm != null && _contentLayoutGroup == null)
+                _contentLayoutGroup = contentTrm.GetComponent<VerticalLayoutGroup>();
         }
     }
 }

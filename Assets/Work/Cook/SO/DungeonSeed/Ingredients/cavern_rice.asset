@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: cavern_rice
   displayName: "\uB3D9\uAD74\uC300"
   description: "\uC218\uC778 \uACE1\uBB3C\uC9C0\uB300\uC5D0\uC11C \uB358\uC804\uC73C\uB85C \uC6B4\uC1A1\uB41C \uBC1D\uC740 \uC300\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1007, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 23801e839340456f9cdf1a2a8534e6e5, type: 2}
   - {fileID: 11400000, guid: a7eeab56863c4e8aafa56b21cf85f40b, type: 2}

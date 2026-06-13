@@ -1,27 +1,31 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
 using Work.Cook.Code.Data;
+using Work.Cook.Code.Runtime;
 
 namespace Work.Cook.Code.Editor
 {
     [CustomEditor(typeof(RecipeSO))]
     public sealed class RecipeSOEditor : UnityEditor.Editor
     {
+        private readonly List<TestPreparedIngredient> _testPreparedIngredients = new List<TestPreparedIngredient>();
+
         private SerializedProperty _recipeId;
         private SerializedProperty _displayName;
         private SerializedProperty _description;
         private SerializedProperty _category;
+        private SerializedProperty _priority;
         private SerializedProperty _baseTags;
         private SerializedProperty _requiredIngredients;
-        private SerializedProperty _perfectPreparationRules;
 
         private bool _basicFoldout = true;
         private bool _tagsFoldout = true;
-        private bool _ingredientsFoldout = true;
-        private bool _perfectRulesFoldout = true;
-        private bool _previewFoldout = true;
+        private bool _requirementsFoldout = true;
+        private bool _testFoldout = true;
+        private bool _summaryFoldout = true;
 
         private void OnEnable()
         {
@@ -29,27 +33,30 @@ namespace Work.Cook.Code.Editor
             _displayName = serializedObject.FindProperty("displayName");
             _description = serializedObject.FindProperty("description");
             _category = serializedObject.FindProperty("category");
+            _priority = serializedObject.FindProperty("priority");
             _baseTags = serializedObject.FindProperty("baseTags");
             _requiredIngredients = serializedObject.FindProperty("requiredIngredients");
-            _perfectPreparationRules = serializedObject.FindProperty("perfectPreparationRules");
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
+            RecipeSO recipe = (RecipeSO)target;
             EditorGUILayout.HelpBox(
-                "레시피는 정해진 음식의 기준 데이터입니다. 직접 재료 선택 결과가 필요 재료와 매칭되면 이 레시피 음식으로 판정되고, 손질 결과에 따라 완벽/맛 변화/괴식 판정이 붙습니다.",
+                "레시피는 선택 모드에서는 최종 음식으로 고정되고, 직접 재료 선택 모드에서는 손질 완료 결과로 매칭됩니다. " +
+                "필요 재료 슬롯에는 특정 재료, 재료 카테고리, 태그, 손질법, 개수 조건을 함께 지정할 수 있습니다.",
                 MessageType.Info);
 
-            DrawValidationMessages((RecipeSO)target);
+            DrawValidationMessages(recipe);
             DrawBasicSection();
             DrawTagsSection();
-            DrawIngredientsSection();
-            DrawPerfectRulesSection();
+            DrawRequirementsSection();
 
             serializedObject.ApplyModifiedProperties();
-            DrawPreviewSection((RecipeSO)target);
+
+            DrawMatchTestSection(recipe);
+            DrawSummarySection(recipe);
         }
 
         private void DrawBasicSection()
@@ -58,12 +65,14 @@ namespace Work.Cook.Code.Editor
             if (_basicFoldout == false)
                 return;
 
-            EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.PropertyField(_recipeId, new GUIContent("레시피 ID"));
-            EditorGUILayout.PropertyField(_displayName, new GUIContent("표시 이름"));
-            EditorGUILayout.PropertyField(_category, new GUIContent("카테고리"));
-            EditorGUILayout.PropertyField(_description, new GUIContent("설명"));
-            EditorGUILayout.EndVertical();
+            using (new EditorGUILayout.VerticalScope("box"))
+            {
+                EditorGUILayout.PropertyField(_recipeId, new GUIContent("레시피 ID"));
+                EditorGUILayout.PropertyField(_displayName, new GUIContent("표시 이름"));
+                EditorGUILayout.PropertyField(_category, new GUIContent("음식 카테고리"));
+                EditorGUILayout.PropertyField(_priority, new GUIContent("매칭 우선순위"));
+                EditorGUILayout.PropertyField(_description, new GUIContent("설명"));
+            }
         }
 
         private void DrawTagsSection()
@@ -72,130 +81,167 @@ namespace Work.Cook.Code.Editor
             if (_tagsFoldout == false)
                 return;
 
-            EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.HelpBox(
-                "레시피 자체에 항상 붙는 맛/속성 태그입니다. 손질 과정에서 재료 태그가 추가되거나 제거될 수 있습니다.",
-                MessageType.None);
-            DrawObjectReferenceArray(_baseTags, typeof(FoodTagSO), "태그", "+ 태그 추가", "기본 태그가 없습니다.");
-            EditorGUILayout.EndVertical();
-        }
-
-        private void DrawIngredientsSection()
-        {
-            _ingredientsFoldout = DrawSectionHeader("필요 재료", _ingredientsFoldout);
-            if (_ingredientsFoldout == false)
-                return;
-
-            EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.HelpBox(
-                "직접 재료 선택으로 요리할 때 이 목록을 모두 만족하면 해당 레시피로 매칭됩니다. 매칭 실패는 괴식 판정으로 넘길 수 있습니다.",
-                MessageType.Info);
-            DrawRequiredIngredientList();
-            EditorGUILayout.EndVertical();
-        }
-
-        private void DrawPerfectRulesSection()
-        {
-            _perfectRulesFoldout = DrawSectionHeader("정석 손질 조건", _perfectRulesFoldout);
-            if (_perfectRulesFoldout == false)
-                return;
-
-            EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.HelpBox(
-                "각 재료가 어떤 손질법을 선택해야 완벽한 음식으로 볼지 정합니다. 재료 손질 옵션에서 괴식/독/품질 하락이 발생하면 이 조건을 만족해도 결과가 달라질 수 있습니다.",
-                MessageType.Info);
-            DrawPerfectRuleList();
-            EditorGUILayout.EndVertical();
-        }
-
-        private void DrawPreviewSection(RecipeSO recipe)
-        {
-            _previewFoldout = DrawSectionHeader("요약 미리보기", _previewFoldout);
-            if (_previewFoldout == false)
-                return;
-
-            EditorGUILayout.BeginVertical("box");
-            string summary = BuildRecipeSummary(recipe);
-            EditorGUILayout.TextArea(summary, GUILayout.MinHeight(116f));
-
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("요약 복사"))
-                EditorGUIUtility.systemCopyBuffer = summary;
-
-            if (GUILayout.Button("콘솔에 출력"))
-                Debug.Log(summary, recipe);
-
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.EndVertical();
-        }
-
-        private void DrawRequiredIngredientList()
-        {
-            if (_requiredIngredients.arraySize == 0)
-                EditorGUILayout.HelpBox("필요 재료가 없으면 직접 재료 선택으로 이 레시피를 찾을 수 없습니다.", MessageType.Warning);
-
-            for (int i = 0; i < _requiredIngredients.arraySize; i++)
+            using (new EditorGUILayout.VerticalScope("box"))
             {
-                SerializedProperty element = _requiredIngredients.GetArrayElementAtIndex(i);
-                SerializedProperty ingredient = element.FindPropertyRelative("ingredient");
-                SerializedProperty alternativeOptions = element.FindPropertyRelative("alternativeOptions");
+                EditorGUILayout.HelpBox("완성 음식에 기본으로 붙는 태그입니다.", MessageType.None);
+                DrawObjectReferenceArray(_baseTags, typeof(FoodTagSO), "태그", "+ 태그 추가", "기본 태그가 없습니다.");
+            }
+        }
 
-                EditorGUILayout.BeginVertical("box");
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField($"필요 재료 {i + 1}", EditorStyles.boldLabel);
-                if (GUILayout.Button("삭제", GUILayout.Width(48f)))
+        private void DrawRequirementsSection()
+        {
+            _requirementsFoldout = DrawSectionHeader("필요 재료 슬롯", _requirementsFoldout);
+            if (_requirementsFoldout == false)
+                return;
+
+            using (new EditorGUILayout.VerticalScope("box"))
+            {
+                EditorGUILayout.HelpBox(
+                    "각 슬롯은 특정 재료, 재료 카테고리, 필수 태그, 필수 손질법, 최소/최대 개수를 가질 수 있습니다. " +
+                    "레시피 선택 모드에서 필수 손질법이 있고 자동 적용이 켜져 있으면 손질 UI를 건너뛰고 해당 손질이 기록됩니다.",
+                    MessageType.Info);
+
+                if (_requiredIngredients.arraySize == 0)
+                    EditorGUILayout.HelpBox("필요 재료 슬롯이 없습니다.", MessageType.Warning);
+
+                for (int i = 0; i < _requiredIngredients.arraySize; i++)
+                    DrawRequirementElement(i);
+
+                if (GUILayout.Button("+ 필요 재료 슬롯 추가"))
+                    AddRequiredIngredientElement();
+            }
+        }
+
+        private void DrawRequirementElement(int index)
+        {
+            SerializedProperty element = _requiredIngredients.GetArrayElementAtIndex(index);
+            SerializedProperty ingredient = element.FindPropertyRelative("ingredient");
+            SerializedProperty ingredientCategory = element.FindPropertyRelative("ingredientCategory");
+            SerializedProperty requiredTags = element.FindPropertyRelative("requiredTags");
+            SerializedProperty alternatives = element.FindPropertyRelative("alternatives");
+            SerializedProperty alternativeOptions = element.FindPropertyRelative("alternativeOptions");
+            SerializedProperty requiredPreparationMethod = element.FindPropertyRelative("requiredPreparationMethod");
+            SerializedProperty minCount = element.FindPropertyRelative("minCount");
+            SerializedProperty maxCount = element.FindPropertyRelative("maxCount");
+            SerializedProperty recipeDefining = element.FindPropertyRelative("recipeDefining");
+            SerializedProperty autoApplyRequiredPreparation = element.FindPropertyRelative("autoApplyRequiredPreparation");
+            SerializedProperty requireManualPreparation = element.FindPropertyRelative("requireManualPreparation");
+
+            using (new EditorGUILayout.VerticalScope("box"))
+            {
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    _requiredIngredients.DeleteArrayElementAtIndex(i);
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.EndVertical();
-                    break;
+                    EditorGUILayout.LabelField($"슬롯 {index + 1}: {BuildRequirementEditorTitle(element)}", EditorStyles.boldLabel);
+                    if (GUILayout.Button("삭제", GUILayout.Width(52f)))
+                    {
+                        _requiredIngredients.DeleteArrayElementAtIndex(index);
+                        GUIUtility.ExitGUI();
+                    }
                 }
 
-                EditorGUILayout.EndHorizontal();
                 EditorGUILayout.PropertyField(ingredient, new GUIContent("기준 재료"));
+                EditorGUILayout.PropertyField(ingredientCategory, new GUIContent("재료군"));
+                DrawObjectReferenceArray(requiredTags, typeof(FoodTagSO), "필수 태그", "+ 필수 태그 추가", "필수 태그가 없습니다.");
+                DrawObjectReferenceArray(alternatives, typeof(IngredientSO), "단순 대체", "+ 단순 대체 추가", "단순 대체 재료가 없습니다.");
                 DrawAlternativeOptionArray(alternativeOptions);
-                EditorGUILayout.EndVertical();
-            }
 
-            if (GUILayout.Button("+ 필요 재료 추가"))
-                AddRequiredIngredientElement();
+                EditorGUILayout.Space(4f);
+                EditorGUILayout.LabelField("손질/개수 조건", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(requiredPreparationMethod, new GUIContent("필수 손질법"));
+                EditorGUILayout.PropertyField(minCount, new GUIContent("최소 개수"));
+                EditorGUILayout.PropertyField(maxCount, new GUIContent("최대 개수 (0 = 제한 없음)"));
+
+                EditorGUILayout.Space(4f);
+                EditorGUILayout.LabelField("레시피 선택 모드 처리", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(recipeDefining, new GUIContent("요리 결정 조건"));
+                EditorGUILayout.PropertyField(autoApplyRequiredPreparation, new GUIContent("필수 손질 자동 적용"));
+                EditorGUILayout.PropertyField(requireManualPreparation, new GUIContent("직접 손질 필요"));
+
+                if (requiredPreparationMethod.objectReferenceValue != null
+                    && autoApplyRequiredPreparation.boolValue
+                    && requireManualPreparation.boolValue)
+                {
+                    EditorGUILayout.HelpBox(
+                        "직접 손질 필요가 켜져 있으면 자동 적용보다 직접 손질이 우선됩니다.",
+                        MessageType.None);
+                }
+            }
         }
 
-        private void DrawPerfectRuleList()
+        private void DrawMatchTestSection(RecipeSO recipe)
         {
-            if (_perfectPreparationRules.arraySize == 0)
-                EditorGUILayout.HelpBox("정석 손질 조건이 없으면 완벽한 음식 판정 기준으로 사용할 정보가 없습니다.", MessageType.None);
+            _testFoldout = DrawSectionHeader("매칭 테스트", _testFoldout);
+            if (_testFoldout == false)
+                return;
 
-            for (int i = 0; i < _perfectPreparationRules.arraySize; i++)
+            using (new EditorGUILayout.VerticalScope("box"))
             {
-                SerializedProperty element = _perfectPreparationRules.GetArrayElementAtIndex(i);
-                SerializedProperty ingredient = element.FindPropertyRelative("ingredient");
-                SerializedProperty perfectMethod = element.FindPropertyRelative("perfectMethod");
+                EditorGUILayout.HelpBox(
+                    "직접 재료 선택 모드에서 손질이 끝났을 때 이 레시피와 매칭되는지 테스트합니다. " +
+                    "손질법을 비워두면 해당 재료는 손질 없음으로 테스트됩니다.",
+                    MessageType.None);
 
-                EditorGUILayout.BeginVertical("box");
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField($"정석 조건 {i + 1}", EditorStyles.boldLabel);
-                if (GUILayout.Button("삭제", GUILayout.Width(48f)))
+                for (int i = 0; i < _testPreparedIngredients.Count; i++)
                 {
-                    _perfectPreparationRules.DeleteArrayElementAtIndex(i);
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.EndVertical();
-                    break;
+                    TestPreparedIngredient item = _testPreparedIngredients[i];
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        item.Ingredient = (IngredientSO)EditorGUILayout.ObjectField(item.Ingredient, typeof(IngredientSO), false);
+                        item.Method = (PreparationMethodSO)EditorGUILayout.ObjectField(item.Method, typeof(PreparationMethodSO), false);
+                        if (GUILayout.Button("삭제", GUILayout.Width(52f)))
+                        {
+                            _testPreparedIngredients.RemoveAt(i);
+                            GUIUtility.ExitGUI();
+                        }
+                    }
                 }
 
-                EditorGUILayout.EndHorizontal();
-                EditorGUILayout.PropertyField(ingredient, new GUIContent("재료"));
-                EditorGUILayout.PropertyField(perfectMethod, new GUIContent("정석 손질법"));
-                EditorGUILayout.EndVertical();
-            }
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("+ 테스트 재료 추가"))
+                        _testPreparedIngredients.Add(new TestPreparedIngredient());
 
-            if (GUILayout.Button("+ 정석 손질 조건 추가"))
-                AddPerfectRuleElement();
+                    if (GUILayout.Button("필요 슬롯 기준 채우기"))
+                        FillTestIngredientsFromRecipe(recipe);
+                }
+
+                List<PreparedIngredientState> prepared = BuildTestPreparedIngredients();
+                bool ingredientOnlyMatch = recipe.MatchesIngredients(BuildTestIngredients());
+                bool preparedMatch = recipe.MatchesPreparedIngredients(prepared);
+                int score = recipe.CalculateMatchScore(prepared);
+
+                EditorGUILayout.Space(4f);
+                EditorGUILayout.LabelField($"재료만 매칭: {(ingredientOnlyMatch ? "성공" : "실패")}");
+                EditorGUILayout.LabelField($"손질 포함 매칭: {(preparedMatch ? "성공" : "실패")}");
+                EditorGUILayout.LabelField($"매칭 점수: {score}");
+            }
+        }
+
+        private void DrawSummarySection(RecipeSO recipe)
+        {
+            _summaryFoldout = DrawSectionHeader("요약", _summaryFoldout);
+            if (_summaryFoldout == false)
+                return;
+
+            using (new EditorGUILayout.VerticalScope("box"))
+            {
+                string summary = BuildRecipeSummary(recipe);
+                EditorGUILayout.TextArea(summary, GUILayout.MinHeight(160f));
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("요약 복사"))
+                        EditorGUIUtility.systemCopyBuffer = summary;
+
+                    if (GUILayout.Button("콘솔 출력"))
+                        Debug.Log(summary, recipe);
+                }
+            }
         }
 
         private static void DrawObjectReferenceArray(
             SerializedProperty property,
-            System.Type objectType,
+            Type objectType,
             string rowLabel,
             string addButtonLabel,
             string emptyMessage)
@@ -206,20 +252,22 @@ namespace Work.Cook.Code.Editor
             if (property.arraySize == 0)
                 EditorGUILayout.HelpBox(emptyMessage, MessageType.None);
 
+            EditorGUI.indentLevel++;
             for (int i = 0; i < property.arraySize; i++)
             {
                 SerializedProperty element = property.GetArrayElementAtIndex(i);
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField($"{rowLabel} {i + 1}", GUILayout.Width(76f));
-                element.objectReferenceValue = EditorGUILayout.ObjectField(element.objectReferenceValue, objectType, false);
-                if (GUILayout.Button("삭제", GUILayout.Width(48f)))
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    DeleteArrayElement(property, i);
-                    i--;
+                    EditorGUILayout.LabelField($"{rowLabel} {i + 1}", GUILayout.Width(92f));
+                    element.objectReferenceValue = EditorGUILayout.ObjectField(element.objectReferenceValue, objectType, false);
+                    if (GUILayout.Button("삭제", GUILayout.Width(52f)))
+                    {
+                        DeleteArrayElement(property, i);
+                        GUIUtility.ExitGUI();
+                    }
                 }
-
-                EditorGUILayout.EndHorizontal();
             }
+            EditorGUI.indentLevel--;
 
             if (GUILayout.Button(addButtonLabel))
             {
@@ -234,36 +282,37 @@ namespace Work.Cook.Code.Editor
             if (property == null || property.isArray == false)
                 return;
 
-            EditorGUILayout.LabelField("대체 재료", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox("대체 재료를 사용했을 때 완성 음식 이름 앞에 붙일 수식어를 지정합니다.", MessageType.None);
+            EditorGUILayout.LabelField("이름 수식어가 있는 대체 재료", EditorStyles.boldLabel);
 
             if (property.arraySize == 0)
                 EditorGUILayout.HelpBox("대체 재료가 없습니다.", MessageType.None);
 
+            EditorGUI.indentLevel++;
             for (int i = 0; i < property.arraySize; i++)
             {
                 SerializedProperty element = property.GetArrayElementAtIndex(i);
                 SerializedProperty ingredient = element.FindPropertyRelative("ingredient");
                 SerializedProperty resultNameModifier = element.FindPropertyRelative("resultNameModifier");
 
-                EditorGUILayout.BeginVertical("box");
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField($"대체 재료 {i + 1}", EditorStyles.boldLabel);
-                if (GUILayout.Button("삭제", GUILayout.Width(48f)))
+                using (new EditorGUILayout.VerticalScope("box"))
                 {
-                    property.DeleteArrayElementAtIndex(i);
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.EndVertical();
-                    break;
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        EditorGUILayout.LabelField($"대체 {i + 1}", EditorStyles.boldLabel);
+                        if (GUILayout.Button("삭제", GUILayout.Width(52f)))
+                        {
+                            property.DeleteArrayElementAtIndex(i);
+                            GUIUtility.ExitGUI();
+                        }
+                    }
+
+                    EditorGUILayout.PropertyField(ingredient, new GUIContent("재료"));
+                    EditorGUILayout.PropertyField(resultNameModifier, new GUIContent("결과 이름 수식어"));
                 }
-
-                EditorGUILayout.EndHorizontal();
-                EditorGUILayout.PropertyField(ingredient, new GUIContent("재료"));
-                EditorGUILayout.PropertyField(resultNameModifier, new GUIContent("이름 수식어"));
-                EditorGUILayout.EndVertical();
             }
+            EditorGUI.indentLevel--;
 
-            if (GUILayout.Button("+ 대체 재료 추가"))
+            if (GUILayout.Button("+ 수식어 대체 재료 추가"))
             {
                 int newIndex = property.arraySize;
                 property.InsertArrayElementAtIndex(newIndex);
@@ -280,24 +329,69 @@ namespace Work.Cook.Code.Editor
 
             SerializedProperty element = _requiredIngredients.GetArrayElementAtIndex(newIndex);
             element.FindPropertyRelative("ingredient").objectReferenceValue = null;
+            element.FindPropertyRelative("ingredientCategory").objectReferenceValue = null;
+            element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = null;
+            element.FindPropertyRelative("minCount").intValue = 1;
+            element.FindPropertyRelative("maxCount").intValue = 1;
+            element.FindPropertyRelative("recipeDefining").boolValue = true;
+            element.FindPropertyRelative("autoApplyRequiredPreparation").boolValue = true;
+            element.FindPropertyRelative("requireManualPreparation").boolValue = false;
 
-            SerializedProperty alternatives = element.FindPropertyRelative("alternatives");
-            if (alternatives != null && alternatives.isArray)
-                alternatives.ClearArray();
-
-            SerializedProperty alternativeOptions = element.FindPropertyRelative("alternativeOptions");
-            if (alternativeOptions != null && alternativeOptions.isArray)
-                alternativeOptions.ClearArray();
+            ClearArray(element.FindPropertyRelative("requiredTags"));
+            ClearArray(element.FindPropertyRelative("alternatives"));
+            ClearArray(element.FindPropertyRelative("alternativeOptions"));
         }
 
-        private void AddPerfectRuleElement()
+        private List<IngredientSO> BuildTestIngredients()
         {
-            int newIndex = _perfectPreparationRules.arraySize;
-            _perfectPreparationRules.InsertArrayElementAtIndex(newIndex);
+            List<IngredientSO> ingredients = new List<IngredientSO>();
+            for (int i = 0; i < _testPreparedIngredients.Count; i++)
+            {
+                if (_testPreparedIngredients[i].Ingredient != null)
+                    ingredients.Add(_testPreparedIngredients[i].Ingredient);
+            }
 
-            SerializedProperty element = _perfectPreparationRules.GetArrayElementAtIndex(newIndex);
-            element.FindPropertyRelative("ingredient").objectReferenceValue = null;
-            element.FindPropertyRelative("perfectMethod").objectReferenceValue = null;
+            return ingredients;
+        }
+
+        private List<PreparedIngredientState> BuildTestPreparedIngredients()
+        {
+            List<PreparedIngredientState> prepared = new List<PreparedIngredientState>();
+            for (int i = 0; i < _testPreparedIngredients.Count; i++)
+            {
+                TestPreparedIngredient test = _testPreparedIngredients[i];
+                if (test.Ingredient == null)
+                    continue;
+
+                IngredientPreparationOption option = test.Ingredient.FindPreparationOption(test.Method);
+                prepared.Add(new PreparedIngredientState(test.Ingredient, option));
+            }
+
+            return prepared;
+        }
+
+        private void FillTestIngredientsFromRecipe(RecipeSO recipe)
+        {
+            _testPreparedIngredients.Clear();
+            if (recipe == null)
+                return;
+
+            for (int i = 0; i < recipe.RequiredIngredients.Count; i++)
+            {
+                RecipeIngredientRequirement requirement = recipe.RequiredIngredients[i];
+                if (requirement == null || requirement.Ingredient == null)
+                    continue;
+
+                int count = Mathf.Max(1, requirement.MinCount);
+                for (int countIndex = 0; countIndex < count; countIndex++)
+                {
+                    _testPreparedIngredients.Add(new TestPreparedIngredient
+                    {
+                        Ingredient = requirement.Ingredient,
+                        Method = requirement.RequiredPreparationMethod
+                    });
+                }
+            }
         }
 
         private static void DeleteArrayElement(SerializedProperty property, int index)
@@ -306,6 +400,12 @@ namespace Work.Cook.Code.Editor
             property.DeleteArrayElementAtIndex(index);
             if (property.arraySize == previousSize)
                 property.DeleteArrayElementAtIndex(index);
+        }
+
+        private static void ClearArray(SerializedProperty property)
+        {
+            if (property != null && property.isArray)
+                property.ClearArray();
         }
 
         private static bool DrawSectionHeader(string title, bool foldout)
@@ -334,39 +434,43 @@ namespace Work.Cook.Code.Editor
                 warnings.Add("레시피 ID가 비어 있습니다.");
 
             if (recipe.Category == null)
-                warnings.Add("카테고리가 지정되지 않았습니다.");
+                warnings.Add("음식 카테고리가 지정되지 않았습니다.");
 
             if (recipe.RequiredIngredients.Count == 0)
-                warnings.Add("필요 재료가 없습니다. 직접 재료 선택으로 이 레시피를 매칭할 수 없습니다.");
+                warnings.Add("필요 재료 슬롯이 없습니다.");
 
-            HashSet<IngredientSO> requiredIngredients = new HashSet<IngredientSO>();
             for (int i = 0; i < recipe.RequiredIngredients.Count; i++)
             {
                 RecipeIngredientRequirement requirement = recipe.RequiredIngredients[i];
-                if (requirement == null || requirement.Ingredient == null)
+                if (requirement == null)
                 {
-                    warnings.Add($"필요 재료 {i + 1}번 칸이 비어 있습니다.");
+                    warnings.Add($"슬롯 {i + 1}이 비어 있습니다.");
                     continue;
                 }
 
-                if (requiredIngredients.Add(requirement.Ingredient) == false)
-                    warnings.Add($"중복된 필요 재료가 있습니다: {requirement.Ingredient.DisplayName}");
-            }
+                bool hasAnyIdentity =
+                    requirement.Ingredient != null
+                    || requirement.IngredientCategory != null
+                    || requirement.RequiredTags.Count > 0
+                    || requirement.Alternatives.Count > 0
+                    || requirement.AlternativeOptions.Count > 0;
 
-            for (int i = 0; i < recipe.PerfectPreparationRules.Count; i++)
-            {
-                RecipePreparationRule rule = recipe.PerfectPreparationRules[i];
-                if (rule == null)
-                    continue;
+                if (hasAnyIdentity == false)
+                    warnings.Add($"슬롯 {i + 1}에는 재료/카테고리/태그/대체 재료 중 하나가 필요합니다.");
 
-                if (rule.Ingredient == null || rule.PerfectMethod == null)
+                if (requirement.MinCount == 0)
+                    warnings.Add($"슬롯 {i + 1}의 최소 개수가 0입니다. 선택 슬롯 의도가 아니라면 1 이상을 권장합니다.");
+
+                if (requirement.HasMaxCount && requirement.MaxCount < requirement.MinCount)
+                    warnings.Add($"슬롯 {i + 1}의 최대 개수가 최소 개수보다 작습니다.");
+
+                if (requirement.RequiredPreparationMethod != null && requirement.Ingredient != null)
                 {
-                    warnings.Add($"정석 손질 조건 {i + 1}번이 완성되지 않았습니다.");
-                    continue;
+                    IngredientPreparationOption option =
+                        requirement.Ingredient.FindPreparationOption(requirement.RequiredPreparationMethod);
+                    if (option == null)
+                        warnings.Add($"슬롯 {i + 1}의 기준 재료에 필수 손질법이 등록되어 있지 않습니다.");
                 }
-
-                if (requiredIngredients.Contains(rule.Ingredient) == false)
-                    warnings.Add($"정석 손질 조건의 재료가 필요 재료 목록에 없습니다: {rule.Ingredient.DisplayName}");
             }
 
             return warnings;
@@ -379,50 +483,62 @@ namespace Work.Cook.Code.Editor
 
             StringBuilder builder = new StringBuilder();
             builder.AppendLine($"레시피: {recipe.DisplayName} ({recipe.RecipeId})");
-            builder.AppendLine($"카테고리: {(recipe.Category != null ? recipe.Category.DisplayName : "없음")}");
-            builder.AppendLine($"태그: {BuildTagText(recipe.BaseTags)}");
-            builder.AppendLine("필요 재료:");
+            builder.AppendLine($"음식 카테고리: {(recipe.Category != null ? recipe.Category.DisplayName : "없음")}");
+            builder.AppendLine($"우선순위: {recipe.Priority}");
+            builder.AppendLine($"기본 태그: {BuildTagText(recipe.BaseTags)}");
+            builder.AppendLine();
+            builder.AppendLine("필요 재료 슬롯:");
 
             for (int i = 0; i < recipe.RequiredIngredients.Count; i++)
             {
                 RecipeIngredientRequirement requirement = recipe.RequiredIngredients[i];
-                if (requirement == null || requirement.Ingredient == null)
-                {
-                    builder.AppendLine("- 누락된 재료");
-                    continue;
-                }
-
-                builder.AppendLine($"- {requirement.Ingredient.DisplayName}");
-                for (int alternativeIndex = 0; alternativeIndex < requirement.AlternativeOptions.Count; alternativeIndex++)
-                {
-                    RecipeIngredientAlternative alternative = requirement.AlternativeOptions[alternativeIndex];
-                    if (alternative == null || alternative.Ingredient == null)
-                        continue;
-
-                    string modifier = string.IsNullOrWhiteSpace(alternative.ResultNameModifier)
-                        ? "수식어 없음"
-                        : alternative.ResultNameModifier;
-                    builder.AppendLine($"  대체: {alternative.Ingredient.DisplayName} / 이름 수식어: {modifier}");
-                }
-            }
-
-            builder.AppendLine("정석 손질 조건:");
-            if (recipe.PerfectPreparationRules.Count == 0)
-            {
-                builder.AppendLine("- 없음");
-            }
-            else
-            {
-                for (int i = 0; i < recipe.PerfectPreparationRules.Count; i++)
-                {
-                    RecipePreparationRule rule = recipe.PerfectPreparationRules[i];
-                    string ingredient = rule != null && rule.Ingredient != null ? rule.Ingredient.DisplayName : "없음";
-                    string method = rule != null && rule.PerfectMethod != null ? rule.PerfectMethod.DisplayName : "없음";
-                    builder.AppendLine($"- {ingredient}: {method}");
-                }
+                builder.AppendLine($"- {BuildRequirementSummary(requirement)}");
             }
 
             return builder.ToString();
+        }
+
+        private static string BuildRequirementEditorTitle(SerializedProperty element)
+        {
+            IngredientSO ingredient = element.FindPropertyRelative("ingredient").objectReferenceValue as IngredientSO;
+            IngredientCategorySO category =
+                element.FindPropertyRelative("ingredientCategory").objectReferenceValue as IngredientCategorySO;
+            PreparationMethodSO method =
+                element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue as PreparationMethodSO;
+
+            string target = ingredient != null
+                ? ingredient.DisplayName
+                : category != null ? $"{category.DisplayName} 카테고리" : "조건 미지정";
+            string prep = method != null ? $" + {method.DisplayName}" : string.Empty;
+            return $"{target}{prep}";
+        }
+
+        private static string BuildRequirementSummary(RecipeIngredientRequirement requirement)
+        {
+            if (requirement == null)
+                return "비어 있음";
+
+            List<string> parts = new List<string>();
+            if (requirement.Ingredient != null)
+                parts.Add($"재료 {requirement.Ingredient.DisplayName}");
+            if (requirement.IngredientCategory != null)
+                parts.Add($"재료군 {requirement.IngredientCategory.DisplayName}");
+            if (requirement.RequiredTags.Count > 0)
+                parts.Add($"태그 {BuildTagText(requirement.RequiredTags)}");
+            if (requirement.RequiredPreparationMethod != null)
+                parts.Add($"손질 {requirement.RequiredPreparationMethod.DisplayName}");
+
+            string count = requirement.HasMaxCount
+                ? $"{requirement.MinCount}-{requirement.MaxCount}개"
+                : $"{requirement.MinCount}개 이상";
+            parts.Add(count);
+
+            if (requirement.AutoApplyRequiredPreparation)
+                parts.Add("자동 손질");
+            if (requirement.RequireManualPreparation)
+                parts.Add("직접 손질");
+
+            return parts.Count > 0 ? string.Join(" / ", parts) : "조건 없음";
         }
 
         private static string BuildTagText(IReadOnlyList<FoodTagSO> tags)
@@ -444,6 +560,13 @@ namespace Work.Cook.Code.Editor
             }
 
             return builder.Length > 0 ? builder.ToString() : "없음";
+        }
+
+        [Serializable]
+        private sealed class TestPreparedIngredient
+        {
+            public IngredientSO Ingredient;
+            public PreparationMethodSO Method;
         }
     }
 }

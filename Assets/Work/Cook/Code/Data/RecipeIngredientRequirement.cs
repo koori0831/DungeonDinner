@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Work.Cook.Code.Runtime;
 
 namespace Work.Cook.Code.Data
 {
@@ -8,19 +9,73 @@ namespace Work.Cook.Code.Data
     public sealed class RecipeIngredientRequirement
     {
         [SerializeField] private IngredientSO ingredient;
+        [SerializeField] private IngredientCategorySO ingredientCategory;
+        [SerializeField] private List<FoodTagSO> requiredTags = new List<FoodTagSO>();
         [SerializeField] private List<IngredientSO> alternatives = new List<IngredientSO>();
         [SerializeField] private List<RecipeIngredientAlternative> alternativeOptions = new List<RecipeIngredientAlternative>();
+        [SerializeField] private PreparationMethodSO requiredPreparationMethod;
+        [SerializeField, Min(0)] private int minCount = 1;
+        [SerializeField, Min(0)] private int maxCount = 1;
+        [SerializeField] private bool recipeDefining = true;
+        [SerializeField] private bool autoApplyRequiredPreparation = true;
+        [SerializeField] private bool requireManualPreparation;
 
         public IngredientSO Ingredient => ingredient;
+        public IngredientCategorySO IngredientCategory => ingredientCategory;
+        public IReadOnlyList<FoodTagSO> RequiredTags => requiredTags;
         public IReadOnlyList<IngredientSO> Alternatives => alternatives;
         public IReadOnlyList<RecipeIngredientAlternative> AlternativeOptions => alternativeOptions;
+        public PreparationMethodSO RequiredPreparationMethod => requiredPreparationMethod;
+        public int MinCount => Mathf.Max(0, minCount);
+        public int MaxCount => Mathf.Max(0, maxCount);
+        public bool HasMaxCount => MaxCount > 0;
+        public bool RecipeDefining => recipeDefining;
+        public bool AutoApplyRequiredPreparation => autoApplyRequiredPreparation;
+        public bool RequireManualPreparation => requireManualPreparation;
+        public bool RequiresChoice => ingredient == null
+                                      && (ingredientCategory != null
+                                          || requiredTags.Count > 0
+                                          || alternatives.Count > 0
+                                          || alternativeOptions.Count > 0);
 
         public bool IsMatchedBy(IngredientSO candidate)
         {
             if (candidate == null)
                 return false;
 
+            if (MatchesIngredientIdentity(candidate) == false)
+                return false;
+
+            return MatchesRequiredTags(candidate);
+        }
+
+        public bool IsPreparedMatch(PreparedIngredientState prepared)
+        {
+            if (prepared == null || IsMatchedBy(prepared.Ingredient) == false)
+                return false;
+
+            return requiredPreparationMethod == null || prepared.Method == requiredPreparationMethod;
+        }
+
+        public bool IsCountSatisfied(int count)
+        {
+            if (count < MinCount)
+                return false;
+
+            return HasMaxCount == false || count <= MaxCount;
+        }
+
+        public bool CanAcceptMore(int count)
+        {
+            return HasMaxCount == false || count < MaxCount;
+        }
+
+        private bool MatchesIngredientIdentity(IngredientSO candidate)
+        {
             if (candidate == ingredient)
+                return true;
+
+            if (ingredientCategory != null && candidate.Category == ingredientCategory)
                 return true;
 
             for (int i = 0; i < alternatives.Count; i++)
@@ -36,7 +91,38 @@ namespace Work.Cook.Code.Data
                     return true;
             }
 
-            return false;
+            return ingredient == null
+                   && ingredientCategory == null
+                   && alternatives.Count == 0
+                   && alternativeOptions.Count == 0;
+        }
+
+        private bool MatchesRequiredTags(IngredientSO candidate)
+        {
+            if (requiredTags.Count == 0)
+                return true;
+
+            for (int tagIndex = 0; tagIndex < requiredTags.Count; tagIndex++)
+            {
+                FoodTagSO requiredTag = requiredTags[tagIndex];
+                if (requiredTag == null)
+                    continue;
+
+                bool matched = false;
+                for (int candidateTagIndex = 0; candidateTagIndex < candidate.BaseTags.Count; candidateTagIndex++)
+                {
+                    if (candidate.BaseTags[candidateTagIndex] == requiredTag)
+                    {
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (matched == false)
+                    return false;
+            }
+
+            return true;
         }
 
         public string GetAlternativeResultNameModifier(IngredientSO candidate)

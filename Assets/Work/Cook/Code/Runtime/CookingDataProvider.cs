@@ -36,5 +36,10 @@ namespace Work.Cook.Code.Runtime
         {
             return _catalog != null ? _catalog.FindRecipeByIngredients(ingredients) : null;
         }
+
+        public RecipeSO FindRecipeByPreparedIngredients(IReadOnlyList<PreparedIngredientState> preparedIngredients)
+        {
+            return _catalog != null ? _catalog.FindRecipeByPreparedIngredients(preparedIngredients) : null;
+        }
     }
 }

@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: smoked_cheese
   displayName: "\uD6C8\uC5F0 \uCE58\uC988"
   description: "\uB4DC\uC6CC\uD504\uC2DD \uD6C8\uC5F0\uC2E4\uC5D0\uC11C \uB9D0\uB9B0 \uC9ED\uC9E4\uD55C \uCE58\uC988\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1009, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 72116030b59a4f898375907171ba34d9, type: 2}
   - {fileID: 11400000, guid: 341b32994b2c40499bcf898bf2cc6d34, type: 2}

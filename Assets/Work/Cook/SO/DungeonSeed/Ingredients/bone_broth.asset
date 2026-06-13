@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: bone_broth
   displayName: "\uBF08 \uC721\uC218"
   description: "\uC624\uB798 \uB053\uC5EC \uC804\uC0AC\uC758 \uC18D\uC744 \uCC44\uC6B0\uB294 \uC9C4\uD55C \uC721\uC218\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1011, type: 2}
   baseTags:
   - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}
   - {fileID: 11400000, guid: d85c3609b19d45238ce3a6179e90b20f, type: 2}

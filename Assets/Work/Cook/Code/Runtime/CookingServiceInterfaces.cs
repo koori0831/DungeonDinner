@@ -9,6 +9,7 @@ namespace Work.Cook.Code.Runtime
         IReadOnlyList<IngredientSO> GetIngredients();
         IReadOnlyList<IngredientPreparationOption> GetPreparationOptions(IngredientSO ingredient);
         RecipeSO FindRecipeByIngredients(IReadOnlyList<IngredientSO> ingredients);
+        RecipeSO FindRecipeByPreparedIngredients(IReadOnlyList<PreparedIngredientState> preparedIngredients);
     }
 
     public interface IRecipeMatcher

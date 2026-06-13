@@ -23,6 +23,21 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 248f4576b868489aaf71e2a6ec90ecf2, type: 2}
   - {fileID: 11400000, guid: cf71c194ead345ddb132e77e9798c914, type: 2}
   - {fileID: 11400000, guid: c18ad3f1c2e74813805cc827505413b5, type: 2}
+  ingredientCategories:
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1001, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1002, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1003, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1004, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1005, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1006, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1007, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1008, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1009, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1010, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1011, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1012, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1013, type: 2}
+  - {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1014, type: 2}
   tags:
   - {fileID: 11400000, guid: 6687bfbad1aa46e5b10044be28cf0ecc, type: 2}
   - {fileID: 11400000, guid: 13d01b8ca94c4cfca62450f41a34f671, type: 2}

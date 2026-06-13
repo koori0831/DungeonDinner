@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: kelp_moss
   displayName: "\uC774\uB07C \uB2E4\uC2DC\uB9C8"
   description: "\uC218\uB85C \uBCBD\uC5D0 \uBD99\uC5B4 \uC790\uB77C\uB294 \uBD80\uB4DC\uB7EC\uC6B4 \uD574\uC870\uB958\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1014, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 6687bfbad1aa46e5b10044be28cf0ecc, type: 2}
   - {fileID: 11400000, guid: 5b6888cfbe3e4cf58e49279be35581fb, type: 2}

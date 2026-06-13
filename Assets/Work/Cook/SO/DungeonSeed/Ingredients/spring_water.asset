@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: spring_water
   displayName: "\uC9C0\uD558 \uC0D8\uBB3C"
   description: "\uC5B4\uC778\uC758 \uC544\uAC00\uBBF8\uB97C \uC801\uC2DC\uAE30\uC5D0\uB3C4 \uC88B\uC740 \uAE68\uB057\uD55C \uC0D8\uBB3C\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1011, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 5b6888cfbe3e4cf58e49279be35581fb, type: 2}
   - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}

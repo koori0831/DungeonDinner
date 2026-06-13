@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: cave_mushroom
   displayName: "\uB3D9\uAD74 \uBC84\uC12F"
   description: "\uB358\uC804 \uBCBD\uBA74\uC758 \uC2B5\uAE30\uB97C \uBA39\uACE0 \uC790\uB780 \uB2F4\uBC31\uD55C \uBC84\uC12F\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1004, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 6687bfbad1aa46e5b10044be28cf0ecc, type: 2}
   - {fileID: 11400000, guid: d85c3609b19d45238ce3a6179e90b20f, type: 2}

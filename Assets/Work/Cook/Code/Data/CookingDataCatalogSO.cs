@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Work.Cook.Code.Runtime;
 
 namespace Work.Cook.Code.Data
 {
@@ -7,12 +8,14 @@ namespace Work.Cook.Code.Data
     public sealed class CookingDataCatalogSO : ScriptableObject
     {
         [SerializeField] private List<FoodCategorySO> categories = new List<FoodCategorySO>();
+        [SerializeField] private List<IngredientCategorySO> ingredientCategories = new List<IngredientCategorySO>();
         [SerializeField] private List<FoodTagSO> tags = new List<FoodTagSO>();
         [SerializeField] private List<PreparationMethodSO> preparationMethods = new List<PreparationMethodSO>();
         [SerializeField] private List<IngredientSO> ingredients = new List<IngredientSO>();
         [SerializeField] private List<RecipeSO> recipes = new List<RecipeSO>();
 
         public IReadOnlyList<FoodCategorySO> Categories => categories;
+        public IReadOnlyList<IngredientCategorySO> IngredientCategories => ingredientCategories;
         public IReadOnlyList<FoodTagSO> Tags => tags;
         public IReadOnlyList<PreparationMethodSO> PreparationMethods => preparationMethods;
         public IReadOnlyList<IngredientSO> Ingredients => ingredients;
@@ -38,17 +41,42 @@ namespace Work.Cook.Code.Data
             for (int i = 0; i < recipes.Count; i++)
             {
                 RecipeSO recipe = recipes[i];
-                if (recipe != null && recipe.MatchesIngredients(selectedIngredients))
+                if (recipe != null
+                    && recipe.HasRequiredPreparationMethods == false
+                    && recipe.MatchesIngredients(selectedIngredients))
                     return recipe;
             }
 
             return null;
         }
 
+        public RecipeSO FindRecipeByPreparedIngredients(IReadOnlyList<PreparedIngredientState> preparedIngredients)
+        {
+            RecipeSO bestRecipe = null;
+            int bestScore = int.MinValue;
+
+            for (int i = 0; i < recipes.Count; i++)
+            {
+                RecipeSO recipe = recipes[i];
+                if (recipe == null)
+                    continue;
+
+                int score = recipe.CalculateMatchScore(preparedIngredients);
+                if (score > bestScore)
+                {
+                    bestRecipe = recipe;
+                    bestScore = score;
+                }
+            }
+
+            return bestScore >= 0 ? bestRecipe : null;
+        }
+
         public List<string> BuildValidationMessages()
         {
             List<string> messages = new List<string>();
             AddDuplicateIdMessages(messages, categories, category => category != null ? category.CategoryId : string.Empty, "category");
+            AddDuplicateIdMessages(messages, ingredientCategories, category => category != null ? category.CategoryId : string.Empty, "ingredient category");
             AddDuplicateIdMessages(messages, tags, tag => tag != null ? tag.TagId : string.Empty, "tag");
             AddDuplicateIdMessages(messages, preparationMethods, method => method != null ? method.MethodId : string.Empty, "preparation method");
             AddDuplicateIdMessages(messages, ingredients, ingredient => ingredient != null ? ingredient.IngredientId : string.Empty, "ingredient");

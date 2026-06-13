@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: rye_bread
   displayName: "\uD638\uBC00\uBE75"
   description: "\uC218\uC778 \uACE1\uBB3C\uAE38\uC744 \uD1B5\uD574 \uB4E4\uC5B4\uC628 \uACE0\uC18C\uD55C \uD638\uBC00\uBE75\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1008, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 23801e839340456f9cdf1a2a8534e6e5, type: 2}
   - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}

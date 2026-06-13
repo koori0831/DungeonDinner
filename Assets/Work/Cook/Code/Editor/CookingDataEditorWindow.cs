@@ -28,6 +28,7 @@ namespace Work.Cook.Code.Editor
         private Button _createButton;
         private Button _recipeModeButton;
         private Button _categoryModeButton;
+        private Button _ingredientCategoryModeButton;
         private Button _tagModeButton;
         private Button _methodModeButton;
         private Button _ingredientModeButton;
@@ -46,6 +47,7 @@ namespace Work.Cook.Code.Editor
         private UnityEngine.Object _selectedAsset;
         private RecipeDraft _recipeDraft;
         private CategoryDraft _categoryDraft;
+        private IngredientCategoryDraft _ingredientCategoryDraft;
         private TagDraft _tagDraft;
         private MethodDraft _methodDraft;
         private IngredientDraft _ingredientDraft;
@@ -56,6 +58,7 @@ namespace Work.Cook.Code.Editor
         {
             Recipe,
             Category,
+            IngredientCategory,
             Tag,
             PreparationMethod,
             Ingredient
@@ -147,6 +150,7 @@ namespace Work.Cook.Code.Editor
 
             VisualElement modeTabs = new VisualElement();
             modeTabs.AddToClassList("mode-tabs");
+            _ingredientCategoryModeButton = BuildModeButton("재료군", DataMode.IngredientCategory);
             _recipeModeButton = BuildModeButton("레시피", DataMode.Recipe);
             _categoryModeButton = BuildModeButton("카테고리", DataMode.Category);
             _tagModeButton = BuildModeButton("태그", DataMode.Tag);
@@ -154,6 +158,7 @@ namespace Work.Cook.Code.Editor
             _ingredientModeButton = BuildModeButton("재료", DataMode.Ingredient);
             modeTabs.Add(_recipeModeButton);
             modeTabs.Add(_categoryModeButton);
+            modeTabs.Add(_ingredientCategoryModeButton);
             modeTabs.Add(_tagModeButton);
             modeTabs.Add(_methodModeButton);
             modeTabs.Add(_ingredientModeButton);
@@ -340,6 +345,7 @@ namespace Work.Cook.Code.Editor
             _selectedAsset = null;
             _recipeDraft = null;
             _categoryDraft = null;
+            _ingredientCategoryDraft = null;
             _tagDraft = null;
             _methodDraft = null;
             _ingredientDraft = null;
@@ -351,6 +357,7 @@ namespace Work.Cook.Code.Editor
         {
             _recipeDraft = null;
             _categoryDraft = null;
+            _ingredientCategoryDraft = null;
             _tagDraft = null;
             _methodDraft = null;
             _ingredientDraft = null;
@@ -362,6 +369,9 @@ namespace Work.Cook.Code.Editor
                     break;
                 case FoodCategorySO category:
                     _categoryDraft = CategoryDraft.From(category);
+                    break;
+                case IngredientCategorySO ingredientCategory:
+                    _ingredientCategoryDraft = IngredientCategoryDraft.From(ingredientCategory);
                     break;
                 case FoodTagSO tag:
                     _tagDraft = TagDraft.From(tag);
@@ -438,6 +448,7 @@ namespace Work.Cook.Code.Editor
         {
             SetModeButtonState(_recipeModeButton, currentMode == DataMode.Recipe);
             SetModeButtonState(_categoryModeButton, currentMode == DataMode.Category);
+            SetModeButtonState(_ingredientCategoryModeButton, currentMode == DataMode.IngredientCategory);
             SetModeButtonState(_tagModeButton, currentMode == DataMode.Tag);
             SetModeButtonState(_methodModeButton, currentMode == DataMode.PreparationMethod);
             SetModeButtonState(_ingredientModeButton, currentMode == DataMode.Ingredient);
@@ -523,6 +534,9 @@ namespace Work.Cook.Code.Editor
                 case DataMode.Category:
                     DrawCategoryForm();
                     break;
+                case DataMode.IngredientCategory:
+                    DrawIngredientCategoryForm();
+                    break;
                 case DataMode.Tag:
                     DrawTagForm();
                     break;
@@ -543,6 +557,8 @@ namespace Work.Cook.Code.Editor
             if (_recipeDraft == null)
                 return;
 
+            _recipeDraft.Priority = EditorGUILayout.IntField("매칭 우선순위", _recipeDraft.Priority);
+
             EditorGUILayout.LabelField("기본 정보", EditorStyles.boldLabel);
             _recipeDraft.RecipeId = EditorGUILayout.TextField("레시피 ID", _recipeDraft.RecipeId);
             _recipeDraft.DisplayName = EditorGUILayout.TextField("표시 이름", _recipeDraft.DisplayName);
@@ -556,7 +572,6 @@ namespace Work.Cook.Code.Editor
                 MarkDraftDirty();
 
             DrawRequiredIngredients();
-            DrawPerfectRules();
             DrawWarnings(BuildRecipeWarnings());
         }
 
@@ -573,6 +588,21 @@ namespace Work.Cook.Code.Editor
             _categoryDraft.Description = EditorGUILayout.TextArea(_categoryDraft.Description, GUILayout.MinHeight(80f));
             EditorGUILayout.HelpBox("카테고리는 음식의 큰 분류입니다. 예: 찌개, 구이, 디저트, 괴식.", MessageType.None);
             DrawWarnings(BuildCategoryWarnings());
+        }
+
+        private void DrawIngredientCategoryForm()
+        {
+            if (_ingredientCategoryDraft == null)
+                return;
+
+            EditorGUILayout.LabelField("재료군 정보", EditorStyles.boldLabel);
+            _ingredientCategoryDraft.CategoryId = EditorGUILayout.TextField("재료군 ID", _ingredientCategoryDraft.CategoryId);
+            _ingredientCategoryDraft.DisplayName = EditorGUILayout.TextField("표시 이름", _ingredientCategoryDraft.DisplayName);
+            _ingredientCategoryDraft.Icon = (Sprite)EditorGUILayout.ObjectField("아이콘", _ingredientCategoryDraft.Icon, typeof(Sprite), false);
+            EditorGUILayout.LabelField("설명");
+            _ingredientCategoryDraft.Description = EditorGUILayout.TextArea(_ingredientCategoryDraft.Description, GUILayout.MinHeight(80f));
+            EditorGUILayout.HelpBox("고기, 채소, 향신료처럼 레시피 슬롯에서 대체 가능한 큰 재료 묶음을 정의합니다.", MessageType.None);
+            DrawWarnings(BuildIngredientCategoryWarnings());
         }
 
         private void DrawTagForm()
@@ -607,6 +637,8 @@ namespace Work.Cook.Code.Editor
         {
             if (_ingredientDraft == null)
                 return;
+
+            _ingredientDraft.Category = (IngredientCategorySO)EditorGUILayout.ObjectField("재료군", _ingredientDraft.Category, typeof(IngredientCategorySO), false);
 
             EditorGUILayout.LabelField("재료 정보", EditorStyles.boldLabel);
             _ingredientDraft.IngredientId = EditorGUILayout.TextField("재료 ID", _ingredientDraft.IngredientId);
@@ -644,6 +676,20 @@ namespace Work.Cook.Code.Editor
 
                 EditorGUILayout.EndHorizontal();
                 requirement.Ingredient = (IngredientSO)EditorGUILayout.ObjectField("기준 재료", requirement.Ingredient, typeof(IngredientSO), false);
+                requirement.IngredientCategory = (IngredientCategorySO)EditorGUILayout.ObjectField("재료군 조건", requirement.IngredientCategory, typeof(IngredientCategorySO), false);
+                requirement.RequiredPreparationMethod = (PreparationMethodSO)EditorGUILayout.ObjectField("필수 손질법", requirement.RequiredPreparationMethod, typeof(PreparationMethodSO), false);
+                requirement.MinCount = Mathf.Max(0, EditorGUILayout.IntField("최소 개수", requirement.MinCount));
+                requirement.MaxCount = Mathf.Max(0, EditorGUILayout.IntField("최대 개수 (0 = 제한 없음)", requirement.MaxCount));
+                requirement.RecipeDefining = EditorGUILayout.Toggle("요리 결정 조건", requirement.RecipeDefining);
+                requirement.AutoApplyRequiredPreparation = EditorGUILayout.Toggle("필수 손질 자동 적용", requirement.AutoApplyRequiredPreparation);
+                requirement.RequireManualPreparation = EditorGUILayout.Toggle("직접 손질 필요", requirement.RequireManualPreparation);
+
+                if (DrawObjectList("필수 태그", requirement.RequiredTags, typeof(FoodTagSO), "+ 필수 태그"))
+                    MarkDraftDirty();
+
+                if (DrawObjectList("단순 대체 재료", requirement.SimpleAlternatives, typeof(IngredientSO), "+ 대체 재료"))
+                    MarkDraftDirty();
+
                 if (DrawAlternativeList(requirement.Alternatives))
                     MarkDraftDirty();
                 EditorGUILayout.EndVertical();
@@ -865,6 +911,9 @@ namespace Work.Cook.Code.Editor
                 case DataMode.Category:
                     SaveCategory(serialized);
                     break;
+                case DataMode.IngredientCategory:
+                    SaveIngredientCategory(serialized);
+                    break;
                 case DataMode.Tag:
                     SaveTag(serialized);
                     break;
@@ -924,9 +973,10 @@ namespace Work.Cook.Code.Editor
             SetString(serialized, "displayName", _recipeDraft.DisplayName);
             SetString(serialized, "description", _recipeDraft.Description);
             SetObject(serialized, "category", _recipeDraft.Category);
+            SetInt(serialized, "priority", _recipeDraft.Priority);
             SetObjectArray(serialized, "baseTags", _recipeDraft.BaseTags);
             SetRequiredIngredients(serialized, _recipeDraft.RequiredIngredients);
-            SetPerfectRules(serialized, _recipeDraft.PerfectRules);
+            SetPerfectRules(serialized, Array.Empty<PerfectRuleDraft>());
         }
 
         private void SaveCategory(SerializedObject serialized)
@@ -935,6 +985,14 @@ namespace Work.Cook.Code.Editor
             SetString(serialized, "displayName", _categoryDraft.DisplayName);
             SetObject(serialized, "icon", _categoryDraft.Icon);
             SetString(serialized, "description", _categoryDraft.Description);
+        }
+
+        private void SaveIngredientCategory(SerializedObject serialized)
+        {
+            SetString(serialized, "categoryId", _ingredientCategoryDraft.CategoryId);
+            SetString(serialized, "displayName", _ingredientCategoryDraft.DisplayName);
+            SetObject(serialized, "icon", _ingredientCategoryDraft.Icon);
+            SetString(serialized, "description", _ingredientCategoryDraft.Description);
         }
 
         private void SaveTag(SerializedObject serialized)
@@ -956,6 +1014,7 @@ namespace Work.Cook.Code.Editor
             SetString(serialized, "ingredientId", _ingredientDraft.IngredientId);
             SetString(serialized, "displayName", _ingredientDraft.DisplayName);
             SetString(serialized, "description", _ingredientDraft.Description);
+            SetObject(serialized, "category", _ingredientDraft.Category);
             SetObjectArray(serialized, "baseTags", _ingredientDraft.BaseTags);
             SetPreparationOptions(serialized, _ingredientDraft.PreparationOptions);
         }
@@ -1124,6 +1183,9 @@ namespace Work.Cook.Code.Editor
                 case DataMode.Category:
                     AddObjects(values, catalog.Categories);
                     break;
+                case DataMode.IngredientCategory:
+                    AddObjects(values, catalog.IngredientCategories);
+                    break;
                 case DataMode.Tag:
                     AddObjects(values, catalog.Tags);
                     break;
@@ -1163,28 +1225,25 @@ namespace Work.Cook.Code.Editor
             HashSet<IngredientSO> requiredIngredients = new HashSet<IngredientSO>();
             for (int i = 0; i < _recipeDraft.RequiredIngredients.Count; i++)
             {
-                IngredientSO ingredient = _recipeDraft.RequiredIngredients[i].Ingredient;
-                if (ingredient == null)
+                IngredientRequirementDraft requirement = _recipeDraft.RequiredIngredients[i];
+                IngredientSO ingredient = requirement.Ingredient;
+                bool hasAnyCondition = ingredient != null
+                                       || requirement.IngredientCategory != null
+                                       || requirement.RequiredTags.Count > 0
+                                       || requirement.SimpleAlternatives.Count > 0
+                                       || requirement.Alternatives.Count > 0;
+
+                if (hasAnyCondition == false)
                 {
-                    warnings.Add($"필요 재료 {i + 1}번이 비어 있습니다.");
+                    warnings.Add($"필요 재료 {i + 1}번에 재료/재료군/태그/대체재료 조건이 없습니다.");
                     continue;
                 }
 
-                if (requiredIngredients.Add(ingredient) == false)
+                if (requirement.MaxCount > 0 && requirement.MaxCount < requirement.MinCount)
+                    warnings.Add($"필요 재료 {i + 1}번의 최대 개수가 최소 개수보다 작습니다.");
+
+                if (ingredient != null && requiredIngredients.Add(ingredient) == false)
                     warnings.Add($"중복된 필요 재료가 있습니다: {ingredient.DisplayName}");
-            }
-
-            for (int i = 0; i < _recipeDraft.PerfectRules.Count; i++)
-            {
-                PerfectRuleDraft rule = _recipeDraft.PerfectRules[i];
-                if (rule.Ingredient == null || rule.PerfectMethod == null)
-                {
-                    warnings.Add($"정석 조건 {i + 1}번이 완성되지 않았습니다.");
-                    continue;
-                }
-
-                if (requiredIngredients.Contains(rule.Ingredient) == false)
-                    warnings.Add($"정석 조건의 재료가 필요 재료 목록에 없습니다: {rule.Ingredient.DisplayName}");
             }
 
             return warnings;
@@ -1195,6 +1254,15 @@ namespace Work.Cook.Code.Editor
             List<string> warnings = new List<string>();
             if (_categoryDraft != null && string.IsNullOrWhiteSpace(_categoryDraft.CategoryId))
                 warnings.Add("카테고리 ID가 비어 있습니다.");
+
+            return warnings;
+        }
+
+        private List<string> BuildIngredientCategoryWarnings()
+        {
+            List<string> warnings = new List<string>();
+            if (_ingredientCategoryDraft != null && string.IsNullOrWhiteSpace(_ingredientCategoryDraft.CategoryId))
+                warnings.Add("재료군 ID가 비어 있습니다.");
 
             return warnings;
         }
@@ -1280,6 +1348,8 @@ namespace Work.Cook.Code.Editor
                     return string.IsNullOrWhiteSpace(recipe.DisplayName) ? "(이름 없음)" : recipe.DisplayName;
                 case FoodCategorySO category:
                     return string.IsNullOrWhiteSpace(category.DisplayName) ? "(이름 없음)" : category.DisplayName;
+                case IngredientCategorySO ingredientCategory:
+                    return string.IsNullOrWhiteSpace(ingredientCategory.DisplayName) ? "(이름 없음)" : ingredientCategory.DisplayName;
                 case FoodTagSO tag:
                     return string.IsNullOrWhiteSpace(tag.DisplayName) ? "(이름 없음)" : tag.DisplayName;
                 case PreparationMethodSO method:
@@ -1299,6 +1369,8 @@ namespace Work.Cook.Code.Editor
                     return recipe.RecipeId;
                 case FoodCategorySO category:
                     return category.CategoryId;
+                case IngredientCategorySO ingredientCategory:
+                    return ingredientCategory.CategoryId;
                 case FoodTagSO tag:
                     return tag.TagId;
                 case PreparationMethodSO method:
@@ -1318,6 +1390,8 @@ namespace Work.Cook.Code.Editor
                     return $"{recipe.RecipeId}  |  {(recipe.Category != null ? recipe.Category.DisplayName : "카테고리 없음")}";
                 case FoodCategorySO category:
                     return $"{category.CategoryId}  |  음식 분류";
+                case IngredientCategorySO ingredientCategory:
+                    return $"{ingredientCategory.CategoryId}  |  재료군";
                 case FoodTagSO tag:
                     return $"{tag.TagId}  |  맛/속성 태그";
                 case PreparationMethodSO method:
@@ -1367,6 +1441,8 @@ namespace Work.Cook.Code.Editor
                     return "t:RecipeSO";
                 case DataMode.Category:
                     return "t:FoodCategorySO";
+                case DataMode.IngredientCategory:
+                    return "t:IngredientCategorySO";
                 case DataMode.Tag:
                     return "t:FoodTagSO";
                 case DataMode.PreparationMethod:
@@ -1386,6 +1462,8 @@ namespace Work.Cook.Code.Editor
                     return typeof(RecipeSO);
                 case DataMode.Category:
                     return typeof(FoodCategorySO);
+                case DataMode.IngredientCategory:
+                    return typeof(IngredientCategorySO);
                 case DataMode.Tag:
                     return typeof(FoodTagSO);
                 case DataMode.PreparationMethod:
@@ -1405,6 +1483,8 @@ namespace Work.Cook.Code.Editor
                     return "recipes";
                 case DataMode.Category:
                     return "categories";
+                case DataMode.IngredientCategory:
+                    return "ingredientCategories";
                 case DataMode.Tag:
                     return "tags";
                 case DataMode.PreparationMethod:
@@ -1424,6 +1504,8 @@ namespace Work.Cook.Code.Editor
                     return "NewRecipe";
                 case DataMode.Category:
                     return "NewCategory";
+                case DataMode.IngredientCategory:
+                    return "NewIngredientCategory";
                 case DataMode.Tag:
                     return "NewTag";
                 case DataMode.PreparationMethod:
@@ -1437,6 +1519,9 @@ namespace Work.Cook.Code.Editor
 
         private static string GetModeKoreanName(DataMode mode)
         {
+            if (mode == DataMode.IngredientCategory)
+                return "재료군";
+
             switch (mode)
             {
                 case DataMode.Recipe:
@@ -1456,10 +1541,13 @@ namespace Work.Cook.Code.Editor
 
         private static string GetHelpText(DataMode mode)
         {
+            if (mode == DataMode.IngredientCategory)
+                return "재료군은 고기, 채소, 향신료처럼 레시피 슬롯에서 대체 가능한 큰 재료 묶음입니다.";
+
             switch (mode)
             {
                 case DataMode.Recipe:
-                    return "레시피는 완성 음식의 기준입니다. 카테고리, 태그, 필요 재료, 정석 손질 조건은 카테고리/태그/재료 탭에서 만든 SO를 선택해서 연결합니다.";
+                    return "레시피는 완성 음식의 기준입니다. 필요 재료 슬롯에서 재료, 재료군, 태그, 필수 손질법, 개수 조건을 연결합니다.";
                 case DataMode.Category:
                     return "카테고리는 음식의 큰 분류입니다. NPC 판정에서 FoodType/Category 기준으로 사용하기 좋습니다.";
                 case DataMode.Tag:
@@ -1475,6 +1563,13 @@ namespace Work.Cook.Code.Editor
 
         private static void SetInitialValues(SerializedObject serialized, DataMode mode, string id)
         {
+            if (mode == DataMode.IngredientCategory)
+            {
+                SetString(serialized, "categoryId", id);
+                SetString(serialized, "displayName", "새 재료군");
+                return;
+            }
+
             switch (mode)
             {
                 case DataMode.Recipe:
@@ -1514,6 +1609,13 @@ namespace Work.Cook.Code.Editor
                 property.objectReferenceValue = value;
         }
 
+        private static void SetInt(SerializedObject serialized, string propertyName, int value)
+        {
+            SerializedProperty property = serialized.FindProperty(propertyName);
+            if (property != null)
+                property.intValue = value;
+        }
+
         private static void SetObjectArray<T>(SerializedObject serialized, string propertyName, IReadOnlyList<T> values)
             where T : UnityEngine.Object
         {
@@ -1539,7 +1641,15 @@ namespace Work.Cook.Code.Editor
                 property.InsertArrayElementAtIndex(property.arraySize);
                 SerializedProperty element = property.GetArrayElementAtIndex(property.arraySize - 1);
                 element.FindPropertyRelative("ingredient").objectReferenceValue = requirement.Ingredient;
-                SetRelativeObjectArray(element.FindPropertyRelative("alternatives"), Array.Empty<IngredientSO>());
+                element.FindPropertyRelative("ingredientCategory").objectReferenceValue = requirement.IngredientCategory;
+                element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = requirement.RequiredPreparationMethod;
+                element.FindPropertyRelative("minCount").intValue = requirement.MinCount;
+                element.FindPropertyRelative("maxCount").intValue = requirement.MaxCount;
+                element.FindPropertyRelative("recipeDefining").boolValue = requirement.RecipeDefining;
+                element.FindPropertyRelative("autoApplyRequiredPreparation").boolValue = requirement.AutoApplyRequiredPreparation;
+                element.FindPropertyRelative("requireManualPreparation").boolValue = requirement.RequireManualPreparation;
+                SetRelativeObjectArray(element.FindPropertyRelative("requiredTags"), requirement.RequiredTags);
+                SetRelativeObjectArray(element.FindPropertyRelative("alternatives"), requirement.SimpleAlternatives);
                 SetAlternativeOptions(element.FindPropertyRelative("alternativeOptions"), requirement.Alternatives);
             }
         }
@@ -1654,6 +1764,12 @@ namespace Work.Cook.Code.Editor
             return property != null ? property.stringValue : string.Empty;
         }
 
+        private static int ReadInt(SerializedObject serialized, string propertyName)
+        {
+            SerializedProperty property = serialized.FindProperty(propertyName);
+            return property != null ? property.intValue : 0;
+        }
+
         private static T ReadObject<T>(SerializedObject serialized, string propertyName)
             where T : UnityEngine.Object
         {
@@ -1721,6 +1837,7 @@ namespace Work.Cook.Code.Editor
             public string DisplayName;
             public string Description;
             public FoodCategorySO Category;
+            public int Priority;
             public List<FoodTagSO> BaseTags = new List<FoodTagSO>();
             public List<IngredientRequirementDraft> RequiredIngredients = new List<IngredientRequirementDraft>();
             public List<PerfectRuleDraft> PerfectRules = new List<PerfectRuleDraft>();
@@ -1734,6 +1851,7 @@ namespace Work.Cook.Code.Editor
                     DisplayName = ReadString(serialized, "displayName"),
                     Description = ReadString(serialized, "description"),
                     Category = ReadObject<FoodCategorySO>(serialized, "category"),
+                    Priority = ReadInt(serialized, "priority"),
                     BaseTags = ReadObjectArray<FoodTagSO>(serialized, "baseTags")
                 };
 
@@ -1744,6 +1862,15 @@ namespace Work.Cook.Code.Editor
                     if (source != null)
                     {
                         requirement.Ingredient = source.Ingredient;
+                        requirement.IngredientCategory = source.IngredientCategory;
+                        requirement.RequiredTags = new List<FoodTagSO>(source.RequiredTags);
+                        requirement.SimpleAlternatives = new List<IngredientSO>(source.Alternatives);
+                        requirement.RequiredPreparationMethod = source.RequiredPreparationMethod;
+                        requirement.MinCount = source.MinCount;
+                        requirement.MaxCount = source.MaxCount;
+                        requirement.RecipeDefining = source.RecipeDefining;
+                        requirement.AutoApplyRequiredPreparation = source.AutoApplyRequiredPreparation;
+                        requirement.RequireManualPreparation = source.RequireManualPreparation;
 
                         for (int alternativeIndex = 0; alternativeIndex < source.AlternativeOptions.Count; alternativeIndex++)
                         {
@@ -1758,17 +1885,6 @@ namespace Work.Cook.Code.Editor
                             }
                         }
 
-                        for (int alternativeIndex = 0; alternativeIndex < source.Alternatives.Count; alternativeIndex++)
-                        {
-                            IngredientSO legacyAlternative = source.Alternatives[alternativeIndex];
-                            if (legacyAlternative != null && requirement.ContainsAlternative(legacyAlternative) == false)
-                            {
-                                requirement.Alternatives.Add(new IngredientAlternativeDraft
-                                {
-                                    Ingredient = legacyAlternative
-                                });
-                            }
-                        }
                     }
 
                     draft.RequiredIngredients.Add(requirement);
@@ -1802,6 +1918,26 @@ namespace Work.Cook.Code.Editor
             {
                 SerializedObject serialized = new SerializedObject(category);
                 return new CategoryDraft
+                {
+                    CategoryId = ReadString(serialized, "categoryId"),
+                    DisplayName = ReadString(serialized, "displayName"),
+                    Icon = ReadObject<Sprite>(serialized, "icon"),
+                    Description = ReadString(serialized, "description")
+                };
+            }
+        }
+
+        private sealed class IngredientCategoryDraft
+        {
+            public string CategoryId;
+            public string DisplayName;
+            public Sprite Icon;
+            public string Description;
+
+            public static IngredientCategoryDraft From(IngredientCategorySO category)
+            {
+                SerializedObject serialized = new SerializedObject(category);
+                return new IngredientCategoryDraft
                 {
                     CategoryId = ReadString(serialized, "categoryId"),
                     DisplayName = ReadString(serialized, "displayName"),
@@ -1852,6 +1988,7 @@ namespace Work.Cook.Code.Editor
             public string IngredientId;
             public string DisplayName;
             public string Description;
+            public IngredientCategorySO Category;
             public List<FoodTagSO> BaseTags = new List<FoodTagSO>();
             public List<PreparationOptionDraft> PreparationOptions = new List<PreparationOptionDraft>();
 
@@ -1863,6 +2000,7 @@ namespace Work.Cook.Code.Editor
                     IngredientId = ReadString(serialized, "ingredientId"),
                     DisplayName = ReadString(serialized, "displayName"),
                     Description = ReadString(serialized, "description"),
+                    Category = ReadObject<IngredientCategorySO>(serialized, "category"),
                     BaseTags = ReadObjectArray<FoodTagSO>(serialized, "baseTags")
                 };
 
@@ -1894,19 +2032,16 @@ namespace Work.Cook.Code.Editor
         private sealed class IngredientRequirementDraft
         {
             public IngredientSO Ingredient;
+            public IngredientCategorySO IngredientCategory;
+            public List<FoodTagSO> RequiredTags = new List<FoodTagSO>();
+            public List<IngredientSO> SimpleAlternatives = new List<IngredientSO>();
             public List<IngredientAlternativeDraft> Alternatives = new List<IngredientAlternativeDraft>();
-
-            public bool ContainsAlternative(IngredientSO ingredient)
-            {
-                for (int i = 0; i < Alternatives.Count; i++)
-                {
-                    IngredientAlternativeDraft alternative = Alternatives[i];
-                    if (alternative != null && alternative.Ingredient == ingredient)
-                        return true;
-                }
-
-                return false;
-            }
+            public PreparationMethodSO RequiredPreparationMethod;
+            public int MinCount = 1;
+            public int MaxCount = 1;
+            public bool RecipeDefining = true;
+            public bool AutoApplyRequiredPreparation = true;
+            public bool RequireManualPreparation;
         }
 
         private sealed class IngredientAlternativeDraft

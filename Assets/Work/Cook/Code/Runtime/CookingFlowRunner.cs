@@ -23,6 +23,7 @@ namespace Work.Cook.Code.Runtime
             }
         }
 
+        public CookingDataCatalogSO Catalog => catalog;
         public CookingFlowState State => Controller.State;
         public DishResult LastResult => Controller.LastResult;
         public IReadOnlyList<RecipeSO> Recipes => Controller.Recipes;
@@ -49,6 +50,11 @@ namespace Work.Cook.Code.Runtime
             return Controller.BeginRecipeCooking(recipe);
         }
 
+        public bool BeginRecipeIngredientSelection(RecipeSO recipe)
+        {
+            return Controller.BeginRecipeIngredientSelection(recipe);
+        }
+
         public void BeginDirectSelection()
         {
             Controller.BeginDirectSelection();
@@ -62,6 +68,11 @@ namespace Work.Cook.Code.Runtime
         public bool AddDirectIngredient(IngredientSO ingredient)
         {
             return Controller.AddDirectIngredient(ingredient);
+        }
+
+        public bool AddRecipeIngredient(IngredientSO ingredient)
+        {
+            return Controller.AddRecipeIngredient(ingredient);
         }
 
         public bool RemoveDirectIngredient(IngredientSO ingredient)

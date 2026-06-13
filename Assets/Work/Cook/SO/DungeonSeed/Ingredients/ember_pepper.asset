@@ -15,6 +15,7 @@ MonoBehaviour:
   ingredientId: ember_pepper
   displayName: "\uC7BF\uBD88 \uACE0\uCD94"
   description: "\uD654\uC0B0 \uADE0\uC5F4 \uADFC\uCC98\uC5D0\uC11C \uC790\uB780 \uAC15\uD55C \uACE0\uCD94\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1012, type: 2}
   baseTags:
   - {fileID: 11400000, guid: 7e7eadd60ecb45a48cf13a0f1882c12b, type: 2}
   - {fileID: 11400000, guid: 0e58aec8594f447cbfe42c7acc6de3ad, type: 2}

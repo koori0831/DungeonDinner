@@ -106,16 +106,12 @@ namespace Work.Cook.Code.Runtime
             if (recipe == null || session == null)
                 return DishQuality.Disgusting;
 
-            bool hasNegativeQuality = false;
             bool hasAlteration = false;
             for (int i = 0; i < session.PreparedIngredients.Count; i++)
             {
                 PreparedIngredientState prepared = session.PreparedIngredients[i];
                 if (prepared == null)
                     continue;
-
-                if (prepared.QualityDelta < 0)
-                    hasNegativeQuality = true;
 
                 if (prepared.QualityDelta != 0 || string.IsNullOrWhiteSpace(prepared.ResultNameModifier) == false)
                     hasAlteration = true;
@@ -124,38 +120,7 @@ namespace Work.Cook.Code.Runtime
                     hasAlteration = true;
             }
 
-            if (recipe.HasPerfectPreparationRules && ArePerfectRulesSatisfied(recipe, session) && hasNegativeQuality == false)
-                return DishQuality.Perfect;
-
             return hasAlteration ? DishQuality.Altered : DishQuality.Normal;
-        }
-
-        private static bool ArePerfectRulesSatisfied(RecipeSO recipe, CookingSession session)
-        {
-            for (int ruleIndex = 0; ruleIndex < recipe.PerfectPreparationRules.Count; ruleIndex++)
-            {
-                RecipePreparationRule rule = recipe.PerfectPreparationRules[ruleIndex];
-                if (rule == null || rule.Ingredient == null || rule.PerfectMethod == null)
-                    return false;
-
-                bool matched = false;
-                for (int preparedIndex = 0; preparedIndex < session.PreparedIngredients.Count; preparedIndex++)
-                {
-                    PreparedIngredientState prepared = session.PreparedIngredients[preparedIndex];
-                    if (prepared != null
-                        && prepared.Method == rule.PerfectMethod
-                        && recipe.IsRequirementIngredientMatchedBy(rule.Ingredient, prepared.Ingredient))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-
-                if (matched == false)
-                    return false;
-            }
-
-            return true;
         }
 
         private static void AddTags(ICollection<FoodTagSO> target, IReadOnlyList<FoodTagSO> source)
