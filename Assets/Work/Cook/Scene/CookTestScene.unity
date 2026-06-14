@@ -1638,6 +1638,7 @@ MonoBehaviour:
   userChatGroupPrefab: {fileID: -7292607655039299636, guid: bd953314abaeeac438fd4154ecac5c8b, type: 3}
   npcChatGroupPrefab: {fileID: 7607601116747409603, guid: 8f119f8827e3066438dd6c081b828d28, type: 3}
   contentTrm: {fileID: 1630925111}
+  enableDebugHotkeys: 0
 --- !u!1 &102947265
 GameObject:
   m_ObjectHideFlags: 0
@@ -6914,6 +6915,77 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 514367291}
   m_CullTransparentMesh: 1
+--- !u!1 &532001614
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 532001615}
+  - component: {fileID: 532001616}
+  m_Layer: 0
+  m_Name: NpcConversationView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &532001615
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 532001614}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1156181641}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &532001616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 532001614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1775f6bb43d46608b3ca8cf4492fe7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Work.NPC.Code.Runtime.NpcConversationView
+  runner: {fileID: 1054664832}
+  chatPanel: {fileID: 89226530}
+  canvasGroup: {fileID: 0}
+  resolveReferencesOnEnable: 1
+  disableRunnerDirectChatOutput: 1
+  visibleOnEnable: 1
+  showWhenDialogueLinePlayed: 1
+  showWhenQuestionOptionsAvailable: 1
+  showWhenOrderReady: 1
+  hideWhenCookingStepReady: 0
+  hideWhenConversationCompleted: 0
+  showSpeakerNameInBubble: 1
+  completeTypingOnSubmit: 1
+  playerNameColor: '#9FD4FF'
+  npcNameColor: '#D6A85A'
+  conversationShown:
+    m_PersistentCalls:
+      m_Calls: []
+  conversationHidden:
+    m_PersistentCalls:
+      m_Calls: []
+  cookingStepReady:
+    m_PersistentCalls:
+      m_Calls: []
+  conversationCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &532299785
 GameObject:
   m_ObjectHideFlags: 0
@@ -13858,8 +13930,12 @@ MonoBehaviour:
   resourceFolder: NPCData
   startEventId: Novice_FirstVisit_SweetDrink
   chatPanel: {fileID: 89226530}
+  orderSlipPanel: {fileID: 0}
   playOnStart: 0
-  showSpeakerName: 1
+  showSpeakerName: 0
+  useDirectChatPanelOutput: 1
+  writeNpcBoldTextToOrderSlip: 1
+  autoCreateOrderSlipPanel: 1
   playerDisplayName: "\uD50C\uB808\uC774\uC5B4"
   lineDelay: 0.95
   useAffinityQuestionRules: 1
@@ -15147,6 +15223,7 @@ Transform:
   - {fileID: 1324290039}
   - {fileID: 1154906893}
   - {fileID: 1372214975}
+  - {fileID: 532001615}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1164697343
@@ -16571,8 +16648,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 211.15, y: -59.12}
-  m_SizeDelta: {x: 651.42, y: 303.06}
+  m_AnchoredPosition: {x: 101.91, y: -59.12}
+  m_SizeDelta: {x: 869.9, y: 303.06}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1269012766
 MonoBehaviour:

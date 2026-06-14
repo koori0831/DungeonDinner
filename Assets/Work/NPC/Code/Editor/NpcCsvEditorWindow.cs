@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using Work.Cook.Code.Data;
 using Work.NPC.Code.Runtime;
 
 namespace Work.NPC.Code.Editor
@@ -77,6 +78,51 @@ namespace Work.NPC.Code.Editor
             "RequestStateAfterSuccessResult"
         };
 
+        private static readonly Dictionary<string, string> DisplayLabels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "NpcId", "NPC ID" },
+            { "DisplayName", "표시 이름" },
+            { "Race", "종족" },
+            { "Role", "역할" },
+            { "PreferredTags", "선호 태그" },
+            { "PreferredFoodTypes", "선호 음식 종류" },
+            { "AvoidTags", "기피 태그" },
+            { "Notes", "메모" },
+            { "RequestAvailable", "요청 가능" },
+            { "RequestUnlockLevel", "요청 해금 레벨" },
+            { "RequestUnlockEvent", "요청 해금 이벤트" },
+            { "EventId", "이벤트 ID" },
+            { "Group", "대화 그룹" },
+            { "QuestionCategory", "질문 카테고리" },
+            { "LineOrder", "대사 순서" },
+            { "Speaker", "화자" },
+            { "Text", "대사" },
+            { "RegionId", "지역 ID" },
+            { "StartGroups", "시작 대화 그룹" },
+            { "QuestionLimit", "질문 가능 횟수" },
+            { "AvailableQuestionCategories", "사용 가능한 질문 카테고리" },
+            { "EventType", "이벤트 타입" },
+            { "Priority", "우선순위" },
+            { "RepeatMode", "반복 방식" },
+            { "CooldownDays", "재등장 대기일" },
+            { "RequiredNpcVisits", "필요 방문 횟수" },
+            { "RequiredAffinity", "필요 호감도" },
+            { "RequiredCorrectCount", "필요 정답 횟수" },
+            { "RequiredLastResult", "필요 이전 결과" },
+            { "RequiredEventIds", "필요 선행 이벤트" },
+            { "SequenceGroup", "연계 그룹" },
+            { "SequenceIndex", "연계 순서" },
+            { "CorrectRecipeId", "정답 레시피 ID" },
+            { "AllowedFoodTypes", "허용 음식 종류" },
+            { "RequiredTags", "필수 태그" },
+            { "DisgustingTags", "혐오 태그" },
+            { "RequiredRequestState", "필요 요청 상태" },
+            { "BlockedAtRequestState", "차단 요청 상태" },
+            { "RequestStateAfterEncounter", "만남 후 요청 상태" },
+            { "RequestSuccessResults", "요청 성공 결과" },
+            { "RequestStateAfterSuccessResult", "성공 후 요청 상태" }
+        };
+
         private readonly List<NpcDraft> _npcs = new List<NpcDraft>();
         private readonly List<DialogueDraft> _dialogues = new List<DialogueDraft>();
         private readonly List<VisitEventReference> _visitEvents = new List<VisitEventReference>();
@@ -84,6 +130,9 @@ namespace Work.NPC.Code.Editor
         private readonly List<string> _visibleEventIds = new List<string>();
         private readonly List<DialogueDraft> _visibleDialogues = new List<DialogueDraft>();
         private readonly List<string> _visitEventHeaders = new List<string>();
+        private readonly List<RecipeSO> _recipeAssets = new List<RecipeSO>();
+        private readonly List<FoodCategorySO> _foodCategoryAssets = new List<FoodCategorySO>();
+        private readonly List<FoodTagSO> _foodTagAssets = new List<FoodTagSO>();
 
         private Vector2 _npcListScroll;
         private Vector2 _npcDetailScroll;
@@ -108,6 +157,7 @@ namespace Work.NPC.Code.Editor
         private bool _showValidationPanel;
         private bool _hasValidationRun;
         private bool _validationIsStale;
+        private bool _cookingAssetsLoaded;
         private float _npcPanelWidth = 240f;
         private float _eventPanelWidth = 260f;
         private float _dialoguePanelWidth = 340f;
@@ -193,18 +243,18 @@ namespace Work.NPC.Code.Editor
             EditorGUILayout.BeginHorizontal();
 
             GUILayout.Label("NPC / 대사 CSV 에디터", EditorStyles.boldLabel, GUILayout.Width(190f));
-            GUILayout.Label($"NPCs: {_npcs.Count}", GUILayout.Width(90f));
-            GUILayout.Label($"Dialogue: {_dialogues.Count}", GUILayout.Width(120f));
+            GUILayout.Label($"NPC: {_npcs.Count}", GUILayout.Width(90f));
+            GUILayout.Label($"대사: {_dialogues.Count}", GUILayout.Width(120f));
 
             GUI.enabled = _hasUnsavedChanges;
-            if (GUILayout.Button("Save CSV", GUILayout.Width(100f)))
+            if (GUILayout.Button("CSV 저장", GUILayout.Width(100f)))
                 SaveData();
             GUI.enabled = true;
 
-            if (GUILayout.Button("Reload", GUILayout.Width(90f)))
+            if (GUILayout.Button("다시 불러오기", GUILayout.Width(100f)))
                 TryReloadWithPrompt();
 
-            if (GUILayout.Button("Validate", GUILayout.Width(90f)))
+            if (GUILayout.Button("검증", GUILayout.Width(70f)))
                 RunValidation();
 
             GUILayout.FlexibleSpace();
@@ -214,7 +264,7 @@ namespace Work.NPC.Code.Editor
                 alignment = TextAnchor.MiddleRight,
                 wordWrap = false
             };
-            GUILayout.Label(_hasUnsavedChanges ? "Unsaved changes" : "Saved", statusStyle, GUILayout.Width(140f));
+            GUILayout.Label(_hasUnsavedChanges ? "저장되지 않음" : "저장됨", statusStyle, GUILayout.Width(140f));
             EditorGUILayout.EndHorizontal();
 
             if (_hasValidationRun)
@@ -235,10 +285,10 @@ namespace Work.NPC.Code.Editor
 
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
-            _showValidationPanel = EditorGUILayout.Foldout(_showValidationPanel, "Validation Results", true);
+            _showValidationPanel = EditorGUILayout.Foldout(_showValidationPanel, "검증 결과", true);
             GUILayout.Label(GetValidationSummaryText(), EditorStyles.miniLabel);
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Clear", GUILayout.Width(70f)))
+            if (GUILayout.Button("지우기", GUILayout.Width(70f)))
             {
                 _validationIssues.Clear();
                 _hasValidationRun = false;
@@ -254,7 +304,7 @@ namespace Work.NPC.Code.Editor
             {
                 if (_validationIssues.Count == 0)
                 {
-                    EditorGUILayout.HelpBox("No validation issues found.", MessageType.Info);
+                    EditorGUILayout.HelpBox("검증 문제가 없습니다.", MessageType.Info);
                 }
                 else
                 {
@@ -293,7 +343,7 @@ namespace Work.NPC.Code.Editor
             int errors = CountValidationIssues(CsvValidationSeverity.Error);
             int warnings = CountValidationIssues(CsvValidationSeverity.Warning);
             int infos = CountValidationIssues(CsvValidationSeverity.Info);
-            _statusMessage = $"Validation complete. Errors {errors}, Warnings {warnings}, Infos {infos}.";
+            _statusMessage = $"검증 완료. 오류 {errors}개, 경고 {warnings}개, 정보 {infos}개.";
             Repaint();
         }
 
@@ -346,7 +396,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Error,
                     "DuplicateNpcId",
-                    $"Duplicate NPC ID '{duplicateGroup.Key}'.",
+                    $"중복된 NPC ID입니다: '{duplicateGroup.Key}'.",
                     duplicateGroup.Key);
             }
 
@@ -380,7 +430,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Error,
                     "DuplicateVisitEventId",
-                    $"Duplicate VisitEvents EventId '{duplicateGroup.Key}'.",
+                    $"VisitEvents에 중복된 EventId가 있습니다: '{duplicateGroup.Key}'.",
                     first.NpcId,
                     duplicateGroup.Key);
             }
@@ -393,7 +443,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "VisitEventIdEmpty",
-                        "VisitEvents row has an empty EventId.",
+                        "VisitEvents 행의 EventId가 비어 있습니다.",
                         visitEvent.NpcId);
                 }
 
@@ -403,7 +453,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "VisitEventNpcIdEmpty",
-                        "VisitEvents row has an empty NpcId.",
+                        "VisitEvents 행의 NpcId가 비어 있습니다.",
                         eventId: visitEvent.EventId);
                     continue;
                 }
@@ -415,7 +465,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Error,
                     "VisitEventNpcMissing",
-                    $"Visit event references unknown NPC '{visitEvent.NpcId}'.",
+                    $"방문 이벤트가 존재하지 않는 NPC를 참조합니다: '{visitEvent.NpcId}'.",
                     visitEvent.NpcId,
                     visitEvent.EventId);
             }
@@ -436,7 +486,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Warning,
                         "QuestionCategoryIdEmpty",
-                        "Question category row has an empty CategoryId.");
+                        "질문 카테고리 행의 CategoryId가 비어 있습니다.");
                     continue;
                 }
 
@@ -446,7 +496,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Warning,
                         "QuestionDialogueGroupEmpty",
-                        $"Question category '{categoryId}' has an empty DialogueGroup.");
+                        $"질문 카테고리 '{categoryId}'의 DialogueGroup이 비어 있습니다.");
                     continue;
                 }
 
@@ -468,7 +518,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "NpcIdEmpty",
-                        "NPC row has an empty NpcId.");
+                        "NPC 행의 NpcId가 비어 있습니다.");
                     continue;
                 }
 
@@ -480,7 +530,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "RequestUnlockEventMissing",
-                        $"NPC request unlock event '{npc.RequestUnlockEvent}' does not exist.",
+                        $"NPC 요청 해금 이벤트가 존재하지 않습니다: '{npc.RequestUnlockEvent}'.",
                         npc.NpcId,
                         npc.RequestUnlockEvent);
                 }
@@ -500,7 +550,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "DialogueEventIdEmpty",
-                        "Dialogue line has an empty EventId.",
+                        "대사 줄의 EventId가 비어 있습니다.",
                         dialogue);
                 }
 
@@ -510,7 +560,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "DialogueGroupEmpty",
-                        "Dialogue line has an empty Group.",
+                        "대사 줄의 Group이 비어 있습니다.",
                         dialogue);
                 }
 
@@ -520,7 +570,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "DialogueLineOrderInvalid",
-                        "Dialogue line order must be greater than 0.",
+                        "대사 순서는 0보다 커야 합니다.",
                         dialogue);
                 }
 
@@ -530,7 +580,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "DialogueSpeakerEmpty",
-                        "Dialogue line has an empty Speaker.",
+                        "대사 줄의 Speaker가 비어 있습니다.",
                         dialogue);
                 }
                 else if (IsPlayerSpeaker(dialogue.Speaker) == false && npcById.ContainsKey(dialogue.Speaker) == false)
@@ -539,7 +589,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "DialogueSpeakerMissing",
-                        $"Dialogue line references unknown speaker '{dialogue.Speaker}'.",
+                        $"대사 줄이 존재하지 않는 화자를 참조합니다: '{dialogue.Speaker}'.",
                         dialogue);
                 }
 
@@ -549,7 +599,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Warning,
                         "DialogueTextEmpty",
-                        "Dialogue line has empty Text.",
+                        "대사 줄의 Text가 비어 있습니다.",
                         dialogue);
                 }
 
@@ -559,7 +609,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "BoldMarkerUnbalanced",
-                        "Dialogue Text has an unmatched bold marker '**'.",
+                        "대사 Text에 짝이 맞지 않는 볼드 마커 '**'가 있습니다.",
                         dialogue);
                 }
             }
@@ -575,7 +625,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Warning,
                         "DialogueEventUnlinked",
-                        $"Dialogue event '{eventGroup.Key}' is not linked from VisitEvents.csv.",
+                        $"대사 이벤트 '{eventGroup.Key}'가 VisitEvents.csv에 연결되어 있지 않습니다.",
                         first);
                 }
             }
@@ -601,7 +651,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Error,
                     "DialogueLineOrderDuplicate",
-                    $"Duplicate LineOrder {duplicateGroup.Key} in {first.EventId}/{first.Group}.",
+                    $"{first.EventId}/{first.Group} 안에 중복된 LineOrder {duplicateGroup.Key}가 있습니다.",
                     first);
             }
 
@@ -623,7 +673,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Warning,
                     "DialogueLineOrderGap",
-                    $"LineOrder gap in {first.EventId}/{first.Group}. Expected {expected}, found {orders[i]}.",
+                    $"{first.EventId}/{first.Group}의 LineOrder가 이어지지 않습니다. 예상 {expected}, 실제 {orders[i]}.",
                     first);
                 break;
             }
@@ -652,7 +702,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "VisitEventDialogueMissing",
-                        "Visit event has no dialogue lines.",
+                        "방문 이벤트에 연결된 대사가 없습니다.",
                         visitEvent.NpcId,
                         visitEvent.EventId);
                     continue;
@@ -680,7 +730,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "RequiredEventSelfReference",
-                        "Visit event requires itself.",
+                        "방문 이벤트가 자기 자신을 선행 이벤트로 요구하고 있습니다.",
                         visitEvent.NpcId,
                         visitEvent.EventId);
                     continue;
@@ -693,7 +743,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Error,
                     "RequiredEventMissing",
-                    $"Required event '{requiredEventId}' does not exist.",
+                    $"필요 선행 이벤트가 존재하지 않습니다: '{requiredEventId}'.",
                     visitEvent.NpcId,
                     visitEvent.EventId);
             }
@@ -713,7 +763,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Warning,
                     "StartDialogueGroupMissing",
-                    $"Start group '{startGroup}' is missing from DialogueLines.csv.",
+                    $"시작 그룹 '{startGroup}'이 DialogueLines.csv에 없습니다.",
                     visitEvent.NpcId,
                     visitEvent.EventId,
                     startGroup);
@@ -726,7 +776,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Warning,
                     "QuestionCategoriesEmpty",
-                    "Visit event has QuestionLimit but no AvailableQuestionCategories.",
+                    "방문 이벤트에 QuestionLimit은 있지만 AvailableQuestionCategories가 비어 있습니다.",
                     visitEvent.NpcId,
                     visitEvent.EventId);
             }
@@ -737,7 +787,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Warning,
                     "QuestionLimitExceedsCategories",
-                    $"QuestionLimit {visitEvent.QuestionLimit} is greater than available category count {availableQuestionCategories.Count}.",
+                    $"QuestionLimit {visitEvent.QuestionLimit}이 사용 가능한 카테고리 수 {availableQuestionCategories.Count}보다 큽니다.",
                     visitEvent.NpcId,
                     visitEvent.EventId);
             }
@@ -750,7 +800,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "QuestionCategoryMissing",
-                        $"Question category '{categoryId}' does not exist.",
+                        $"질문 카테고리가 존재하지 않습니다: '{categoryId}'.",
                         visitEvent.NpcId,
                         visitEvent.EventId);
                     continue;
@@ -763,7 +813,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Warning,
                     "QuestionDialogueGroupMissing",
-                    $"Question group '{dialogueGroup}' for category '{categoryId}' is missing.",
+                    $"카테고리 '{categoryId}'에 연결된 질문 그룹 '{dialogueGroup}'이 없습니다.",
                     visitEvent.NpcId,
                     visitEvent.EventId,
                     dialogueGroup);
@@ -791,7 +841,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Warning,
                     "ResultDialogueGroupMissing",
-                    $"Result group '{group}' is missing.",
+                    $"결과 그룹 '{group}'이 없습니다.",
                     visitEvent.NpcId,
                     visitEvent.EventId,
                     group);
@@ -811,7 +861,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Warning,
                     "RepeatModeShouldBeOnce",
-                    "First, Sequence, and Request events usually should use RepeatMode Once.",
+                    "첫 방문, 연계, 요청 이벤트는 보통 RepeatMode를 Once로 설정하는 것이 좋습니다.",
                     visitEvent.NpcId,
                     visitEvent.EventId);
             }
@@ -824,7 +874,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Warning,
                         "SequenceGroupEmpty",
-                        "Sequence event has an empty SequenceGroup.",
+                        "연계 이벤트의 SequenceGroup이 비어 있습니다.",
                         visitEvent.NpcId,
                         visitEvent.EventId);
                 }
@@ -835,7 +885,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Warning,
                         "SequenceIndexInvalid",
-                        "Sequence event needs SequenceIndex greater than 0.",
+                        "연계 이벤트는 0보다 큰 SequenceIndex가 필요합니다.",
                         visitEvent.NpcId,
                         visitEvent.EventId);
                 }
@@ -859,7 +909,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Warning,
                         "SequenceDuplicateIndex",
-                        $"Duplicate SequenceIndex {duplicateIndex.Key} in group '{group.Key}'.",
+                        $"연계 그룹 '{group.Key}' 안에 중복된 SequenceIndex {duplicateIndex.Key}가 있습니다.",
                         first.NpcId,
                         first.EventId);
                 }
@@ -885,7 +935,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Warning,
                     "RequestEventMissing",
-                    "NPC has RequestAvailable but no Request visit event.",
+                    "NPC는 RequestAvailable 상태지만 Request 방문 이벤트가 없습니다.",
                     npc.NpcId);
             }
         }
@@ -908,7 +958,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "RegionPoolNpcIdEmpty",
-                        "Region pool row has an empty NpcId.");
+                        "지역 풀 행의 NpcId가 비어 있습니다.");
                     continue;
                 }
 
@@ -918,7 +968,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Error,
                         "RegionPoolNpcMissing",
-                        $"Region pool references unknown NPC '{npcId}'.",
+                        $"지역 풀이 존재하지 않는 NPC를 참조합니다: '{npcId}'.",
                         npcId);
                 }
 
@@ -928,7 +978,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Warning,
                         "RegionPoolWeightInvalid",
-                        "Region pool Weight should be greater than 0.",
+                        "지역 풀 Weight는 0보다 커야 합니다.",
                         npcId);
                 }
 
@@ -942,7 +992,7 @@ namespace Work.NPC.Code.Editor
                         issues,
                         CsvValidationSeverity.Warning,
                         "RegionPoolNpcHasNoEvents",
-                        $"NPC '{npcId}' is in region '{regionId}' but has no matching visit event.",
+                        $"NPC '{npcId}'는 지역 '{regionId}'에 포함되어 있지만 일치하는 방문 이벤트가 없습니다.",
                         npcId);
                 }
             }
@@ -958,7 +1008,7 @@ namespace Work.NPC.Code.Editor
                     issues,
                     CsvValidationSeverity.Warning,
                     "RegionPoolDuplicateNpc",
-                    $"NPC '{Get(first, "NpcId")}' appears more than once in region '{Get(first, "RegionId")}'.",
+                    $"NPC '{Get(first, "NpcId")}'가 지역 '{Get(first, "RegionId")}'에 두 번 이상 등장합니다.",
                     Get(first, "NpcId"));
             }
         }
@@ -993,7 +1043,7 @@ namespace Work.NPC.Code.Editor
             if (dialogue != null)
                 SelectDialogue(dialogue);
 
-            _statusMessage = $"Selected validation issue: {issue.Code}";
+            _statusMessage = $"검증 항목 선택됨: {issue.Code}";
             Repaint();
         }
 
@@ -1160,8 +1210,8 @@ namespace Work.NPC.Code.Editor
             int errors = CountValidationIssues(CsvValidationSeverity.Error);
             int warnings = CountValidationIssues(CsvValidationSeverity.Warning);
             int infos = CountValidationIssues(CsvValidationSeverity.Info);
-            string stale = _validationIsStale ? " (stale)" : string.Empty;
-            return $"Validation{stale}: {errors} errors, {warnings} warnings, {infos} infos";
+            string stale = _validationIsStale ? " (다시 검증 필요)" : string.Empty;
+            return $"검증{stale}: 오류 {errors}개, 경고 {warnings}개, 정보 {infos}개";
         }
 
         private static string GetValidationSeverityLabel(CsvValidationSeverity severity)
@@ -1169,11 +1219,11 @@ namespace Work.NPC.Code.Editor
             switch (severity)
             {
                 case CsvValidationSeverity.Error:
-                    return "ERROR";
+                    return "오류";
                 case CsvValidationSeverity.Warning:
-                    return "WARN";
+                    return "경고";
                 default:
-                    return "INFO";
+                    return "정보";
             }
         }
 
@@ -1216,13 +1266,13 @@ namespace Work.NPC.Code.Editor
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(width), GUILayout.ExpandHeight(true));
             GUILayout.Label("NPC 목록", EditorStyles.boldLabel);
-            _npcSearch = EditorGUILayout.TextField("Search", _npcSearch);
+            _npcSearch = EditorGUILayout.TextField("검색", _npcSearch);
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Add NPC"))
+            if (GUILayout.Button("NPC 추가"))
                 AddNpc();
             GUI.enabled = _selectedNpc != null;
-            if (GUILayout.Button("Delete"))
+            if (GUILayout.Button("삭제"))
                 DeleteSelectedNpc();
             GUI.enabled = true;
             EditorGUILayout.EndHorizontal();
@@ -1241,7 +1291,7 @@ namespace Work.NPC.Code.Editor
             EditorGUILayout.EndScrollView();
 
             EditorGUILayout.Space(6f);
-            _showNpcDetail = EditorGUILayout.Foldout(_showNpcDetail, "Selected NPC Detail", true);
+            _showNpcDetail = EditorGUILayout.Foldout(_showNpcDetail, "선택한 NPC 상세", true);
             if (_showNpcDetail)
                 DrawNpcDetailFields();
 
@@ -1267,7 +1317,7 @@ namespace Work.NPC.Code.Editor
             DrawNpcTextArea("Notes", ref _selectedNpc.Notes, 52f);
 
             EditorGUILayout.Space(6f);
-            GUILayout.Label("Request", EditorStyles.boldLabel);
+            GUILayout.Label("요청", EditorStyles.boldLabel);
             DrawNpcBoolField("RequestAvailable", ref _selectedNpc.RequestAvailable);
             DrawNpcIntField("RequestUnlockLevel", ref _selectedNpc.RequestUnlockLevel);
             DrawNpcTextField("RequestUnlockEvent", ref _selectedNpc.RequestUnlockEvent);
@@ -1300,7 +1350,7 @@ namespace Work.NPC.Code.Editor
             DrawNpcTextArea("Notes", ref _selectedNpc.Notes, 58f);
 
             EditorGUILayout.Space(8f);
-            GUILayout.Label("Request", EditorStyles.boldLabel);
+            GUILayout.Label("요청", EditorStyles.boldLabel);
             DrawNpcBoolField("RequestAvailable", ref _selectedNpc.RequestAvailable);
             DrawNpcIntField("RequestUnlockLevel", ref _selectedNpc.RequestUnlockLevel);
             DrawNpcTextField("RequestUnlockEvent", ref _selectedNpc.RequestUnlockEvent);
@@ -1314,7 +1364,7 @@ namespace Work.NPC.Code.Editor
         private void DrawEventListPanel(float width)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(width), GUILayout.ExpandHeight(true));
-            GUILayout.Label("Event", EditorStyles.boldLabel);
+            GUILayout.Label("이벤트", EditorStyles.boldLabel);
 
             if (_selectedNpc == null)
             {
@@ -1325,14 +1375,14 @@ namespace Work.NPC.Code.Editor
 
             DrawSelectedNpcSummary();
             BuildVisibleEventList();
-            GUILayout.Label($"{_selectedNpc.NpcId} / Events: {_visibleEventIds.Count}", EditorStyles.miniLabel);
+            GUILayout.Label($"{_selectedNpc.NpcId} / 이벤트: {_visibleEventIds.Count}", EditorStyles.miniLabel);
 
             EditorGUILayout.BeginHorizontal();
             _newEventId = EditorGUILayout.TextField(_newEventId);
-            if (GUILayout.Button("Add Event", GUILayout.Width(82f)))
+            if (GUILayout.Button("이벤트 추가", GUILayout.Width(92f)))
                 AddEvent();
             GUI.enabled = string.IsNullOrWhiteSpace(_selectedEventId) == false;
-            if (GUILayout.Button("Delete", GUILayout.Width(60f)))
+            if (GUILayout.Button("삭제", GUILayout.Width(60f)))
                 DeleteSelectedEvent();
             GUI.enabled = true;
             EditorGUILayout.EndHorizontal();
@@ -1344,14 +1394,14 @@ namespace Work.NPC.Code.Editor
                 int lineCount = _dialogues.Count(line => string.Equals(line.EventId, eventId, StringComparison.OrdinalIgnoreCase));
                 int npcLineCount = _dialogues.Count(line => string.Equals(line.EventId, eventId, StringComparison.OrdinalIgnoreCase)
                                                             && string.Equals(line.Speaker, _selectedNpc.NpcId, StringComparison.OrdinalIgnoreCase));
-                string label = $"{eventId}\nLines {lineCount} / NPC {npcLineCount}";
+                string label = $"{eventId}\n대사 {lineCount} / NPC {npcLineCount}";
                 if (GUILayout.Toggle(selected, label, "Button") != selected)
                     SelectEvent(eventId);
             }
             EditorGUILayout.EndScrollView();
 
             if (_visibleEventIds.Count == 0)
-                EditorGUILayout.HelpBox("이 NPC와 연결된 이벤트가 없습니다. Add Line으로 새 이벤트 대사를 만들 수 있습니다.", MessageType.Info);
+                EditorGUILayout.HelpBox("이 NPC와 연결된 이벤트가 없습니다. 대사 추가로 새 이벤트 대사를 만들 수 있습니다.", MessageType.Info);
 
             EditorGUILayout.Space(6f);
             DrawVisitEventDetailFields();
@@ -1360,16 +1410,16 @@ namespace Work.NPC.Code.Editor
 
         private void DrawVisitEventDetailFields()
         {
-            _showVisitEventDetail = EditorGUILayout.Foldout(_showVisitEventDetail, "Selected Visit Event", true);
+            _showVisitEventDetail = EditorGUILayout.Foldout(_showVisitEventDetail, "선택한 방문 이벤트", true);
             if (_showVisitEventDetail == false)
                 return;
 
             VisitEventReference visitEvent = GetSelectedVisitEvent();
             if (visitEvent == null)
             {
-                EditorGUILayout.HelpBox("VisitEvents.csv에 연결되지 않은 이벤트입니다. Create Link를 누르면 기본 이벤트 메타를 생성합니다.", MessageType.Warning);
+                EditorGUILayout.HelpBox("VisitEvents.csv에 연결되지 않은 이벤트입니다. VisitEvent 연결 생성을 누르면 기본 이벤트 메타를 생성합니다.", MessageType.Warning);
                 GUI.enabled = string.IsNullOrWhiteSpace(_selectedEventId) == false && _selectedNpc != null;
-                if (GUILayout.Button("Create VisitEvent Link"))
+                if (GUILayout.Button("VisitEvent 연결 생성"))
                     CreateVisitEventForSelectedEvent();
                 GUI.enabled = true;
                 return;
@@ -1395,7 +1445,8 @@ namespace Work.NPC.Code.Editor
             DrawVisitEventIntField("SequenceIndex", visitEvent, "SequenceIndex", ref visitEvent.SequenceIndex);
 
             EditorGUILayout.Space(6f);
-            GUILayout.Label("Order Contract", EditorStyles.boldLabel);
+            GUILayout.Label("주문 조건", EditorStyles.boldLabel);
+            DrawVisitEventOrderContractSoFields(visitEvent);
             DrawVisitEventTextField("CorrectRecipeId", visitEvent, "CorrectRecipeId", ref visitEvent.CorrectRecipeId);
             DrawVisitEventTextField("AllowedFoodTypes", visitEvent, "AllowedFoodTypes", ref visitEvent.AllowedFoodTypes);
             DrawVisitEventTextField("RequiredTags", visitEvent, "RequiredTags", ref visitEvent.RequiredTags);
@@ -1404,7 +1455,7 @@ namespace Work.NPC.Code.Editor
             DrawVisitEventTextField("DisgustingTags", visitEvent, "DisgustingTags", ref visitEvent.DisgustingTags);
 
             EditorGUILayout.Space(6f);
-            GUILayout.Label("Request State", EditorStyles.boldLabel);
+            GUILayout.Label("요청 상태", EditorStyles.boldLabel);
             DrawVisitEventTextField("RequiredRequestState", visitEvent, "RequiredRequestState", ref visitEvent.RequiredRequestState);
             DrawVisitEventTextField("BlockedAtRequestState", visitEvent, "BlockedAtRequestState", ref visitEvent.BlockedAtRequestState);
             DrawVisitEventTextField("RequestStateAfterEncounter", visitEvent, "RequestStateAfterEncounter", ref visitEvent.RequestStateAfterEncounter);
@@ -1417,14 +1468,14 @@ namespace Work.NPC.Code.Editor
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(width), GUILayout.ExpandHeight(true));
             GUILayout.Label("관련 대사", EditorStyles.boldLabel);
-            _dialogueSearch = EditorGUILayout.TextField("Search", _dialogueSearch);
+            _dialogueSearch = EditorGUILayout.TextField("검색", _dialogueSearch);
 
             EditorGUILayout.BeginHorizontal();
             GUI.enabled = _selectedNpc != null;
-            if (GUILayout.Button("Add Line"))
+            if (GUILayout.Button("대사 추가"))
                 AddDialogueLine();
             GUI.enabled = _selectedDialogue != null;
-            if (GUILayout.Button("Delete"))
+            if (GUILayout.Button("삭제"))
                 DeleteSelectedDialogue();
             GUI.enabled = true;
             EditorGUILayout.EndHorizontal();
@@ -1437,7 +1488,7 @@ namespace Work.NPC.Code.Editor
             }
 
             BuildVisibleDialogueList();
-            GUILayout.Label($"{_selectedEventId} / Shown: {_visibleDialogues.Count}", EditorStyles.miniLabel);
+            GUILayout.Label($"{_selectedEventId} / 표시 중: {_visibleDialogues.Count}", EditorStyles.miniLabel);
 
             _dialogueListScroll = EditorGUILayout.BeginScrollView(_dialogueListScroll);
             foreach (DialogueDraft dialogue in _visibleDialogues)
@@ -1520,7 +1571,7 @@ namespace Work.NPC.Code.Editor
 
             if (_selectedDialogue == null)
             {
-                EditorGUILayout.HelpBox("대사를 선택하거나 Add Line으로 새 대사를 추가하세요.", MessageType.Info);
+                EditorGUILayout.HelpBox("대사를 선택하거나 대사 추가로 새 대사를 추가하세요.", MessageType.Info);
                 EditorGUILayout.EndVertical();
                 return;
             }
@@ -1533,7 +1584,7 @@ namespace Work.NPC.Code.Editor
             DrawDialogueTextField("Speaker", ref _selectedDialogue.Speaker);
 
             EditorGUILayout.Space(8f);
-            GUILayout.Label("Text", EditorStyles.boldLabel);
+            GUILayout.Label("대사", EditorStyles.boldLabel);
             string textControlName = GetDialogueTextControlName(_selectedDialogue);
             GUIStyle textAreaStyle = GetDialogueTextAreaStyle();
             Rect textAreaRect = GUILayoutUtility.GetRect(GUIContent.none, textAreaStyle, GUILayout.Height(120f), GUILayout.ExpandWidth(true));
@@ -1544,7 +1595,7 @@ namespace Work.NPC.Code.Editor
             {
                 _selectedDialogue.Text = text;
                 ResetDialogueTextSelection();
-                MarkDirty("대사 Text 수정됨");
+                MarkDirty("대사 수정됨");
             }
             CaptureDialogueTextSelection(textControlName);
 
@@ -1623,9 +1674,9 @@ namespace Work.NPC.Code.Editor
             string displayName = string.IsNullOrWhiteSpace(_selectedNpc.DisplayName) ? _selectedNpc.NpcId : _selectedNpc.DisplayName;
             string summary =
                 $"{displayName} ({_selectedNpc.NpcId})\n" +
-                $"Race: {ValueOrDash(_selectedNpc.Race)} / Role: {ValueOrDash(_selectedNpc.Role)}\n" +
-                $"Food: {ValueOrDash(_selectedNpc.PreferredFoodTypes)}\n" +
-                $"Tags: {ValueOrDash(_selectedNpc.PreferredTags)}";
+                $"종족: {ValueOrDash(_selectedNpc.Race)} / 역할: {ValueOrDash(_selectedNpc.Role)}\n" +
+                $"음식 종류: {ValueOrDash(_selectedNpc.PreferredFoodTypes)}\n" +
+                $"태그: {ValueOrDash(_selectedNpc.PreferredTags)}";
             EditorGUILayout.HelpBox(summary, MessageType.None);
         }
 
@@ -1636,7 +1687,7 @@ namespace Work.NPC.Code.Editor
 
             string oldNpcId = npc.NpcId;
             EditorGUI.BeginChangeCheck();
-            string next = EditorGUILayout.TextField("NpcId", npc.NpcId);
+            string next = EditorGUILayout.TextField(ToDisplayLabel("NpcId"), npc.NpcId);
             if (EditorGUI.EndChangeCheck())
                 RenameNpcId(npc, oldNpcId, next);
         }
@@ -1644,23 +1695,23 @@ namespace Work.NPC.Code.Editor
         private void DrawNpcTextField(string label, ref string value)
         {
             EditorGUI.BeginChangeCheck();
-            string next = EditorGUILayout.TextField(label, value);
+            string next = EditorGUILayout.TextField(ToDisplayLabel(label), value);
             if (EditorGUI.EndChangeCheck())
             {
                 value = next;
-                MarkDirty($"{label} 수정됨");
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
             }
         }
 
         private void DrawNpcTextArea(string label, ref string value, float height)
         {
-            GUILayout.Label(label);
+            GUILayout.Label(ToDisplayLabel(label));
             EditorGUI.BeginChangeCheck();
             string next = EditorGUILayout.TextArea(value, GUILayout.Height(height));
             if (EditorGUI.EndChangeCheck())
             {
                 value = next;
-                MarkDirty($"{label} 수정됨");
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
             }
         }
 
@@ -1675,29 +1726,29 @@ namespace Work.NPC.Code.Editor
         private void DrawNpcBoolField(string label, ref bool value)
         {
             EditorGUI.BeginChangeCheck();
-            bool next = EditorGUILayout.Toggle(label, value);
+            bool next = EditorGUILayout.Toggle(ToDisplayLabel(label), value);
             if (EditorGUI.EndChangeCheck())
             {
                 value = next;
-                MarkDirty($"{label} 수정됨");
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
             }
         }
 
         private void DrawNpcIntField(string label, ref int value)
         {
             EditorGUI.BeginChangeCheck();
-            int next = EditorGUILayout.IntField(label, value);
+            int next = EditorGUILayout.IntField(ToDisplayLabel(label), value);
             if (EditorGUI.EndChangeCheck())
             {
                 value = Mathf.Max(0, next);
-                MarkDirty($"{label} 수정됨");
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
             }
         }
 
         private void DrawDialogueTextField(string label, ref string value)
         {
             EditorGUI.BeginChangeCheck();
-            string next = EditorGUILayout.TextField(label, value);
+            string next = EditorGUILayout.TextField(ToDisplayLabel(label), value);
             if (EditorGUI.EndChangeCheck())
             {
                 value = next;
@@ -1708,7 +1759,7 @@ namespace Work.NPC.Code.Editor
         private void DrawDialogueIntField(string label, ref int value)
         {
             EditorGUI.BeginChangeCheck();
-            int next = EditorGUILayout.IntField(label, value);
+            int next = EditorGUILayout.IntField(ToDisplayLabel(label), value);
             if (EditorGUI.EndChangeCheck())
             {
                 value = Mathf.Max(0, next);
@@ -1720,32 +1771,278 @@ namespace Work.NPC.Code.Editor
         {
             string oldEventId = visitEvent.EventId;
             EditorGUI.BeginChangeCheck();
-            string next = EditorGUILayout.TextField("EventId", visitEvent.EventId);
+            string next = EditorGUILayout.TextField(ToDisplayLabel("EventId"), visitEvent.EventId);
             if (EditorGUI.EndChangeCheck())
                 RenameVisitEventId(visitEvent, oldEventId, next);
+        }
+
+        private void DrawVisitEventOrderContractSoFields(VisitEventReference visitEvent)
+        {
+            EnsureCookingAssetsLoaded();
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label("SO 선택", EditorStyles.boldLabel);
+            if (GUILayout.Button("새로고침", GUILayout.Width(80f)))
+                ReloadCookingAssets();
+            EditorGUILayout.EndHorizontal();
+
+            if (_recipeAssets.Count == 0 && _foodCategoryAssets.Count == 0 && _foodTagAssets.Count == 0)
+            {
+                EditorGUILayout.HelpBox("요리 ScriptableObject를 찾지 못했습니다. 먼저 RecipeSO, FoodCategorySO, FoodTagSO 에셋을 만들어주세요.", MessageType.Info);
+                EditorGUILayout.EndVertical();
+                return;
+            }
+
+            DrawRecipeObjectField(visitEvent);
+            DrawCategoryObjectListField(visitEvent, "허용 음식 종류", "AllowedFoodTypes", ref visitEvent.AllowedFoodTypes);
+            DrawTagObjectListField(visitEvent, "필수 태그", "RequiredTags", ref visitEvent.RequiredTags);
+            DrawTagObjectListField(visitEvent, "선호 태그", "PreferredTags", ref visitEvent.PreferredTags);
+            DrawTagObjectListField(visitEvent, "기피 태그", "AvoidTags", ref visitEvent.AvoidTags);
+            DrawTagObjectListField(visitEvent, "혐오 태그", "DisgustingTags", ref visitEvent.DisgustingTags);
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawRecipeObjectField(VisitEventReference visitEvent)
+        {
+            RecipeSO current = FindRecipeById(visitEvent.CorrectRecipeId);
+            EditorGUI.BeginChangeCheck();
+            RecipeSO next = (RecipeSO)EditorGUILayout.ObjectField("정답 레시피", current, typeof(RecipeSO), false);
+            if (EditorGUI.EndChangeCheck())
+                SetVisitEventRawValue(visitEvent, "CorrectRecipeId", ref visitEvent.CorrectRecipeId, next != null ? next.RecipeId : string.Empty);
+
+            if (string.IsNullOrWhiteSpace(visitEvent.CorrectRecipeId) == false && current == null)
+                EditorGUILayout.HelpBox($"해당 ID의 RecipeSO를 찾지 못했습니다: {visitEvent.CorrectRecipeId}", MessageType.Warning);
+        }
+
+        private void DrawCategoryObjectListField(VisitEventReference visitEvent, string label, string columnName, ref string value)
+        {
+            List<string> ids = ParseIdList(value);
+            bool changed = false;
+
+            GUILayout.Label(label, EditorStyles.miniBoldLabel);
+            for (int i = 0; i < ids.Count; i++)
+            {
+                FoodCategorySO current = FindFoodCategoryById(ids[i]);
+                EditorGUILayout.BeginHorizontal();
+                EditorGUI.BeginChangeCheck();
+                FoodCategorySO next = (FoodCategorySO)EditorGUILayout.ObjectField(current, typeof(FoodCategorySO), false);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    ids[i] = next != null ? next.CategoryId : string.Empty;
+                    changed = true;
+                }
+
+                if (GUILayout.Button("삭제", GUILayout.Width(70f)))
+                {
+                    ids.RemoveAt(i);
+                    changed = true;
+                    i--;
+                }
+
+                EditorGUILayout.EndHorizontal();
+
+                if (current == null && i >= 0 && i < ids.Count && string.IsNullOrWhiteSpace(ids[i]) == false)
+                    EditorGUILayout.HelpBox($"해당 ID의 FoodCategorySO를 찾지 못했습니다: {ids[i]}", MessageType.Warning);
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Space(18f);
+            EditorGUI.BeginChangeCheck();
+            FoodCategorySO added = (FoodCategorySO)EditorGUILayout.ObjectField("추가", null, typeof(FoodCategorySO), false);
+            if (EditorGUI.EndChangeCheck() && added != null && ContainsId(ids, added.CategoryId) == false)
+            {
+                ids.Add(added.CategoryId);
+                changed = true;
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            if (changed)
+                SetVisitEventRawValue(visitEvent, columnName, ref value, BuildIdList(ids));
+        }
+
+        private void DrawTagObjectListField(VisitEventReference visitEvent, string label, string columnName, ref string value)
+        {
+            List<string> ids = ParseIdList(value);
+            bool changed = false;
+
+            GUILayout.Label(label, EditorStyles.miniBoldLabel);
+            for (int i = 0; i < ids.Count; i++)
+            {
+                FoodTagSO current = FindFoodTagById(ids[i]);
+                EditorGUILayout.BeginHorizontal();
+                EditorGUI.BeginChangeCheck();
+                FoodTagSO next = (FoodTagSO)EditorGUILayout.ObjectField(current, typeof(FoodTagSO), false);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    ids[i] = next != null ? next.TagId : string.Empty;
+                    changed = true;
+                }
+
+                if (GUILayout.Button("삭제", GUILayout.Width(70f)))
+                {
+                    ids.RemoveAt(i);
+                    changed = true;
+                    i--;
+                }
+
+                EditorGUILayout.EndHorizontal();
+
+                if (current == null && i >= 0 && i < ids.Count && string.IsNullOrWhiteSpace(ids[i]) == false)
+                    EditorGUILayout.HelpBox($"해당 ID의 FoodTagSO를 찾지 못했습니다: {ids[i]}", MessageType.Warning);
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Space(18f);
+            EditorGUI.BeginChangeCheck();
+            FoodTagSO added = (FoodTagSO)EditorGUILayout.ObjectField("추가", null, typeof(FoodTagSO), false);
+            if (EditorGUI.EndChangeCheck() && added != null && ContainsId(ids, added.TagId) == false)
+            {
+                ids.Add(added.TagId);
+                changed = true;
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            if (changed)
+                SetVisitEventRawValue(visitEvent, columnName, ref value, BuildIdList(ids));
+        }
+
+        private void SetVisitEventRawValue(VisitEventReference visitEvent, string columnName, ref string value, string next)
+        {
+            value = next ?? string.Empty;
+            visitEvent.SetRaw(columnName, value);
+            MarkDirty($"방문 이벤트 {ToDisplayLabel(columnName)} 수정됨");
+        }
+
+        private void EnsureCookingAssetsLoaded()
+        {
+            if (_cookingAssetsLoaded)
+                return;
+
+            ReloadCookingAssets();
+        }
+
+        private void ReloadCookingAssets()
+        {
+            LoadAssets(_recipeAssets);
+            LoadAssets(_foodCategoryAssets);
+            LoadAssets(_foodTagAssets);
+            _recipeAssets.Sort((left, right) => string.Compare(GetRecipeSortKey(left), GetRecipeSortKey(right), StringComparison.OrdinalIgnoreCase));
+            _foodCategoryAssets.Sort((left, right) => string.Compare(GetCategorySortKey(left), GetCategorySortKey(right), StringComparison.OrdinalIgnoreCase));
+            _foodTagAssets.Sort((left, right) => string.Compare(GetTagSortKey(left), GetTagSortKey(right), StringComparison.OrdinalIgnoreCase));
+            _cookingAssetsLoaded = true;
+        }
+
+        private static void LoadAssets<T>(List<T> target)
+            where T : UnityEngine.Object
+        {
+            target.Clear();
+            string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                T asset = AssetDatabase.LoadAssetAtPath<T>(path);
+                if (asset != null)
+                    target.Add(asset);
+            }
+        }
+
+        private RecipeSO FindRecipeById(string id)
+        {
+            string normalized = NormalizeId(id);
+            return _recipeAssets.FirstOrDefault(recipe => recipe != null && NormalizeId(recipe.RecipeId) == normalized);
+        }
+
+        private FoodCategorySO FindFoodCategoryById(string id)
+        {
+            string normalized = NormalizeId(id);
+            return _foodCategoryAssets.FirstOrDefault(category => category != null && NormalizeId(category.CategoryId) == normalized);
+        }
+
+        private FoodTagSO FindFoodTagById(string id)
+        {
+            string normalized = NormalizeId(id);
+            return _foodTagAssets.FirstOrDefault(tag => tag != null && NormalizeId(tag.TagId) == normalized);
+        }
+
+        private static List<string> ParseIdList(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return new List<string>();
+
+            return value
+                .Split(new[] { '|', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(part => part.Trim())
+                .Where(part => string.IsNullOrWhiteSpace(part) == false)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private static string BuildIdList(IEnumerable<string> ids)
+        {
+            return string.Join("|", ids
+                .Where(id => string.IsNullOrWhiteSpace(id) == false)
+                .Select(id => id.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase));
+        }
+
+        private static bool ContainsId(IEnumerable<string> ids, string id)
+        {
+            string normalized = NormalizeId(id);
+            return ids.Any(value => NormalizeId(value) == normalized);
+        }
+
+        private static string GetRecipeSortKey(RecipeSO recipe)
+        {
+            return recipe != null ? $"{recipe.DisplayName} {recipe.RecipeId}" : string.Empty;
+        }
+
+        private static string GetCategorySortKey(FoodCategorySO category)
+        {
+            return category != null ? $"{category.DisplayName} {category.CategoryId}" : string.Empty;
+        }
+
+        private static string GetTagSortKey(FoodTagSO tag)
+        {
+            return tag != null ? $"{tag.DisplayName} {tag.TagId}" : string.Empty;
+        }
+
+        private static string NormalizeId(string id)
+        {
+            return (id ?? string.Empty).Trim().ToLowerInvariant();
+        }
+
+        private static string ToDisplayLabel(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                return string.Empty;
+
+            return DisplayLabels.TryGetValue(key, out string label) ? label : key;
         }
 
         private void DrawVisitEventTextField(string label, VisitEventReference visitEvent, string columnName, ref string value)
         {
             EditorGUI.BeginChangeCheck();
-            string next = EditorGUILayout.TextField(label, value);
+            string next = EditorGUILayout.TextField(ToDisplayLabel(label), value);
             if (EditorGUI.EndChangeCheck())
             {
                 value = next;
                 visitEvent.SetRaw(columnName, next);
-                MarkDirty($"VisitEvent {label} 수정됨");
+                MarkDirty($"방문 이벤트 {ToDisplayLabel(label)} 수정됨");
             }
         }
 
         private void DrawVisitEventIntField(string label, VisitEventReference visitEvent, string columnName, ref int value)
         {
             EditorGUI.BeginChangeCheck();
-            int next = EditorGUILayout.IntField(label, value);
+            int next = EditorGUILayout.IntField(ToDisplayLabel(label), value);
             if (EditorGUI.EndChangeCheck())
             {
                 value = Mathf.Max(0, next);
                 visitEvent.SetRaw(columnName, value.ToString());
-                MarkDirty($"VisitEvent {label} 수정됨");
+                MarkDirty($"방문 이벤트 {ToDisplayLabel(label)} 수정됨");
             }
         }
 
@@ -1758,7 +2055,7 @@ namespace Work.NPC.Code.Editor
 
             if (!TryGetDialogueTextSelection(out int start, out int end))
             {
-                _statusMessage = "Text 영역에서 볼드 처리할 글자를 드래그로 선택한 뒤 다시 눌러주세요.";
+                _statusMessage = "대사 영역에서 볼드 처리할 글자를 드래그로 선택한 뒤 다시 눌러주세요.";
                 return;
             }
 
@@ -2252,11 +2549,11 @@ namespace Work.NPC.Code.Editor
             int dialogueCount = _dialogues.Count(dialogue => string.Equals(dialogue.EventId, eventId, StringComparison.OrdinalIgnoreCase));
             int visitEventCount = _visitEvents.Count(visitEvent => string.Equals(visitEvent.EventId, eventId, StringComparison.OrdinalIgnoreCase));
             int option = EditorUtility.DisplayDialogComplex(
-                "Delete Event",
-                $"Delete event '{eventId}'?\n\nDialogue lines: {dialogueCount}\nVisitEvent rows: {visitEventCount}",
-                "Delete Event + Lines",
-                "Cancel",
-                "VisitEvent Only");
+                "이벤트 삭제",
+                $"이벤트 '{eventId}'를 삭제할까요?\n\n대사 줄 수: {dialogueCount}\nVisitEvent 행 수: {visitEventCount}",
+                "이벤트와 대사 삭제",
+                "취소",
+                "VisitEvent만 삭제");
 
             if (option == 1)
                 return;
@@ -2607,7 +2904,7 @@ namespace Work.NPC.Code.Editor
         private void TryReloadWithPrompt()
         {
             if (_hasUnsavedChanges
-                && EditorUtility.DisplayDialog("Reload CSV", "저장하지 않은 변경사항을 버리고 CSV를 다시 불러올까요?", "Reload", "Cancel") == false)
+                && EditorUtility.DisplayDialog("CSV 다시 불러오기", "저장하지 않은 변경사항을 버리고 CSV를 다시 불러올까요?", "다시 불러오기", "취소") == false)
             {
                 return;
             }
