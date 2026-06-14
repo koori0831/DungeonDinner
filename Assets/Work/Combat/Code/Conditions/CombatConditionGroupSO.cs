@@ -31,7 +31,10 @@ namespace Work.Combat.Code.Conditions
         /// <returns>조건 충족 여부</returns>
         public override bool Evaluate(in HitContext hitContext, in CombatConditionContext conditionContext)
         {
-            bool result = EvaluateConditions(in hitContext, in conditionContext);
+            if (TryEvaluateConditions(in hitContext, in conditionContext, out bool result) == false)
+            {
+                return false;
+            }
 
             if (invertResult == true)
             {
@@ -41,22 +44,23 @@ namespace Work.Combat.Code.Conditions
             return result;
         }
 
-        private bool EvaluateConditions(in HitContext hitContext, in CombatConditionContext conditionContext)
+        private bool TryEvaluateConditions(in HitContext hitContext, in CombatConditionContext conditionContext, out bool result)
         {
             if (conditions == null || conditions.Length == 0)
             {
-                return groupType == CombatConditionGroupType.All;
+                result = false;
+                return false;
             }
 
             if (groupType == CombatConditionGroupType.Any)
             {
-                return EvaluateAny(in hitContext, in conditionContext);
+                return TryEvaluateAny(in hitContext, in conditionContext, out result);
             }
 
-            return EvaluateAll(in hitContext, in conditionContext);
+            return TryEvaluateAll(in hitContext, in conditionContext, out result);
         }
 
-        private bool EvaluateAll(in HitContext hitContext, in CombatConditionContext conditionContext)
+        private bool TryEvaluateAll(in HitContext hitContext, in CombatConditionContext conditionContext, out bool result)
         {
             for (int i = 0; i < conditions.Length; i++)
             {
@@ -64,20 +68,25 @@ namespace Work.Combat.Code.Conditions
 
                 if (condition == null)
                 {
-                    continue;
+                    result = false;
+                    return false;
                 }
 
                 if (condition.Evaluate(in hitContext, in conditionContext) == false)
                 {
-                    return false;
+                    result = false;
+                    return true;
                 }
             }
 
+            result = true;
             return true;
         }
 
-        private bool EvaluateAny(in HitContext hitContext, in CombatConditionContext conditionContext)
+        private bool TryEvaluateAny(in HitContext hitContext, in CombatConditionContext conditionContext, out bool result)
         {
+            bool hasEvaluableCondition = false;
+
             for (int i = 0; i < conditions.Length; i++)
             {
                 CombatConditionSO condition = conditions[i];
@@ -87,13 +96,17 @@ namespace Work.Combat.Code.Conditions
                     continue;
                 }
 
+                hasEvaluableCondition = true;
+
                 if (condition.Evaluate(in hitContext, in conditionContext) == true)
                 {
+                    result = true;
                     return true;
                 }
             }
 
-            return false;
+            result = false;
+            return hasEvaluableCondition;
         }
 
         private void ValidateConditions()

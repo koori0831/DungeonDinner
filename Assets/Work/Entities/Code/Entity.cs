@@ -19,7 +19,7 @@ namespace Work.Entities.Code
 
         private void ModuleAfterInit()
         {
-            foreach (var module in _modules.Values)
+            foreach (IEntityModule module in _modules.Values)
             {
                 if (module is IAfterInitialize afterInitModule)
                 {
@@ -30,7 +30,7 @@ namespace Work.Entities.Code
 
         private void ModuleInit()
         {
-            foreach (var module in _modules.Values)
+            foreach (IEntityModule module in _modules.Values)
             {
                 module.Initialize(this);
             }
@@ -38,10 +38,10 @@ namespace Work.Entities.Code
 
         private void AddModule()
         {
-            _modules = GetComponentsInChildren<IEntityModule>(true).ToList().ToDictionary(item => item.GetType());
+            _modules = GetComponentsInChildren<IEntityModule>(true).ToList().ToDictionary((IEntityModule item) => item.GetType());
 
             string m = $"이름 : {name} \n";
-            foreach (var kvp in _modules)
+            foreach (KeyValuePair<Type, IEntityModule> kvp in _modules)
             {
 
                 m += $"{kvp.Value.GetType().ToString()} \n";
@@ -50,22 +50,46 @@ namespace Work.Entities.Code
 
         public T GetModule<T>(bool isAssignable = false) where T : class, IEntityModule
         {
-            if (_modules.TryGetValue(typeof(T), out var module))
-                return module as T;
-            if (isAssignable == false)
-            {
-                Debug.LogError($"Not Find {typeof(T)}");
-                return null;
-            }
+            T module;
 
-            foreach (var kvp in _modules)
+            if (TryGetModule<T>(out module, isAssignable) == true)
             {
-                if (kvp.Value is T tModule)
-                    return tModule;
+                return module;
             }
 
             Debug.LogError($"Not Find {typeof(T)}");
             return null;
+        }
+
+        /// <summary>
+        /// 등록된 엔티티 모듈 조회 시도.
+        /// </summary>
+        /// <param name="module">조회된 모듈.</param>
+        /// <param name="isAssignable">상속 타입 포함 조회 여부.</param>
+        /// <typeparam name="T">조회할 모듈 타입.</typeparam>
+        /// <returns>조회 성공 여부.</returns>
+        public bool TryGetModule<T>(out T module, bool isAssignable = false) where T : class, IEntityModule
+        {
+            if (_modules.TryGetValue(typeof(T), out IEntityModule exactModule) == true)
+            {
+                module = exactModule as T;
+                return module != null;
+            }
+
+            if (isAssignable == true)
+            {
+                foreach (KeyValuePair<Type, IEntityModule> kvp in _modules)
+                {
+                    if (kvp.Value is T assignableModule)
+                    {
+                        module = assignableModule;
+                        return true;
+                    }
+                }
+            }
+
+            module = null;
+            return false;
         }
     }
 }

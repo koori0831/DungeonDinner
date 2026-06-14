@@ -10,7 +10,6 @@ namespace Work.Input.Code
 
         public readonly record struct InputInteractEvent : IEvent;
         public readonly record struct InputJumpEvent : IEvent;
-        public readonly record struct InputMoveEvent(Vector2 MoveVector) : IEvent;
         #endregion
     }
 }
