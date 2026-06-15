@@ -1,41 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Work.Core.EventBus;
 using Work.Entities.Code;
 using Work.Items.Code;
+using static Work.Items.Code.WorldLootEvents;
 
 namespace Work.Players.Code.Inventory
 {
     /// <summary>
-    /// 플레이어 주변 월드 루팅 아이템을 자동으로 인벤토리에 수집
+    /// 감지 이벤트로 들어온 월드 루팅 아이템을 플레이어 인벤토리에 수집
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class PlayerLootCollector : MonoBehaviour, IEntityModule
     {
-        private const float MIN_COLLECT_RADIUS = 0.01f;
-        private const float MIN_COLLECT_INTERVAL = 0.01f;
-        private const int MIN_LOOT_BUFFER_SIZE = 1;
-        private const int DEFAULT_LOOT_BUFFER_SIZE = 16;
-
         [SerializeField]
         private PlayerInventoryModule inventoryModule;
 
         [SerializeField]
-        private LayerMask lootLayerMask = ~0;
-
-        [SerializeField]
-        [Min(MIN_COLLECT_RADIUS)]
-        private float collectRadius = 1.5f;
-
-        [SerializeField]
-        [Min(MIN_COLLECT_INTERVAL)]
-        private float collectInterval = 0.05f;
-
-        [SerializeField]
-        [Min(MIN_LOOT_BUFFER_SIZE)]
-        private int maxLootColliderCount = DEFAULT_LOOT_BUFFER_SIZE;
-
-        [SerializeField]
-        private QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.Collide;
+        private CharacterController collectorController;
 
         [SerializeField]
         private bool logLoots = true;
@@ -47,13 +29,12 @@ namespace Work.Players.Code.Inventory
         [SerializeField]
         private int lastRemainingAmount;
 
-        private float _nextCollectTime;
         private bool _loggedMissingInventory;
-        private Collider[] _lootColliders;
-        private WorldLootItem[] _lootItems;
-        private InventoryItemStack[] _lootStacks;
-        private InventoryAddResult[] _addResults;
-        private readonly Dictionary<int, WorldLootItem> LOOT_BY_COLLIDER_ID = new Dictionary<int, WorldLootItem>();
+        private bool _loggedMissingController;
+        private bool _isSubscribedToLootEvents;
+        private bool _isCollecting;
+        private PlayerInventoryModule _subscribedInventoryModule;
+        private readonly List<WorldLootItem> NEARBY_LOOT_ITEMS = new List<WorldLootItem>();
 
         /// <summary>
         /// 마지막 자동 루팅으로 인벤토리에 들어간 수량
@@ -67,29 +48,22 @@ namespace Work.Players.Code.Inventory
 
         private void Awake()
         {
-            EnsureBuffers();
             ResolveSceneReferences(null);
         }
 
         private void OnEnable()
         {
-            _nextCollectTime = 0f;
-        }
-
-        private void Update()
-        {
-            if (Time.time < _nextCollectTime)
-            {
-                return;
-            }
-
-            _nextCollectTime = Time.time + collectInterval;
-            CollectNearbyLoots();
+            ResolveSceneReferences(null);
+            SubscribeLootEvents();
+            SubscribeInventory();
         }
 
         private void OnDisable()
         {
-            LOOT_BY_COLLIDER_ID.Clear();
+            UnsubscribeLootEvents();
+            UnsubscribeInventory();
+            NEARBY_LOOT_ITEMS.Clear();
+            _isCollecting = false;
         }
 
         /// <summary>
@@ -99,17 +73,22 @@ namespace Work.Players.Code.Inventory
         public void Initialize(Entity entity)
         {
             ResolveSceneReferences(entity);
-            EnsureBuffers();
+
+            if (isActiveAndEnabled == true)
+            {
+                SubscribeInventory();
+            }
         }
 
         /// <summary>
-        /// 현재 수집 반경 안의 월드 루팅 아이템을 인벤토리에 추가
+        /// 현재 감지 후보에 있는 월드 루팅 아이템을 인벤토리에 추가
         /// </summary>
         /// <returns>인벤토리에 실제로 추가된 총수량</returns>
         public int CollectNearbyLoots()
         {
             ResetLastLootResult();
             ResolveSceneReferences(null);
+            SubscribeInventory();
 
             if (inventoryModule == null)
             {
@@ -117,120 +96,149 @@ namespace Work.Players.Code.Inventory
                 return 0;
             }
 
-            EnsureBuffers();
+            if (collectorController == null)
+            {
+                LogMissingControllerOnce();
+                return 0;
+            }
 
-            int lootCount = FindNearbyLootItems();
-
-            if (lootCount <= 0)
+            if (NEARBY_LOOT_ITEMS.Count <= 0)
             {
                 return 0;
             }
 
-            InventoryBatchAddResult batchResult = inventoryModule.AddItems(_lootStacks, 0, lootCount, _addResults, 0);
-            lastCollectedAmount = batchResult.AddedAmount;
-            lastRemainingAmount = batchResult.RemainingAmount;
+            if (_isCollecting == true)
+            {
+                return 0;
+            }
+
+            _isCollecting = true;
+
+            try
+            {
+                for (int i = NEARBY_LOOT_ITEMS.Count - 1; i >= 0; i--)
+                {
+                    WorldLootItem lootItem = NEARBY_LOOT_ITEMS[i];
+
+                    if (lootItem == null || lootItem.IsLootable == false)
+                    {
+                        NEARBY_LOOT_ITEMS.RemoveAt(i);
+                        continue;
+                    }
+
+                    InventoryItemStack itemStack = lootItem.CreateItemStack();
+
+                    if (itemStack.IsValid == false)
+                    {
+                        NEARBY_LOOT_ITEMS.RemoveAt(i);
+                        continue;
+                    }
+
+                    InventoryAddResult addResult = inventoryModule.AddItem(itemStack.Item, itemStack.Amount);
+                    lastCollectedAmount += addResult.AddedAmount;
+                    lastRemainingAmount += addResult.RemainingAmount;
+
+                    if (addResult.AddedAmount > 0)
+                    {
+                        lootItem.ConsumeAmount(addResult.AddedAmount);
+                    }
+
+                    if (lootItem == null || lootItem.IsLootable == false)
+                    {
+                        NEARBY_LOOT_ITEMS.RemoveAt(i);
+                    }
+                }
+            }
+            finally
+            {
+                _isCollecting = false;
+            }
 
             if (lastCollectedAmount > 0)
             {
-                ConsumeCollectedLootItems(lootCount);
                 LogLootResult();
             }
 
-            ClearLootBuffers(lootCount);
             return lastCollectedAmount;
         }
 
-        private int FindNearbyLootItems()
+        private void HandleWorldLootDetected(WorldLootDetectedEvent evt)
         {
-            int colliderCount = Physics.OverlapSphereNonAlloc(
-                transform.position,
-                collectRadius,
-                _lootColliders,
-                lootLayerMask,
-                queryTriggerInteraction
-            );
+            ResolveSceneReferences(null);
 
-            int lootCount = 0;
-
-            for (int i = 0; i < colliderCount; i++)
+            if (IsMatchingCollector(evt.CollectorController) == false)
             {
-                Collider lootCollider = _lootColliders[i];
-
-                if (lootCollider == null)
-                {
-                    continue;
-                }
-
-                WorldLootItem lootItem = GetCachedLootItem(lootCollider);
-
-                if (lootItem == null || lootItem.IsLootable == false)
-                {
-                    continue;
-                }
-
-                if (ContainsLootItem(lootItem, lootCount) == true)
-                {
-                    continue;
-                }
-
-                _lootItems[lootCount] = lootItem;
-                _lootStacks[lootCount] = lootItem.CreateItemStack();
-                lootCount++;
-
-                if (lootCount >= _lootItems.Length)
-                {
-                    break;
-                }
+                return;
             }
 
-            return lootCount;
+            WorldLootItem lootItem = evt.LootItem;
+
+            if (lootItem == null || lootItem.IsLootable == false)
+            {
+                return;
+            }
+
+            if (ContainsLootItem(lootItem) == false)
+            {
+                NEARBY_LOOT_ITEMS.Add(lootItem);
+            }
+
+            CollectNearbyLoots();
         }
 
-        private void ConsumeCollectedLootItems(int lootCount)
+        private void HandleWorldLootLost(WorldLootLostEvent evt)
         {
-            for (int i = 0; i < lootCount; i++)
+            ResolveSceneReferences(null);
+
+            if (IsMatchingCollector(evt.CollectorController) == false)
             {
-                WorldLootItem lootItem = _lootItems[i];
-                InventoryAddResult addResult = _addResults[i];
-
-                if (lootItem == null || addResult.AddedAmount <= 0)
-                {
-                    continue;
-                }
-
-                lootItem.ConsumeAmount(addResult.AddedAmount);
+                return;
             }
+
+            RemoveLootItem(evt.LootItem);
         }
 
-        private WorldLootItem GetCachedLootItem(Collider lootCollider)
+        private void HandleInventoryChanged(PlayerInventoryModule changedInventoryModule)
         {
-            int colliderId = lootCollider.GetInstanceID();
-
-            if (LOOT_BY_COLLIDER_ID.TryGetValue(colliderId, out WorldLootItem cachedLootItem) == true)
+            if (changedInventoryModule != inventoryModule)
             {
-                if (cachedLootItem != null)
-                {
-                    return cachedLootItem;
-                }
-
-                LOOT_BY_COLLIDER_ID.Remove(colliderId);
+                return;
             }
 
-            WorldLootItem lootItem = lootCollider.GetComponentInParent<WorldLootItem>();
-
-            if (lootItem != null)
+            if (_isCollecting == true)
             {
-                LOOT_BY_COLLIDER_ID.Add(colliderId, lootItem);
+                return;
             }
 
-            return lootItem;
+            CollectNearbyLoots();
         }
 
-        private bool ContainsLootItem(WorldLootItem lootItem, int lootCount)
+        private bool IsMatchingCollector(CharacterController targetController)
         {
-            for (int i = 0; i < lootCount; i++)
+            if (targetController == null)
             {
-                if (_lootItems[i] == lootItem)
+                return false;
+            }
+
+            if (collectorController == null)
+            {
+                ResolveSceneReferences(null);
+
+                if (collectorController == null)
+                {
+                    LogMissingControllerOnce();
+                    return false;
+                }
+            }
+
+            return targetController == collectorController;
+        }
+
+        private bool ContainsLootItem(WorldLootItem lootItem)
+        {
+            for (int i = 0; i < NEARBY_LOOT_ITEMS.Count; i++)
+            {
+                if (NEARBY_LOOT_ITEMS[i] == lootItem)
                 {
                     return true;
                 }
@@ -239,7 +247,26 @@ namespace Work.Players.Code.Inventory
             return false;
         }
 
+        private void RemoveLootItem(WorldLootItem lootItem)
+        {
+            for (int i = NEARBY_LOOT_ITEMS.Count - 1; i >= 0; i--)
+            {
+                if (NEARBY_LOOT_ITEMS[i] != lootItem)
+                {
+                    continue;
+                }
+
+                NEARBY_LOOT_ITEMS.RemoveAt(i);
+            }
+        }
+
         private void ResolveSceneReferences(Entity entity)
+        {
+            ResolveInventoryModule(entity);
+            ResolveCollectorController(entity);
+        }
+
+        private void ResolveInventoryModule(Entity entity)
         {
             if (inventoryModule != null)
             {
@@ -256,33 +283,45 @@ namespace Work.Players.Code.Inventory
 
             inventoryModule = GetComponent<PlayerInventoryModule>();
 
+            if (inventoryModule == null)
+            {
+                inventoryModule = GetComponentInParent<PlayerInventoryModule>();
+            }
+
             if (inventoryModule != null)
             {
                 _loggedMissingInventory = false;
             }
         }
 
-        private void EnsureBuffers()
+        private void ResolveCollectorController(Entity entity)
         {
-            maxLootColliderCount = Mathf.Max(MIN_LOOT_BUFFER_SIZE, maxLootColliderCount);
-
-            if (_lootColliders == null || _lootColliders.Length != maxLootColliderCount)
+            if (collectorController != null)
             {
-                _lootColliders = new Collider[maxLootColliderCount];
-                _lootItems = new WorldLootItem[maxLootColliderCount];
-                _lootStacks = new InventoryItemStack[maxLootColliderCount];
-                _addResults = new InventoryAddResult[maxLootColliderCount];
-                LOOT_BY_COLLIDER_ID.Clear();
+                _loggedMissingController = false;
+                return;
             }
-        }
 
-        private void ClearLootBuffers(int lootCount)
-        {
-            for (int i = 0; i < lootCount; i++)
+            if (entity != null)
             {
-                _lootItems[i] = null;
-                _lootStacks[i] = default;
-                _addResults[i] = default;
+                collectorController = entity.GetComponent<CharacterController>();
+
+                if (collectorController != null)
+                {
+                    _loggedMissingController = false;
+                    return;
+                }
+            }
+
+            collectorController = GetComponent<CharacterController>();
+
+            if (collectorController == null)
+            {
+                collectorController = GetComponentInParent<CharacterController>();
+            }
+            if (collectorController != null)
+            {
+                _loggedMissingController = false;
             }
         }
 
@@ -290,6 +329,58 @@ namespace Work.Players.Code.Inventory
         {
             lastCollectedAmount = 0;
             lastRemainingAmount = 0;
+        }
+
+        private void SubscribeLootEvents()
+        {
+            if (_isSubscribedToLootEvents == true)
+            {
+                return;
+            }
+
+            Bus<WorldLootDetectedEvent>.Events += HandleWorldLootDetected;
+            Bus<WorldLootLostEvent>.Events += HandleWorldLootLost;
+            _isSubscribedToLootEvents = true;
+        }
+
+        private void UnsubscribeLootEvents()
+        {
+            if (_isSubscribedToLootEvents == false)
+            {
+                return;
+            }
+
+            Bus<WorldLootDetectedEvent>.Events -= HandleWorldLootDetected;
+            Bus<WorldLootLostEvent>.Events -= HandleWorldLootLost;
+            _isSubscribedToLootEvents = false;
+        }
+
+        private void SubscribeInventory()
+        {
+            if (_subscribedInventoryModule == inventoryModule)
+            {
+                return;
+            }
+
+            UnsubscribeInventory();
+
+            if (inventoryModule == null)
+            {
+                return;
+            }
+            inventoryModule.InventoryChanged += HandleInventoryChanged;
+            _subscribedInventoryModule = inventoryModule;
+        }
+
+        private void UnsubscribeInventory()
+        {
+            if (_subscribedInventoryModule == null)
+            {
+                return;
+            }
+
+            _subscribedInventoryModule.InventoryChanged -= HandleInventoryChanged;
+            _subscribedInventoryModule = null;
         }
 
         private void LogMissingInventoryModuleOnce()
@@ -303,17 +394,15 @@ namespace Work.Players.Code.Inventory
             LogMissingInventoryModule();
         }
 
-        private void OnValidate()
+        private void LogMissingControllerOnce()
         {
-            collectRadius = Mathf.Max(MIN_COLLECT_RADIUS, collectRadius);
-            collectInterval = Mathf.Max(MIN_COLLECT_INTERVAL, collectInterval);
-            maxLootColliderCount = Mathf.Max(MIN_LOOT_BUFFER_SIZE, maxLootColliderCount);
-        }
+            if (_loggedMissingController == true)
+            {
+                return;
+            }
 
-        private void OnDrawGizmosSelected()
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, collectRadius);
+            _loggedMissingController = true;
+            LogMissingController();
         }
 
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
@@ -333,6 +422,13 @@ namespace Work.Players.Code.Inventory
         private void LogMissingInventoryModule()
         {
             Debug.LogWarning($"{nameof(PlayerInventoryModule)} is missing. Auto loot skipped.", this);
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogMissingController()
+        {
+            Debug.LogWarning($"{nameof(CharacterController)} is missing. Auto loot event skipped.", this);
         }
     }
 }

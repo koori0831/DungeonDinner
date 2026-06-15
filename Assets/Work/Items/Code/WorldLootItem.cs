@@ -21,6 +21,9 @@ namespace Work.Items.Code
         private Collider lootCollider;
 
         [SerializeField]
+        private WorldLootDetector lootDetector;
+
+        [SerializeField]
         private bool destroyWhenEmpty = true;
 
         /// <summary>
@@ -41,6 +44,7 @@ namespace Work.Items.Code
         private void Awake()
         {
             ResolveLootCollider();
+            ResolveLootDetector();
             UpdateObjectName();
         }
 
@@ -54,6 +58,7 @@ namespace Work.Items.Code
             item = newItem;
             amount = Mathf.Max(MIN_AMOUNT, newAmount);
             ResolveLootCollider();
+            ResolveLootDetector();
             UpdateObjectName();
         }
 
@@ -112,6 +117,21 @@ namespace Work.Items.Code
             }
 
             lootCollider.isTrigger = true;
+        }
+
+        private void ResolveLootDetector()
+        {
+            if (lootDetector == null)
+            {
+                lootDetector = GetComponent<WorldLootDetector>();
+            }
+
+            if (lootDetector == null)
+            {
+                lootDetector = gameObject.AddComponent<WorldLootDetector>();
+            }
+
+            lootDetector.SetLootItem(this);
         }
 
         private void Deplete()
