@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: Elyndra_MoonleafTea
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: Elyndra_MoonleafTea
+  displayName: "\uB2EC\uC78E \uC548\uC815\uCC28"
+  description: "\uB9C8\uB825 \uD750\uB984\uC744 \uC548\uC815\uC2DC\uD0A4\uB294 \uB2EC\uC78E \uD5C8\uBE0C\uCC28\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 3247c8aec01d47158fc692097026b030, type: 2}
+  priority: 8
+  baseTags:
+  - {fileID: 11400000, guid: 4614956e7dc24a9c918e4058dd0107f8, type: 2}
+  - {fileID: 11400000, guid: f3048e6f173c4f9b924131e33f7d225d, type: 2}
+  - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}
+  - {fileID: 11400000, guid: 153dab21213c4d88825f7a6a888879a8, type: 2}
+  - {fileID: 11400000, guid: c900c594593f4dea9a5d74249ed88c9f, type: 2}
+  requiredIngredients:
+  - ingredient: {fileID: 11400000, guid: f1866e043bdc4ded8504de5f03389c73, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 11400000, guid: 77a9eb65d8b54aa59758e817f808ad7b, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
+  - ingredient: {fileID: 11400000, guid: fdecdc16d97f4b18b50cbc18dd2c6991, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 11400000, guid: 2030abb6a30044cb888a191c429ab410, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
+  - ingredient: {fileID: 0}
+    ingredientCategory: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1013, type: 2}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 11400000, guid: 9018483ad3074ed5b8ad24ea837cb988, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
+  - ingredient: {fileID: 11400000, guid: c1cf8974ca7741aeb10651d03f847dd2, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 0
+    autoApplyRequiredPreparation: 0
+    requireManualPreparation: 1
+  - ingredient: {fileID: 11400000, guid: be6ef96f304c48a680dd91952971151c, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    minCount: 0
+    maxCount: 1
+    recipeDefining: 0
+    autoApplyRequiredPreparation: 0
+    requireManualPreparation: 1
+  perfectPreparationRules: []

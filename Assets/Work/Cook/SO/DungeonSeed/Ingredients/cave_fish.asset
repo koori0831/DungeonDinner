@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: cave_fish
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: cave_fish
+  displayName: "\uB3D9\uAD74 \uBB3C\uACE0\uAE30"
+  description: "\uB358\uC804 \uC9C0\uD558\uC218\uB85C\uC5D0\uC11C \uC7A1\uC740 \uCC3D\uBC31\uD55C \uBB3C\uACE0\uAE30\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1003, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 5590325869c34d169a0df6f2ce184d85, type: 2}
+  - {fileID: 11400000, guid: d85c3609b19d45238ce3a6179e90b20f, type: 2}
+  - {fileID: 11400000, guid: 5b6888cfbe3e4cf58e49279be35581fb, type: 2}
+  preparationOptions:
+  - method: {fileID: 11400000, guid: dbdf08b656b54ff38eb9840bbb7efe35, type: 2}
+    displayNameOverride: "\uAC00\uC2DC \uBC1C\uB77C\uB0B4\uAE30"
+    description: "\uBA39\uAE30 \uD3B8\uD558\uAC8C \uC794\uAC00\uC2DC\uB97C \uC815\uB9AC\uD569\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}
+    - {fileID: 11400000, guid: 554c2104076941379581787648732e2f, type: 2}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: ""
+  - method: {fileID: 11400000, guid: 77c742f4138d4edb88b6b2fe1b943195, type: 2}
+    displayNameOverride: "\uB9C8\uB974\uAC8C \uAD7D\uAE30"
+    description: "\uC218\uBD84\uC774 \uBE60\uC838 \uC5B4\uC778\uC5D0\uAC8C \uBD80\uB2F4\uC2A4\uB7EC\uC6CC\uC9D1\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 725c09725c2b48de883e3a2e6c03fb47, type: 2}
+    - {fileID: 11400000, guid: 523cd3dd734f463eba20aa9b669dcd21, type: 2}
+    removeTags:
+    - {fileID: 11400000, guid: 5b6888cfbe3e4cf58e49279be35581fb, type: 2}
+    qualityDelta: -1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: "\uB9C8\uB978"
+  - method: {fileID: 11400000, guid: 0b75674f402e4df0999c8033d8c97355, type: 2}
+    displayNameOverride: "\uC794\uAC00\uC2DC \uB0A8\uAE30\uAE30"
+    description: "\uC791\uC740 \uAC00\uC2DC\uAC00 \uC539\uD600 \uBD88\uD3B8\uD569\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 9f1227e2a5634e779570bfa52764bfee, type: 2}
+    removeTags:
+    - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}
+    qualityDelta: -1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: "\uAC00\uC2DC \uB9CE\uC740"

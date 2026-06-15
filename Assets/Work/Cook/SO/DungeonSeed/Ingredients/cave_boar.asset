@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: cave_boar
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: cave_boar
+  displayName: "\uB3D9\uAD74 \uBA67\uB3FC\uC9C0 \uACE0\uAE30"
+  description: "\uBD81\uBC29 \uBC29\uC5B4\uC120 \uC804\uC0AC\uB4E4\uC774 \uC88B\uC544\uD560 \uB9CC\uD07C \uAC70\uCE5C \uACE0\uAE30\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1001, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 75ab2c8b1c02485d8471ee0de3404b72, type: 2}
+  - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}
+  - {fileID: 11400000, guid: d85c3609b19d45238ce3a6179e90b20f, type: 2}
+  preparationOptions:
+  - method: {fileID: 11400000, guid: 0722b32616c04964874be231b3e7e785, type: 2}
+    displayNameOverride: "\uB728\uAC81\uAC8C \uAC89\uBA74 \uAD7D\uAE30"
+    description: "\uAC15\uD55C \uBD88\uB85C \uC804\uD22C\uC2DD\uC758 \uC5F4\uAE30\uB97C \uC0B4\uB9BD\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 0e58aec8594f447cbfe42c7acc6de3ad, type: 2}
+    - {fileID: 11400000, guid: 341b32994b2c40499bcf898bf2cc6d34, type: 2}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: ""
+  - method: {fileID: 11400000, guid: 03858900b62547898454273d9ae3a9c3, type: 2}
+    displayNameOverride: "\uD07C\uC9C1\uD558\uAC8C \uC370\uAE30"
+    description: "\uD55C\uC785\uC774 \uBB35\uC9C1\uD558\uB3C4\uB85D \uD06C\uAC8C \uC790\uB985\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: ""
+  - method: {fileID: 11400000, guid: d4c54902f7324756aa3172cf5e41b42b, type: 2}
+    displayNameOverride: "\uD53C \uBB3B\uC740 \uBD80\uC704 \uC4F0\uAE30"
+    description: "\uC0C1\uD55C \uD53C \uB0C4\uC0C8\uAC00 \uC11E\uC5EC \uAD34\uC2DD\uC774 \uB429\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 8c88cef2dded4c899d022234232f1bca, type: 2}
+    - {fileID: 11400000, guid: d4385007a3fe4203b51586fb42f53761, type: 2}
+    removeTags: []
+    qualityDelta: -3
+    causesDisgusting: 1
+    addsPoison: 1
+    resultNameModifier: "\uD53C\uBE44\uB9B0"

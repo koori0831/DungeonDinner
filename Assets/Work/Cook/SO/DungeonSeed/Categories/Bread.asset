@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76b1b495e1c43e44d9d215ab90c425a0, type: 3}
+  m_Name: Bread
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodCategorySO
+  categoryId: Bread
+  displayName: "\uBE75\uC694\uB9AC"
+  icon: {fileID: 21300000, guid: 5e5eb87a393e2474285580b0d1146fe7, type: 3}
+  description: "\uBE75\uACFC \uACE1\uBB3C\uC744 \uC911\uC2EC\uC73C\uB85C \uD55C \uC74C\uC2DD
+    \uACC4\uC5F4\uC785\uB2C8\uB2E4."

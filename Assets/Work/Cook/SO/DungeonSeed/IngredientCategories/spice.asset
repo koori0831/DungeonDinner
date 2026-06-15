@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e067d8332cfb48c482b77e8a19f391cb, type: 3}
+  m_Name: spice
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientCategorySO
+  categoryId: spice
+  displayName: "\ud5a5\uc2e0\ub8cc\uc640 \uc870\ubbf8\ub8cc"
+  description: "\uace0\ucd94, \uc18c\uae08, \ud5c8\ube0c\ucc98\ub7fc \uc591\uacfc \uc190\uc9c8 \ubc29\uc2dd\uc774 \ub9db\uc758 \ubc29\ud5a5\uc744 \ubc14\uafb8\ub294 \uc7ac\ub8cc\uad70\uc785\ub2c8\ub2e4."
+  icon: {fileID: 0}

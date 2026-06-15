@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74164158a6dc1304e8724f55b2ffb957, type: 3}
+  m_Name: wash_clean
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
+  methodId: wash_clean
+  displayName: "\uB9D1\uC740 \uBB3C\uC5D0 \uC53B\uAE30"
+  description: "\uD759\uACFC \uC7A1\uB9DB\uC744 \uC53B\uC5B4\uB0B4\uACE0 \uC2E0\uC120\uD568\uC744 \uC0B4\uB9BD\uB2C8\uB2E4."

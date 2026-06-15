@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: ember_potato
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: ember_potato
+  displayName: "\uC7BF\uBD88 \uAC10\uC790"
+  description: "\uD654\uC0B0 \uC9C0\uB300 \uB4DC\uC6CC\uD504\uB4E4\uC774 \uC990\uAE30\uB294 \uB2E8\uB2E8\uD55C \uAC10\uC790\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1006, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 6687bfbad1aa46e5b10044be28cf0ecc, type: 2}
+  - {fileID: 11400000, guid: bf524f6d70f74947bb0e933e53f479e4, type: 2}
+  - {fileID: 11400000, guid: f3048e6f173c4f9b924131e33f7d225d, type: 2}
+  preparationOptions:
+  - method: {fileID: 11400000, guid: 9a01a50378654889a54dad531cdd3b5f, type: 2}
+    displayNameOverride: "\uC7BF\uBD88\uC5D0 \uAD7D\uAE30"
+    description: "\uC740\uC740\uD55C \uD6C8\uC5F0\uD5A5\uACFC \uD3EC\uC2AC\uD55C \uC18D\uC744 \uC0B4\uB9BD\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 341b32994b2c40499bcf898bf2cc6d34, type: 2}
+    - {fileID: 11400000, guid: 0e58aec8594f447cbfe42c7acc6de3ad, type: 2}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: ""
+  - method: {fileID: 11400000, guid: 978ded8a9c9843839eb559f758a156e3, type: 2}
+    displayNameOverride: "\uB108\uBB34 \uC624\uB798 \uC0B6\uAE30"
+    description: "\uAC10\uC790\uAC00 \uBB3C\uB7EC\uC9C0\uACE0 \uB9DB\uC774 \uD750\uB824\uC9D1\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 3d89c4abb512435fb92b9dc8b4986bf7, type: 2}
+    - {fileID: 11400000, guid: 554c2104076941379581787648732e2f, type: 2}
+    removeTags:
+    - {fileID: 11400000, guid: 7831f451243c44f9850fc9160ab6aa5f, type: 2}
+    qualityDelta: -1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: "\uBB3D\uC5B4\uC9C4"
+  - method: {fileID: 11400000, guid: b89e9df01ecd430caba9c7d98e9c070e, type: 2}
+    displayNameOverride: "\uAECD\uC9C8 \uD0DC\uC6B0\uAE30"
+    description: "\uD0C4 \uAECD\uC9C8\uC774 \uC4F4\uB9DB\uC744 \uB0C5\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: abbd097e0b094f6eb197d927486c594b, type: 2}
+    removeTags: []
+    qualityDelta: -2
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: "\uD0C4"
