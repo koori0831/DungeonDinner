@@ -24,6 +24,9 @@ namespace Work.Items.Code
         private Sprite icon;
 
         [SerializeField]
+        private ItemCategorySO category;
+
+        [SerializeField]
         private bool isStackable = true;
 
         [SerializeField]
@@ -51,6 +54,11 @@ namespace Work.Items.Code
         public Sprite Icon => icon;
 
         /// <summary>
+        /// 아이템 대분류 데이터
+        /// </summary>
+        public ItemCategorySO Category => category;
+
+        /// <summary>
         /// 동일 아이템 스택 가능 여부
         /// </summary>
         public bool IsStackable => isStackable;
@@ -59,6 +67,36 @@ namespace Work.Items.Code
         /// 단일 슬롯 최대 보관 수량
         /// </summary>
         public int MaxStackAmount => isStackable == true ? Mathf.Max(MIN_STACK_AMOUNT, maxStackAmount) : MIN_STACK_AMOUNT;
+
+        /// <summary>
+        /// 지정 카테고리인지 반환
+        /// </summary>
+        /// <param name="targetCategory">비교할 아이템 카테고리</param>
+        /// <returns>동일 카테고리 여부</returns>
+        public bool HasCategory(ItemCategorySO targetCategory)
+        {
+            if (targetCategory == null)
+            {
+                return false;
+            }
+
+            return category == targetCategory;
+        }
+
+        /// <summary>
+        /// 지정 카테고리 역할을 가진 아이템인지 반환
+        /// </summary>
+        /// <param name="role">비교할 카테고리 역할</param>
+        /// <returns>동일 카테고리 역할 여부</returns>
+        public bool HasCategoryRole(ItemCategoryRole role)
+        {
+            if (category == null)
+            {
+                return false;
+            }
+
+            return category.HasRole(role);
+        }
 
         /// <summary>
         /// 다른 아이템 데이터와 같은 스택에 담을 수 있는지 반환

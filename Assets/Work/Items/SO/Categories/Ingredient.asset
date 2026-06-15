@@ -9,11 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000106, type: 3}
-  m_Name: TestSlashDropTable
+  m_Script: {fileID: 11500000, guid: b7e03a5d1c924f6b85a7d90c3e4126f8, type: 3}
+  m_Name: Ingredient
   m_EditorClassIdentifier: 
-  entries:
-  - item: {fileID: 11400000, guid: f3c69e0a4b214d7c8e9f012345a6b7c8, type: 2}
-    minAmount: 1
-    maxAmount: 1
-    dropChance: 1
+  categoryId: Ingredient
+  displayName: Ingredient
+  description: Cooking ingredient item category.
+  role: 1
