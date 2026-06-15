@@ -19,6 +19,8 @@ namespace Work.Cook.Code.Info
         private readonly List<InfoDictionaryScrollViewField> _viewList = new List<InfoDictionaryScrollViewField>();
         private readonly List<InfoBockmarkBtn> _bockmarkList = new List<InfoBockmarkBtn>();
         private readonly Dictionary<ViewHaveInfoEnum, InfoDisplayPanel> displayDic = new Dictionary<ViewHaveInfoEnum, InfoDisplayPanel>();
+        private readonly Dictionary<InfoDictionaryEntryData, EntryNavigationContext> _navigationContexts =
+            new Dictionary<InfoDictionaryEntryData, EntryNavigationContext>();
         private InfoDictionaryScrollViewField _currentScrollView;
         private InfoBockmarkBtn _currentBockmark;
 
@@ -103,6 +105,7 @@ namespace Work.Cook.Code.Info
                 InfoBockmarkBtn bockmark = Instantiate(bockmarkPrefab, bockmarkParent);
                 _viewList.Add(view);
                 _bockmarkList.Add(bockmark);
+                RegisterNavigationContexts(categoryData);
                 view.InitializeField(categoryData.Entries, info => EnableDisplay(categoryData.ViewType, info));
                 view.Disable();
                 bockmark.Rect.anchoredPosition = new Vector2(default_X_Value, y_Offset * i);
@@ -124,6 +127,7 @@ namespace Work.Cook.Code.Info
             _viewList.Clear();
             _bockmarkList.Clear();
             displayDic.Clear();
+            _navigationContexts.Clear();
             _currentScrollView = null;
             _currentBockmark = null;
         }
@@ -185,6 +189,7 @@ namespace Work.Cook.Code.Info
 
             if (displayDic.TryGetValue(key, out InfoDisplayPanel display))
             {
+                ConfigureNavigation(display, info);
                 display.Enable(info);
                 return;
             }
@@ -196,7 +201,44 @@ namespace Work.Cook.Code.Info
                 return;
             }
 
+            ConfigureNavigation(fallbackDisplay, info);
             fallbackDisplay.Enable(info);
+        }
+
+        private void RegisterNavigationContexts(InfoDictionaryCategoryData categoryData)
+        {
+            if (categoryData?.Entries == null)
+                return;
+
+            for (int i = 0; i < categoryData.Entries.Count; i++)
+            {
+                InfoDictionaryEntryData entry = categoryData.Entries[i];
+                if (entry == null)
+                    continue;
+
+                _navigationContexts[entry] = new EntryNavigationContext(categoryData.ViewType, categoryData.Entries, i);
+            }
+        }
+
+        private void ConfigureNavigation(InfoDisplayPanel display, InfoDictionaryEntryData info)
+        {
+            if (display == null)
+                return;
+
+            if (info == null || _navigationContexts.TryGetValue(info, out EntryNavigationContext context) == false)
+            {
+                display.SetSiblingNavigation(null, null, false, false);
+                return;
+            }
+
+            InfoDictionaryEntryData previous = context.Index > 0 ? context.Entries[context.Index - 1] : null;
+            InfoDictionaryEntryData next = context.Index < context.Entries.Count - 1 ? context.Entries[context.Index + 1] : null;
+
+            display.SetSiblingNavigation(
+                previous != null ? () => EnableDisplay(context.ViewType, previous) : null,
+                next != null ? () => EnableDisplay(context.ViewType, next) : null,
+                previous != null,
+                next != null);
         }
 
         public void AllDisableDisplay() => displayDic.Values.ToList().ForEach(item =>
@@ -251,6 +293,23 @@ namespace Work.Cook.Code.Info
 
             displayDic.TryGetValue(DefaultDisplayViewType, out display);
             return display;
+        }
+
+        private readonly struct EntryNavigationContext
+        {
+            public readonly ViewHaveInfoEnum ViewType;
+            public readonly IReadOnlyList<InfoDictionaryEntryData> Entries;
+            public readonly int Index;
+
+            public EntryNavigationContext(
+                ViewHaveInfoEnum viewType,
+                IReadOnlyList<InfoDictionaryEntryData> entries,
+                int index)
+            {
+                ViewType = viewType;
+                Entries = entries;
+                Index = index;
+            }
         }
     }
 }

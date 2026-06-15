@@ -23,12 +23,21 @@ namespace Work.Cook.Code.Runtime
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _knownPreparationEffectKeys =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _attemptedRecipeIds =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _triedIngredientIds =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _triedPreparationKeys =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly List<CookingKnowledgeUpdate> _pendingUpdates =
+            new List<CookingKnowledgeUpdate>();
         private readonly Dictionary<string, HashSet<string>> _knownRecipeTagIds =
             new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
         private bool _initialized;
 
         public event Action KnowledgeChanged;
+        public event Action<CookingKnowledgeUpdate> KnowledgeUpdateQueued;
 
         public CookingDataCatalogSO Catalog => catalog;
         public string PlayerPrefsKey => playerPrefsKey;
@@ -61,6 +70,14 @@ namespace Work.Cook.Code.Runtime
                     count += pair.Value.Count;
 
                 return count;
+            }
+        }
+        public int PendingKnowledgeUpdateCount
+        {
+            get
+            {
+                EnsureInitialized();
+                return _pendingUpdates.Count;
             }
         }
 
@@ -111,6 +128,48 @@ namespace Work.Cook.Code.Runtime
                    && _knownPreparationEffectKeys.Contains(key);
         }
 
+        public bool HasAttemptedRecipe(RecipeSO recipe)
+        {
+            EnsureInitialized();
+
+            string recipeId = GetRecipeId(recipe);
+            return string.IsNullOrWhiteSpace(recipeId) == false
+                   && _attemptedRecipeIds.Contains(recipeId);
+        }
+
+        public bool HasTriedIngredient(IngredientSO ingredient)
+        {
+            EnsureInitialized();
+
+            string ingredientId = GetIngredientId(ingredient);
+            return string.IsNullOrWhiteSpace(ingredientId) == false
+                   && _triedIngredientIds.Contains(ingredientId);
+        }
+
+        public bool HasTriedPreparation(IngredientSO ingredient, IngredientPreparationOption option)
+        {
+            EnsureInitialized();
+
+            string key = BuildPreparationKey(ingredient, option);
+            return string.IsNullOrWhiteSpace(key) == false
+                   && _triedPreparationKeys.Contains(key);
+        }
+
+        public IReadOnlyList<CookingKnowledgeUpdate> PeekPendingKnowledgeUpdates()
+        {
+            EnsureInitialized();
+            return _pendingUpdates;
+        }
+
+        public List<CookingKnowledgeUpdate> ConsumePendingKnowledgeUpdates()
+        {
+            EnsureInitialized();
+
+            List<CookingKnowledgeUpdate> updates = new List<CookingKnowledgeUpdate>(_pendingUpdates);
+            _pendingUpdates.Clear();
+            return updates;
+        }
+
         public IReadOnlyList<FoodTagSO> GetKnownEffectiveTags(RecipeSO recipe)
         {
             EnsureInitialized();
@@ -148,7 +207,26 @@ namespace Work.Cook.Code.Runtime
         {
             EnsureInitialized();
 
-            bool changed = AddPreparationEffect(ingredient, option);
+            bool changed = AddTriedIngredient(ingredient);
+            changed |= AddTriedPreparation(ingredient, option);
+            changed |= AddPreparationEffect(ingredient, option);
+            if (changed)
+                CommitChanges();
+
+            return changed;
+        }
+
+        public bool LearnSelectedIngredients(IReadOnlyList<IngredientSO> ingredients)
+        {
+            EnsureInitialized();
+
+            if (ingredients == null)
+                return false;
+
+            bool changed = false;
+            for (int i = 0; i < ingredients.Count; i++)
+                changed |= AddTriedIngredient(ingredients[i]);
+
             if (changed)
                 CommitChanges();
 
@@ -166,6 +244,7 @@ namespace Work.Cook.Code.Runtime
 
             if (result.BaseRecipe != null)
             {
+                changed |= AddAttemptedRecipe(result.BaseRecipe);
                 changed |= AddRecipe(result.BaseRecipe);
                 changed |= AddRecipeTags(result.BaseRecipe, result.Tags);
             }
@@ -176,7 +255,11 @@ namespace Work.Cook.Code.Runtime
                 {
                     PreparedIngredientState prepared = result.PreparedIngredients[i];
                     if (prepared != null)
+                    {
+                        changed |= AddTriedIngredient(prepared.Ingredient);
+                        changed |= AddTriedPreparation(prepared.Ingredient, prepared.PreparationOption);
                         changed |= AddPreparationEffect(prepared.Ingredient, prepared.PreparationOption);
+                    }
                 }
             }
 
@@ -192,6 +275,10 @@ namespace Work.Cook.Code.Runtime
 
             _discoveredRecipeIds.Clear();
             _knownPreparationEffectKeys.Clear();
+            _attemptedRecipeIds.Clear();
+            _triedIngredientIds.Clear();
+            _triedPreparationKeys.Clear();
+            _pendingUpdates.Clear();
             _knownRecipeTagIds.Clear();
 
             if (saveToPlayerPrefs && string.IsNullOrWhiteSpace(playerPrefsKey) == false)
@@ -216,7 +303,8 @@ namespace Work.Cook.Code.Runtime
             EnsureInitialized();
 
             return $"recipes={_discoveredRecipeIds.Count}, recipeTags={KnownRecipeTagCount}, " +
-                   $"preparationEffects={_knownPreparationEffectKeys.Count}, prefsKey={playerPrefsKey}, " +
+                   $"preparationEffects={_knownPreparationEffectKeys.Count}, triedPreparations={_triedPreparationKeys.Count}, " +
+                   $"triedIngredients={_triedIngredientIds.Count}, pendingUpdates={_pendingUpdates.Count}, prefsKey={playerPrefsKey}, " +
                    $"hasSavedPrefs={HasSavedPlayerPrefs}";
         }
 
@@ -224,6 +312,10 @@ namespace Work.Cook.Code.Runtime
         {
             _discoveredRecipeIds.Clear();
             _knownPreparationEffectKeys.Clear();
+            _attemptedRecipeIds.Clear();
+            _triedIngredientIds.Clear();
+            _triedPreparationKeys.Clear();
+            _pendingUpdates.Clear();
             _knownRecipeTagIds.Clear();
 
             for (int i = 0; i < initialDiscoveredRecipes.Count; i++)
@@ -269,6 +361,9 @@ namespace Work.Cook.Code.Runtime
 
             AddIds(_discoveredRecipeIds, saveData.discoveredRecipeIds);
             AddIds(_knownPreparationEffectKeys, saveData.knownPreparationEffectKeys);
+            AddIds(_attemptedRecipeIds, saveData.attemptedRecipeIds);
+            AddIds(_triedIngredientIds, saveData.triedIngredientIds);
+            AddIds(_triedPreparationKeys, saveData.triedPreparationKeys);
 
             if (saveData.knownRecipeTags == null)
                 return;
@@ -293,6 +388,9 @@ namespace Work.Cook.Code.Runtime
             {
                 discoveredRecipeIds = new List<string>(_discoveredRecipeIds),
                 knownPreparationEffectKeys = new List<string>(_knownPreparationEffectKeys),
+                attemptedRecipeIds = new List<string>(_attemptedRecipeIds),
+                triedIngredientIds = new List<string>(_triedIngredientIds),
+                triedPreparationKeys = new List<string>(_triedPreparationKeys),
                 knownRecipeTags = new List<KnownRecipeTagSaveData>()
             };
 
@@ -318,8 +416,24 @@ namespace Work.Cook.Code.Runtime
         private bool AddRecipe(RecipeSO recipe)
         {
             string recipeId = GetRecipeId(recipe);
-            return string.IsNullOrWhiteSpace(recipeId) == false
-                   && _discoveredRecipeIds.Add(recipeId);
+            if (string.IsNullOrWhiteSpace(recipeId) || _discoveredRecipeIds.Add(recipeId) == false)
+                return false;
+
+            QueueUpdate(new CookingKnowledgeUpdate(
+                CookingKnowledgeUpdateType.RecipeDiscovered,
+                "???덉떆??諛쒓껄",
+                recipe != null ? recipe.DisplayName : recipeId,
+                recipe));
+            return true;
+        }
+
+        private bool AddAttemptedRecipe(RecipeSO recipe)
+        {
+            string recipeId = GetRecipeId(recipe);
+            if (string.IsNullOrWhiteSpace(recipeId) || _attemptedRecipeIds.Add(recipeId) == false)
+                return false;
+            return true;
+
         }
 
         private bool AddRecipeTags(RecipeSO recipe, IReadOnlyList<FoodTagSO> tags)
@@ -338,14 +452,59 @@ namespace Work.Cook.Code.Runtime
                     changed |= tagSet.Add(tagId);
             }
 
+            if (changed)
+            {
+                QueueUpdate(new CookingKnowledgeUpdate(
+                    CookingKnowledgeUpdateType.RecipeTagsRevealed,
+                    "?좏슚 ?쒓렇 湲곕줉",
+                    recipe != null ? recipe.DisplayName : recipeId,
+                    recipe));
+            }
+
             return changed;
         }
 
         private bool AddPreparationEffect(IngredientSO ingredient, IngredientPreparationOption option)
         {
             string key = BuildPreparationKey(ingredient, option);
-            return string.IsNullOrWhiteSpace(key) == false
-                   && _knownPreparationEffectKeys.Add(key);
+            if (string.IsNullOrWhiteSpace(key) || _knownPreparationEffectKeys.Add(key) == false)
+                return false;
+
+            QueueUpdate(new CookingKnowledgeUpdate(
+                CookingKnowledgeUpdateType.PreparationEffectRevealed,
+                "?먯쭏 ?④낵 湲곕줉",
+                BuildPreparationUpdateBody(ingredient, option),
+                null,
+                ingredient,
+                option != null ? option.Method : null));
+            return true;
+        }
+
+        private bool AddTriedIngredient(IngredientSO ingredient)
+        {
+            string ingredientId = GetIngredientId(ingredient);
+            if (string.IsNullOrWhiteSpace(ingredientId) || _triedIngredientIds.Add(ingredientId) == false)
+                return false;
+            return true;
+
+        }
+
+        private bool AddTriedPreparation(IngredientSO ingredient, IngredientPreparationOption option)
+        {
+            string key = BuildPreparationKey(ingredient, option);
+            if (string.IsNullOrWhiteSpace(key) || _triedPreparationKeys.Add(key) == false)
+                return false;
+            return true;
+
+        }
+
+        private void QueueUpdate(CookingKnowledgeUpdate update)
+        {
+            if (update == null)
+                return;
+
+            _pendingUpdates.Add(update);
+            KnowledgeUpdateQueued?.Invoke(update);
         }
 
         private HashSet<string> GetOrCreateRecipeTagSet(string recipeId)
@@ -409,6 +568,18 @@ namespace Work.Cook.Code.Runtime
             return $"{ingredientId}:{methodId}";
         }
 
+        private static string BuildPreparationUpdateBody(IngredientSO ingredient, IngredientPreparationOption option)
+        {
+            string ingredientName = ingredient != null ? ingredient.DisplayName : "?????녿뒗 ?щ즺";
+            string methodName = option != null
+                ? string.IsNullOrWhiteSpace(option.DisplayName) == false
+                    ? option.DisplayName
+                    : option.Method != null ? option.Method.DisplayName : "?????녿뒗 ?먯쭏"
+                : "?먯쭏 ?놁쓬";
+
+            return $"{ingredientName} - {methodName}";
+        }
+
         private static string GetRecipeId(RecipeSO recipe)
         {
             if (recipe == null)
@@ -466,6 +637,9 @@ namespace Work.Cook.Code.Runtime
         {
             public List<string> discoveredRecipeIds = new List<string>();
             public List<string> knownPreparationEffectKeys = new List<string>();
+            public List<string> attemptedRecipeIds = new List<string>();
+            public List<string> triedIngredientIds = new List<string>();
+            public List<string> triedPreparationKeys = new List<string>();
             public List<KnownRecipeTagSaveData> knownRecipeTags = new List<KnownRecipeTagSaveData>();
         }
 

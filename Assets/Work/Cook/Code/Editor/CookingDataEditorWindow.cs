@@ -643,6 +643,7 @@ namespace Work.Cook.Code.Editor
             EditorGUILayout.LabelField("재료 정보", EditorStyles.boldLabel);
             _ingredientDraft.IngredientId = EditorGUILayout.TextField("재료 ID", _ingredientDraft.IngredientId);
             _ingredientDraft.DisplayName = EditorGUILayout.TextField("표시 이름", _ingredientDraft.DisplayName);
+            _ingredientDraft.ModelPrefab = (GameObject)EditorGUILayout.ObjectField("3D 모델 프리팹", _ingredientDraft.ModelPrefab, typeof(GameObject), false);
             EditorGUILayout.LabelField("설명");
             _ingredientDraft.Description = EditorGUILayout.TextArea(_ingredientDraft.Description, GUILayout.MinHeight(64f));
             EditorGUILayout.Space(8f);
@@ -1015,6 +1016,7 @@ namespace Work.Cook.Code.Editor
             SetString(serialized, "displayName", _ingredientDraft.DisplayName);
             SetString(serialized, "description", _ingredientDraft.Description);
             SetObject(serialized, "category", _ingredientDraft.Category);
+            SetObject(serialized, "modelPrefab", _ingredientDraft.ModelPrefab);
             SetObjectArray(serialized, "baseTags", _ingredientDraft.BaseTags);
             SetPreparationOptions(serialized, _ingredientDraft.PreparationOptions);
         }
@@ -1989,6 +1991,7 @@ namespace Work.Cook.Code.Editor
             public string DisplayName;
             public string Description;
             public IngredientCategorySO Category;
+            public GameObject ModelPrefab;
             public List<FoodTagSO> BaseTags = new List<FoodTagSO>();
             public List<PreparationOptionDraft> PreparationOptions = new List<PreparationOptionDraft>();
 
@@ -2001,6 +2004,7 @@ namespace Work.Cook.Code.Editor
                     DisplayName = ReadString(serialized, "displayName"),
                     Description = ReadString(serialized, "description"),
                     Category = ReadObject<IngredientCategorySO>(serialized, "category"),
+                    ModelPrefab = ReadObject<GameObject>(serialized, "modelPrefab"),
                     BaseTags = ReadObjectArray<FoodTagSO>(serialized, "baseTags")
                 };
 

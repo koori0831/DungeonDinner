@@ -10,6 +10,11 @@ namespace Work.Cook.Code.Data
         [SerializeField] private string recipeId;
         [SerializeField] private string displayName;
         [SerializeField, TextArea] private string description;
+        [SerializeField] private bool revealNameByDefault = true;
+        [SerializeField] private string hiddenDisplayName = "???";
+        [SerializeField, TextArea] private string undiscoveredDescription;
+        [SerializeField, TextArea] private string hintDescription;
+        [SerializeField, TextArea] private string discoveredDescription;
         [SerializeField] private FoodCategorySO category;
         [SerializeField] private int priority;
         [SerializeField] private List<FoodTagSO> baseTags = new List<FoodTagSO>();
@@ -19,11 +24,40 @@ namespace Work.Cook.Code.Data
         public string RecipeId => recipeId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? recipeId : displayName;
         public string Description => description;
+        public bool RevealNameByDefault => revealNameByDefault;
+        public string HiddenDisplayName => string.IsNullOrWhiteSpace(hiddenDisplayName) ? "???" : hiddenDisplayName;
+        public string UndiscoveredDescription => undiscoveredDescription;
+        public string HintDescription => hintDescription;
+        public string DiscoveredDescription => discoveredDescription;
         public FoodCategorySO Category => category;
         public int Priority => priority;
         public IReadOnlyList<FoodTagSO> BaseTags => baseTags;
         public IReadOnlyList<RecipeIngredientRequirement> RequiredIngredients => requiredIngredients;
         public IReadOnlyList<RecipePreparationRule> PerfectPreparationRules => perfectPreparationRules;
+
+        public string GetKnowledgeDisplayName(bool discovered)
+        {
+            return discovered || revealNameByDefault ? DisplayName : HiddenDisplayName;
+        }
+
+        public string GetKnowledgeDescription(bool discovered, bool hasAttempted)
+        {
+            if (discovered)
+            {
+                if (string.IsNullOrWhiteSpace(discoveredDescription) == false)
+                    return discoveredDescription;
+
+                return Description;
+            }
+
+            if (hasAttempted && string.IsNullOrWhiteSpace(hintDescription) == false)
+                return hintDescription;
+
+            if (string.IsNullOrWhiteSpace(undiscoveredDescription) == false)
+                return undiscoveredDescription;
+
+            return string.IsNullOrWhiteSpace(Description) ? "아직 정확한 조리법을 알 수 없습니다." : Description;
+        }
 
         public bool MatchesIngredients(IReadOnlyList<IngredientSO> ingredients)
         {

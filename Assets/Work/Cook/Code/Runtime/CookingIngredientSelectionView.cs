@@ -11,6 +11,8 @@ namespace Work.Cook.Code.Runtime
 {
     public sealed class CookingIngredientSelectionView : MonoBehaviour, ICookingIngredientSelectionView
     {
+        private const int CurrentDefaultLayoutVersion = 6;
+
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private CookingFlowRunner flowRunner;
@@ -39,10 +41,12 @@ namespace Work.Cook.Code.Runtime
 
         [Header("Default Layout")]
         [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
-        [SerializeField] private Color panelColor = new Color(0.05f, 0.04f, 0.03f, 0.88f);
-        [SerializeField] private Color sectionColor = new Color(0.12f, 0.10f, 0.08f, 0.92f);
-        [SerializeField] private Color defaultButtonColor = new Color(0.78f, 0.70f, 0.56f, 1f);
-        [SerializeField] private Color selectedButtonColor = new Color(0.54f, 0.72f, 0.48f, 1f);
+        [SerializeField] private bool rebuildTemporaryDefaultLayoutWhenVersionChanges = true;
+        [SerializeField] private int defaultLayoutVersion;
+        [SerializeField] private Color panelColor = new Color(0.20f, 0.12f, 0.065f, 0.94f);
+        [SerializeField] private Color sectionColor = new Color(0.30f, 0.20f, 0.12f, 0.96f);
+        [SerializeField] private Color defaultButtonColor = new Color(0.68f, 0.50f, 0.30f, 1f);
+        [SerializeField] private Color selectedButtonColor = new Color(0.60f, 0.72f, 0.42f, 1f);
         [SerializeField] private Color disabledButtonColor = new Color(0.36f, 0.33f, 0.29f, 1f);
 
         [Header("Text")]
@@ -553,6 +557,22 @@ namespace Work.Cook.Code.Runtime
             if (buildDefaultLayoutWhenMissing == false)
                 return;
 
+            if (ShouldRebuildTemporaryDefaultLayout())
+            {
+                ClearChildren(transform);
+                availableIngredientRoot = null;
+                selectedIngredientRoot = null;
+                searchInputField = null;
+                availableSummaryField = null;
+                selectedSummaryField = null;
+                selectionRuleField = null;
+                ingredientDetailField = null;
+                emptyAvailableField = null;
+                emptySelectedField = null;
+                confirmButton = null;
+                clearButton = null;
+            }
+
             if (availableIngredientRoot != null
                 && selectedIngredientRoot != null
                 && selectedSummaryField != null
@@ -563,6 +583,14 @@ namespace Work.Cook.Code.Runtime
             }
 
             BuildDefaultLayout();
+            defaultLayoutVersion = CurrentDefaultLayoutVersion;
+        }
+
+        private bool ShouldRebuildTemporaryDefaultLayout()
+        {
+            return rebuildTemporaryDefaultLayoutWhenVersionChanges
+                   && defaultLayoutVersion < CurrentDefaultLayoutVersion
+                   && gameObject.name.Contains("TemporaryIngredientSelectionView");
         }
 
         private void EnsureSupplementalLayout()
@@ -653,26 +681,40 @@ namespace Work.Cook.Code.Runtime
             RectTransform rect = EnsureRectTransform(gameObject);
             rect.localRotation = Quaternion.identity;
             rect.localScale = Vector3.one;
-            rect.anchorMin = new Vector2(0.06f, 0.06f);
-            rect.anchorMax = new Vector2(0.94f, 0.66f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.sizeDelta = new Vector2(820f, 330f);
+            rect.anchoredPosition = new Vector2(820f, 18f);
 
             Image background = GetOrAdd<Image>(gameObject);
             ApplyGeneratedSprite(background);
-            background.color = panelColor;
+            background.color = new Color(0f, 0f, 0f, 0f);
             background.raycastTarget = true;
 
             VerticalLayoutGroup rootLayout = GetOrAdd<VerticalLayoutGroup>(gameObject);
-            rootLayout.padding = new RectOffset(18, 18, 14, 14);
-            rootLayout.spacing = 12f;
+            rootLayout.padding = new RectOffset(24, 24, 18, 22);
+            rootLayout.spacing = 10f;
             rootLayout.childControlWidth = true;
             rootLayout.childControlHeight = true;
             rootLayout.childForceExpandWidth = true;
             rootLayout.childForceExpandHeight = false;
 
-            TextMeshProUGUI title = CreateText(transform, "Title", titleText, 22f, TextAlignmentOptions.Left);
-            AddLayoutElement(title.gameObject, -1f, 34f, -1f, 0f);
+            RectTransform header = CreateLayoutObject(transform, "BagHeader");
+            HorizontalLayoutGroup headerLayout = header.gameObject.AddComponent<HorizontalLayoutGroup>();
+            headerLayout.spacing = 10f;
+            headerLayout.childControlWidth = true;
+            headerLayout.childControlHeight = true;
+            headerLayout.childForceExpandWidth = false;
+            headerLayout.childForceExpandHeight = false;
+            AddLayoutElement(header.gameObject, -1f, 34f, -1f, 0f);
+
+            TextMeshProUGUI title = CreateText(header, "Title", titleText, 22f, TextAlignmentOptions.Left);
+            AddLayoutElement(title.gameObject, 220f, 34f, 0f, 0f);
+
+            TextMeshProUGUI hint = CreateText(header, "Hint", "대화창 아래에서 가방을 열어 재료를 고릅니다.", 13f, TextAlignmentOptions.Left);
+            hint.color = new Color(1f, 0.90f, 0.74f, 0.82f);
+            AddLayoutElement(hint.gameObject, -1f, 34f, 1f, 0f);
 
             RectTransform body = CreateLayoutObject(transform, "Body");
             HorizontalLayoutGroup bodyLayout = body.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -689,11 +731,11 @@ namespace Work.Cook.Code.Runtime
             ingredientDetailField = CreateText(bagPanel, "IngredientDetail", emptyIngredientDetailText, 13f, TextAlignmentOptions.TopLeft);
             ingredientDetailField.textWrappingMode = TextWrappingModes.Normal;
             ingredientDetailField.overflowMode = TextOverflowModes.Ellipsis;
-            AddLayoutElement(ingredientDetailField.gameObject, -1f, 92f, -1f, 0f);
-            availableIngredientRoot = CreateScrollContent(bagPanel, "AvailableIngredients");
+            AddLayoutElement(ingredientDetailField.gameObject, -1f, 58f, -1f, 0f);
+            availableIngredientRoot = CreateGridScrollContent(bagPanel, "AvailableIngredients");
             emptyAvailableField = CreateText(bagPanel, "EmptyAvailable", emptyAvailableText, 15f, TextAlignmentOptions.Center);
             AddLayoutElement(emptyAvailableField.gameObject, -1f, 28f, -1f, 0f);
-            AddLayoutElement(bagPanel.gameObject, 0f, -1f, 2.2f, 1f);
+            AddLayoutElement(bagPanel.gameObject, 0f, -1f, 2.6f, 1f);
 
             RectTransform selectedPanel = CreateSection(body, "SelectedSection", selectedTitleText);
             selectedSummaryField = selectedPanel.GetComponentInChildren<TextMeshProUGUI>();
@@ -704,7 +746,7 @@ namespace Work.Cook.Code.Runtime
             AddLayoutElement(emptySelectedField.gameObject, -1f, 28f, -1f, 0f);
             AddLayoutElement(selectedPanel.gameObject, 0f, -1f, 1f, 1f);
 
-            RectTransform actionRow = CreateLayoutObject(transform, "ActionRow");
+            RectTransform actionRow = CreateLayoutObject(selectedPanel, "ActionRow");
             HorizontalLayoutGroup actionLayout = actionRow.gameObject.AddComponent<HorizontalLayoutGroup>();
             actionLayout.spacing = 8f;
             actionLayout.childControlWidth = true;
@@ -722,19 +764,61 @@ namespace Work.Cook.Code.Runtime
             RectTransform section = CreateLayoutObject(parent, name);
             Image image = section.gameObject.AddComponent<Image>();
             ApplyGeneratedSprite(image);
-            image.color = sectionColor;
+            bool isBag = string.Equals(name, "BagSection", StringComparison.OrdinalIgnoreCase);
+            bool isPocket = string.Equals(name, "SelectedSection", StringComparison.OrdinalIgnoreCase);
+            image.color = isBag
+                ? new Color(0.36f, 0.22f, 0.12f, 0.98f)
+                : isPocket ? new Color(0.18f, 0.12f, 0.08f, 0.96f) : sectionColor;
+
+            Shadow shadow = section.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.42f);
+            shadow.effectDistance = new Vector2(2f, -5f);
 
             VerticalLayoutGroup layout = section.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(12, 12, 10, 10);
-            layout.spacing = 8f;
+            layout.padding = isBag ? new RectOffset(22, 22, 12, 18) : new RectOffset(16, 16, 14, 16);
+            layout.spacing = isBag ? 8f : 10f;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
 
+            if (isBag)
+                CreateBagMouth(section);
+
             TextMeshProUGUI label = CreateText(section, "SectionTitle", title, 18f, TextAlignmentOptions.Left);
+            label.color = isBag ? new Color(1f, 0.88f, 0.62f, 1f) : Color.white;
             AddLayoutElement(label.gameObject, -1f, 30f, -1f, 0f);
             return section;
+        }
+
+        private void CreateBagMouth(Transform parent)
+        {
+            RectTransform mouth = CreateLayoutObject(parent, "BagMouth");
+            Image mouthImage = mouth.gameObject.AddComponent<Image>();
+            ApplyGeneratedSprite(mouthImage);
+            mouthImage.color = new Color(0.16f, 0.085f, 0.045f, 0.96f);
+            AddLayoutElement(mouth.gameObject, -1f, 24f, -1f, 0f);
+
+            HorizontalLayoutGroup layout = mouth.gameObject.AddComponent<HorizontalLayoutGroup>();
+            layout.padding = new RectOffset(12, 12, 5, 5);
+            layout.spacing = 8f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+
+            CreateMouthStitch(mouth, 44f);
+            CreateMouthStitch(mouth, 92f);
+            CreateMouthStitch(mouth, 44f);
+        }
+
+        private void CreateMouthStitch(Transform parent, float width)
+        {
+            RectTransform stitch = CreateLayoutObject(parent, "Stitch");
+            Image image = stitch.gameObject.AddComponent<Image>();
+            ApplyGeneratedSprite(image);
+            image.color = new Color(0.72f, 0.52f, 0.30f, 0.78f);
+            AddLayoutElement(stitch.gameObject, width, 7f, 0f, 0f);
         }
 
         private RectTransform CreateScrollContent(Transform parent, string name)
@@ -775,10 +859,49 @@ namespace Work.Cook.Code.Runtime
             return content;
         }
 
+        private RectTransform CreateGridScrollContent(Transform parent, string name)
+        {
+            RectTransform viewport = CreateLayoutObject(parent, $"{name}Viewport");
+            Image viewportImage = viewport.gameObject.AddComponent<Image>();
+            ApplyGeneratedSprite(viewportImage);
+            viewportImage.color = new Color(0.08f, 0.045f, 0.025f, 0.38f);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            AddLayoutElement(viewport.gameObject, -1f, -1f, 1f, 1f);
+
+            ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 18f;
+
+            RectTransform content = CreateLayoutObject(viewport, name);
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.offsetMin = Vector2.zero;
+            content.offsetMax = Vector2.zero;
+
+            GridLayoutGroup grid = content.gameObject.AddComponent<GridLayoutGroup>();
+            grid.padding = new RectOffset(10, 10, 10, 10);
+            grid.spacing = new Vector2(8f, 8f);
+            grid.cellSize = new Vector2(92f, 68f);
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 4;
+            grid.childAlignment = TextAnchor.UpperLeft;
+
+            ContentSizeFitter fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.viewport = viewport;
+            scrollRect.content = content;
+            return content;
+        }
+
         private Button CreateIngredientButton(Transform parent, string label, Color color, UnityEngine.Events.UnityAction action)
         {
             Button button = CreateActionButton(parent, label, action, color);
-            AddLayoutElement(button.gameObject, -1f, 38f, -1f, 0f);
+            bool inGrid = parent != null && parent.GetComponent<GridLayoutGroup>() != null;
+            AddLayoutElement(button.gameObject, -1f, inGrid ? 68f : 38f, -1f, 0f);
             return button;
         }
 

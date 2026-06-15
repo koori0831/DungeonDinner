@@ -196,7 +196,7 @@ namespace Work.Cook.Code.Runtime
 
         private void HandToNpc()
         {
-            gamePanel?.HandResultToNpc();
+            gamePanel?.AdvanceFromResult();
         }
 
         private void EnsureReferences()
@@ -231,17 +231,28 @@ namespace Work.Cook.Code.Runtime
             RectTransform rect = EnsureRectTransform(gameObject);
             rect.localRotation = Quaternion.identity;
             rect.localScale = Vector3.one;
-            rect.anchorMin = new Vector2(0.09f, 0.07f);
-            rect.anchorMax = new Vector2(0.91f, 0.91f);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 
             Image background = GetOrAdd<Image>(gameObject);
             ApplyGeneratedSprite(background);
-            background.color = panelColor;
+            background.color = new Color(0f, 0f, 0f, 0.58f);
             background.raycastTarget = true;
 
-            VerticalLayoutGroup rootLayout = GetOrAdd<VerticalLayoutGroup>(gameObject);
+            RectTransform panel = CreateLayoutObject(transform, "ResultPanel");
+            panel.anchorMin = new Vector2(0.5f, 0.5f);
+            panel.anchorMax = new Vector2(0.5f, 0.5f);
+            panel.pivot = new Vector2(0.5f, 0.5f);
+            panel.sizeDelta = new Vector2(760f, 620f);
+            panel.anchoredPosition = Vector2.zero;
+
+            Image panelImage = panel.gameObject.AddComponent<Image>();
+            ApplyGeneratedSprite(panelImage);
+            panelImage.color = panelColor;
+
+            VerticalLayoutGroup rootLayout = GetOrAdd<VerticalLayoutGroup>(panel.gameObject);
             rootLayout.padding = new RectOffset(18, 18, 14, 14);
             rootLayout.spacing = 12f;
             rootLayout.childControlWidth = true;
@@ -249,10 +260,10 @@ namespace Work.Cook.Code.Runtime
             rootLayout.childForceExpandWidth = true;
             rootLayout.childForceExpandHeight = false;
 
-            TextMeshProUGUI title = CreateText(transform, "Title", titleText, 24f, TextAlignmentOptions.Left);
+            TextMeshProUGUI title = CreateText(panel, "Title", titleText, 24f, TextAlignmentOptions.Left);
             AddLayoutElement(title.gameObject, -1f, 34f, -1f, 0f);
 
-            RectTransform dishSection = CreateSection(transform, "DishSection", "완성된 음식", 132f, plateColor);
+            RectTransform dishSection = CreateSection(panel, "DishSection", "완성된 음식", 132f, plateColor);
             dishNameField = CreateText(dishSection, "DishName", string.Empty, 27f, TextAlignmentOptions.Center);
             dishNameField.textWrappingMode = TextWrappingModes.Normal;
             AddLayoutElement(dishNameField.gameObject, -1f, 42f, -1f, 0f);
@@ -261,7 +272,7 @@ namespace Work.Cook.Code.Runtime
             resultSummaryField.textWrappingMode = TextWrappingModes.Normal;
             AddLayoutElement(resultSummaryField.gameObject, -1f, 48f, -1f, 0f);
 
-            RectTransform detailContent = CreateScrollContent(transform, "ResultDetails");
+            RectTransform detailContent = CreateScrollContent(panel, "ResultDetails");
 
             RectTransform npcSection = CreateSection(detailContent, "NpcMatchSection", "NPC 예상 반응", 164f, sectionColor);
             npcMatchField = CreateText(npcSection, "NpcMatch", string.Empty, 14f, TextAlignmentOptions.TopLeft);
@@ -285,7 +296,7 @@ namespace Work.Cook.Code.Runtime
             reasonsField.overflowMode = TextOverflowModes.Ellipsis;
             AddLayoutElement(reasonsField.gameObject, -1f, 42f, -1f, 0f);
 
-            RectTransform actionRow = CreateLayoutObject(transform, "ActionRow");
+            RectTransform actionRow = CreateLayoutObject(panel, "ActionRow");
             HorizontalLayoutGroup actionLayout = actionRow.gameObject.AddComponent<HorizontalLayoutGroup>();
             actionLayout.spacing = 8f;
             actionLayout.childControlWidth = true;

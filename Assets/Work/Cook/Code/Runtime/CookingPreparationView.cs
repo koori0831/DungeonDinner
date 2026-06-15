@@ -261,8 +261,8 @@ namespace Work.Cook.Code.Runtime
             RectTransform rect = EnsureRectTransform(gameObject);
             rect.localRotation = Quaternion.identity;
             rect.localScale = Vector3.one;
-            rect.anchorMin = new Vector2(0.05f, 0.04f);
-            rect.anchorMax = new Vector2(0.95f, 0.92f);
+            rect.anchorMin = new Vector2(0.43f, 0.04f);
+            rect.anchorMax = new Vector2(0.96f, 0.88f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 

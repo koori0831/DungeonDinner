@@ -16,6 +16,11 @@ namespace Work.Cook.Code.Editor
         private SerializedProperty _recipeId;
         private SerializedProperty _displayName;
         private SerializedProperty _description;
+        private SerializedProperty _revealNameByDefault;
+        private SerializedProperty _hiddenDisplayName;
+        private SerializedProperty _undiscoveredDescription;
+        private SerializedProperty _hintDescription;
+        private SerializedProperty _discoveredDescription;
         private SerializedProperty _category;
         private SerializedProperty _priority;
         private SerializedProperty _baseTags;
@@ -32,6 +37,11 @@ namespace Work.Cook.Code.Editor
             _recipeId = serializedObject.FindProperty("recipeId");
             _displayName = serializedObject.FindProperty("displayName");
             _description = serializedObject.FindProperty("description");
+            _revealNameByDefault = serializedObject.FindProperty("revealNameByDefault");
+            _hiddenDisplayName = serializedObject.FindProperty("hiddenDisplayName");
+            _undiscoveredDescription = serializedObject.FindProperty("undiscoveredDescription");
+            _hintDescription = serializedObject.FindProperty("hintDescription");
+            _discoveredDescription = serializedObject.FindProperty("discoveredDescription");
             _category = serializedObject.FindProperty("category");
             _priority = serializedObject.FindProperty("priority");
             _baseTags = serializedObject.FindProperty("baseTags");
@@ -72,6 +82,13 @@ namespace Work.Cook.Code.Editor
                 EditorGUILayout.PropertyField(_category, new GUIContent("음식 카테고리"));
                 EditorGUILayout.PropertyField(_priority, new GUIContent("매칭 우선순위"));
                 EditorGUILayout.PropertyField(_description, new GUIContent("설명"));
+                EditorGUILayout.Space(4f);
+                EditorGUILayout.LabelField("도감 공개 정보", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(_revealNameByDefault, new GUIContent("발견 전 이름 표시"));
+                EditorGUILayout.PropertyField(_hiddenDisplayName, new GUIContent("숨김 이름"));
+                EditorGUILayout.PropertyField(_undiscoveredDescription, new GUIContent("미발견 설명"));
+                EditorGUILayout.PropertyField(_hintDescription, new GUIContent("시도 후 힌트 설명"));
+                EditorGUILayout.PropertyField(_discoveredDescription, new GUIContent("발견 후 설명"));
             }
         }
 
