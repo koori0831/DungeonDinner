@@ -17,6 +17,7 @@ MonoBehaviour:
   description: Loot test item mapped to cave_beef cooking ingredient.
   icon: {fileID: 0}
   category: {fileID: 11400000, guid: f2b58d9e3f104c6ba7d8e90123f45a6b, type: 2}
+  worldLootPoolItem: {fileID: 11400000, guid: e2d0a1b2c3d44567a8901234567890ab, type: 2}
   isStackable: 1
   maxStackAmount: 99
   ingredient: {fileID: 11400000, guid: fe00b6c1c8e045c4aa7468f6b1a75d84, type: 2}

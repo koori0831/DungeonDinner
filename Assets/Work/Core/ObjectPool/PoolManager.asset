@@ -12,4 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: daea1f1b079a412fbf101fd44805c7b2, type: 3}
   m_Name: PoolManager
   m_EditorClassIdentifier: ObjectPool.RuntimeAssembly::Work.Core.ObjectPool.RunTime.PoolManagerSO
-  itemList: []
+  itemList:
+  - {fileID: 11400000, guid: e1d0a1b2c3d44567a8901234567890ab, type: 2}
+  - {fileID: 11400000, guid: e2d0a1b2c3d44567a8901234567890ab, type: 2}
+  - {fileID: 11400000, guid: e3d0a1b2c3d44567a8901234567890ab, type: 2}
+  - {fileID: 11400000, guid: e4d0a1b2c3d44567a8901234567890ab, type: 2}

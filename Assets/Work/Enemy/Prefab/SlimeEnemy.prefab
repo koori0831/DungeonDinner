@@ -648,9 +648,20 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   dropOrigin: {fileID: 1669982884520962904}
   lootPrefab: {fileID: 0}
+  lootPoolManager: {fileID: 11400000, guid: 4693ddc30ce69104e81b99f2bc79f165, type: 2}
   spawnRadius: 0.45
   spawnHeightOffset: 0.15
   fallbackVisualScale: 0.35
+  playDropArc: 1
+  dropArcDistance: 1.25
+  dropArcHeight: 0.75
+  dropArcDuration: 0.45
+  dropStartHeightOffset: 0.05
+  groundRaycastStartHeight: 2
+  groundRaycastDistance: 6
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   logSpawns: 1
   lastSpawnCount: 0
 --- !u!114 &4487411034954568838
