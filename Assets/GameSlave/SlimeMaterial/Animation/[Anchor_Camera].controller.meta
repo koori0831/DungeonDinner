@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 95aeafd4f47d95149a3a1161c18ef62b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 292284
+  packageName: Slime Material
+  packageVersion: 1.0
+  assetPath: Assets/GameSlave/SlimeMaterial/Animation/[Anchor_Camera].controller
+  uploadId: 682719
