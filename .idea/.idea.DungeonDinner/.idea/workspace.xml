@@ -5,81 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9572947c-97ba-46be-9cdd-73cd5f25d671" name="변경" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/projectSettingsUpdater.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyAttackState.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyAttackState.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyBase.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyBase.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyBehaviourState.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyBehaviourState.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyChaseState.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyChaseState.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyDeadState.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyDeadState.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyDeathHandler.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyHitReaction.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyHitable.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyIdleState.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyIdleState.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyKillConditionResolver.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyMovementModule.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyMovementModule.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyPatrolState.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyPatrolState.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyState.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyStateController.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyStateNames.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyStateNames.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/SlimeDynamicBoneAnimator.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/SlimeDynamicBoneAnimator.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyAttackState.asset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyAttackState.asset.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyChaseState.asset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyChaseState.asset.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyDeadState.asset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyDeadState.asset.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyIdleState.asset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyIdleState.asset.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyPatrolState.asset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Enemy/SO/State/EnemyPatrolState.asset.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerHitable.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerHitable.cs.meta" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Conditions/CombatConditionContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Code/Conditions/CombatConditionContext.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Conditions/EnemyStateConditionSO.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Code/Conditions/EnemyStateConditionSO.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Core/AttackDataSO.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Code/Core/AttackDataSO.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/CombatAttackExecutor.cs.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/CombatAttackExecutor.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyDeathHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyDeathHandler.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyDeathHandler.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyHitReaction.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyHitReaction.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyHitReaction.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyHitable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyHitable.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyHitable.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyKillConditionResolver.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyKillConditionResolver.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyKillConditionResolver.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyState.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyState.cs.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyState.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyStateController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Code/EnemyStateController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/EnemyStateController.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/HitCaster.cs.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/HitCaster.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Test/CombatTestScenarioRunner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Code/Test/CombatTestScenarioRunner.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Test/CombatTestScenarioRunner.cs.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Code/Test/CombatTestScenarioRunner.cs.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Test/CombatTestScenarioRunner.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Test/CombatTestScenarioRunner.cs.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Scene/CombatTest.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Scene/CombatTest.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Entities/Code/Entity.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Entities/Code/Entity.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityAnimationModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityAnimationModule.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityStateModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityStateModule.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityStateModule.cs.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityStateModule.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/FSM/Code/Editor/StateSOEditor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/FSM/Code/Editor/StateSOEditor.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/FSM/Code/State.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/FSM/Code/State.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/FSM/Code/StateMachine.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/FSM/Code/StateMachine.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/FSM/Code/StateSO.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/FSM/Code/StateSO.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Player.cs.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/Player.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerMoveState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerMoveState.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/ShaderGraphSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/ShaderGraphSettings.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/TagManager.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/TagManager.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,6 +99,8 @@
       <workItem from="1779979290652" duration="2992000" />
       <workItem from="1780235521401" duration="1058000" />
       <workItem from="1780285352939" duration="7298000" />
+      <workItem from="1780930540251" duration="2090000" />
+      <workItem from="1780964868171" duration="5012000" />
     </task>
     <servers />
   </component>

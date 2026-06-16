@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Work.Combat.Code.Core;
 
@@ -11,13 +12,15 @@ namespace Work.Combat.Code.Runtime
         private const float MIN_DIRECTION_SQR_MAGNITUDE = 0.0001f;
 
         [SerializeField]
-        private QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.UseGlobal;
+        private QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.Collide;
 
         [SerializeField]
         [Min(1)]
         private int maxColliderCount = 64;
 
         private Collider[] _colliderResults;
+        private readonly Dictionary<int, IHitable> HITABLE_BY_COLLIDER_ID = new Dictionary<int, IHitable>();
+        private readonly HashSet<IHitable> UNIQUE_HITABLES = new HashSet<IHitable>();
 
         private void Awake()
         {
@@ -49,6 +52,7 @@ namespace Work.Combat.Code.Runtime
             Vector3 startPoint = request.Origin;
             Vector3 endPoint = request.Origin + direction * range;
             Vector3 capsuleCenter = (startPoint + endPoint) * 0.5f;
+            Transform ownerTransform = request.Owner != null ? request.Owner.transform : null;
 
             int colliderCount = Physics.OverlapCapsuleNonAlloc(
                 startPoint,
@@ -60,6 +64,7 @@ namespace Work.Combat.Code.Runtime
             );
 
             int resultCount = 0;
+            UNIQUE_HITABLES.Clear();
 
             for (int i = 0; i < colliderCount; i++)
             {
@@ -70,24 +75,24 @@ namespace Work.Combat.Code.Runtime
                     continue;
                 }
 
-                if (IsSelf(targetCollider, request.Owner) == true)
+                if (IsSelf(targetCollider, ownerTransform) == true)
                 {
                     continue;
                 }
 
-                IHitable hitable = targetCollider.GetComponentInParent<IHitable>();
+                IHitable hitable = GetCachedHitable(targetCollider);
 
-                if (hitable == null)
+                if (IsMissingHitable(hitable) == true)
                 {
                     continue;
                 }
 
-                if (ContainsHitable(results, resultCount, hitable) == true)
+                if (UNIQUE_HITABLES.Add(hitable) == false)
                 {
                     continue;
                 }
 
-                results[resultCount] = CreateHitCastResult(in request, targetCollider, hitable, capsuleCenter);
+                results[resultCount] = CreateHitCastResult(in request, targetCollider, hitable, capsuleCenter, ownerTransform);
                 resultCount++;
 
                 if (resultCount >= results.Length)
@@ -96,6 +101,7 @@ namespace Work.Combat.Code.Runtime
                 }
             }
 
+            UNIQUE_HITABLES.Clear();
             return resultCount;
         }
 
@@ -103,13 +109,20 @@ namespace Work.Combat.Code.Runtime
             in HitCastRequest request,
             Collider targetCollider,
             IHitable hitable,
-            Vector3 capsuleCenter
+            Vector3 capsuleCenter,
+            Transform ownerTransform
         )
         {
             Vector3 hitPoint = targetCollider.ClosestPoint(capsuleCenter);
-            Vector3 hitDirection = GetHitDirection(in request, targetCollider, hitable);
+            Vector3 hitDirection = GetHitDirection(in request, targetCollider, hitable, ownerTransform);
 
             return new HitCastResult(hitable, targetCollider, hitPoint, hitDirection);
+        }
+
+        private void OnDisable()
+        {
+            HITABLE_BY_COLLIDER_ID.Clear();
+            UNIQUE_HITABLES.Clear();
         }
 
         private void EnsureColliderBuffer()
@@ -134,22 +147,35 @@ namespace Work.Combat.Code.Runtime
             return direction.normalized;
         }
 
-        private static bool IsSelf(Collider targetCollider, GameObject owner)
+        private IHitable GetCachedHitable(Collider targetCollider)
         {
-            if (owner == null)
+            int colliderId = targetCollider.GetInstanceID();
+
+            if (HITABLE_BY_COLLIDER_ID.TryGetValue(colliderId, out IHitable cachedHitable) == true)
+            {
+                return cachedHitable;
+            }
+
+            IHitable hitable = targetCollider.GetComponentInParent<IHitable>();
+            HITABLE_BY_COLLIDER_ID.Add(colliderId, hitable);
+            return hitable;
+        }
+
+        private static bool IsSelf(Collider targetCollider, Transform ownerTransform)
+        {
+            if (ownerTransform == null)
             {
                 return false;
             }
 
-            Transform ownerTransform = owner.transform;
             Transform targetTransform = targetCollider.transform;
 
             return targetTransform == ownerTransform || targetTransform.IsChildOf(ownerTransform);
         }
 
-        private static Vector3 GetHitDirection(in HitCastRequest request, Collider targetCollider, IHitable hitable)
+        private static Vector3 GetHitDirection(in HitCastRequest request, Collider targetCollider, IHitable hitable, Transform ownerTransform)
         {
-            Vector3 origin = request.Owner != null ? request.Owner.transform.position : request.Origin;
+            Vector3 origin = ownerTransform != null ? ownerTransform.position : request.Origin;
             Vector3 targetPosition = GetTargetPosition(targetCollider, hitable);
             Vector3 rawDirection = targetPosition - origin;
 
@@ -171,17 +197,20 @@ namespace Work.Combat.Code.Runtime
             return targetCollider.bounds.center;
         }
 
-        private static bool ContainsHitable(HitCastResult[] results, int count, IHitable target)
+        private static bool IsMissingHitable(IHitable hitable)
         {
-            for (int i = 0; i < count; i++)
+            if (hitable == null)
             {
-                if (ReferenceEquals(results[i].Hitable, target) == true)
-                {
-                    return true;
-                }
+                return true;
+            }
+
+            if (hitable is Component hitableComponent)
+            {
+                return hitableComponent == null;
             }
 
             return false;
         }
+
     }
 }

@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: crisp_greens
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: crisp_greens
+  displayName: "\uC544\uC0AD\uC78E \uCC44\uC18C"
+  description: "\uB358\uC804 \uBE5B\uC774 \uB4DC\uB294 \uD2C8\uC5D0\uC11C \uC7AC\uBC30\uD55C \uC544\uC0AD\uD55C \uCC44\uC18C\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1005, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 6687bfbad1aa46e5b10044be28cf0ecc, type: 2}
+  - {fileID: 11400000, guid: 13d01b8ca94c4cfca62450f41a34f671, type: 2}
+  - {fileID: 11400000, guid: a7eeab56863c4e8aafa56b21cf85f40b, type: 2}
+  preparationOptions:
+  - method: {fileID: 11400000, guid: 91112dc636d74cbd9288fe7ca5baaa76, type: 2}
+    displayNameOverride: "\uBE60\uB974\uAC8C \uB2E4\uC9C0\uAE30"
+    description: "\uC228\uC774 \uC8FD\uAE30 \uC804\uC5D0 \uBE60\uB974\uAC8C \uC815\uB9AC\uD569\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}
+    - {fileID: 11400000, guid: 7831f451243c44f9850fc9160ab6aa5f, type: 2}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: ""
+  - method: {fileID: 11400000, guid: d0ef0c2f15f44d99b6d5e8d7d5e7bd38, type: 2}
+    displayNameOverride: "\uC9D3\uBB34\uB974\uAC8C \uB204\uB974\uAE30"
+    description: "\uC78E\uC774 \uBB3C\uB7EC\uC838 \uC218\uBD84\uC774 \uD750\uB985\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 3d89c4abb512435fb92b9dc8b4986bf7, type: 2}
+    removeTags:
+    - {fileID: 11400000, guid: 13d01b8ca94c4cfca62450f41a34f671, type: 2}
+    - {fileID: 11400000, guid: 7831f451243c44f9850fc9160ab6aa5f, type: 2}
+    qualityDelta: -1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: "\uC9D3\uBB34\uB978"
+  - method: {fileID: 11400000, guid: 52ba5fd02ebe4304a0aaca02c7810876, type: 2}
+    displayNameOverride: "\uC2DC\uB4E0 \uC78E \uC4F0\uAE30"
+    description: "\uC2DC\uB4E0 \uC78E\uC744 \uC11E\uC5B4 \uAD34\uC2DD\uC774 \uB429\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 8c88cef2dded4c899d022234232f1bca, type: 2}
+    removeTags:
+    - {fileID: 11400000, guid: 13d01b8ca94c4cfca62450f41a34f671, type: 2}
+    qualityDelta: -3
+    causesDisgusting: 1
+    addsPoison: 0
+    resultNameModifier: "\uC2DC\uB4E0"

@@ -1,13 +1,16 @@
 using UnityEngine;
 using Work.Combat.Code.Core;
+using Work.Entities.Code;
 
 namespace Work.Combat.Code.Runtime
 {
     /// <summary>
     /// 전투 주체의 공격 실행과 피격 대상 호출 담당 컴포넌트
     /// </summary>
-    public sealed class CombatAttackExecutor : MonoBehaviour
+    public sealed class CombatAttackExecutor : MonoBehaviour, IEntityModule
     {
+        private const int MAX_HIT_RESULT_COUNT = 64;
+
         [SerializeField]
         private AttackDataSO attackData;
 
@@ -20,8 +23,9 @@ namespace Work.Combat.Code.Runtime
         [SerializeField]
         private LayerMask targetLayerMask;
 
-        private readonly HitCastResult[] HIT_RESULTS = new HitCastResult[16];
+        private readonly HitCastResult[] HIT_RESULTS = new HitCastResult[MAX_HIT_RESULT_COUNT];
 
+        private Entity _ownerEntity;
         private IHitCaster _hitCaster;
 
         /// <summary>
@@ -46,12 +50,16 @@ namespace Work.Combat.Code.Runtime
 
         private void Awake()
         {
-            _hitCaster = hitCasterBehaviour as IHitCaster;
+            ResolveSceneReferences();
+        }
 
-            if (_hitCaster == null)
-            {
-                LogInvalidHitCaster();
-            }
+        /// <summary>
+        /// 모듈 소유자 초기화
+        /// </summary>
+        /// <param name="entity">모듈 소유 엔티티</param>
+        public void Initialize(Entity entity)
+        {
+            _ownerEntity = entity;
         }
 
         /// <summary>
@@ -145,16 +153,47 @@ namespace Work.Combat.Code.Runtime
 
         private AttackExecutionRequest CreateDefaultRequest(AttackDataSO requestAttackData)
         {
+            ResolveOwnerEntity();
             Transform originTransform = attackOrigin != null ? attackOrigin : transform;
 
             return new AttackExecutionRequest(
-                gameObject,
-                gameObject,
+                GetAttackerGameObject(originTransform),
+                GetOwnerGameObject(),
                 requestAttackData,
                 originTransform.position,
                 originTransform.forward,
                 targetLayerMask
             );
+        }
+
+        private void ResolveSceneReferences()
+        {
+            _hitCaster = hitCasterBehaviour as IHitCaster;
+
+            if (_hitCaster == null)
+            {
+                LogInvalidHitCaster();
+            }
+        }
+
+        private void ResolveOwnerEntity()
+        {
+            if (_ownerEntity != null)
+            {
+                return;
+            }
+
+            _ownerEntity = GetComponentInParent<Entity>();
+        }
+
+        private GameObject GetOwnerGameObject()
+        {
+            return _ownerEntity != null ? _ownerEntity.gameObject : gameObject;
+        }
+
+        private GameObject GetAttackerGameObject(Transform originTransform)
+        {
+            return originTransform != null ? originTransform.gameObject : gameObject;
         }
 
         private HitContext CreateHitContext(in AttackExecutionRequest request, in HitCastResult hitCastResult)

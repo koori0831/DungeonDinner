@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: spring_water
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: spring_water
+  displayName: "\uC9C0\uD558 \uC0D8\uBB3C"
+  description: "\uC5B4\uC778\uC758 \uC544\uAC00\uBBF8\uB97C \uC801\uC2DC\uAE30\uC5D0\uB3C4 \uC88B\uC740 \uAE68\uB057\uD55C \uC0D8\uBB3C\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1011, type: 2}
+  baseTags:
+  - {fileID: 11400000, guid: 5b6888cfbe3e4cf58e49279be35581fb, type: 2}
+  - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}
+  - {fileID: 11400000, guid: f83e7e5d446642a58184065b23a9db48, type: 2}
+  preparationOptions:
+  - method: {fileID: 11400000, guid: 537a756678c8447e870f17502c470cc2, type: 2}
+    displayNameOverride: "\uCC28\uAC8C \uBCF4\uAD00\uD558\uAE30"
+    description: "\uC11C\uB298\uD55C \uC218\uBD84\uC744 \uADF8\uB300\uB85C \uC9C0\uD0B5\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: f83e7e5d446642a58184065b23a9db48, type: 2}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: ""
+  - method: {fileID: 11400000, guid: 2030abb6a30044cb888a191c429ab410, type: 2}
+    displayNameOverride: "\uC57D\uD558\uAC8C \uB053\uC774\uAE30"
+    description: "\uC218\uBD84\uC744 \uC783\uC9C0 \uC54A\uAC8C \uBBF8\uC9C0\uADFC\uD558\uAC8C \uB370\uC6C1\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: f3048e6f173c4f9b924131e33f7d225d, type: 2}
+    - {fileID: 11400000, guid: 5b6888cfbe3e4cf58e49279be35581fb, type: 2}
+    removeTags:
+    - {fileID: 11400000, guid: b909d11ca2c4458eaaaad411bc74e893, type: 2}
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: ""
+  - method: {fileID: 11400000, guid: 03c06eebea54481f87b50c60c2907959, type: 2}
+    displayNameOverride: "\uD0C1\uD55C \uBB3C \uC4F0\uAE30"
+    description: "\uC624\uC5FC\uB41C \uBB3C\uC774 \uB3C5\uC131\uC744 \uB0C5\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 11400000, guid: 6bac9b16ca5b48cb93ce53d5aa2df50d, type: 2}
+    - {fileID: 11400000, guid: 8c88cef2dded4c899d022234232f1bca, type: 2}
+    removeTags:
+    - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}
+    qualityDelta: -3
+    causesDisgusting: 1
+    addsPoison: 1
+    resultNameModifier: "\uD0C1\uD55C"

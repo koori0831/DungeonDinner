@@ -1,0 +1,16 @@
+{
+    "name": "ObjectPool.RuntimeAssembly",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b8fb0294ccc7bd44fb08fccf34328881"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

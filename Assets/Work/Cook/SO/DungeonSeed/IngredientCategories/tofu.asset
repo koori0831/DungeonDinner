@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e067d8332cfb48c482b77e8a19f391cb, type: 3}
+  m_Name: tofu
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientCategorySO
+  categoryId: tofu
+  displayName: "\ub450\ubd80\ub958"
+  description: "\ubd80\ub4dc\ub7ec\uc6b4 \ub450\ubd80\ucc98\ub7fc \uc73c\uae68\uae30\uc640 \uc370\uae30\uc5d0 \ub530\ub77c \uad6d\ubb3c\uac10\uacfc \uc2dd\uac10\uc774 \ub2ec\ub77c\uc9c0\ub294 \uc7ac\ub8cc\uad70\uc785\ub2c8\ub2e4."
+  icon: {fileID: 0}

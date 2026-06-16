@@ -1,0 +1,5 @@
+CategoryId,DisplayName,DialogueGroup
+Taste,맛,Question_Taste
+TextureTemp,온도/식감,Question_TextureTemp
+Condition,몸 상태,Question_Condition
+Avoid,피하고 싶은 음식,Question_Avoid

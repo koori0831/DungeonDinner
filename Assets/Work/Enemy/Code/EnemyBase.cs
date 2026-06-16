@@ -1,19 +1,14 @@
 using UnityEngine;
-using Work.Combat.Code.Runtime;
 using Work.Entities.Code;
 using Work.FSM.Code;
-using Work.Players.Code;
 
 namespace Work.Enemy.Code
 {
     /// <summary>
-    /// 기본 적 행동과 FSM 연동을 담당하는 적 엔티티 기반 클래스.
+    /// 적 엔티티 초기화와 상태용 컨텍스트 facade 담당 클래스.
     /// </summary>
     public class EnemyBase : Entity
     {
-        private const int MAX_TARGET_COLLIDER_COUNT = 16;
-        private const float MIN_RANGE = 0f;
-
         [Header("Initialize")]
         [SerializeField]
         private bool initializeOnAwake = true;
@@ -22,79 +17,162 @@ namespace Work.Enemy.Code
         [SerializeField]
         private EnemyStateController stateController;
 
-        [SerializeField]
-        private CombatAttackExecutor attackExecutor;
-
-        [Header("Range")]
-        [SerializeField]
-        private float activityRadius = 8f;
-
-        [SerializeField]
-        private float detectionRadius = 5f;
-
-        [SerializeField]
-        private float attackDistance = 1.5f;
-
-        [SerializeField]
-        private float patrolRadius = 5f;
-
-        [Header("Timing")]
-        [SerializeField]
-        private float patrolWaitTime = 1.5f;
-
-        [SerializeField]
-        private float attackCooldown = 1.25f;
-
-        [Header("Detection")]
-        [SerializeField]
-        private LayerMask targetLayerMask = ~0;
-
-        [SerializeField]
-        private QueryTriggerInteraction targetQueryTriggerInteraction = QueryTriggerInteraction.Ignore;
-
-        private Collider[] _targetColliders = new Collider[MAX_TARGET_COLLIDER_COUNT];
         private EnemyMovementModule _movementModule;
         private EntityStateModule _stateModule;
-        private Transform _target;
-        private Vector3 _activityCenter;
-        private float _nextAttackTime;
+        private EnemyTerritoryModule _territoryModule;
+        private EnemyTargetingModule _targetingModule;
+        private EnemyCombatModule _combatModule;
         private bool _isInitialized;
         private bool _isDead;
 
         /// <summary>
         /// 현재 추적 대상.
         /// </summary>
-        public Transform Target => _target;
+        public Transform Target => GetTargetingModule()?.Target;
 
         /// <summary>
         /// 활동 범위 중심 위치.
         /// </summary>
-        public Vector3 ActivityCenter => _activityCenter;
+        public Vector3 ActivityCenter
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.ActivityCenter : transform.position;
+            }
+        }
 
         /// <summary>
         /// 활동 반경.
         /// </summary>
-        public float ActivityRadius => activityRadius;
+        public float ActivityRadius
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.ActivityRadius : 0f;
+            }
+        }
 
         /// <summary>
         /// 감지 반경.
         /// </summary>
-        public float DetectionRadius => detectionRadius;
+        public float DetectionRadius
+        {
+            get
+            {
+                EnemyTargetingModule targetingModule = GetTargetingModule();
+                return targetingModule != null ? targetingModule.DetectionRadius : 0f;
+            }
+        }
 
         /// <summary>
         /// 공격 거리.
         /// </summary>
-        public float AttackDistance => attackDistance;
+        public float AttackDistance
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackDistance : 0f;
+            }
+        }
+
+        /// <summary>
+        /// 공격 상태 진입 허용 각도.
+        /// </summary>
+        public float AttackEnterAngle
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackEnterAngle : 0f;
+            }
+        }
 
         /// <summary>
         /// 순찰 대기 시간.
         /// </summary>
-        public float PatrolWaitTime => patrolWaitTime;
+        public float PatrolWaitTime
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.PatrolWaitTime : 0f;
+            }
+        }
+
+        /// <summary>
+        /// 순찰 지점 주변 체류 시간.
+        /// </summary>
+        public float PatrolPointStayTime
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.PatrolPointStayTime : 0f;
+            }
+        }
+
+        /// <summary>
+        /// 순찰 지점 주변 다음 이동점 선택 간격.
+        /// </summary>
+        public float PatrolPointMoveInterval
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.PatrolPointMoveInterval : 0f;
+            }
+        }
 
         /// <summary>
         /// 공격 쿨타임.
         /// </summary>
-        public float AttackCooldown => attackCooldown;
+        public float AttackCooldown
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackCooldown : 0f;
+            }
+        }
+
+        /// <summary>
+        /// 공격 판정 전 준비 시간.
+        /// </summary>
+        public float AttackWindupTime
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackWindupTime : 0f;
+            }
+        }
+
+        /// <summary>
+        /// 공격 판정 후 회복 시간.
+        /// </summary>
+        public float AttackRecoveryTime
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null ? combatModule.AttackRecoveryTime : 0f;
+            }
+        }
+
+        /// <summary>
+        /// 활동 범위 이탈 후 복귀 전환까지 대기 시간.
+        /// </summary>
+        public float ChaseReturnDelay
+        {
+            get
+            {
+                EnemyTerritoryModule territoryModule = GetTerritoryModule();
+                return territoryModule != null ? territoryModule.ChaseReturnDelay : 0f;
+            }
+        }
 
         /// <summary>
         /// 사망 여부.
@@ -104,7 +182,26 @@ namespace Work.Enemy.Code
         /// <summary>
         /// 공격 가능 여부.
         /// </summary>
-        public bool CanExecuteAttack => Time.time >= _nextAttackTime;
+        public bool CanExecuteAttack
+        {
+            get
+            {
+                EnemyCombatModule combatModule = GetCombatModule();
+                return combatModule != null && combatModule.CanExecuteAttack == true;
+            }
+        }
+
+        /// <summary>
+        /// 현재 이동 상태에서 공격 상태 진입 가능 여부.
+        /// </summary>
+        public bool CanEnterAttack
+        {
+            get
+            {
+                EnemyMovementModule movementModule = GetMovementModule();
+                return movementModule == null || movementModule.CanEnterAttack == true;
+            }
+        }
 
         protected virtual void Awake()
         {
@@ -124,9 +221,7 @@ namespace Work.Enemy.Code
                 return;
             }
 
-            _activityCenter = transform.position;
             ResolveSceneReferences();
-
             base.Init();
             ResolveModules();
 
@@ -144,26 +239,19 @@ namespace Work.Enemy.Code
                 return false;
             }
 
-            if (_target != null)
-            {
-                if (IsTargetInActivityRange() == true)
-                {
-                    return true;
-                }
+            EnemyTargetingModule targetingModule = GetTargetingModule();
 
-                ClearTarget();
-            }
-
-            Transform foundTarget;
-
-            if (TryFindTargetInDetectionRange(out foundTarget) == false)
+            if (targetingModule == null)
             {
                 return false;
             }
 
-            _target = foundTarget;
-            OnTargetAcquired(_target);
-            return true;
+            Transform previousTarget = targetingModule.Target;
+            bool isAcquired = targetingModule.TryAcquireTarget();
+            Transform currentTarget = targetingModule.Target;
+
+            InvokeTargetChangeEvents(previousTarget, currentTarget);
+            return isAcquired;
         }
 
         /// <summary>
@@ -171,13 +259,16 @@ namespace Work.Enemy.Code
         /// </summary>
         public virtual void ClearTarget()
         {
-            if (_target == null)
+            EnemyTargetingModule targetingModule = GetTargetingModule();
+
+            if (targetingModule == null || targetingModule.Target == null)
             {
                 return;
             }
 
-            _target = null;
-            OnTargetLost();
+            Transform previousTarget = targetingModule.Target;
+            targetingModule.ClearTarget();
+            InvokeTargetChangeEvents(previousTarget, null);
         }
 
         /// <summary>
@@ -186,13 +277,8 @@ namespace Work.Enemy.Code
         /// <returns>감지 범위 포함 여부.</returns>
         public virtual bool IsTargetInDetectionRange()
         {
-            if (_target == null)
-            {
-                return false;
-            }
-
-            float sqrDistance = GetHorizontalSqrDistance(transform.position, _target.position);
-            return sqrDistance <= detectionRadius * detectionRadius && IsTargetInActivityRange() == true;
+            EnemyTargetingModule targetingModule = GetTargetingModule();
+            return targetingModule != null && targetingModule.IsTargetInDetectionRange() == true;
         }
 
         /// <summary>
@@ -201,12 +287,8 @@ namespace Work.Enemy.Code
         /// <returns>활동 범위 포함 여부.</returns>
         public virtual bool IsTargetInActivityRange()
         {
-            if (_target == null)
-            {
-                return false;
-            }
-
-            return IsPositionInActivityRange(_target.position);
+            EnemyTargetingModule targetingModule = GetTargetingModule();
+            return targetingModule != null && targetingModule.IsTargetInActivityRange() == true;
         }
 
         /// <summary>
@@ -215,13 +297,29 @@ namespace Work.Enemy.Code
         /// <returns>공격 범위 포함 여부.</returns>
         public virtual bool IsTargetInAttackRange()
         {
-            if (_target == null)
-            {
-                return false;
-            }
+            EnemyCombatModule combatModule = GetCombatModule();
+            return combatModule != null && combatModule.IsTargetInAttackRange(Target, GetTerritoryModule()) == true;
+        }
 
-            float sqrDistance = GetHorizontalSqrDistance(transform.position, _target.position);
-            return sqrDistance <= attackDistance * attackDistance && IsTargetInActivityRange() == true;
+        /// <summary>
+        /// 복귀 완료 영역 안쪽 포함 여부 반환.
+        /// </summary>
+        /// <returns>복귀 완료 영역 포함 여부.</returns>
+        public virtual bool IsInsideReturnArea()
+        {
+            EnemyTerritoryModule territoryModule = GetTerritoryModule();
+            return territoryModule == null || territoryModule.IsInsideReturnArea() == true;
+        }
+
+        /// <summary>
+        /// 현재 타겟을 지정 각도 이내로 바라보는지 반환.
+        /// </summary>
+        /// <param name="maxAngle">허용 각도.</param>
+        /// <returns>타겟 방향 정렬 여부.</returns>
+        public virtual bool IsFacingTarget(float maxAngle)
+        {
+            EnemyCombatModule combatModule = GetCombatModule();
+            return combatModule != null && combatModule.IsFacingTarget(Target, maxAngle) == true;
         }
 
         /// <summary>
@@ -230,15 +328,29 @@ namespace Work.Enemy.Code
         /// <returns>순찰 위치.</returns>
         public virtual Vector3 GetNextPatrolPoint()
         {
-            float radius = Mathf.Min(activityRadius, patrolRadius);
+            EnemyTerritoryModule territoryModule = GetTerritoryModule();
+            return territoryModule != null ? territoryModule.GetNextPatrolPoint() : transform.position;
+        }
 
-            if (radius <= MIN_RANGE)
-            {
-                return _activityCenter;
-            }
+        /// <summary>
+        /// 순찰 위치 주변의 다음 세부 이동 위치 반환.
+        /// </summary>
+        /// <param name="patrolPoint">기준 순찰 위치.</param>
+        /// <returns>세부 이동 위치.</returns>
+        public virtual Vector3 GetNextPatrolMovePoint(Vector3 patrolPoint)
+        {
+            EnemyTerritoryModule territoryModule = GetTerritoryModule();
+            return territoryModule != null ? territoryModule.GetNextPatrolMovePoint(patrolPoint) : patrolPoint;
+        }
 
-            Vector2 offset = Random.insideUnitCircle * radius;
-            return _activityCenter + new Vector3(offset.x, 0f, offset.y);
+        /// <summary>
+        /// 복귀 목표 위치 반환.
+        /// </summary>
+        /// <returns>복귀 목표 위치.</returns>
+        public virtual Vector3 GetReturnPoint()
+        {
+            EnemyTerritoryModule territoryModule = GetTerritoryModule();
+            return territoryModule != null ? territoryModule.GetReturnPoint() : transform.position;
         }
 
         /// <summary>
@@ -279,7 +391,10 @@ namespace Work.Enemy.Code
                 return movementModule.HasReached(targetPosition);
             }
 
-            float sqrDistance = GetHorizontalSqrDistance(transform.position, targetPosition);
+            Vector3 currentPosition = transform.position;
+            currentPosition.y = 0f;
+            targetPosition.y = 0f;
+            float sqrDistance = (targetPosition - currentPosition).sqrMagnitude;
             return sqrDistance <= 0.01f;
         }
 
@@ -288,13 +403,15 @@ namespace Work.Enemy.Code
         /// </summary>
         public virtual void FaceTarget()
         {
-            if (_target == null)
+            Transform target = Target;
+
+            if (target == null)
             {
                 return;
             }
 
             EnemyMovementModule movementModule = GetMovementModule();
-            movementModule?.FaceTowards(_target.position);
+            movementModule?.FaceTowards(target.position);
         }
 
         /// <summary>
@@ -302,28 +419,19 @@ namespace Work.Enemy.Code
         /// </summary>
         public virtual void ExecuteAttack()
         {
-            if (_isDead == true || CanExecuteAttack == false)
+            EnemyCombatModule combatModule = GetCombatModule();
+
+            if (_isDead == true || combatModule == null || combatModule.CanExecuteAttack == false)
             {
                 return;
             }
 
-            _nextAttackTime = Time.time + attackCooldown;
-            FaceTarget();
             OnBeforeAttack();
 
-            if (attackExecutor == null)
+            if (combatModule.ExecuteAttack() == true)
             {
-                ResolveSceneReferences();
+                OnAfterAttack();
             }
-
-            if (attackExecutor == null)
-            {
-                LogMissingAttackExecutor();
-                return;
-            }
-
-            attackExecutor.ExecuteAttack();
-            OnAfterAttack();
         }
 
         /// <summary>
@@ -360,72 +468,6 @@ namespace Work.Enemy.Code
         }
 
         /// <summary>
-        /// 지정 위치의 활동 범위 포함 여부 반환.
-        /// </summary>
-        /// <param name="position">검사 위치.</param>
-        /// <returns>활동 범위 포함 여부.</returns>
-        protected virtual bool IsPositionInActivityRange(Vector3 position)
-        {
-            float sqrDistance = GetHorizontalSqrDistance(_activityCenter, position);
-            return sqrDistance <= activityRadius * activityRadius;
-        }
-
-        /// <summary>
-        /// 감지 범위 내 대상 탐색.
-        /// </summary>
-        /// <param name="target">탐색된 대상.</param>
-        /// <returns>탐색 성공 여부.</returns>
-        protected virtual bool TryFindTargetInDetectionRange(out Transform target)
-        {
-            target = null;
-            int colliderCount = Physics.OverlapSphereNonAlloc(
-                transform.position,
-                detectionRadius,
-                _targetColliders,
-                targetLayerMask,
-                targetQueryTriggerInteraction
-            );
-
-            float nearestSqrDistance = float.MaxValue;
-
-            for (int i = 0; i < colliderCount; i++)
-            {
-                Collider targetCollider = _targetColliders[i];
-
-                if (targetCollider == null)
-                {
-                    continue;
-                }
-
-                Player player = targetCollider.GetComponentInParent<Player>();
-
-                if (player == null)
-                {
-                    continue;
-                }
-
-                Transform playerTransform = player.transform;
-
-                if (IsPositionInActivityRange(playerTransform.position) == false)
-                {
-                    continue;
-                }
-
-                float sqrDistance = GetHorizontalSqrDistance(transform.position, playerTransform.position);
-
-                if (sqrDistance >= nearestSqrDistance)
-                {
-                    continue;
-                }
-
-                nearestSqrDistance = sqrDistance;
-                target = playerTransform;
-            }
-
-            return target != null;
-        }
-
-        /// <summary>
         /// 대상 확보 후 확장 지점.
         /// </summary>
         /// <param name="target">확보된 대상.</param>
@@ -454,40 +496,11 @@ namespace Work.Enemy.Code
         {
         }
 
-        protected virtual void OnValidate()
-        {
-            activityRadius = Mathf.Max(MIN_RANGE, activityRadius);
-            detectionRadius = Mathf.Max(MIN_RANGE, detectionRadius);
-            attackDistance = Mathf.Max(MIN_RANGE, attackDistance);
-            patrolRadius = Mathf.Max(MIN_RANGE, patrolRadius);
-            patrolWaitTime = Mathf.Max(MIN_RANGE, patrolWaitTime);
-            attackCooldown = Mathf.Max(MIN_RANGE, attackCooldown);
-        }
-
-        protected virtual void OnDrawGizmosSelected()
-        {
-            Vector3 center = Application.isPlaying == true ? _activityCenter : transform.position;
-
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(center, activityRadius);
-
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(transform.position, detectionRadius);
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, attackDistance);
-        }
-
         private void ResolveSceneReferences()
         {
             if (stateController == null)
             {
                 stateController = GetComponent<EnemyStateController>();
-            }
-
-            if (attackExecutor == null)
-            {
-                attackExecutor = GetComponent<CombatAttackExecutor>();
             }
         }
 
@@ -495,6 +508,9 @@ namespace Work.Enemy.Code
         {
             TryGetModule<EnemyMovementModule>(out _movementModule, true);
             TryGetModule<EntityStateModule>(out _stateModule, true);
+            TryGetModule<EnemyTerritoryModule>(out _territoryModule, true);
+            TryGetModule<EnemyTargetingModule>(out _targetingModule, true);
+            TryGetModule<EnemyCombatModule>(out _combatModule, true);
         }
 
         private EnemyMovementModule GetMovementModule()
@@ -517,18 +533,52 @@ namespace Work.Enemy.Code
             return _stateModule;
         }
 
-        private static float GetHorizontalSqrDistance(Vector3 from, Vector3 to)
+        private EnemyTerritoryModule GetTerritoryModule()
         {
-            from.y = 0f;
-            to.y = 0f;
-            return (to - from).sqrMagnitude;
+            if (_territoryModule == null)
+            {
+                TryGetModule<EnemyTerritoryModule>(out _territoryModule, true);
+            }
+
+            return _territoryModule;
         }
 
-        [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogMissingAttackExecutor()
+        private EnemyTargetingModule GetTargetingModule()
         {
-            Debug.LogError($"{nameof(CombatAttackExecutor)} is missing.", this);
+            if (_targetingModule == null)
+            {
+                TryGetModule<EnemyTargetingModule>(out _targetingModule, true);
+            }
+
+            return _targetingModule;
+        }
+
+        private EnemyCombatModule GetCombatModule()
+        {
+            if (_combatModule == null)
+            {
+                TryGetModule<EnemyCombatModule>(out _combatModule, true);
+            }
+
+            return _combatModule;
+        }
+
+        private void InvokeTargetChangeEvents(Transform previousTarget, Transform currentTarget)
+        {
+            if (previousTarget == currentTarget)
+            {
+                return;
+            }
+
+            if (previousTarget != null)
+            {
+                OnTargetLost();
+            }
+
+            if (currentTarget != null)
+            {
+                OnTargetAcquired(currentTarget);
+            }
         }
     }
 }

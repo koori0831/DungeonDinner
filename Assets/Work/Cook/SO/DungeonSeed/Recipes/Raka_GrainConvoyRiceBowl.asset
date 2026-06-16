@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: Raka_GrainConvoyRiceBowl
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: Raka_GrainConvoyRiceBowl
+  displayName: "\uACE1\uBB3C \uD638\uC1A1 \uB36E\uBC25"
+  description: "\uC218\uC778 \uACE1\uBB3C\uAE38\uC758 \uC300\uACFC \uB2ED\uACE0\uAE30\uB97C \uBE60\uB974\uAC8C \uB2F4\uC740 \uC2E4\uC804\uC2DD \uB36E\uBC25\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: 966f3bb4aa3544b4a01c3e1041fa2ce5, type: 2}
+  priority: 14
+  baseTags:
+  - {fileID: 11400000, guid: 23801e839340456f9cdf1a2a8534e6e5, type: 2}
+  - {fileID: 11400000, guid: ed39be636feb4c0fa5eab3f7b1eb0986, type: 2}
+  - {fileID: 11400000, guid: d85c3609b19d45238ce3a6179e90b20f, type: 2}
+  - {fileID: 11400000, guid: f3048e6f173c4f9b924131e33f7d225d, type: 2}
+  - {fileID: 11400000, guid: a7eeab56863c4e8aafa56b21cf85f40b, type: 2}
+  - {fileID: 11400000, guid: 088b31e23d0d4db1a5c455b38d38311d, type: 2}
+  requiredIngredients:
+  - ingredient: {fileID: 0}
+    ingredientCategory: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1007, type: 2}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 11400000, guid: dc2a81df538f4fbaa8d3bce902a59b6e, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
+  - ingredient: {fileID: 0}
+    ingredientCategory: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1002, type: 2}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 11400000, guid: 8637dc9ae42240f79c0046396fdd5065, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
+  - ingredient: {fileID: 11400000, guid: a67ed6ce264c48a78f1619e6f8356c98, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 11400000, guid: 91112dc636d74cbd9288fe7ca5baaa76, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
+  - ingredient: {fileID: 11400000, guid: f7c25978752f4d74845a3f708658852a, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 11400000, guid: cc115c95b7b34d2999fe40197e644061, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 1
+    requireManualPreparation: 0
+  - ingredient: {fileID: 0}
+    ingredientCategory: {fileID: 11400000, guid: 8f2b2ce15a0d46f59b3eb33d46db1012, type: 2}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 0
+    autoApplyRequiredPreparation: 0
+    requireManualPreparation: 1
+  - ingredient: {fileID: 11400000, guid: fdecdc16d97f4b18b50cbc18dd2c6991, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 0
+    autoApplyRequiredPreparation: 0
+    requireManualPreparation: 1
+  perfectPreparationRules: []

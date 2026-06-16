@@ -1,5 +1,6 @@
 using Work.Input.Code;
 using Work.Entities.Code;
+using Work.Players.Code.Inventory;
 
 namespace Work.Players.Code
 {
@@ -7,12 +8,16 @@ namespace Work.Players.Code
     {
         private PlayerInputContainer _inputContainer;
         private EntityMovementModule _movementModule;
+        private PlayerInventoryModule _inventoryModule;
 
         public PlayerInputContainer InputContainer => _inputContainer;
         public EntityMovementModule MovementModule => _movementModule ??= GetModule<EntityMovementModule>(true);
+        public PlayerInventoryModule InventoryModule => _inventoryModule ??= GetModule<PlayerInventoryModule>(true);
 
         private void Awake()
         {
+            PlayerTargetProvider.Register(transform);
+
             _inputContainer = new PlayerInputContainer();
             _inputContainer.Initialize();
             Init();
@@ -22,6 +27,7 @@ namespace Work.Players.Code
 
         private void OnDestroy()
         {
+            PlayerTargetProvider.Unregister(transform);
             _inputContainer?.Uninitialize();
         }
     }

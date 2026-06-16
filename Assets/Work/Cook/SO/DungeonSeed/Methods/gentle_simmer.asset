@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74164158a6dc1304e8724f55b2ffb957, type: 3}
+  m_Name: gentle_simmer
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
+  methodId: gentle_simmer
+  displayName: "\uC57D\uD558\uAC8C \uB053\uC774\uAE30"
+  description: "\uC218\uBD84\uC744 \uC9C0\uD0A4\uBA70 \uC57D\uD55C \uBD88\uB85C \uB053\uC785\uB2C8\uB2E4."

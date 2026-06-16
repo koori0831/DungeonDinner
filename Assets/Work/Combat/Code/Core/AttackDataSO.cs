@@ -37,5 +37,26 @@ namespace Work.Combat.Code.Core
         /// </summary>
         [field: SerializeField]
         public float KnockbackPower { get; private set; }
+
+        private void OnValidate()
+        {
+            if (IsSingleAttackType(AttackType) == false)
+            {
+                LogInvalidAttackType();
+            }
+        }
+
+        private static bool IsSingleAttackType(AttackType attackType)
+        {
+            int attackTypeValue = (int)attackType;
+            return attackTypeValue != 0 && (attackTypeValue & (attackTypeValue - 1)) == 0;
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private void LogInvalidAttackType()
+        {
+            Debug.LogWarning($"{nameof(AttackDataSO)} requires a single non-empty {nameof(AttackType)}. attackType={AttackType}", this);
+        }
     }
 }
