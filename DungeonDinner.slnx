@@ -1,5 +1,4 @@
 ﻿<Solution>
-  <Project Path="ProPixelizer.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="VHierarchy.csproj" />
