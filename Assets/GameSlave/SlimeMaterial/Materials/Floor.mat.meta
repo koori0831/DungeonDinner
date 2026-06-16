@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2bb2a681b3a93324886de7e66e92b147
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 292284
+  packageName: Slime Material
+  packageVersion: 1.0
+  assetPath: Assets/GameSlave/SlimeMaterial/Materials/Floor.mat
+  uploadId: 682719
