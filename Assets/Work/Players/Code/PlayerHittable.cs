@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using Work.Combat.Code.Core;
 using Work.Entities.Code;
 
@@ -7,10 +8,10 @@ namespace Work.Players.Code
     /// <summary>
     /// 플레이어의 기본 피격 판정 처리 컴포넌트.
     /// </summary>
-    public sealed class PlayerHitable : MonoBehaviour, IHitable
+    public sealed class PlayerHittable : MonoBehaviour, IHitable
     {
         [SerializeField]
-        private bool isHitable = true;
+        private bool isHittable = true;
 
         [SerializeField]
         private EntityHealthModule healthModule;
@@ -46,7 +47,7 @@ namespace Work.Players.Code
                 return LastHitResult;
             }
 
-            if (isHitable == false)
+            if (isHittable == false)
             {
                 LastHitResult = new HitResult(false, false, HitResultType.Ignored);
                 return LastHitResult;

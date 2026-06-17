@@ -1,6 +1,5 @@
 using UnityEngine;
 using Work.Entities.Code;
-using Work.Players.Code;
 
 namespace Work.Enemy.Code
 {
@@ -53,8 +52,27 @@ namespace Work.Enemy.Code
             {
                 entity.TryGetModule<EnemyTerritoryModule>(out _territoryModule, true);
             }
+        }
 
-            ResolveKnownTarget();
+        /// <summary>
+        /// 외부에서 주입한 추적 후보 대상 설정.
+        /// </summary>
+        /// <param name="target">추적 후보 대상.</param>
+        public void SetKnownTarget(Transform target)
+        {
+            if (IsValidTarget(target) == false)
+            {
+                ClearKnownTarget();
+                ClearTarget();
+                return;
+            }
+
+            _knownTarget = target;
+
+            if (_target != target)
+            {
+                ClearTarget();
+            }
         }
 
         /// <summary>
@@ -73,9 +91,8 @@ namespace Work.Enemy.Code
                 ClearTarget();
             }
 
-            if (IsValidTarget(_knownTarget) == false)
+            if (EnsureKnownTarget() == false)
             {
-                ClearKnownTarget();
                 return false;
             }
 
@@ -140,15 +157,16 @@ namespace Work.Enemy.Code
             Gizmos.DrawWireSphere(transform.position, detectionRadius);
         }
 
-        private void ResolveKnownTarget()
+        private bool EnsureKnownTarget()
         {
-            if (PlayerTargetProvider.TryGetTarget(out Transform target) == false)
+            if (IsValidTarget(_knownTarget) == true)
             {
-                ClearKnownTarget();
-                return;
+                return true;
             }
 
-            _knownTarget = target;
+            ClearKnownTarget();
+            ClearTarget();
+            return false;
         }
 
         private void ClearKnownTarget()
