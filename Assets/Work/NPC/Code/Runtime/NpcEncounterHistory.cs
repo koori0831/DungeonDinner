@@ -471,7 +471,7 @@ namespace Work.NPC.Code.Runtime
 
         private static void AddResultCount(NpcHistoryRecord record, NpcConversationResult result)
         {
-            switch (result)
+            switch (NpcConversationRunner.NormalizeResult(result))
             {
                 case NpcConversationResult.Perfect:
                     record.perfectCount++;
@@ -484,16 +484,13 @@ namespace Work.NPC.Code.Runtime
                     break;
                 case NpcConversationResult.Wrong:
                     record.wrongCount++;
-                    break;
-                case NpcConversationResult.Disgusting:
-                    record.disgustingCount++;
                     break;
             }
         }
 
         private static void AddResultCount(VisitEventHistoryRecord record, NpcConversationResult result)
         {
-            switch (result)
+            switch (NpcConversationRunner.NormalizeResult(result))
             {
                 case NpcConversationResult.Perfect:
                     record.perfectCount++;
@@ -506,9 +503,6 @@ namespace Work.NPC.Code.Runtime
                     break;
                 case NpcConversationResult.Wrong:
                     record.wrongCount++;
-                    break;
-                case NpcConversationResult.Disgusting:
-                    record.disgustingCount++;
                     break;
             }
         }

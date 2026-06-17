@@ -484,7 +484,7 @@ namespace Work.Cook.Code.Runtime
                 builder.AppendLine($"회피 태그 감지: {BuildStringListText(report.MatchedAvoidTags)}");
 
             if (report.Dish != null && (report.Dish.IsDisgusting || report.MatchedDisgustingTags.Count > 0))
-                builder.AppendLine($"혐오 위험: {BuildStringListText(report.MatchedDisgustingTags)}");
+                builder.AppendLine($"실패 위험: {BuildStringListText(report.MatchedDisgustingTags)}");
 
             if (report.Evaluation != null)
                 builder.AppendLine($"판정 사유: {report.Evaluation.Reason}");
@@ -517,7 +517,7 @@ namespace Work.Cook.Code.Runtime
                 builder.AppendLine($"회피 태그 감지: {BuildStringListText(report.MatchedAvoidTags)}");
 
             if (report.Dish != null && (report.Dish.IsDisgusting || report.MatchedDisgustingTags.Count > 0))
-                builder.AppendLine($"혐오 위험: {BuildStringListText(report.MatchedDisgustingTags)}");
+                builder.AppendLine($"실패 위험: {BuildStringListText(report.MatchedDisgustingTags)}");
 
             if (report.Evaluation != null)
                 builder.AppendLine($"판정 사유: {report.Evaluation.Reason}");
@@ -640,7 +640,6 @@ namespace Work.Cook.Code.Runtime
                 case NpcConversationResult.Similar:
                     return "비슷함";
                 case NpcConversationResult.Disgusting:
-                    return "혐오";
                 case NpcConversationResult.Wrong:
                 default:
                     return "불일치";

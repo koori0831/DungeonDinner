@@ -1,11 +1,3 @@
 RegionId,NpcId,Weight,MinDay,CooldownDays,PoolType,Condition
-"MossCave","Elyndra","85","1","1","Normal",""
-"MossCave","Dorin","75","1","1","Traveler",""
-"MossCave","Raka","90","1","1","Normal",""
-"MossCave","Marel","70","1","1","Normal",""
-"MossCave","Borga","65","1","1","Traveler",""
-"Volcano","Elyndra","85","1","1","Traveler",""
-"Volcano","Dorin","75","1","1","Normal",""
-"Volcano","Raka","90","1","1","Traveler",""
-"Volcano","Marel","70","1","1","Traveler",""
-"Volcano","Borga","65","1","1","Normal",""
+"MossCave","Odin","80","1","1","Normal",""
+"Volcano","Odin","80","1","1","Normal",""

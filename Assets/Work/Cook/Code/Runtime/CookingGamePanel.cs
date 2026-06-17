@@ -59,6 +59,10 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private bool autoCreateRewardSystems = true;
         [SerializeField] private bool autoCreateTemporaryRewardView = true;
 
+        [Header("Business Flow")]
+        [SerializeField] private CookingBusinessFlowController businessFlowController;
+        [SerializeField] private bool autoCreateBusinessFlowController = true;
+
         [Header("Views")]
         [SerializeField] private GameObject npcConversationView;
         [SerializeField] private GameObject recipeSelectionView;
@@ -89,6 +93,7 @@ namespace Work.Cook.Code.Runtime
 
         public CookingFlowRunner FlowRunner => flowRunner;
         public NpcConversationRunner NpcRunner => npcRunner;
+        public TMP_FontAsset TemporaryUiFontAsset => temporaryUiFontAsset;
         public GameObject NpcConversationView => npcConversationView;
         public GameObject RecipeSelectionView => recipeSelectionView;
         public GameObject InventoryView => inventoryView;
@@ -765,6 +770,42 @@ namespace Work.Cook.Code.Runtime
             SetScreen(CookingGameScreenState.None);
         }
 
+        public void ClearStoredInfoForDebug()
+        {
+            if (flowRunner == null)
+                flowRunner = GetComponentInChildren<CookingFlowRunner>(true);
+
+            if (knowledgeStore == null)
+                knowledgeStore = GetComponentInChildren<CookingKnowledgeStore>(true);
+
+            if (rewardWallet == null)
+                rewardWallet = GetComponentInChildren<CookingRewardWallet>(true);
+
+            if (recipeIngredientChoiceSource == null)
+                recipeIngredientChoiceSource = GetComponentInChildren<CookingRecipeIngredientChoiceSource>(true);
+
+            if (npcRunner == null)
+                npcRunner = FindFirstObjectByType<NpcConversationRunner>();
+
+            NpcEncounterDirector encounterDirector = GetComponentInChildren<NpcEncounterDirector>(true);
+            if (encounterDirector == null)
+                encounterDirector = FindFirstObjectByType<NpcEncounterDirector>();
+
+            flowRunner?.ResetFlow();
+            recipeIngredientChoiceSource?.Clear();
+            knowledgeStore?.ClearKnowledgeForDebug();
+            rewardWallet?.ClearForDebug();
+            encounterDirector?.ClearEncounterHistory();
+            _currentResult = null;
+
+            CookingGameScreenState resetScreen = applyInitialScreenOnAwake
+                ? initialScreen
+                : CookingGameScreenState.None;
+            SetScreen(resetScreen);
+            RefreshCookingViews();
+            PublishSnapshotChanged();
+        }
+
         private void EnsureCoreReferences()
         {
             if (flowRunner == null)
@@ -800,6 +841,7 @@ namespace Work.Cook.Code.Runtime
             EnsureResultView();
             EnsureKnowledgeUpdateView();
             EnsureRewardView();
+            EnsureBusinessFlowController();
         }
 
         private void EnsureKnowledgeStore()
@@ -1128,6 +1170,7 @@ namespace Work.Cook.Code.Runtime
         {
             if (preparationView != null)
             {
+                AttachPreparationViewToOverlayRoot(preparationView);
                 InitializePreparationView(preparationView);
                 return;
             }
@@ -1136,6 +1179,7 @@ namespace Work.Cook.Code.Runtime
             if (existingView != null)
             {
                 preparationView = existingView.gameObject;
+                AttachPreparationViewToOverlayRoot(preparationView);
                 InitializePreparationView(preparationView);
                 return;
             }
@@ -1147,12 +1191,28 @@ namespace Work.Cook.Code.Runtime
                 "TemporaryPreparationView",
                 typeof(RectTransform),
                 typeof(CookingPreparationView));
-            generatedView.transform.SetParent(FindInventoryViewParent(), false);
+            Transform parent = FindOverlayViewParent();
+            generatedView.transform.SetParent(parent != null ? parent : FindInventoryViewParent(), false);
             generatedView.transform.localRotation = Quaternion.identity;
             generatedView.transform.localScale = Vector3.one;
             preparationView = generatedView;
+            AttachPreparationViewToOverlayRoot(preparationView);
             InitializePreparationView(preparationView);
             preparationView.SetActive(false);
+        }
+
+        private void AttachPreparationViewToOverlayRoot(GameObject view)
+        {
+            if (view == null)
+                return;
+
+            Transform overlayParent = FindOverlayViewParent();
+            if (overlayParent == null || view.transform.parent == overlayParent)
+                return;
+
+            view.transform.SetParent(overlayParent, false);
+            view.transform.localRotation = Quaternion.identity;
+            view.transform.localScale = Vector3.one;
         }
 
         private void InitializePreparationView(GameObject view)
@@ -1326,6 +1386,33 @@ namespace Work.Cook.Code.Runtime
                 return;
 
             rewardToast.Initialize(this, rewardWallet, temporaryUiFontAsset);
+        }
+
+        private void EnsureBusinessFlowController()
+        {
+            if (businessFlowController != null)
+                return;
+
+            businessFlowController = GetComponentInChildren<CookingBusinessFlowController>(true);
+            if (businessFlowController != null)
+            {
+                businessFlowController.Initialize(this, temporaryUiFontAsset);
+                return;
+            }
+
+            if (autoCreateBusinessFlowController == false)
+                return;
+
+            Transform parent = FindOverlayViewParent();
+            GameObject controllerObject = new GameObject(
+                "TemporaryCookingBusinessFlowController",
+                typeof(RectTransform),
+                typeof(CookingBusinessFlowController));
+            controllerObject.transform.SetParent(parent != null ? parent : transform, false);
+            controllerObject.transform.localRotation = Quaternion.identity;
+            controllerObject.transform.localScale = Vector3.one;
+            businessFlowController = controllerObject.GetComponent<CookingBusinessFlowController>();
+            businessFlowController.Initialize(this, temporaryUiFontAsset);
         }
 
         private void ApplyTemporaryFontToViews()

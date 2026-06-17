@@ -39,7 +39,6 @@ namespace Work.Cook.Code.Runtime
                 case NpcConversationResult.Similar:
                     return similarReward;
                 case NpcConversationResult.Disgusting:
-                    return disgustingReward;
                 case NpcConversationResult.Wrong:
                 default:
                     return wrongReward;

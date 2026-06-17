@@ -693,6 +693,13 @@ namespace Work.Cook.Code.Editor
 
                 if (DrawAlternativeList(requirement.Alternatives))
                     MarkDraftDirty();
+
+                bool usePreparationModifier = EditorGUILayout.Toggle("손질 수식어 반영", requirement.UsePreparationResultNameModifier);
+                if (usePreparationModifier != requirement.UsePreparationResultNameModifier)
+                {
+                    requirement.UsePreparationResultNameModifier = usePreparationModifier;
+                    MarkDraftDirty();
+                }
                 EditorGUILayout.EndVertical();
             }
 
@@ -1650,6 +1657,9 @@ namespace Work.Cook.Code.Editor
                 element.FindPropertyRelative("recipeDefining").boolValue = requirement.RecipeDefining;
                 element.FindPropertyRelative("autoApplyRequiredPreparation").boolValue = requirement.AutoApplyRequiredPreparation;
                 element.FindPropertyRelative("requireManualPreparation").boolValue = requirement.RequireManualPreparation;
+                SerializedProperty usePreparationModifier = element.FindPropertyRelative("usePreparationResultNameModifier");
+                if (usePreparationModifier != null)
+                    usePreparationModifier.boolValue = requirement.UsePreparationResultNameModifier;
                 SetRelativeObjectArray(element.FindPropertyRelative("requiredTags"), requirement.RequiredTags);
                 SetRelativeObjectArray(element.FindPropertyRelative("alternatives"), requirement.SimpleAlternatives);
                 SetAlternativeOptions(element.FindPropertyRelative("alternativeOptions"), requirement.Alternatives);
@@ -1873,6 +1883,7 @@ namespace Work.Cook.Code.Editor
                         requirement.RecipeDefining = source.RecipeDefining;
                         requirement.AutoApplyRequiredPreparation = source.AutoApplyRequiredPreparation;
                         requirement.RequireManualPreparation = source.RequireManualPreparation;
+                        requirement.UsePreparationResultNameModifier = source.UsePreparationResultNameModifier;
 
                         for (int alternativeIndex = 0; alternativeIndex < source.AlternativeOptions.Count; alternativeIndex++)
                         {
@@ -2046,6 +2057,7 @@ namespace Work.Cook.Code.Editor
             public bool RecipeDefining = true;
             public bool AutoApplyRequiredPreparation = true;
             public bool RequireManualPreparation;
+            public bool UsePreparationResultNameModifier = true;
         }
 
         private sealed class IngredientAlternativeDraft

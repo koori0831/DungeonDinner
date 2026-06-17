@@ -19,6 +19,7 @@ namespace Work.Cook.Code.Data
         [SerializeField] private bool recipeDefining = true;
         [SerializeField] private bool autoApplyRequiredPreparation = true;
         [SerializeField] private bool requireManualPreparation;
+        [SerializeField] private bool usePreparationResultNameModifier = true;
 
         public IngredientSO Ingredient => ingredient;
         public IngredientCategorySO IngredientCategory => ingredientCategory;
@@ -32,6 +33,7 @@ namespace Work.Cook.Code.Data
         public bool RecipeDefining => recipeDefining;
         public bool AutoApplyRequiredPreparation => autoApplyRequiredPreparation;
         public bool RequireManualPreparation => requireManualPreparation;
+        public bool UsePreparationResultNameModifier => usePreparationResultNameModifier;
         public bool RequiresChoice => ingredient == null
                                       && (ingredientCategory != null
                                           || requiredTags.Count > 0

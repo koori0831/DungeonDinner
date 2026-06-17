@@ -186,6 +186,10 @@ namespace Work.Cook.Code.Editor
                 ClearRewardWallet(panel);
 
             EditorGUILayout.EndHorizontal();
+
+            if (GUILayout.Button("정보 Clear"))
+                ClearCookingDebugInfo(panel);
+
             EditorGUILayout.EndVertical();
         }
 
@@ -368,6 +372,48 @@ namespace Work.Cook.Code.Editor
             rewardWallet.ClearForDebug();
             EditorUtility.SetDirty(rewardWallet);
             Debug.Log($"보상 재화를 초기화했습니다. {rewardWallet.BuildDebugSummary()}", rewardWallet);
+        }
+
+        private void ClearCookingDebugInfo(CookingGamePanel panel)
+        {
+            if (panel == null)
+                return;
+
+            if (EditorUtility.DisplayDialog(
+                    "정보 초기화",
+                    "CookingGamePanel에 저장된 진행 정보, 결과, 선택 후보, 요리 지식, 보상 재화, 손님 만남 기록을 모두 초기화할까요?",
+                    "초기화",
+                    "취소") == false)
+                return;
+
+            CookingKnowledgeStore knowledgeStore = ResolveKnowledgeStore(panel);
+            if (knowledgeStore != null)
+                Undo.RecordObject(knowledgeStore, "Clear Cooking Debug Info");
+
+            CookingRewardWallet rewardWallet = ResolveRewardWallet(panel);
+            if (rewardWallet != null)
+                Undo.RecordObject(rewardWallet, "Clear Cooking Debug Info");
+
+            NpcEncounterDirector encounterDirector = panel.GetComponentInChildren<NpcEncounterDirector>(true);
+            if (encounterDirector == null)
+                encounterDirector = Object.FindFirstObjectByType<NpcEncounterDirector>();
+            if (encounterDirector != null)
+                Undo.RecordObject(encounterDirector, "Clear Cooking Debug Info");
+
+            Undo.RecordObject(panel, "Clear Cooking Debug Info");
+            panel.ClearStoredInfoForDebug();
+            EditorUtility.SetDirty(panel);
+
+            if (knowledgeStore != null)
+                EditorUtility.SetDirty(knowledgeStore);
+
+            if (rewardWallet != null)
+                EditorUtility.SetDirty(rewardWallet);
+
+            if (encounterDirector != null)
+                EditorUtility.SetDirty(encounterDirector);
+
+            Debug.Log("CookingGamePanel과 손님에 저장된 정보가 모두 초기화되었습니다.", panel);
         }
 
         private void SelectOrCreateOverlayRoot(CookingGamePanel panel)

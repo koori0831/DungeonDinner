@@ -10,6 +10,8 @@ namespace Work.Cook.Code.Runtime
 {
     public sealed class CookingPreparationView : MonoBehaviour, ICookingPreparationView
     {
+        private const int CurrentDefaultLayoutVersion = 2;
+
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private CookingFlowRunner flowRunner;
@@ -24,6 +26,8 @@ namespace Work.Cook.Code.Runtime
 
         [Header("Default Layout")]
         [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
+        [SerializeField] private bool rebuildTemporaryDefaultLayoutWhenVersionChanges = true;
+        [SerializeField] private int defaultLayoutVersion;
         [SerializeField] private TMP_FontAsset fontAsset;
         [SerializeField] private Color panelColor = new Color(0.04f, 0.035f, 0.03f, 0.88f);
         [SerializeField] private Color boardColor = new Color(0.44f, 0.30f, 0.18f, 1f);
@@ -245,26 +249,54 @@ namespace Work.Cook.Code.Runtime
             if (buildDefaultLayoutWhenMissing == false)
                 return;
 
+            if (ShouldRebuildTemporaryDefaultLayout())
+            {
+                ClearChildren(transform);
+                boardRoot = null;
+                ingredientNameField = null;
+                ingredientDescriptionField = null;
+                progressField = null;
+                cardRoot = null;
+            }
+
             if (boardRoot != null
                 && ingredientNameField != null
                 && progressField != null
                 && cardRoot != null)
             {
+                ApplyDefaultRootSafeArea();
                 return;
             }
 
             BuildDefaultLayout();
+            defaultLayoutVersion = CurrentDefaultLayoutVersion;
         }
 
-        private void BuildDefaultLayout()
+        private bool ShouldRebuildTemporaryDefaultLayout()
+        {
+            return rebuildTemporaryDefaultLayoutWhenVersionChanges
+                   && defaultLayoutVersion < CurrentDefaultLayoutVersion
+                   && gameObject.name.Contains("TemporaryPreparationView");
+        }
+
+        private void ApplyDefaultRootSafeArea()
         {
             RectTransform rect = EnsureRectTransform(gameObject);
             rect.localRotation = Quaternion.identity;
             rect.localScale = Vector3.one;
+
+            if (gameObject.name.Contains("TemporaryPreparationView") == false)
+                return;
+
             rect.anchorMin = new Vector2(0.43f, 0.04f);
             rect.anchorMax = new Vector2(0.96f, 0.88f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
+        }
+
+        private void BuildDefaultLayout()
+        {
+            ApplyDefaultRootSafeArea();
 
             Image background = GetOrAdd<Image>(gameObject);
             ApplyGeneratedSprite(background);
