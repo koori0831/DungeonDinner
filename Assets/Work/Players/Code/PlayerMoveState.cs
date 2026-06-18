@@ -30,7 +30,7 @@ namespace Work.Players.Code
 
             if (hasMoveInput)
             {
-                Player.MovementModule?.Move(moveVector, true);
+                Player.MovementModule?.RotateToDirection(moveVector, true);
                 return;
             }
 

@@ -14,7 +14,11 @@ namespace Work.Entities.Code
         [SerializeField]
         private float _turnSmoothTime = 0.1f;
         [SerializeField]
+        private float _moveSpeed = 1f;
+        [SerializeField]
         private Transform _movementReference;
+
+        public float MoveSpeed => _moveSpeed;
 
         public void Initialize(Entity entity)
         {
@@ -23,9 +27,9 @@ namespace Work.Entities.Code
             _camTransform = _movementReference != null ? _movementReference : Camera.main != null ? Camera.main.transform : transform;
         }
 
-        public void Move(Vector2 direction, bool isSmooth = true)
+        public void RotateToDirection(Vector2 direction, bool isSmooth = true)
         {
-            if (_controller == null || _owner == null || _camTransform == null)
+            if (_owner == null || _camTransform == null)
                 return;
 
             Vector3 camForward = Vector3.Scale(_camTransform.forward, new Vector3(1f, 0f, 1f)).normalized;
@@ -48,6 +52,21 @@ namespace Work.Entities.Code
                     _owner.transform.rotation = Quaternion.Euler(0f, targetAngle, 0f);
                 }
             }
+        }
+
+        public void Move(Vector2 direction, bool isSmooth = true)
+        {
+            if (_controller == null || _owner == null || _camTransform == null)
+                return;
+
+            Vector3 camForward = Vector3.Scale(_camTransform.forward, new Vector3(1f, 0f, 1f)).normalized;
+            Vector3 camRight = Vector3.Scale(_camTransform.right, new Vector3(1f, 0f, 1f)).normalized;
+            Vector3 moveDirection = camForward * direction.y + camRight * direction.x;
+
+            float inputAmount = Mathf.Clamp01(direction.magnitude);
+            _controller.Move(moveDirection * (_moveSpeed * inputAmount * Time.deltaTime));
+
+            RotateToDirection(direction, isSmooth);
         }
 
         public void ApplyRootMotion(Vector3 deltaPosition)

@@ -12,7 +12,6 @@ namespace Work.Players.Code
         public override void Enter()
         {
             base.Enter();
-            _animator?.SetApplyRootMotion(false);
             _animator?.SetParam(SpeedHash, 0f);
             Player.MovementModule?.MoveStop();
         }
