@@ -122,7 +122,7 @@ namespace Work.Players.Code.Inventory
 
                     if (lootItem == null || lootItem.IsLootable == false)
                     {
-                        NEARBY_LOOT_ITEMS.RemoveAt(i);
+                        RemoveLootItemAt(i, lootItem);
                         continue;
                     }
 
@@ -130,7 +130,7 @@ namespace Work.Players.Code.Inventory
 
                     if (itemStack.IsValid == false)
                     {
-                        NEARBY_LOOT_ITEMS.RemoveAt(i);
+                        RemoveLootItemAt(i, lootItem);
                         continue;
                     }
 
@@ -145,7 +145,7 @@ namespace Work.Players.Code.Inventory
 
                     if (lootItem == null || lootItem.IsLootable == false)
                     {
-                        NEARBY_LOOT_ITEMS.RemoveAt(i);
+                        RemoveLootItem(lootItem);
                     }
                 }
             }
@@ -191,6 +191,11 @@ namespace Work.Players.Code.Inventory
             ResolveSceneReferences(null);
 
             if (IsMatchingCollector(evt.CollectorController) == false)
+            {
+                return;
+            }
+
+            if (_isCollecting == true)
             {
                 return;
             }
@@ -258,6 +263,21 @@ namespace Work.Players.Code.Inventory
 
                 NEARBY_LOOT_ITEMS.RemoveAt(i);
             }
+        }
+
+        private void RemoveLootItemAt(int index, WorldLootItem expectedLootItem)
+        {
+            if (index < 0 || index >= NEARBY_LOOT_ITEMS.Count)
+            {
+                return;
+            }
+
+            if (NEARBY_LOOT_ITEMS[index] != expectedLootItem)
+            {
+                return;
+            }
+
+            NEARBY_LOOT_ITEMS.RemoveAt(index);
         }
 
         private void ResolveSceneReferences(Entity entity)

@@ -66,15 +66,11 @@ namespace Work.Enemy.Code.Slime
         private Vector3 _hopEnd;
         private Vector3 _hopDirection = Vector3.forward;
         private Vector3 _hopExternalVelocity;
-        private Vector3 _lastRequestedDestination;
-        private Vector3 _lastNavMeshDestination;
         private Vector3 _lastPreparedDestination;
         private float _phaseStartTime;
         private float _phaseDuration;
         private float _nextChargeRetargetTime;
         private bool _hasDestination;
-        private bool _hasLastRequestedDestination;
-        private bool _hasLastNavMeshDestination;
         private bool _hasPreparedDestination;
         private readonly Vector3[] PATH_CORNERS = new Vector3[MAX_PATH_CORNER_COUNT];
 

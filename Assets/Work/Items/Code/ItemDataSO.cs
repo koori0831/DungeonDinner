@@ -1,4 +1,5 @@
 using UnityEngine;
+using Work.Core.ObjectPool.RunTime;
 
 namespace Work.Items.Code
 {
@@ -25,6 +26,9 @@ namespace Work.Items.Code
 
         [SerializeField]
         private ItemCategorySO category;
+
+        [SerializeField]
+        private PoolItemSO worldLootPoolItem;
 
         [SerializeField]
         private bool isStackable = true;
@@ -57,6 +61,11 @@ namespace Work.Items.Code
         /// 아이템 대분류 데이터
         /// </summary>
         public ItemCategorySO Category => category;
+
+        /// <summary>
+        /// 월드 드랍 시 사용할 풀 아이템 데이터
+        /// </summary>
+        public PoolItemSO WorldLootPoolItem => worldLootPoolItem;
 
         /// <summary>
         /// 동일 아이템 스택 가능 여부

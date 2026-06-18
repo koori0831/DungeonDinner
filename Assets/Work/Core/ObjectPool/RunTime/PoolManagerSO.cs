@@ -6,17 +6,24 @@ namespace Work.Core.ObjectPool.RunTime
     [CreateAssetMenu(fileName = "PoolManager", menuName = "SO/Pool/Manager", order = 0)]
     public class PoolManagerSO : ScriptableObject
     {
-        public List<PoolItemSO> itemList = new ();
+        public List<PoolItemSO> itemList = new List<PoolItemSO>();
 
         private Dictionary<PoolItemSO, Pool> _pools;
         private Transform _rootTrm;
 
+        public bool IsInitialized => _pools != null;
+
         public void InitializePool(Transform rootTrm)
         {
+            if (IsInitialized == true)
+            {
+                return;
+            }
+
             _rootTrm = rootTrm;
             _pools = new Dictionary<PoolItemSO, Pool>();
 
-            foreach (var item in itemList)
+            foreach (PoolItemSO item in itemList)
             {
                 IPoolable poolable = item.prefab.GetComponent<IPoolable>();
                 Debug.Assert(poolable != null, $"Pooling item does not have Ipoolable script");
@@ -31,7 +38,7 @@ namespace Work.Core.ObjectPool.RunTime
 
         public IPoolable Pop(PoolItemSO item)
         {
-            if (_pools.TryGetValue(item, out Pool pool))
+            if (_pools.TryGetValue(item, out Pool pool) == true)
             {
                 return pool.Pop();
             }
@@ -41,7 +48,7 @@ namespace Work.Core.ObjectPool.RunTime
 
         public void Push(IPoolable item)
         {
-            if (_pools.TryGetValue(item.PoolItem, out Pool pool))
+            if (_pools.TryGetValue(item.PoolItem, out Pool pool) == true)
             {
                 pool.Push(item);
             }

@@ -566,8 +566,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00008, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   queryTriggerInteraction: 2
   maxColliderCount: 64
 --- !u!114 &2000000104
@@ -580,8 +580,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00013, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   attackData: {fileID: 11400000, guid: b8737f3d98124e9da728c9f44cf10001, type: 2}
   hitCasterBehaviour: {fileID: 2000000103}
   attackOrigin: {fileID: 2000000102}
@@ -598,47 +598,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a93bb9c1fd63bc4aa2b1e3e3b179bab, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
---- !u!114 &2000000111
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2000000101}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b3e8d4f50617293a1b2c3d4e5f60718, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  slotCapacity: 24
-  slots: []
-  lastAddedAmount: 0
-  lastRemainingAmount: 0
---- !u!114 &2000000112
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2000000101}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a0f3c7d9e8142b6a4d8f1e2c390576b, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  inventoryModule: {fileID: 2000000111}
-  lootLayerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  collectRadius: 1.5
-  collectInterval: 0.05
-  maxLootColliderCount: 16
-  queryTriggerInteraction: 2
-  logLoots: 1
-  lastCollectedAmount: 0
-  lastRemainingAmount: 0
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!136 &2000000106
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -672,23 +633,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c17f6a2d9f7845d09ed74de6d4ac1011, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: ""
+  m_Name: 
+  m_EditorClassIdentifier: 
   isHitable: 1
   healthModule: {fileID: 2000000110}
---- !u!114 &2000000110
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2000000101}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000101, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: ""
-  maxHealth: 5
 --- !u!114 &2000000108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -728,6 +676,100 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2000000110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000101, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 5
+--- !u!114 &2000000111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b3e8d4f50617293a1b2c3d4e5f60718, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  slotCapacity: 24
+  slots:
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  lastAddedAmount: 0
+  lastRemainingAmount: 0
+--- !u!114 &2000000112
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a0f3c7d9e8142b6a4d8f1e2c390576b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inventoryModule: {fileID: 2000000111}
+  collectorController: {fileID: 0}
+  logLoots: 1
+  lastCollectedAmount: 0
+  lastRemainingAmount: 0
 --- !u!1 &2100000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -772,8 +814,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00008, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: ""
+  m_Name: 
+  m_EditorClassIdentifier: 
   queryTriggerInteraction: 2
   maxColliderCount: 64
 --- !u!114 &2100000004
@@ -786,8 +828,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00013, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: ""
+  m_Name: 
+  m_EditorClassIdentifier: 
   attackData: {fileID: 11400000, guid: b8737f3d98124e9da728c9f44cf10001, type: 2}
   hitCasterBehaviour: {fileID: 2100000003}
   attackOrigin: {fileID: 2100000002}
@@ -804,8 +846,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c6d21f53b3c4b79b1efa3241dbc7183, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: ""
+  m_Name: 
+  m_EditorClassIdentifier: 
   attackData: {fileID: 11400000, guid: b8737f3d98124e9da728c9f44cf10001, type: 2}
   hitCasterBehaviour: {fileID: 2100000003}
   attackExecutor: {fileID: 2100000004}
@@ -823,15 +865,15 @@ MonoBehaviour:
   drawGizmos: 1
   castColor: {r: 0.2, g: 0.8, b: 1, a: 0.65}
   hitPointColor: {r: 1, g: 0.85, b: 0.15, a: 1}
-  hitPointRadius: 0.08
-  hitDirectionLength: 0.45
+  hitPointRadius: 45
+  hitDirectionLength: 15
   lastHitCount: 0
   lastWasExecution: 0
   lastHasAnyHit: 0
   lastHitSuccessCount: 0
   lastKilledCount: 0
   lastHitResultType: 0
-  lastHitSummary: ""
+  lastHitSummary: 
 --- !u!1 &2100000101
 GameObject:
   m_ObjectHideFlags: 0
@@ -876,8 +918,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00008, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: ""
+  m_Name: 
+  m_EditorClassIdentifier: 
   queryTriggerInteraction: 2
   maxColliderCount: 64
 --- !u!114 &2100000104
@@ -890,8 +932,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8737f3d98124e9da728c9f44cf00013, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: ""
+  m_Name: 
+  m_EditorClassIdentifier: 
   attackData: {fileID: 11400000, guid: 2521549d62474ea4bf3bddf5d6196b24, type: 2}
   hitCasterBehaviour: {fileID: 2100000103}
   attackOrigin: {fileID: 2100000102}
@@ -908,8 +950,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c6d21f53b3c4b79b1efa3241dbc7183, type: 3}
-  m_Name: ""
-  m_EditorClassIdentifier: ""
+  m_Name: 
+  m_EditorClassIdentifier: 
   attackData: {fileID: 11400000, guid: 2521549d62474ea4bf3bddf5d6196b24, type: 2}
   hitCasterBehaviour: {fileID: 2100000103}
   attackExecutor: {fileID: 2100000104}
@@ -927,15 +969,15 @@ MonoBehaviour:
   drawGizmos: 1
   castColor: {r: 0.2, g: 0.8, b: 1, a: 0.65}
   hitPointColor: {r: 1, g: 0.85, b: 0.15, a: 1}
-  hitPointRadius: 0.08
-  hitDirectionLength: 0.45
+  hitPointRadius: 45
+  hitDirectionLength: 15
   lastHitCount: 0
   lastWasExecution: 0
   lastHasAnyHit: 0
   lastHitSuccessCount: 0
   lastKilledCount: 0
   lastHitResultType: 0
-  lastHitSummary: ""
+  lastHitSummary: 
 --- !u!1001 &3460202096931022060
 PrefabInstance:
   m_ObjectHideFlags: 0

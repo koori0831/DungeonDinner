@@ -158,7 +158,7 @@ namespace Work.Enemy.Code.Drops
 
             if (lastDropCount > 0)
             {
-                SpawnLastDrops();
+                SpawnLastDrops(in hitContext);
             }
 
             LogDropResult();
@@ -197,7 +197,7 @@ namespace Work.Enemy.Code.Drops
             worldDropSpawner = GetComponent<EnemyDropWorldSpawner>();
         }
 
-        private void SpawnLastDrops()
+        private void SpawnLastDrops(in HitContext hitContext)
         {
             ResolveWorldDropSpawner();
 
@@ -206,7 +206,7 @@ namespace Work.Enemy.Code.Drops
                 return;
             }
 
-            worldDropSpawner.SpawnDrops(DROP_RESULTS, lastDropCount);
+            worldDropSpawner.SpawnDrops(DROP_RESULTS, lastDropCount, in hitContext);
         }
 
         private void ResetLastDrop(AttackType attackType)

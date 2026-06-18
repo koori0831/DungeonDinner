@@ -66,9 +66,32 @@ namespace Work.Items.Code
             lootItem = newLootItem;
         }
 
+        /// <summary>
+        /// 현재 감지 중인 수집 주체에게 루팅 아이템 감지 이벤트 재발행
+        /// </summary>
+        public void PublishDetectedEventsForDetectedControllers()
+        {
+            if (lootItem == null || lootItem.IsLootable == false)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<int, CharacterController> kvp in DETECTED_CONTROLLERS)
+            {
+                CharacterController collectorController = kvp.Value;
+
+                if (collectorController == null)
+                {
+                    continue;
+                }
+
+                Bus<WorldLootDetectedEvent>.Raise(new WorldLootDetectedEvent(lootItem, collectorController));
+            }
+        }
+
         private void RegisterCollectorController(CharacterController collectorController)
         {
-            if (lootItem == null || lootItem.IsLootable == false || collectorController == null)
+            if (collectorController == null)
             {
                 return;
             }
@@ -83,6 +106,12 @@ namespace Work.Items.Code
 
             DETECTED_CONTROLLERS.Add(controllerId, collectorController);
             DETECTED_CONTROLLER_COUNTS.Add(controllerId, 1);
+
+            if (lootItem == null || lootItem.IsLootable == false)
+            {
+                return;
+            }
+
             Bus<WorldLootDetectedEvent>.Raise(new WorldLootDetectedEvent(lootItem, collectorController));
         }
 

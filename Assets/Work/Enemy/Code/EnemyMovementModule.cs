@@ -32,11 +32,11 @@ namespace Work.Enemy.Code
         private NavMeshAgent _agent;
         private Vector3 _manualMoveDirection;
         private Vector3 _externalVelocity;
-        private Vector3 _lastRequestedDestination;
-        private Vector3 _lastNavMeshDestination;
+        protected Vector3 _lastRequestedDestination;
+        protected Vector3 _lastNavMeshDestination;
         private bool _hasManualMoveDirection;
-        private bool _hasLastRequestedDestination;
-        private bool _hasLastNavMeshDestination;
+        protected bool _hasLastRequestedDestination;
+        protected bool _hasLastNavMeshDestination;
 
         /// <summary>
         /// 이동 도착 판정 거리.

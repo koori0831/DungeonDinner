@@ -14,3 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: TestSlashDropItem
   displayName: Slash Meat
+  description: Slash attack test drop item.
+  icon: {fileID: 0}
+  category: {fileID: 0}
+  worldLootPoolItem: {fileID: 11400000, guid: e3d0a1b2c3d44567a8901234567890ab, type: 2}
+  isStackable: 1
+  maxStackAmount: 99
