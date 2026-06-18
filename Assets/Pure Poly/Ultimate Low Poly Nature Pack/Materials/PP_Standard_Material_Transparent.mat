@@ -155,7 +155,7 @@ Material:
     - _ZWriteControl: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 0.49019608}
-    - _Cloud_Movement: {r: 1, g: 1, b: 0, a: 0}
+    - _Cloud_Movement: {r: 0, g: 0, b: 0, a: 0}
     - _Cloud_Step: {r: 13, g: 17, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 0.49019608}
     - _DiffuseColor: {r: 1, g: 1, b: 1, a: 0}

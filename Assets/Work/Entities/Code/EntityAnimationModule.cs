@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Work.FSM.Code;
 
 namespace Work.Entities.Code
@@ -34,8 +34,11 @@ namespace Work.Entities.Code
         {
             if (!_animator.applyRootMotion)
             {
+                _animator.speed = 1f;
                 return;
             }
+
+            _animator.speed = _movementModule != null ? _movementModule.MoveSpeed : 1f;
 
             if (_movementModule != null)
             {
