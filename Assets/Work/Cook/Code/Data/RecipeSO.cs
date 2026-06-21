@@ -64,6 +64,9 @@ namespace Work.Cook.Code.Data
             if (ingredients == null)
                 return false;
 
+            if (HasRecipeDefiningRequirement() == false)
+                return false;
+
             bool[] usedIngredients = new bool[ingredients.Count];
             int[] counts = new int[requiredIngredients.Count];
             return TryMatchIngredientsRecursive(ingredients, usedIngredients, counts, 0);
@@ -72,6 +75,9 @@ namespace Work.Cook.Code.Data
         public bool MatchesPreparedIngredients(IReadOnlyList<PreparedIngredientState> preparedIngredients)
         {
             if (preparedIngredients == null)
+                return false;
+
+            if (HasRecipeDefiningRequirement() == false)
                 return false;
 
             bool[] usedIngredients = new bool[preparedIngredients.Count];
@@ -88,7 +94,7 @@ namespace Work.Cook.Code.Data
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
-                if (requirement == null)
+                if (IsRecipeDefiningRequirement(requirement) == false)
                     continue;
 
                 if (requirement.Ingredient != null)
@@ -99,7 +105,7 @@ namespace Work.Cook.Code.Data
 
                 score += requirement.RequiredTags.Count * 20;
 
-                if (requirement.RequiredPreparationMethod != null)
+                if (requirement.HasRequiredPreparationMethods)
                     score += 80;
 
                 score += requirement.MinCount * 5;
@@ -153,7 +159,7 @@ namespace Work.Cook.Code.Data
                 for (int i = 0; i < requiredIngredients.Count; i++)
                 {
                     RecipeIngredientRequirement requirement = requiredIngredients[i];
-                    if (requirement != null && requirement.RequiredPreparationMethod != null)
+                    if (IsRecipeDefiningRequirement(requirement) && requirement.HasRequiredPreparationMethods)
                         return true;
                 }
 
@@ -177,7 +183,7 @@ namespace Work.Cook.Code.Data
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
-                if (requirement == null
+                if (IsRecipeDefiningRequirement(requirement) == false
                     || requirement.CanAcceptMore(counts[requirementIndex]) == false
                     || requirement.IsMatchedBy(ingredient) == false)
                 {
@@ -194,7 +200,7 @@ namespace Work.Cook.Code.Data
                 usedIngredients[ingredientIndex] = false;
             }
 
-            return false;
+            return TryMatchIngredientsRecursive(ingredients, usedIngredients, counts, ingredientIndex + 1);
         }
 
         private bool TryMatchPreparedRecursive(
@@ -213,7 +219,7 @@ namespace Work.Cook.Code.Data
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
-                if (requirement == null
+                if (IsRecipeDefiningRequirement(requirement) == false
                     || requirement.CanAcceptMore(counts[requirementIndex]) == false
                     || requirement.IsPreparedMatch(prepared) == false)
                 {
@@ -230,7 +236,7 @@ namespace Work.Cook.Code.Data
                 usedIngredients[preparedIndex] = false;
             }
 
-            return false;
+            return TryMatchPreparedRecursive(preparedIngredients, usedIngredients, counts, preparedIndex + 1);
         }
 
         private bool AreRequirementCountsSatisfied(IReadOnlyList<int> counts)
@@ -241,7 +247,7 @@ namespace Work.Cook.Code.Data
             for (int i = 0; i < requiredIngredients.Count; i++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[i];
-                if (requirement == null)
+                if (IsRecipeDefiningRequirement(requirement) == false)
                     continue;
 
                 if (requirement.IsCountSatisfied(counts[i]) == false)
@@ -249,6 +255,22 @@ namespace Work.Cook.Code.Data
             }
 
             return true;
+        }
+
+        private bool HasRecipeDefiningRequirement()
+        {
+            for (int i = 0; i < requiredIngredients.Count; i++)
+            {
+                if (IsRecipeDefiningRequirement(requiredIngredients[i]))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsRecipeDefiningRequirement(RecipeIngredientRequirement requirement)
+        {
+            return requirement != null && requirement.RecipeDefining;
         }
     }
 }

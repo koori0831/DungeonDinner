@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -678,11 +679,9 @@ namespace Work.Cook.Code.Editor
                 EditorGUILayout.EndHorizontal();
                 requirement.Ingredient = (IngredientSO)EditorGUILayout.ObjectField("기준 재료", requirement.Ingredient, typeof(IngredientSO), false);
                 requirement.IngredientCategory = (IngredientCategorySO)EditorGUILayout.ObjectField("재료군 조건", requirement.IngredientCategory, typeof(IngredientCategorySO), false);
-                requirement.RequiredPreparationMethod = (PreparationMethodSO)EditorGUILayout.ObjectField("필수 손질법", requirement.RequiredPreparationMethod, typeof(PreparationMethodSO), false);
                 requirement.MinCount = Mathf.Max(0, EditorGUILayout.IntField("최소 개수", requirement.MinCount));
                 requirement.MaxCount = Mathf.Max(0, EditorGUILayout.IntField("최대 개수 (0 = 제한 없음)", requirement.MaxCount));
                 requirement.RecipeDefining = EditorGUILayout.Toggle("요리 결정 조건", requirement.RecipeDefining);
-                requirement.AutoApplyRequiredPreparation = EditorGUILayout.Toggle("필수 손질 자동 적용", requirement.AutoApplyRequiredPreparation);
                 requirement.RequireManualPreparation = EditorGUILayout.Toggle("직접 손질 필요", requirement.RequireManualPreparation);
 
                 if (DrawObjectList("필수 태그", requirement.RequiredTags, typeof(FoodTagSO), "+ 필수 태그"))
@@ -692,6 +691,9 @@ namespace Work.Cook.Code.Editor
                     MarkDraftDirty();
 
                 if (DrawAlternativeList(requirement.Alternatives))
+                    MarkDraftDirty();
+
+                if (DrawLimitedObjectList("필수 손질법", requirement.RequiredPreparationMethods, typeof(PreparationMethodSO), "+ 필수 손질법 추가", "필수 손질법 없음", 2))
                     MarkDraftDirty();
 
                 bool usePreparationModifier = EditorGUILayout.Toggle("손질 수식어 반영", requirement.UsePreparationResultNameModifier);
@@ -761,6 +763,54 @@ namespace Work.Cook.Code.Editor
             }
 
             EditorGUILayout.Space(8f);
+            return changed;
+        }
+
+        private static bool DrawLimitedObjectList(
+            string label,
+            IList list,
+            Type objectType,
+            string addButtonLabel,
+            string emptyMessage,
+            int maxCount)
+        {
+            bool changed = false;
+            EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
+
+            if (list == null)
+                return false;
+
+            if (list.Count == 0)
+                EditorGUILayout.HelpBox(emptyMessage, MessageType.None);
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField($"{label} {i + 1}", GUILayout.Width(92f));
+                    UnityEngine.Object current = list[i] as UnityEngine.Object;
+                    UnityEngine.Object next = EditorGUILayout.ObjectField(current, objectType, false);
+                    if (next != current)
+                    {
+                        list[i] = next;
+                        changed = true;
+                    }
+
+                    if (GUILayout.Button("삭제", GUILayout.Width(52f)))
+                    {
+                        list.RemoveAt(i);
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            if (list.Count < maxCount && GUILayout.Button(addButtonLabel))
+            {
+                list.Add(null);
+                changed = true;
+            }
+
             return changed;
         }
 
@@ -1651,11 +1701,11 @@ namespace Work.Cook.Code.Editor
                 SerializedProperty element = property.GetArrayElementAtIndex(property.arraySize - 1);
                 element.FindPropertyRelative("ingredient").objectReferenceValue = requirement.Ingredient;
                 element.FindPropertyRelative("ingredientCategory").objectReferenceValue = requirement.IngredientCategory;
-                element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = requirement.RequiredPreparationMethod;
+                element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = null;
+                SetRelativeObjectArray(element.FindPropertyRelative("requiredPreparationMethods"), requirement.RequiredPreparationMethods);
                 element.FindPropertyRelative("minCount").intValue = requirement.MinCount;
                 element.FindPropertyRelative("maxCount").intValue = requirement.MaxCount;
                 element.FindPropertyRelative("recipeDefining").boolValue = requirement.RecipeDefining;
-                element.FindPropertyRelative("autoApplyRequiredPreparation").boolValue = requirement.AutoApplyRequiredPreparation;
                 element.FindPropertyRelative("requireManualPreparation").boolValue = requirement.RequireManualPreparation;
                 SerializedProperty usePreparationModifier = element.FindPropertyRelative("usePreparationResultNameModifier");
                 if (usePreparationModifier != null)
@@ -1877,11 +1927,12 @@ namespace Work.Cook.Code.Editor
                         requirement.IngredientCategory = source.IngredientCategory;
                         requirement.RequiredTags = new List<FoodTagSO>(source.RequiredTags);
                         requirement.SimpleAlternatives = new List<IngredientSO>(source.Alternatives);
-                        requirement.RequiredPreparationMethod = source.RequiredPreparationMethod;
+                        requirement.RequiredPreparationMethods = new List<PreparationMethodSO>(source.RequiredPreparationMethods);
+                        if (requirement.RequiredPreparationMethods.Count == 0 && source.RequiredPreparationMethod != null)
+                            requirement.RequiredPreparationMethods.Add(source.RequiredPreparationMethod);
                         requirement.MinCount = source.MinCount;
                         requirement.MaxCount = source.MaxCount;
                         requirement.RecipeDefining = source.RecipeDefining;
-                        requirement.AutoApplyRequiredPreparation = source.AutoApplyRequiredPreparation;
                         requirement.RequireManualPreparation = source.RequireManualPreparation;
                         requirement.UsePreparationResultNameModifier = source.UsePreparationResultNameModifier;
 
@@ -2051,11 +2102,10 @@ namespace Work.Cook.Code.Editor
             public List<FoodTagSO> RequiredTags = new List<FoodTagSO>();
             public List<IngredientSO> SimpleAlternatives = new List<IngredientSO>();
             public List<IngredientAlternativeDraft> Alternatives = new List<IngredientAlternativeDraft>();
-            public PreparationMethodSO RequiredPreparationMethod;
+            public List<PreparationMethodSO> RequiredPreparationMethods = new List<PreparationMethodSO>();
             public int MinCount = 1;
             public int MaxCount = 1;
             public bool RecipeDefining = true;
-            public bool AutoApplyRequiredPreparation = true;
             public bool RequireManualPreparation;
             public bool UsePreparationResultNameModifier = true;
         }

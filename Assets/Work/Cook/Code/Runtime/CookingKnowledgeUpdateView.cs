@@ -439,9 +439,25 @@ namespace Work.Cook.Code.Runtime
                 builder.Append($" x{requirement.MinCount}-{requirement.MaxCount}");
             else if (requirement.MinCount > 1)
                 builder.Append($" x{requirement.MinCount}+");
-            if (requirement.RequiredPreparationMethod != null)
-                builder.Append($" ({requirement.RequiredPreparationMethod.DisplayName})");
+            AppendRequiredPreparationMethods(builder, requirement.RequiredPreparationMethods);
             builder.AppendLine();
+        }
+
+        private static void AppendRequiredPreparationMethods(StringBuilder builder, IReadOnlyList<PreparationMethodSO> methods)
+        {
+            if (builder == null || methods == null || methods.Count == 0)
+                return;
+
+            List<string> names = new List<string>();
+            for (int i = 0; i < methods.Count; i++)
+            {
+                PreparationMethodSO method = methods[i];
+                if (method != null)
+                    names.Add(method.DisplayName);
+            }
+
+            if (names.Count > 0)
+                builder.Append($" ({string.Join(" / ", names)})");
         }
 
         private static void AppendPreparationEffects(StringBuilder builder, IngredientPreparationOption option)

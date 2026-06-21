@@ -13,11 +13,11 @@ namespace Work.Cook.Code.Data
         [SerializeField] private List<FoodTagSO> requiredTags = new List<FoodTagSO>();
         [SerializeField] private List<IngredientSO> alternatives = new List<IngredientSO>();
         [SerializeField] private List<RecipeIngredientAlternative> alternativeOptions = new List<RecipeIngredientAlternative>();
-        [SerializeField] private PreparationMethodSO requiredPreparationMethod;
+        [SerializeField, HideInInspector] private PreparationMethodSO requiredPreparationMethod;
+        [SerializeField] private List<PreparationMethodSO> requiredPreparationMethods = new List<PreparationMethodSO>(2);
         [SerializeField, Min(0)] private int minCount = 1;
         [SerializeField, Min(0)] private int maxCount = 1;
         [SerializeField] private bool recipeDefining = true;
-        [SerializeField] private bool autoApplyRequiredPreparation = true;
         [SerializeField] private bool requireManualPreparation;
         [SerializeField] private bool usePreparationResultNameModifier = true;
 
@@ -26,12 +26,12 @@ namespace Work.Cook.Code.Data
         public IReadOnlyList<FoodTagSO> RequiredTags => requiredTags;
         public IReadOnlyList<IngredientSO> Alternatives => alternatives;
         public IReadOnlyList<RecipeIngredientAlternative> AlternativeOptions => alternativeOptions;
-        public PreparationMethodSO RequiredPreparationMethod => requiredPreparationMethod;
+        public IReadOnlyList<PreparationMethodSO> RequiredPreparationMethods => requiredPreparationMethods;
+        public PreparationMethodSO RequiredPreparationMethod => GetFirstRequiredPreparationMethod();
         public int MinCount => Mathf.Max(0, minCount);
         public int MaxCount => Mathf.Max(0, maxCount);
         public bool HasMaxCount => MaxCount > 0;
         public bool RecipeDefining => recipeDefining;
-        public bool AutoApplyRequiredPreparation => autoApplyRequiredPreparation;
         public bool RequireManualPreparation => requireManualPreparation;
         public bool UsePreparationResultNameModifier => usePreparationResultNameModifier;
         public bool RequiresChoice => ingredient == null
@@ -56,7 +56,53 @@ namespace Work.Cook.Code.Data
             if (prepared == null || IsMatchedBy(prepared.Ingredient) == false)
                 return false;
 
-            return requiredPreparationMethod == null || prepared.Method == requiredPreparationMethod;
+            return IsPreparationMethodAllowed(prepared.Method);
+        }
+
+        public bool HasRequiredPreparationMethods => GetRequiredPreparationMethodCount() > 0;
+
+        public bool IsPreparationMethodAllowed(PreparationMethodSO method)
+        {
+            int count = GetRequiredPreparationMethodCount();
+            if (count == 0)
+                return true;
+
+            for (int i = 0; i < requiredPreparationMethods.Count; i++)
+            {
+                PreparationMethodSO requiredMethod = requiredPreparationMethods[i];
+                if (requiredMethod != null && requiredMethod == method)
+                    return true;
+            }
+
+            return requiredPreparationMethods.Count == 0
+                   && requiredPreparationMethod != null
+                   && requiredPreparationMethod == method;
+        }
+
+        private int GetRequiredPreparationMethodCount()
+        {
+            int count = 0;
+            for (int i = 0; i < requiredPreparationMethods.Count; i++)
+            {
+                if (requiredPreparationMethods[i] != null)
+                    count++;
+            }
+
+            if (count == 0 && requiredPreparationMethod != null)
+                count = 1;
+
+            return count;
+        }
+
+        private PreparationMethodSO GetFirstRequiredPreparationMethod()
+        {
+            for (int i = 0; i < requiredPreparationMethods.Count; i++)
+            {
+                if (requiredPreparationMethods[i] != null)
+                    return requiredPreparationMethods[i];
+            }
+
+            return requiredPreparationMethod;
         }
 
         public bool IsCountSatisfied(int count)

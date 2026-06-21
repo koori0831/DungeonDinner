@@ -130,8 +130,6 @@ namespace Work.Cook.Code.Runtime
 
             if (_session.Mode == CookingMode.DirectIngredients)
                 _session.ClearPreparations();
-            else
-                _session.ApplyAutomaticRecipePreparations();
 
             LastResult = null;
             SetState(CookingFlowState.PreparingIngredients);

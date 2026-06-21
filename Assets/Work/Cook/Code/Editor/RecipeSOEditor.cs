@@ -138,10 +138,10 @@ namespace Work.Cook.Code.Editor
             SerializedProperty alternatives = element.FindPropertyRelative("alternatives");
             SerializedProperty alternativeOptions = element.FindPropertyRelative("alternativeOptions");
             SerializedProperty requiredPreparationMethod = element.FindPropertyRelative("requiredPreparationMethod");
+            SerializedProperty requiredPreparationMethods = element.FindPropertyRelative("requiredPreparationMethods");
             SerializedProperty minCount = element.FindPropertyRelative("minCount");
             SerializedProperty maxCount = element.FindPropertyRelative("maxCount");
             SerializedProperty recipeDefining = element.FindPropertyRelative("recipeDefining");
-            SerializedProperty autoApplyRequiredPreparation = element.FindPropertyRelative("autoApplyRequiredPreparation");
             SerializedProperty requireManualPreparation = element.FindPropertyRelative("requireManualPreparation");
 
             using (new EditorGUILayout.VerticalScope("box"))
@@ -161,27 +161,17 @@ namespace Work.Cook.Code.Editor
                 DrawObjectReferenceArray(requiredTags, typeof(FoodTagSO), "필수 태그", "+ 필수 태그 추가", "필수 태그가 없습니다.");
                 DrawObjectReferenceArray(alternatives, typeof(IngredientSO), "단순 대체", "+ 단순 대체 추가", "단순 대체 재료가 없습니다.");
                 DrawAlternativeOptionArray(alternativeOptions);
+                DrawObjectReferenceArray(requiredPreparationMethods, typeof(PreparationMethodSO), "필수 손질법", "+ 필수 손질법 추가", "필수 손질법 없음", 2);
 
                 EditorGUILayout.Space(4f);
                 EditorGUILayout.LabelField("손질/개수 조건", EditorStyles.boldLabel);
-                EditorGUILayout.PropertyField(requiredPreparationMethod, new GUIContent("필수 손질법"));
                 EditorGUILayout.PropertyField(minCount, new GUIContent("최소 개수"));
                 EditorGUILayout.PropertyField(maxCount, new GUIContent("최대 개수 (0 = 제한 없음)"));
 
                 EditorGUILayout.Space(4f);
                 EditorGUILayout.LabelField("레시피 선택 모드 처리", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(recipeDefining, new GUIContent("요리 결정 조건"));
-                EditorGUILayout.PropertyField(autoApplyRequiredPreparation, new GUIContent("필수 손질 자동 적용"));
                 EditorGUILayout.PropertyField(requireManualPreparation, new GUIContent("직접 손질 필요"));
-
-                if (requiredPreparationMethod.objectReferenceValue != null
-                    && autoApplyRequiredPreparation.boolValue
-                    && requireManualPreparation.boolValue)
-                {
-                    EditorGUILayout.HelpBox(
-                        "직접 손질 필요가 켜져 있으면 자동 적용보다 직접 손질이 우선됩니다.",
-                        MessageType.None);
-                }
             }
         }
 
@@ -261,7 +251,8 @@ namespace Work.Cook.Code.Editor
             Type objectType,
             string rowLabel,
             string addButtonLabel,
-            string emptyMessage)
+            string emptyMessage,
+            int maxCount = int.MaxValue)
         {
             if (property == null || property.isArray == false)
                 return;
@@ -286,7 +277,7 @@ namespace Work.Cook.Code.Editor
             }
             EditorGUI.indentLevel--;
 
-            if (GUILayout.Button(addButtonLabel))
+            if (property.arraySize < maxCount && GUILayout.Button(addButtonLabel))
             {
                 int newIndex = property.arraySize;
                 property.InsertArrayElementAtIndex(newIndex);
@@ -348,10 +339,10 @@ namespace Work.Cook.Code.Editor
             element.FindPropertyRelative("ingredient").objectReferenceValue = null;
             element.FindPropertyRelative("ingredientCategory").objectReferenceValue = null;
             element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = null;
+            ClearArray(element.FindPropertyRelative("requiredPreparationMethods"));
             element.FindPropertyRelative("minCount").intValue = 1;
             element.FindPropertyRelative("maxCount").intValue = 1;
             element.FindPropertyRelative("recipeDefining").boolValue = true;
-            element.FindPropertyRelative("autoApplyRequiredPreparation").boolValue = true;
             element.FindPropertyRelative("requireManualPreparation").boolValue = false;
 
             ClearArray(element.FindPropertyRelative("requiredTags"));
@@ -550,8 +541,6 @@ namespace Work.Cook.Code.Editor
                 : $"{requirement.MinCount}개 이상";
             parts.Add(count);
 
-            if (requirement.AutoApplyRequiredPreparation)
-                parts.Add("자동 손질");
             if (requirement.RequireManualPreparation)
                 parts.Add("직접 손질");
 

@@ -14,9 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.CookingDataCatalogSO
   categories:
   - {fileID: 11400000, guid: 469f91dc912b6cf4aaff04b5739775d6, type: 2}
+  - {fileID: 11400000, guid: 1b2952f03915ffb4983759a8c2a89117, type: 2}
   ingredientCategories:
   - {fileID: 11400000, guid: 249342fcec40afd49865c30f96f8117b, type: 2}
   - {fileID: 11400000, guid: 21754ad6520e1dd4bb7abc7711bda745, type: 2}
+  - {fileID: 11400000, guid: c09afd2ec0fc6144db663cb0e38a7b70, type: 2}
+  - {fileID: 11400000, guid: 2ebea30b32e91544cbb497bb3dffbead, type: 2}
+  - {fileID: 11400000, guid: aaf105017487cfe41a8415dcc0c5841f, type: 2}
   tags:
   - {fileID: 11400000, guid: dd7703eca9180d843943b69b0b1e7031, type: 2}
   - {fileID: 11400000, guid: 8f44838da1b5e3e4a8ca2d4945460c46, type: 2}
@@ -35,9 +39,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c6848ab63966aba45adc0b852c90d455, type: 2}
   - {fileID: 11400000, guid: 2f52066121feea8429d367cc15a502ae, type: 2}
   - {fileID: 11400000, guid: 46b782774bfe5674e83243822b1c1872, type: 2}
+  - {fileID: 11400000, guid: 9a9ab2bc5e82e934cb3c1c1b1246b55d, type: 2}
+  - {fileID: 11400000, guid: 04676038e45c8fe4ab12e5097dce2760, type: 2}
   ingredients:
   - {fileID: 11400000, guid: 8047bb3271861f147a23403c44b5c7fc, type: 2}
   - {fileID: 11400000, guid: 1f93d6c1ee7d4204ab4cc51790be1f44, type: 2}
   - {fileID: 11400000, guid: 07bec4b9989c44a4bbf5b8364376c15e, type: 2}
+  - {fileID: 11400000, guid: 09db9e234bdaac645977b8020c1fd84e, type: 2}
+  - {fileID: 11400000, guid: 52c2c5f32ce29d6479ae5892c99e56c6, type: 2}
   recipes:
   - {fileID: 11400000, guid: 6f77fb8f8080a3842863fa2fe413a52f, type: 2}
+  - {fileID: 11400000, guid: e96f7cf5c4f6b4d44b472112d8b9cc83, type: 2}

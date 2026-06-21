@@ -169,7 +169,7 @@ namespace Work.Cook.Code.Runtime
             StringBuilder builder = new StringBuilder();
             builder.Append(string.Join(" / ", targets));
             AppendCountText(builder, requirement);
-            AppendPreparationText(builder, requirement.RequiredPreparationMethod);
+            AppendPreparationText(builder, requirement.RequiredPreparationMethods);
             return builder.ToString();
         }
 
@@ -242,12 +242,21 @@ namespace Work.Cook.Code.Runtime
                 builder.Append($" x{requirement.MinCount}+");
         }
 
-        private static void AppendPreparationText(StringBuilder builder, PreparationMethodSO method)
+        private static void AppendPreparationText(StringBuilder builder, IReadOnlyList<PreparationMethodSO> methods)
         {
-            if (builder == null || method == null)
+            if (builder == null || methods == null || methods.Count == 0)
                 return;
 
-            builder.Append($" ({method.DisplayName})");
+            List<string> names = new List<string>();
+            for (int i = 0; i < methods.Count; i++)
+            {
+                PreparationMethodSO method = methods[i];
+                if (method != null)
+                    names.Add(method.DisplayName);
+            }
+
+            if (names.Count > 0)
+                builder.Append($" ({string.Join(" / ", names)})");
         }
 
         private static void AppendAlternativeText(

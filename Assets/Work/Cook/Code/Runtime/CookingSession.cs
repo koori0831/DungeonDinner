@@ -45,7 +45,6 @@ namespace Work.Cook.Code.Runtime
                 }
             }
 
-            session.ApplyAutomaticRecipePreparations();
             return session;
         }
 
@@ -104,44 +103,6 @@ namespace Work.Cook.Code.Runtime
         public void ClearPreparations()
         {
             _preparedIngredients.Clear();
-        }
-
-        public void ApplyAutomaticRecipePreparations()
-        {
-            if (SelectedRecipe == null)
-                return;
-
-            for (int requirementIndex = 0; requirementIndex < SelectedRecipe.RequiredIngredients.Count; requirementIndex++)
-            {
-                RecipeIngredientRequirement requirement = SelectedRecipe.RequiredIngredients[requirementIndex];
-                if (requirement == null
-                    || requirement.RequiredPreparationMethod == null
-                    || requirement.AutoApplyRequiredPreparation == false
-                    || requirement.RequireManualPreparation)
-                {
-                    continue;
-                }
-
-                int appliedCount = 0;
-                for (int ingredientIndex = 0; ingredientIndex < _selectedIngredients.Count; ingredientIndex++)
-                {
-                    IngredientSO ingredient = _selectedIngredients[ingredientIndex];
-                    if (ingredient == null
-                        || requirement.CanAcceptMore(appliedCount) == false
-                        || requirement.IsMatchedBy(ingredient) == false
-                        || GetPreparedIngredient(ingredient) != null)
-                    {
-                        continue;
-                    }
-
-                    IngredientPreparationOption option = ingredient.FindPreparationOption(requirement.RequiredPreparationMethod);
-                    if (option == null)
-                        continue;
-
-                    SelectPreparation(ingredient, option);
-                    appliedCount++;
-                }
-            }
         }
 
         public PreparedIngredientState GetPreparedIngredient(IngredientSO ingredient)
