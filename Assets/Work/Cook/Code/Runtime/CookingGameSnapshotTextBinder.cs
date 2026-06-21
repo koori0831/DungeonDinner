@@ -174,7 +174,6 @@ namespace Work.Cook.Code.Runtime
                 case NpcConversationResult.Similar:
                     return "Similar";
                 case NpcConversationResult.Disgusting:
-                    return "Disgusting";
                 case NpcConversationResult.Wrong:
                 default:
                     return "Wrong";

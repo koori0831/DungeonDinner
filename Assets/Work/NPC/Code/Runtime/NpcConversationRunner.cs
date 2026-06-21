@@ -208,6 +208,7 @@ namespace Work.NPC.Code.Runtime
 
         public void PlayResultDialogue(NpcConversationResult result)
         {
+            result = NormalizeResult(result);
             if (_currentEvent == null)
             {
                 Debug.LogWarning("No active visit event.");
@@ -414,7 +415,7 @@ namespace Work.NPC.Code.Runtime
 
         public void TestDisgustingResult()
         {
-            PlayResultDialogue(NpcConversationResult.Disgusting);
+            PlayResultDialogue(NpcConversationResult.Wrong);
         }
 
         public IReadOnlyList<QuestionCategoryData> GetCurrentQuestionOptions()
@@ -628,15 +629,21 @@ namespace Work.NPC.Code.Runtime
 
         private static string GetResultGroup(NpcConversationResult result)
         {
-            return result switch
+            return NormalizeResult(result) switch
             {
-                NpcConversationResult.Disgusting => "Result_Disgusting",
                 NpcConversationResult.Wrong => "Result_Wrong",
                 NpcConversationResult.Similar => "Result_Similar",
                 NpcConversationResult.Correct => "Result_Correct",
                 NpcConversationResult.Perfect => "Result_Perfect",
                 _ => "Result_Wrong"
             };
+        }
+
+        public static NpcConversationResult NormalizeResult(NpcConversationResult result)
+        {
+            return result == NpcConversationResult.Disgusting
+                ? NpcConversationResult.Wrong
+                : result;
         }
 
         private void EnsureDatabase()
@@ -936,7 +943,7 @@ namespace Work.NPC.Code.Runtime
 
         public NpcDishEvaluation(NpcConversationResult result, string reason)
         {
-            Result = result;
+            Result = NpcConversationRunner.NormalizeResult(result);
             Reason = reason;
         }
     }
@@ -1068,12 +1075,12 @@ namespace Work.NPC.Code.Runtime
         private static NpcDishEvaluation EvaluateFacts(NpcDishMatchFacts facts)
         {
             if (facts.Dish.IsDisgusting)
-                return new NpcDishEvaluation(NpcConversationResult.Disgusting, "Dish was marked as disgusting.");
+                return new NpcDishEvaluation(NpcConversationResult.Wrong, "Dish was marked as disgusting.");
 
             if (facts.MatchedDisgustingTags.Count > 0)
             {
                 return new NpcDishEvaluation(
-                    NpcConversationResult.Disgusting,
+                    NpcConversationResult.Wrong,
                     $"Disgusting tag matched. count={facts.MatchedDisgustingTags.Count}");
             }
 

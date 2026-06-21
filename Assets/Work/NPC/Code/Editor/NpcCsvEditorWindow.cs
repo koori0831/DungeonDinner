@@ -46,6 +46,17 @@ namespace Work.NPC.Code.Editor
             "Text"
         };
 
+        private static readonly string[] RegionPoolHeaders =
+        {
+            "RegionId",
+            "NpcId",
+            "Weight",
+            "MinDay",
+            "CooldownDays",
+            "PoolType",
+            "Condition"
+        };
+
         private static readonly string[] DefaultVisitEventHeaders =
         {
             "EventId",
@@ -115,17 +126,144 @@ namespace Work.NPC.Code.Editor
             { "CorrectRecipeId", "정답 레시피 ID" },
             { "AllowedFoodTypes", "허용 음식 종류" },
             { "RequiredTags", "필수 태그" },
-            { "DisgustingTags", "혐오 태그" },
+            { "DisgustingTags", "실패 유발 태그" },
             { "RequiredRequestState", "필요 요청 상태" },
             { "BlockedAtRequestState", "차단 요청 상태" },
             { "RequestStateAfterEncounter", "만남 후 요청 상태" },
             { "RequestSuccessResults", "요청 성공 결과" },
-            { "RequestStateAfterSuccessResult", "성공 후 요청 상태" }
+            { "RequestStateAfterSuccessResult", "성공 후 요청 상태" },
+            { "Weight", "등장 가중치" },
+            { "MinDay", "최소 등장일" },
+            { "PoolType", "풀 타입" },
+            { "Condition", "조건" }
+        };
+
+        private static readonly DropdownOption[] EventTypeOptions =
+        {
+            new DropdownOption("Normal", "일반"),
+            new DropdownOption("Special", "특수"),
+            new DropdownOption("Sequence", "연계"),
+            new DropdownOption("Request", "요청")
+        };
+
+        private static readonly DropdownOption[] RepeatModeOptions =
+        {
+            new DropdownOption("Once", "1회만"),
+            new DropdownOption("Cycle", "순환"),
+            new DropdownOption("Repeat", "반복")
+        };
+
+        private static readonly DropdownOption[] ConversationResultOptions =
+        {
+            new DropdownOption("Wrong", "실패"),
+            new DropdownOption("Similar", "유사"),
+            new DropdownOption("Correct", "성공"),
+            new DropdownOption("Perfect", "완벽")
+        };
+
+        private static readonly DropdownOption[] RequestStateOptions =
+        {
+            new DropdownOption("Locked", "잠김"),
+            new DropdownOption("Unlocked", "해금됨"),
+            new DropdownOption("Offered", "제안됨"),
+            new DropdownOption("Accepted", "수락됨"),
+            new DropdownOption("InProgress", "진행 중"),
+            new DropdownOption("ReadyToComplete", "완료 가능"),
+            new DropdownOption("Completed", "완료됨"),
+            new DropdownOption("EpilogueAvailable", "후일담 가능"),
+            new DropdownOption("EpilogueCompleted", "후일담 완료")
+        };
+
+        private static readonly DropdownOption[] PoolTypeOptions =
+        {
+            new DropdownOption("Normal", "일반"),
+            new DropdownOption("Traveler", "여행자")
+        };
+
+        private static readonly Dictionary<string, string> RegionDisplayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "*", "모든 지역" },
+            { "MossCave", "이끼 동굴" },
+            { "Volcano", "화산 지대" }
+        };
+
+        private static readonly Dictionary<string, string> DialogueGroupDisplayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Intro", "등장 대화" },
+            { "OrderIntent", "주문 의도" },
+            { "Question_Taste", "맛 질문" },
+            { "Question_TextureTemp", "온도/식감 질문" },
+            { "Question_Condition", "몸 상태 질문" },
+            { "Question_Avoid", "기피 음식 질문" },
+            { "Result_Wrong", "실패 결과" },
+            { "Result_Similar", "유사 결과" },
+            { "Result_Correct", "성공 결과" },
+            { "Result_Perfect", "완벽 결과" }
+        };
+
+        private static readonly Dictionary<string, string> FoodCategoryDisplayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Bread", "빵요리" },
+            { "Drink", "음료" },
+            { "Grill", "구이" },
+            { "Noodle", "면요리" },
+            { "RiceBowl", "덮밥" },
+            { "Salad", "샐러드" },
+            { "Snack", "간식" },
+            { "Soup", "수프" },
+            { "Stew", "스튜" },
+            { "Tea", "차" }
+        };
+
+        private static readonly Dictionary<string, string> FoodTagDisplayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "AncientRite", "의식의 맛" },
+            { "BeerFriendly", "술안주감" },
+            { "Bitter", "쓴맛" },
+            { "Burnt", "탄맛" },
+            { "Charred", "그을림" },
+            { "Clean", "깔끔함" },
+            { "Cold", "차가움" },
+            { "Cool", "서늘함" },
+            { "Crispy", "바삭함" },
+            { "Dry", "마름" },
+            { "Fish", "생선" },
+            { "Fresh", "신선함" },
+            { "Grain", "곡물" },
+            { "Greasy", "기름짐" },
+            { "Hearty", "든든함" },
+            { "Heavy", "묵직함" },
+            { "Herbal", "허브향" },
+            { "Hot", "뜨거움" },
+            { "Light", "가벼움" },
+            { "Magic", "마력 안정" },
+            { "Meat", "고기" },
+            { "Messy", "지저분함" },
+            { "Mineral", "광물향" },
+            { "Moist", "촉촉함" },
+            { "Poisonous", "독성" },
+            { "Portable", "휴대성" },
+            { "Rotten", "상한맛" },
+            { "Salty", "짭짤함" },
+            { "Savory", "감칠맛" },
+            { "Smoky", "훈연향" },
+            { "Soft", "부드러움" },
+            { "Sour", "신맛" },
+            { "Spicy", "매콤함" },
+            { "StrongSmell", "강한 냄새" },
+            { "Sweet", "달콤함" },
+            { "SweetOnly", "단맛만 남음" },
+            { "SweetSour", "새콤달콤" },
+            { "TinyPortion", "작은 양" },
+            { "Vegetable", "채소" },
+            { "Warm", "따뜻함" },
+            { "Watery", "묽음" }
         };
 
         private readonly List<NpcDraft> _npcs = new List<NpcDraft>();
         private readonly List<DialogueDraft> _dialogues = new List<DialogueDraft>();
         private readonly List<VisitEventReference> _visitEvents = new List<VisitEventReference>();
+        private readonly List<RegionPoolDraft> _regionPools = new List<RegionPoolDraft>();
         private readonly List<NpcCsvValidationIssue> _validationIssues = new List<NpcCsvValidationIssue>();
         private readonly List<string> _visibleEventIds = new List<string>();
         private readonly List<DialogueDraft> _visibleDialogues = new List<DialogueDraft>();
@@ -133,6 +271,12 @@ namespace Work.NPC.Code.Editor
         private readonly List<RecipeSO> _recipeAssets = new List<RecipeSO>();
         private readonly List<FoodCategorySO> _foodCategoryAssets = new List<FoodCategorySO>();
         private readonly List<FoodTagSO> _foodTagAssets = new List<FoodTagSO>();
+        private readonly List<DropdownOption> _recipeOptions = new List<DropdownOption>();
+        private readonly List<DropdownOption> _foodCategoryOptions = new List<DropdownOption>();
+        private readonly List<DropdownOption> _foodTagOptions = new List<DropdownOption>();
+        private readonly List<DropdownOption> _questionCategoryOptions = new List<DropdownOption>();
+        private readonly List<DropdownOption> _regionOptions = new List<DropdownOption>();
+        private readonly Dictionary<string, int> _npcMultiSelectAddIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         private Vector2 _npcListScroll;
         private Vector2 _npcDetailScroll;
@@ -158,8 +302,9 @@ namespace Work.NPC.Code.Editor
         private bool _hasValidationRun;
         private bool _validationIsStale;
         private bool _cookingAssetsLoaded;
+        private bool _cookingAssetsReloadRequested = true;
         private float _npcPanelWidth = 240f;
-        private float _eventPanelWidth = 260f;
+        private float _eventPanelWidth = 320f;
         private float _dialoguePanelWidth = 340f;
         private string _activeResizeHandle;
         private bool _hasUnsavedChanges;
@@ -167,6 +312,7 @@ namespace Work.NPC.Code.Editor
         private DateTime _npcLastWriteTime;
         private DateTime _dialogueLastWriteTime;
         private DateTime _visitEventLastWriteTime;
+        private DateTime _regionPoolLastWriteTime;
         private double _lastExternalChangeCheck;
 
         [MenuItem("Tools/Dungeon Dinner/NPC CSV Editor")]
@@ -182,11 +328,13 @@ namespace Work.NPC.Code.Editor
         {
             LoadData(false);
             EditorApplication.update += CheckExternalChanges;
+            EditorApplication.projectChanged += RequestCookingAssetReload;
         }
 
         private void OnDisable()
         {
             EditorApplication.update -= CheckExternalChanges;
+            EditorApplication.projectChanged -= RequestCookingAssetReload;
         }
 
         private void OnGUI()
@@ -200,7 +348,7 @@ namespace Work.NPC.Code.Editor
             DrawNpcListPanel(_npcPanelWidth);
             DrawResizeHandle("npc-event", ref _npcPanelWidth, 190f, 420f);
             DrawEventListPanel(_eventPanelWidth);
-            DrawResizeHandle("event-dialogue", ref _eventPanelWidth, 180f, 440f);
+            DrawResizeHandle("event-dialogue", ref _eventPanelWidth, 260f, 560f);
             DrawDialogueListPanel(_dialoguePanelWidth);
             DrawResizeHandle("dialogue-detail", ref _dialoguePanelWidth, 240f, 560f);
             DrawDialogueDetailPanel();
@@ -828,8 +976,7 @@ namespace Work.NPC.Code.Editor
             string[] requiredGroups =
             {
                 "Result_Correct",
-                "Result_Wrong",
-                "Result_Disgusting"
+                "Result_Wrong"
             };
 
             foreach (string group in requiredGroups)
@@ -945,12 +1092,10 @@ namespace Work.NPC.Code.Editor
             IReadOnlyDictionary<string, NpcDraft> npcById,
             IReadOnlyDictionary<string, VisitEventReference> visitEventById)
         {
-            List<Dictionary<string, string>> rows = ReadCsv(RegionPoolCsvPath);
-            foreach (Dictionary<string, string> row in rows)
+            foreach (RegionPoolDraft pool in _regionPools)
             {
-                string regionId = Get(row, "RegionId");
-                string npcId = Get(row, "NpcId");
-                string weightText = Get(row, "Weight");
+                string regionId = pool.RegionId;
+                string npcId = pool.NpcId;
 
                 if (string.IsNullOrWhiteSpace(npcId))
                 {
@@ -972,7 +1117,7 @@ namespace Work.NPC.Code.Editor
                         npcId);
                 }
 
-                if (int.TryParse(weightText, out int weight) && weight <= 0)
+                if (pool.Weight <= 0)
                 {
                     AddValidationIssue(
                         issues,
@@ -997,19 +1142,19 @@ namespace Work.NPC.Code.Editor
                 }
             }
 
-            foreach (IGrouping<string, Dictionary<string, string>> duplicateGroup in rows
-                         .Where(row => string.IsNullOrWhiteSpace(Get(row, "RegionId")) == false
-                                       && string.IsNullOrWhiteSpace(Get(row, "NpcId")) == false)
-                         .GroupBy(row => $"{Get(row, "RegionId").Trim()}|{Get(row, "NpcId").Trim()}", StringComparer.OrdinalIgnoreCase)
+            foreach (IGrouping<string, RegionPoolDraft> duplicateGroup in _regionPools
+                         .Where(pool => string.IsNullOrWhiteSpace(pool.RegionId) == false
+                                        && string.IsNullOrWhiteSpace(pool.NpcId) == false)
+                         .GroupBy(pool => $"{pool.RegionId.Trim()}|{pool.NpcId.Trim()}", StringComparer.OrdinalIgnoreCase)
                          .Where(group => group.Count() > 1))
             {
-                Dictionary<string, string> first = duplicateGroup.First();
+                RegionPoolDraft first = duplicateGroup.First();
                 AddValidationIssue(
                     issues,
                     CsvValidationSeverity.Warning,
                     "RegionPoolDuplicateNpc",
-                    $"NPC '{Get(first, "NpcId")}'가 지역 '{Get(first, "RegionId")}'에 두 번 이상 등장합니다.",
-                    Get(first, "NpcId"));
+                    $"NPC '{first.NpcId}'가 지역 '{first.RegionId}'에 두 번 이상 등장합니다.",
+                    first.NpcId);
             }
         }
 
@@ -1311,16 +1456,19 @@ namespace Work.NPC.Code.Editor
             DrawNpcTextField("DisplayName", ref _selectedNpc.DisplayName);
             DrawNpcTextField("Race", ref _selectedNpc.Race);
             DrawNpcTextField("Role", ref _selectedNpc.Role);
-            DrawNpcTextField("PreferredTags", ref _selectedNpc.PreferredTags);
-            DrawNpcTextField("PreferredFoodTypes", ref _selectedNpc.PreferredFoodTypes);
-            DrawNpcTextField("AvoidTags", ref _selectedNpc.AvoidTags);
+            DrawNpcMultiSelectField("PreferredTags", ref _selectedNpc.PreferredTags, GetFoodTagOptions());
+            DrawNpcMultiSelectField("PreferredFoodTypes", ref _selectedNpc.PreferredFoodTypes, GetFoodCategoryOptions());
+            DrawNpcMultiSelectField("AvoidTags", ref _selectedNpc.AvoidTags, GetFoodTagOptions());
             DrawNpcTextArea("Notes", ref _selectedNpc.Notes, 52f);
 
             EditorGUILayout.Space(6f);
             GUILayout.Label("요청", EditorStyles.boldLabel);
             DrawNpcBoolField("RequestAvailable", ref _selectedNpc.RequestAvailable);
             DrawNpcIntField("RequestUnlockLevel", ref _selectedNpc.RequestUnlockLevel);
-            DrawNpcTextField("RequestUnlockEvent", ref _selectedNpc.RequestUnlockEvent);
+            DrawNpcDropdownField("RequestUnlockEvent", ref _selectedNpc.RequestUnlockEvent, GetNpcEventOptions(_selectedNpc.NpcId, string.Empty), true);
+
+            EditorGUILayout.Space(6f);
+            DrawNpcRegionPoolFields(_selectedNpc);
 
             EditorGUILayout.Space(6f);
             DrawNpcReferenceSummary(_selectedNpc.NpcId);
@@ -1344,16 +1492,19 @@ namespace Work.NPC.Code.Editor
             DrawNpcTextField("DisplayName", ref _selectedNpc.DisplayName);
             DrawNpcTextField("Race", ref _selectedNpc.Race);
             DrawNpcTextField("Role", ref _selectedNpc.Role);
-            DrawNpcTextField("PreferredTags", ref _selectedNpc.PreferredTags);
-            DrawNpcTextField("PreferredFoodTypes", ref _selectedNpc.PreferredFoodTypes);
-            DrawNpcTextField("AvoidTags", ref _selectedNpc.AvoidTags);
+            DrawNpcMultiSelectField("PreferredTags", ref _selectedNpc.PreferredTags, GetFoodTagOptions());
+            DrawNpcMultiSelectField("PreferredFoodTypes", ref _selectedNpc.PreferredFoodTypes, GetFoodCategoryOptions());
+            DrawNpcMultiSelectField("AvoidTags", ref _selectedNpc.AvoidTags, GetFoodTagOptions());
             DrawNpcTextArea("Notes", ref _selectedNpc.Notes, 58f);
 
             EditorGUILayout.Space(8f);
             GUILayout.Label("요청", EditorStyles.boldLabel);
             DrawNpcBoolField("RequestAvailable", ref _selectedNpc.RequestAvailable);
             DrawNpcIntField("RequestUnlockLevel", ref _selectedNpc.RequestUnlockLevel);
-            DrawNpcTextField("RequestUnlockEvent", ref _selectedNpc.RequestUnlockEvent);
+            DrawNpcDropdownField("RequestUnlockEvent", ref _selectedNpc.RequestUnlockEvent, GetNpcEventOptions(_selectedNpc.NpcId, string.Empty), true);
+
+            EditorGUILayout.Space(8f);
+            DrawNpcRegionPoolFields(_selectedNpc);
 
             EditorGUILayout.Space(8f);
             DrawNpcReferenceSummary(_selectedNpc.NpcId);
@@ -1425,43 +1576,50 @@ namespace Work.NPC.Code.Editor
                 return;
             }
 
-            _visitEventDetailScroll = EditorGUILayout.BeginScrollView(_visitEventDetailScroll, GUILayout.MinHeight(140f), GUILayout.MaxHeight(260f));
-            DrawVisitEventIdField(visitEvent);
-            DrawVisitEventTextField("NpcId", visitEvent, "NpcId", ref visitEvent.NpcId);
-            DrawVisitEventTextField("RegionId", visitEvent, "RegionId", ref visitEvent.RegionId);
-            DrawVisitEventTextField("StartGroups", visitEvent, "StartGroups", ref visitEvent.StartGroups);
-            DrawVisitEventIntField("QuestionLimit", visitEvent, "QuestionLimit", ref visitEvent.QuestionLimit);
-            DrawVisitEventTextField("AvailableQuestionCategories", visitEvent, "AvailableQuestionCategories", ref visitEvent.AvailableQuestionCategories);
-            DrawVisitEventTextField("EventType", visitEvent, "EventType", ref visitEvent.EventType);
-            DrawVisitEventIntField("Priority", visitEvent, "Priority", ref visitEvent.Priority);
-            DrawVisitEventTextField("RepeatMode", visitEvent, "RepeatMode", ref visitEvent.RepeatMode);
-            DrawVisitEventIntField("CooldownDays", visitEvent, "CooldownDays", ref visitEvent.CooldownDays);
-            DrawVisitEventIntField("RequiredNpcVisits", visitEvent, "RequiredNpcVisits", ref visitEvent.RequiredNpcVisits);
-            DrawVisitEventIntField("RequiredAffinity", visitEvent, "RequiredAffinity", ref visitEvent.RequiredAffinity);
-            DrawVisitEventIntField("RequiredCorrectCount", visitEvent, "RequiredCorrectCount", ref visitEvent.RequiredCorrectCount);
-            DrawVisitEventTextField("RequiredLastResult", visitEvent, "RequiredLastResult", ref visitEvent.RequiredLastResult);
-            DrawVisitEventTextField("RequiredEventIds", visitEvent, "RequiredEventIds", ref visitEvent.RequiredEventIds);
-            DrawVisitEventTextField("SequenceGroup", visitEvent, "SequenceGroup", ref visitEvent.SequenceGroup);
-            DrawVisitEventIntField("SequenceIndex", visitEvent, "SequenceIndex", ref visitEvent.SequenceIndex);
+            bool previousWideMode = EditorGUIUtility.wideMode;
+            float previousLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.wideMode = false;
+            EditorGUIUtility.labelWidth = 116f;
 
-            EditorGUILayout.Space(6f);
-            GUILayout.Label("주문 조건", EditorStyles.boldLabel);
-            DrawVisitEventOrderContractSoFields(visitEvent);
-            DrawVisitEventTextField("CorrectRecipeId", visitEvent, "CorrectRecipeId", ref visitEvent.CorrectRecipeId);
-            DrawVisitEventTextField("AllowedFoodTypes", visitEvent, "AllowedFoodTypes", ref visitEvent.AllowedFoodTypes);
-            DrawVisitEventTextField("RequiredTags", visitEvent, "RequiredTags", ref visitEvent.RequiredTags);
-            DrawVisitEventTextField("PreferredTags", visitEvent, "PreferredTags", ref visitEvent.PreferredTags);
-            DrawVisitEventTextField("AvoidTags", visitEvent, "AvoidTags", ref visitEvent.AvoidTags);
-            DrawVisitEventTextField("DisgustingTags", visitEvent, "DisgustingTags", ref visitEvent.DisgustingTags);
+            _visitEventDetailScroll = EditorGUILayout.BeginScrollView(_visitEventDetailScroll, false, false, GUILayout.MinHeight(140f), GUILayout.MaxHeight(320f));
+            try
+            {
+                DrawVisitEventIdField(visitEvent);
+                DrawVisitEventTextField("NpcId", visitEvent, "NpcId", ref visitEvent.NpcId);
+                DrawVisitEventMultiSelectField("RegionId", visitEvent, "RegionId", ref visitEvent.RegionId, GetRegionOptions());
+                DrawVisitEventMultiSelectField("StartGroups", visitEvent, "StartGroups", ref visitEvent.StartGroups, GetDialogueGroupOptions(visitEvent.EventId));
+                DrawVisitEventIntField("QuestionLimit", visitEvent, "QuestionLimit", ref visitEvent.QuestionLimit);
+                DrawVisitEventMultiSelectField("AvailableQuestionCategories", visitEvent, "AvailableQuestionCategories", ref visitEvent.AvailableQuestionCategories, GetQuestionCategoryOptions());
+                DrawVisitEventDropdownField("EventType", visitEvent, "EventType", ref visitEvent.EventType, EventTypeOptions, false);
+                DrawVisitEventIntField("Priority", visitEvent, "Priority", ref visitEvent.Priority);
+                DrawVisitEventDropdownField("RepeatMode", visitEvent, "RepeatMode", ref visitEvent.RepeatMode, RepeatModeOptions, false);
+                DrawVisitEventIntField("CooldownDays", visitEvent, "CooldownDays", ref visitEvent.CooldownDays);
+                DrawVisitEventIntField("RequiredNpcVisits", visitEvent, "RequiredNpcVisits", ref visitEvent.RequiredNpcVisits);
+                DrawVisitEventIntField("RequiredAffinity", visitEvent, "RequiredAffinity", ref visitEvent.RequiredAffinity);
+                DrawVisitEventIntField("RequiredCorrectCount", visitEvent, "RequiredCorrectCount", ref visitEvent.RequiredCorrectCount);
+                DrawVisitEventDropdownField("RequiredLastResult", visitEvent, "RequiredLastResult", ref visitEvent.RequiredLastResult, ConversationResultOptions, true);
+                DrawVisitEventMultiSelectField("RequiredEventIds", visitEvent, "RequiredEventIds", ref visitEvent.RequiredEventIds, GetNpcEventOptions(visitEvent.NpcId, visitEvent.EventId));
+                DrawVisitEventTextField("SequenceGroup", visitEvent, "SequenceGroup", ref visitEvent.SequenceGroup);
+                DrawVisitEventIntField("SequenceIndex", visitEvent, "SequenceIndex", ref visitEvent.SequenceIndex);
 
-            EditorGUILayout.Space(6f);
-            GUILayout.Label("요청 상태", EditorStyles.boldLabel);
-            DrawVisitEventTextField("RequiredRequestState", visitEvent, "RequiredRequestState", ref visitEvent.RequiredRequestState);
-            DrawVisitEventTextField("BlockedAtRequestState", visitEvent, "BlockedAtRequestState", ref visitEvent.BlockedAtRequestState);
-            DrawVisitEventTextField("RequestStateAfterEncounter", visitEvent, "RequestStateAfterEncounter", ref visitEvent.RequestStateAfterEncounter);
-            DrawVisitEventTextField("RequestSuccessResults", visitEvent, "RequestSuccessResults", ref visitEvent.RequestSuccessResults);
-            DrawVisitEventTextField("RequestStateAfterSuccessResult", visitEvent, "RequestStateAfterSuccessResult", ref visitEvent.RequestStateAfterSuccessResult);
-            EditorGUILayout.EndScrollView();
+                EditorGUILayout.Space(6f);
+                GUILayout.Label("주문 조건", EditorStyles.boldLabel);
+                DrawVisitEventOrderContractSoFields(visitEvent);
+
+                EditorGUILayout.Space(6f);
+                GUILayout.Label("요청 상태", EditorStyles.boldLabel);
+                DrawVisitEventDropdownField("RequiredRequestState", visitEvent, "RequiredRequestState", ref visitEvent.RequiredRequestState, RequestStateOptions, true);
+                DrawVisitEventDropdownField("BlockedAtRequestState", visitEvent, "BlockedAtRequestState", ref visitEvent.BlockedAtRequestState, RequestStateOptions, true);
+                DrawVisitEventDropdownField("RequestStateAfterEncounter", visitEvent, "RequestStateAfterEncounter", ref visitEvent.RequestStateAfterEncounter, RequestStateOptions, true);
+                DrawVisitEventMultiSelectField("RequestSuccessResults", visitEvent, "RequestSuccessResults", ref visitEvent.RequestSuccessResults, ConversationResultOptions);
+                DrawVisitEventDropdownField("RequestStateAfterSuccessResult", visitEvent, "RequestStateAfterSuccessResult", ref visitEvent.RequestStateAfterSuccessResult, RequestStateOptions, true);
+            }
+            finally
+            {
+                EditorGUILayout.EndScrollView();
+                EditorGUIUtility.wideMode = previousWideMode;
+                EditorGUIUtility.labelWidth = previousLabelWidth;
+            }
         }
 
         private void DrawDialogueListPanel(float width)
@@ -1578,8 +1736,8 @@ namespace Work.NPC.Code.Editor
 
             _dialogueDetailScroll = EditorGUILayout.BeginScrollView(_dialogueDetailScroll);
             DrawDialogueTextField("EventId", ref _selectedDialogue.EventId);
-            DrawDialogueTextField("Group", ref _selectedDialogue.Group);
-            DrawDialogueTextField("QuestionCategory", ref _selectedDialogue.QuestionCategory);
+            DrawDialogueDropdownField("Group", ref _selectedDialogue.Group, GetDialogueGroupOptions(_selectedDialogue.EventId), false);
+            DrawDialogueDropdownField("QuestionCategory", ref _selectedDialogue.QuestionCategory, GetQuestionCategoryOptions(), true);
             DrawDialogueIntField("LineOrder", ref _selectedDialogue.LineOrder);
             DrawDialogueTextField("Speaker", ref _selectedDialogue.Speaker);
 
@@ -1745,6 +1903,227 @@ namespace Work.NPC.Code.Editor
             }
         }
 
+        private void DrawNpcDropdownField(
+            string label,
+            ref string value,
+            IReadOnlyList<DropdownOption> options,
+            bool allowEmpty)
+        {
+            List<DropdownOption> displayOptions = BuildDropdownOptions(value, options, allowEmpty);
+            string[] labels = displayOptions.Select(option => option.DisplayText).ToArray();
+            int currentIndex = FindDropdownIndex(displayOptions, value);
+
+            EditorGUI.BeginChangeCheck();
+            int nextIndex = EditorGUILayout.Popup(ToDisplayLabel(label), currentIndex, labels);
+            if (EditorGUI.EndChangeCheck() && nextIndex >= 0 && nextIndex < displayOptions.Count)
+            {
+                value = displayOptions[nextIndex].Value;
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
+            }
+        }
+
+        private void DrawNpcMultiSelectField(string label, ref string value, IReadOnlyList<DropdownOption> options)
+        {
+            List<DropdownOption> displayOptions = BuildMultiSelectOptions(value, options);
+            if (displayOptions.Count == 0)
+            {
+                DrawNpcTextField(label, ref value);
+                return;
+            }
+
+            List<string> selectedIds = ParseIdList(value);
+            bool changed = false;
+            List<DropdownOption> addOptions = displayOptions
+                .Where(option => ContainsId(selectedIds, option.Value) == false)
+                .ToList();
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUILayout.Label(ToDisplayLabel(label), EditorStyles.miniBoldLabel);
+
+            GUI.enabled = addOptions.Count > 0;
+            string addIndexKey = BuildNpcMultiSelectAddIndexKey(label);
+            int addIndex = GetNpcMultiSelectAddIndex(addIndexKey, addOptions.Count);
+            EditorGUI.BeginChangeCheck();
+            addIndex = EditorGUILayout.Popup("추가할 항목", addIndex, BuildAddOptionLabels(addOptions));
+            if (EditorGUI.EndChangeCheck())
+                _npcMultiSelectAddIndices[addIndexKey] = addIndex;
+
+            if (GUILayout.Button("선택 항목 추가", GUILayout.Height(22f)) && addOptions.Count > 0)
+            {
+                int safeIndex = Mathf.Clamp(addIndex, 0, addOptions.Count - 1);
+                selectedIds.Add(addOptions[safeIndex].Value);
+                _npcMultiSelectAddIndices[addIndexKey] = Mathf.Clamp(safeIndex, 0, Mathf.Max(0, addOptions.Count - 2));
+                changed = true;
+            }
+
+            GUI.enabled = true;
+
+            if (selectedIds.Count == 0)
+            {
+                GUILayout.Label("선택된 항목 없음", EditorStyles.miniLabel);
+            }
+            else
+            {
+                for (int i = selectedIds.Count - 1; i >= 0; i--)
+                {
+                    string selectedId = selectedIds[i];
+                    DropdownOption option = FindOptionById(displayOptions, selectedId);
+                    EditorGUI.BeginChangeCheck();
+                    bool keep = EditorGUILayout.ToggleLeft(option.DisplayText, true);
+                    if (EditorGUI.EndChangeCheck() && keep == false)
+                    {
+                        selectedIds.RemoveAt(i);
+                        changed = true;
+                    }
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+
+            if (changed)
+            {
+                value = BuildIdList(selectedIds);
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
+            }
+        }
+
+        private void DrawNpcRegionPoolFields(NpcDraft npc)
+        {
+            if (npc == null)
+                return;
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUILayout.Label("지역 풀", EditorStyles.boldLabel);
+            GUILayout.Label("체크된 지역에서 이 NPC가 등장 후보에 포함됩니다.", EditorStyles.miniLabel);
+
+            foreach (DropdownOption regionOption in GetEditableRegionOptions())
+            {
+                RegionPoolDraft pool = FindRegionPool(regionOption.Value, npc.NpcId);
+                bool isIncluded = pool != null;
+
+                EditorGUI.BeginChangeCheck();
+                bool nextIncluded = EditorGUILayout.ToggleLeft(regionOption.DisplayText, isIncluded, EditorStyles.boldLabel);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (nextIncluded)
+                        pool = AddRegionPool(regionOption.Value, npc.NpcId);
+                    else
+                        RemoveRegionPool(regionOption.Value, npc.NpcId);
+                }
+
+                if (nextIncluded == false)
+                    continue;
+
+                pool = pool ?? FindRegionPool(regionOption.Value, npc.NpcId);
+                if (pool == null)
+                    continue;
+
+                EditorGUI.indentLevel++;
+                DrawRegionPoolIntField("Weight", pool, ref pool.Weight, 1);
+                DrawRegionPoolIntField("MinDay", pool, ref pool.MinDay, 1);
+                DrawRegionPoolIntField("CooldownDays", pool, ref pool.CooldownDays, 0);
+                DrawRegionPoolDropdownField("PoolType", pool, ref pool.PoolType, PoolTypeOptions);
+                DrawRegionPoolTextField("Condition", pool, ref pool.Condition);
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space(4f);
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private List<DropdownOption> GetEditableRegionOptions()
+        {
+            List<DropdownOption> options = RegionDisplayNames
+                .Where(pair => string.Equals(pair.Key, "*", StringComparison.OrdinalIgnoreCase) == false)
+                .Select(pair => new DropdownOption(pair.Key, pair.Value))
+                .ToList();
+
+            AddIdOptions(options, _regionPools.Select(pool => pool.RegionId), GetRegionDisplayName);
+            AddIdOptions(
+                options,
+                _visitEvents.SelectMany(visitEvent => ParseIdList(visitEvent.RegionId))
+                    .Where(regionId => string.Equals(regionId, "*", StringComparison.OrdinalIgnoreCase) == false),
+                GetRegionDisplayName);
+
+            return NormalizeDropdownOptions(options);
+        }
+
+        private RegionPoolDraft FindRegionPool(string regionId, string npcId)
+        {
+            return _regionPools.FirstOrDefault(pool =>
+                string.Equals(pool.RegionId, regionId, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(pool.NpcId, npcId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private RegionPoolDraft AddRegionPool(string regionId, string npcId)
+        {
+            RegionPoolDraft existing = FindRegionPool(regionId, npcId);
+            if (existing != null)
+                return existing;
+
+            RegionPoolDraft pool = RegionPoolDraft.CreateDefault(regionId, npcId);
+            _regionPools.Add(pool);
+            RebuildRegionOptions();
+            MarkDirty("지역 풀 추가됨");
+            return pool;
+        }
+
+        private void RemoveRegionPool(string regionId, string npcId)
+        {
+            int removed = _regionPools.RemoveAll(pool =>
+                string.Equals(pool.RegionId, regionId, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(pool.NpcId, npcId, StringComparison.OrdinalIgnoreCase));
+            if (removed <= 0)
+                return;
+
+            RebuildRegionOptions();
+            MarkDirty("지역 풀 제거됨");
+        }
+
+        private void DrawRegionPoolIntField(string label, RegionPoolDraft pool, ref int value, int minValue)
+        {
+            EditorGUI.BeginChangeCheck();
+            int next = EditorGUILayout.IntField(ToDisplayLabel(label), value);
+            if (EditorGUI.EndChangeCheck())
+            {
+                value = Mathf.Max(minValue, next);
+                pool.SyncRawValues();
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
+            }
+        }
+
+        private void DrawRegionPoolTextField(string label, RegionPoolDraft pool, ref string value)
+        {
+            EditorGUI.BeginChangeCheck();
+            string next = EditorGUILayout.TextField(ToDisplayLabel(label), value);
+            if (EditorGUI.EndChangeCheck())
+            {
+                value = next;
+                pool.SyncRawValues();
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
+            }
+        }
+
+        private void DrawRegionPoolDropdownField(
+            string label,
+            RegionPoolDraft pool,
+            ref string value,
+            IReadOnlyList<DropdownOption> options)
+        {
+            List<DropdownOption> displayOptions = BuildDropdownOptions(value, options, false);
+            string[] labels = displayOptions.Select(option => option.DisplayText).ToArray();
+            int currentIndex = FindDropdownIndex(displayOptions, value);
+
+            EditorGUI.BeginChangeCheck();
+            int nextIndex = EditorGUILayout.Popup(ToDisplayLabel(label), currentIndex, labels);
+            if (EditorGUI.EndChangeCheck() && nextIndex >= 0 && nextIndex < displayOptions.Count)
+            {
+                value = displayOptions[nextIndex].Value;
+                pool.SyncRawValues();
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
+            }
+        }
+
         private void DrawDialogueTextField(string label, ref string value)
         {
             EditorGUI.BeginChangeCheck();
@@ -1753,6 +2132,25 @@ namespace Work.NPC.Code.Editor
             {
                 value = next;
                 MarkDirty($"{label} 수정됨");
+            }
+        }
+
+        private void DrawDialogueDropdownField(
+            string label,
+            ref string value,
+            IReadOnlyList<DropdownOption> options,
+            bool allowEmpty)
+        {
+            List<DropdownOption> displayOptions = BuildDropdownOptions(value, options, allowEmpty);
+            string[] labels = displayOptions.Select(option => option.DisplayText).ToArray();
+            int currentIndex = FindDropdownIndex(displayOptions, value);
+
+            EditorGUI.BeginChangeCheck();
+            int nextIndex = EditorGUILayout.Popup(ToDisplayLabel(label), currentIndex, labels);
+            if (EditorGUI.EndChangeCheck() && nextIndex >= 0 && nextIndex < displayOptions.Count)
+            {
+                value = displayOptions[nextIndex].Value;
+                MarkDirty($"{ToDisplayLabel(label)} 수정됨");
             }
         }
 
@@ -1771,8 +2169,8 @@ namespace Work.NPC.Code.Editor
         {
             string oldEventId = visitEvent.EventId;
             EditorGUI.BeginChangeCheck();
-            string next = EditorGUILayout.TextField(ToDisplayLabel("EventId"), visitEvent.EventId);
-            if (EditorGUI.EndChangeCheck())
+            string next = EditorGUILayout.DelayedTextField(ToDisplayLabel("EventId"), visitEvent.EventId);
+            if (EditorGUI.EndChangeCheck() && string.Equals(oldEventId, next, StringComparison.Ordinal) == false)
                 RenameVisitEventId(visitEvent, oldEventId, next);
         }
 
@@ -1794,12 +2192,12 @@ namespace Work.NPC.Code.Editor
                 return;
             }
 
-            DrawRecipeObjectField(visitEvent);
-            DrawCategoryObjectListField(visitEvent, "허용 음식 종류", "AllowedFoodTypes", ref visitEvent.AllowedFoodTypes);
-            DrawTagObjectListField(visitEvent, "필수 태그", "RequiredTags", ref visitEvent.RequiredTags);
-            DrawTagObjectListField(visitEvent, "선호 태그", "PreferredTags", ref visitEvent.PreferredTags);
-            DrawTagObjectListField(visitEvent, "기피 태그", "AvoidTags", ref visitEvent.AvoidTags);
-            DrawTagObjectListField(visitEvent, "혐오 태그", "DisgustingTags", ref visitEvent.DisgustingTags);
+            DrawVisitEventDropdownField("CorrectRecipeId", visitEvent, "CorrectRecipeId", ref visitEvent.CorrectRecipeId, GetRecipeOptions(), true);
+            DrawVisitEventMultiSelectField("AllowedFoodTypes", visitEvent, "AllowedFoodTypes", ref visitEvent.AllowedFoodTypes, GetFoodCategoryOptions());
+            DrawVisitEventMultiSelectField("RequiredTags", visitEvent, "RequiredTags", ref visitEvent.RequiredTags, GetFoodTagOptions());
+            DrawVisitEventMultiSelectField("PreferredTags", visitEvent, "PreferredTags", ref visitEvent.PreferredTags, GetFoodTagOptions());
+            DrawVisitEventMultiSelectField("AvoidTags", visitEvent, "AvoidTags", ref visitEvent.AvoidTags, GetFoodTagOptions());
+            DrawVisitEventMultiSelectField("DisgustingTags", visitEvent, "DisgustingTags", ref visitEvent.DisgustingTags, GetFoodTagOptions());
             EditorGUILayout.EndVertical();
         }
 
@@ -1913,12 +2311,99 @@ namespace Work.NPC.Code.Editor
         {
             value = next ?? string.Empty;
             visitEvent.SetRaw(columnName, value);
+            if (string.Equals(columnName, "RegionId", StringComparison.OrdinalIgnoreCase))
+                SyncRegionPoolsForNpcEvents(visitEvent.NpcId);
             MarkDirty($"방문 이벤트 {ToDisplayLabel(columnName)} 수정됨");
+        }
+
+        private bool EnsureRegionPoolsForVisitEvent(VisitEventReference visitEvent)
+        {
+            if (visitEvent == null || string.IsNullOrWhiteSpace(visitEvent.NpcId))
+                return false;
+
+            bool changed = false;
+            foreach (string regionId in GetConcreteRegionIds(visitEvent.RegionId))
+            {
+                if (FindRegionPool(regionId, visitEvent.NpcId) != null)
+                    continue;
+
+                _regionPools.Add(RegionPoolDraft.CreateDefault(regionId, visitEvent.NpcId));
+                changed = true;
+            }
+
+            if (changed)
+                RebuildRegionOptions();
+
+            return changed;
+        }
+
+        private bool SyncRegionPoolsForNpcEvents(string npcId)
+        {
+            if (string.IsNullOrWhiteSpace(npcId))
+                return false;
+
+            HashSet<string> requiredRegions = GetNpcConcreteEventRegionIds(npcId);
+            int beforeCount = _regionPools.Count;
+            _regionPools.RemoveAll(pool =>
+                string.Equals(pool.NpcId, npcId, StringComparison.OrdinalIgnoreCase)
+                && requiredRegions.Contains(pool.RegionId) == false);
+
+            bool changed = _regionPools.Count != beforeCount;
+            foreach (string regionId in requiredRegions)
+            {
+                if (FindRegionPool(regionId, npcId) != null)
+                    continue;
+
+                _regionPools.Add(RegionPoolDraft.CreateDefault(regionId, npcId));
+                changed = true;
+            }
+
+            if (changed)
+                RebuildRegionOptions();
+
+            return changed;
+        }
+
+        private HashSet<string> GetNpcConcreteEventRegionIds(string npcId)
+        {
+            HashSet<string> regionIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (VisitEventReference visitEvent in _visitEvents)
+            {
+                if (string.Equals(visitEvent.NpcId, npcId, StringComparison.OrdinalIgnoreCase) == false)
+                    continue;
+
+                foreach (string regionId in GetConcreteRegionIds(visitEvent.RegionId))
+                    regionIds.Add(regionId);
+            }
+
+            return regionIds;
+        }
+
+        private static List<string> GetConcreteRegionIds(string regionText)
+        {
+            List<string> regionIds = ParseIdList(regionText)
+                .Where(regionId => string.Equals(regionId, "*", StringComparison.OrdinalIgnoreCase) == false
+                                   && string.Equals(regionId, "Any", StringComparison.OrdinalIgnoreCase) == false)
+                .ToList();
+
+            if (regionIds.Count > 0)
+                return regionIds;
+
+            if (string.IsNullOrWhiteSpace(regionText)
+                || string.Equals(regionText.Trim(), "*", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(regionText.Trim(), "Any", StringComparison.OrdinalIgnoreCase))
+            {
+                return RegionDisplayNames.Keys
+                    .Where(regionId => string.Equals(regionId, "*", StringComparison.OrdinalIgnoreCase) == false)
+                    .ToList();
+            }
+
+            return regionIds;
         }
 
         private void EnsureCookingAssetsLoaded()
         {
-            if (_cookingAssetsLoaded)
+            if (_cookingAssetsLoaded && _cookingAssetsReloadRequested == false)
                 return;
 
             ReloadCookingAssets();
@@ -1932,7 +2417,15 @@ namespace Work.NPC.Code.Editor
             _recipeAssets.Sort((left, right) => string.Compare(GetRecipeSortKey(left), GetRecipeSortKey(right), StringComparison.OrdinalIgnoreCase));
             _foodCategoryAssets.Sort((left, right) => string.Compare(GetCategorySortKey(left), GetCategorySortKey(right), StringComparison.OrdinalIgnoreCase));
             _foodTagAssets.Sort((left, right) => string.Compare(GetTagSortKey(left), GetTagSortKey(right), StringComparison.OrdinalIgnoreCase));
+            RebuildCookingDropdownOptions();
             _cookingAssetsLoaded = true;
+            _cookingAssetsReloadRequested = false;
+        }
+
+        private void RequestCookingAssetReload()
+        {
+            _cookingAssetsReloadRequested = true;
+            Repaint();
         }
 
         private static void LoadAssets<T>(List<T> target)
@@ -1996,17 +2489,79 @@ namespace Work.NPC.Code.Editor
 
         private static string GetRecipeSortKey(RecipeSO recipe)
         {
-            return recipe != null ? $"{recipe.DisplayName} {recipe.RecipeId}" : string.Empty;
+            return recipe != null ? $"{GetSerializedDisplayName(recipe, "displayName", recipe.DisplayName)} {recipe.RecipeId}" : string.Empty;
         }
 
         private static string GetCategorySortKey(FoodCategorySO category)
         {
-            return category != null ? $"{category.DisplayName} {category.CategoryId}" : string.Empty;
+            return category != null ? $"{GetSerializedDisplayName(category, "displayName", category.DisplayName)} {category.CategoryId}" : string.Empty;
         }
 
         private static string GetTagSortKey(FoodTagSO tag)
         {
-            return tag != null ? $"{tag.DisplayName} {tag.TagId}" : string.Empty;
+            return tag != null ? $"{GetSerializedDisplayName(tag, "displayName", tag.DisplayName)} {tag.TagId}" : string.Empty;
+        }
+
+        private void RebuildCookingDropdownOptions()
+        {
+            _recipeOptions.Clear();
+            _recipeOptions.AddRange(NormalizeDropdownOptions(_recipeAssets
+                .Where(recipe => recipe != null && string.IsNullOrWhiteSpace(recipe.RecipeId) == false)
+                .Select(recipe => new DropdownOption(recipe.RecipeId.Trim(), GetSerializedDisplayName(recipe, "displayName", recipe.DisplayName)))));
+
+            _foodCategoryOptions.Clear();
+            _foodCategoryOptions.AddRange(NormalizeDropdownOptions(_foodCategoryAssets
+                .Where(category => category != null && string.IsNullOrWhiteSpace(category.CategoryId) == false)
+                .Select(category => new DropdownOption(category.CategoryId.Trim(), GetSerializedDisplayName(category, "displayName", category.DisplayName)))));
+
+            _foodTagOptions.Clear();
+            _foodTagOptions.AddRange(NormalizeDropdownOptions(_foodTagAssets
+                .Where(tag => tag != null && string.IsNullOrWhiteSpace(tag.TagId) == false)
+                .Select(tag => new DropdownOption(tag.TagId.Trim(), GetSerializedDisplayName(tag, "displayName", tag.DisplayName)))));
+        }
+
+        private List<DropdownOption> GetRecipeOptions()
+        {
+            EnsureCookingAssetsLoaded();
+            return _recipeOptions;
+        }
+
+        private List<DropdownOption> GetFoodCategoryOptions()
+        {
+            EnsureCookingAssetsLoaded();
+            return _foodCategoryOptions;
+        }
+
+        private List<DropdownOption> GetFoodTagOptions()
+        {
+            EnsureCookingAssetsLoaded();
+            return _foodTagOptions;
+        }
+
+        private static void AddIdOptions(
+            List<DropdownOption> options,
+            IEnumerable<string> ids,
+            Func<string, string> displayNameResolver)
+        {
+            foreach (string id in ids)
+            {
+                if (string.IsNullOrWhiteSpace(id) || options.Any(option => SameId(option.Value, id)))
+                    continue;
+
+                string trimmed = id.Trim();
+                string displayName = displayNameResolver != null ? displayNameResolver(trimmed) : trimmed;
+                options.Add(new DropdownOption(trimmed, displayName));
+            }
+        }
+
+        private static List<DropdownOption> NormalizeDropdownOptions(IEnumerable<DropdownOption> options)
+        {
+            return options
+                .Where(option => string.IsNullOrWhiteSpace(option.Value) == false)
+                .GroupBy(option => NormalizeId(option.Value))
+                .Select(group => group.First())
+                .OrderBy(option => option.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         private static string NormalizeId(string id)
@@ -2020,6 +2575,431 @@ namespace Work.NPC.Code.Editor
                 return string.Empty;
 
             return DisplayLabels.TryGetValue(key, out string label) ? label : key;
+        }
+
+        private static string GetSerializedDisplayName(UnityEngine.Object asset, string propertyName, string fallback)
+        {
+            if (asset == null)
+                return fallback ?? string.Empty;
+
+            SerializedObject serializedObject = new SerializedObject(asset);
+            SerializedProperty property = serializedObject.FindProperty(propertyName);
+            if (property != null && property.propertyType == SerializedPropertyType.String && string.IsNullOrWhiteSpace(property.stringValue) == false)
+                return property.stringValue.Trim();
+
+            return string.IsNullOrWhiteSpace(fallback) ? asset.name : fallback.Trim();
+        }
+
+        private static string GetFoodCategoryDisplayName(string categoryId)
+        {
+            if (string.IsNullOrWhiteSpace(categoryId))
+                return string.Empty;
+
+            string trimmed = categoryId.Trim();
+            return FoodCategoryDisplayNames.TryGetValue(trimmed, out string displayName) ? displayName : GetCurrentValueDisplayName(trimmed);
+        }
+
+        private static string GetFoodTagDisplayName(string tagId)
+        {
+            if (string.IsNullOrWhiteSpace(tagId))
+                return string.Empty;
+
+            string trimmed = tagId.Trim();
+            return FoodTagDisplayNames.TryGetValue(trimmed, out string displayName) ? displayName : GetCurrentValueDisplayName(trimmed);
+        }
+
+        private static string GetCurrentValueDisplayName(string id)
+        {
+            return string.IsNullOrWhiteSpace(id) ? string.Empty : $"현재 값: {id.Trim()}";
+        }
+
+        private void DrawVisitEventDropdownField(
+            string label,
+            VisitEventReference visitEvent,
+            string columnName,
+            ref string value,
+            IReadOnlyList<DropdownOption> options,
+            bool allowEmpty)
+        {
+            List<DropdownOption> displayOptions = BuildDropdownOptions(value, options, allowEmpty);
+            string[] labels = displayOptions.Select(option => option.DisplayText).ToArray();
+            int currentIndex = FindDropdownIndex(displayOptions, value);
+
+            EditorGUI.BeginChangeCheck();
+            int nextIndex = EditorGUILayout.Popup(ToDisplayLabel(label), currentIndex, labels);
+            if (EditorGUI.EndChangeCheck() && nextIndex >= 0 && nextIndex < displayOptions.Count)
+                SetVisitEventRawValue(visitEvent, columnName, ref value, displayOptions[nextIndex].Value);
+        }
+
+        private void DrawVisitEventMultiSelectField(
+            string label,
+            VisitEventReference visitEvent,
+            string columnName,
+            ref string value,
+            IReadOnlyList<DropdownOption> options)
+        {
+            List<DropdownOption> displayOptions = BuildMultiSelectOptions(value, options);
+            if (displayOptions.Count > 120)
+            {
+                EditorGUILayout.HelpBox($"{ToDisplayLabel(label)} 후보가 너무 많아서 다중 선택 UI 대신 직접 입력으로 표시합니다.", MessageType.Warning);
+                DrawVisitEventTextField(label, visitEvent, columnName, ref value);
+                return;
+            }
+
+            if (displayOptions.Count == 0)
+            {
+                EditorGUILayout.HelpBox($"{ToDisplayLabel(label)} 후보가 없습니다. 직접 입력으로 표시합니다.", MessageType.Info);
+                DrawVisitEventTextField(label, visitEvent, columnName, ref value);
+                return;
+            }
+
+            List<string> selectedIds = ParseIdList(value);
+            bool changed = false;
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUILayout.Label(ToDisplayLabel(label), EditorStyles.miniBoldLabel);
+            for (int i = 0; i < displayOptions.Count; i++)
+            {
+                DropdownOption option = displayOptions[i];
+                bool selected = ContainsId(selectedIds, option.Value);
+                EditorGUI.BeginChangeCheck();
+                bool next = EditorGUILayout.ToggleLeft(option.DisplayText, selected);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (next)
+                    {
+                        if (ContainsId(selectedIds, option.Value) == false)
+                            selectedIds.Add(option.Value);
+                    }
+                    else
+                    {
+                        selectedIds.RemoveAll(id => SameId(id, option.Value));
+                    }
+
+                    changed = true;
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+
+            if (changed)
+                SetVisitEventRawValue(visitEvent, columnName, ref value, BuildIdList(selectedIds));
+        }
+
+        private List<DropdownOption> GetQuestionCategoryOptions()
+        {
+            return _questionCategoryOptions;
+        }
+
+        private void RebuildQuestionCategoryOptions()
+        {
+            _questionCategoryOptions.Clear();
+            List<DropdownOption> options = new List<DropdownOption>();
+            foreach (Dictionary<string, string> row in ReadCsv(QuestionCategoryCsvPath))
+            {
+                string categoryId = Get(row, "CategoryId");
+                if (string.IsNullOrWhiteSpace(categoryId))
+                    continue;
+
+                string displayName = Get(row, "DisplayName");
+                options.Add(new DropdownOption(categoryId.Trim(), string.IsNullOrWhiteSpace(displayName) ? categoryId.Trim() : displayName.Trim()));
+            }
+
+            if (options.Count == 0)
+            {
+                options.Add(new DropdownOption("Taste", "맛"));
+                options.Add(new DropdownOption("TextureTemp", "온도/식감"));
+                options.Add(new DropdownOption("Condition", "몸 상태"));
+                options.Add(new DropdownOption("Avoid", "피하고 싶은 음식"));
+            }
+
+            _questionCategoryOptions.AddRange(options
+                .GroupBy(option => NormalizeId(option.Value))
+                .Select(group => group.First())
+                .OrderBy(option => option.Value, StringComparer.OrdinalIgnoreCase));
+        }
+
+        private List<DropdownOption> GetRegionOptions()
+        {
+            return _regionOptions;
+        }
+
+        private void RebuildRegionOptions()
+        {
+            _regionOptions.Clear();
+            List<DropdownOption> options = new List<DropdownOption>
+            {
+                new DropdownOption("*", "모든 지역")
+            };
+
+            AddIdOptions(options, RegionDisplayNames.Keys.Where(regionId => string.Equals(regionId, "*", StringComparison.OrdinalIgnoreCase) == false), GetRegionDisplayName);
+
+            foreach (RegionPoolDraft pool in _regionPools)
+            {
+                string regionId = pool.RegionId;
+                if (string.IsNullOrWhiteSpace(regionId) == false)
+                    options.Add(new DropdownOption(regionId.Trim(), GetRegionDisplayName(regionId)));
+            }
+
+            foreach (VisitEventReference visitEvent in _visitEvents)
+            {
+                foreach (string regionId in ParseIdList(visitEvent.RegionId))
+                {
+                    if (string.IsNullOrWhiteSpace(regionId) == false)
+                        options.Add(new DropdownOption(regionId.Trim(), GetRegionDisplayName(regionId)));
+                }
+            }
+
+            _regionOptions.AddRange(options
+                .GroupBy(option => NormalizeId(option.Value))
+                .Select(group => group.First())
+                .OrderBy(option => option.Value == "*" ? string.Empty : option.Value, StringComparer.OrdinalIgnoreCase));
+        }
+
+        private List<DropdownOption> GetNpcEventOptions(string npcId, string excludeEventId)
+        {
+            return _visitEvents
+                .Where(visitEvent => string.IsNullOrWhiteSpace(visitEvent.EventId) == false)
+                .Where(visitEvent => string.IsNullOrWhiteSpace(npcId)
+                                     || string.Equals(visitEvent.NpcId, npcId, StringComparison.OrdinalIgnoreCase))
+                .Where(visitEvent => string.IsNullOrWhiteSpace(excludeEventId)
+                                     || string.Equals(visitEvent.EventId, excludeEventId, StringComparison.OrdinalIgnoreCase) == false)
+                .Select(visitEvent => new DropdownOption(visitEvent.EventId.Trim(), BuildEventOptionLabel(visitEvent)))
+                .GroupBy(option => NormalizeId(option.Value))
+                .Select(group => group.First())
+                .OrderBy(option => option.Value, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private List<DropdownOption> GetDialogueGroupOptions(string eventId)
+        {
+            List<DropdownOption> options = DialogueGroupDisplayNames
+                .Select(pair => new DropdownOption(pair.Key, pair.Value))
+                .ToList();
+
+            AddIdOptions(
+                options,
+                _dialogues
+                    .Where(dialogue => string.Equals(dialogue.EventId, eventId, StringComparison.OrdinalIgnoreCase))
+                    .Select(dialogue => dialogue.Group),
+                GetDialogueGroupDisplayName);
+
+            AddIdOptions(
+                options,
+                _dialogues.Select(dialogue => dialogue.Group),
+                GetDialogueGroupDisplayName);
+
+            return options
+                .Where(option => string.IsNullOrWhiteSpace(option.Value) == false)
+                .GroupBy(option => NormalizeId(option.Value))
+                .Select(group => group.First())
+                .OrderBy(option => GetDialogueGroupOrder(option.Value))
+                .ThenBy(option => option.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private string BuildEventOptionLabel(VisitEventReference visitEvent)
+        {
+            if (visitEvent == null)
+                return string.Empty;
+
+            string npcName = GetNpcDisplayName(visitEvent.NpcId);
+            string type = GetDropdownDisplayName(EventTypeOptions, visitEvent.EventType, "이벤트");
+            string preview = GetEventPreviewText(visitEvent.EventId);
+
+            if (string.IsNullOrWhiteSpace(preview))
+                return $"{npcName} / {type}";
+
+            return $"{npcName} / {type} / {preview}";
+        }
+
+        private static string GetRegionDisplayName(string regionId)
+        {
+            if (string.IsNullOrWhiteSpace(regionId))
+                return string.Empty;
+
+            string trimmed = regionId.Trim();
+            return RegionDisplayNames.TryGetValue(trimmed, out string displayName) ? displayName : trimmed;
+        }
+
+        private static string GetDialogueGroupDisplayName(string group)
+        {
+            if (string.IsNullOrWhiteSpace(group))
+                return string.Empty;
+
+            string trimmed = group.Trim();
+            return DialogueGroupDisplayNames.TryGetValue(trimmed, out string displayName) ? displayName : trimmed;
+        }
+
+        private static string GetDropdownDisplayName(IReadOnlyList<DropdownOption> options, string value, string fallback)
+        {
+            if (options != null)
+            {
+                for (int i = 0; i < options.Count; i++)
+                {
+                    if (SameId(options[i].Value, value))
+                        return options[i].DisplayName;
+                }
+            }
+
+            return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+        }
+
+        private string GetNpcDisplayName(string npcId)
+        {
+            if (string.IsNullOrWhiteSpace(npcId))
+                return "NPC";
+
+            NpcDraft npc = _npcs.FirstOrDefault(candidate => string.Equals(candidate.NpcId, npcId, StringComparison.OrdinalIgnoreCase));
+            if (npc == null || string.IsNullOrWhiteSpace(npc.DisplayName))
+                return npcId.Trim();
+
+            return npc.DisplayName.Trim();
+        }
+
+        private string GetEventPreviewText(string eventId)
+        {
+            DialogueDraft firstLine = _dialogues
+                .Where(dialogue => string.Equals(dialogue.EventId, eventId, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(dialogue => GetDialogueGroupOrder(dialogue.Group))
+                .ThenBy(dialogue => dialogue.LineOrder)
+                .FirstOrDefault(dialogue => string.IsNullOrWhiteSpace(dialogue.Text) == false);
+
+            if (firstLine == null)
+                return string.Empty;
+
+            return ShortenLabel(RemoveBoldMarkers(firstLine.Text), 28);
+        }
+
+        private static int GetDialogueGroupOrder(string group)
+        {
+            if (string.Equals(group, "Intro", StringComparison.OrdinalIgnoreCase))
+                return 0;
+
+            if (string.Equals(group, "OrderIntent", StringComparison.OrdinalIgnoreCase))
+                return 1;
+
+            return 10;
+        }
+
+        private static string RemoveBoldMarkers(string text)
+        {
+            return string.IsNullOrWhiteSpace(text) ? string.Empty : text.Replace(BoldMarker, string.Empty);
+        }
+
+        private static string ShortenLabel(string text, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            string trimmed = text.Trim();
+            if (trimmed.Length <= maxLength)
+                return trimmed;
+
+            return $"{trimmed.Substring(0, maxLength)}...";
+        }
+
+        private static List<DropdownOption> BuildDropdownOptions(string currentValue, IReadOnlyList<DropdownOption> options, bool allowEmpty)
+        {
+            List<DropdownOption> result = new List<DropdownOption>();
+            if (allowEmpty)
+                result.Add(new DropdownOption(string.Empty, "없음"));
+
+            AddDropdownOptions(result, options);
+            if (string.IsNullOrWhiteSpace(currentValue) == false && result.Any(option => SameId(option.Value, currentValue)) == false)
+                result.Insert(allowEmpty ? 1 : 0, new DropdownOption(currentValue.Trim(), $"현재 값: {currentValue.Trim()}"));
+
+            return result;
+        }
+
+        private static List<DropdownOption> BuildMultiSelectOptions(string currentValue, IReadOnlyList<DropdownOption> options)
+        {
+            List<DropdownOption> result = new List<DropdownOption>();
+            AddDropdownOptions(result, options);
+
+            foreach (string id in ParseIdList(currentValue))
+            {
+                if (result.Any(option => SameId(option.Value, id)))
+                    continue;
+
+                result.Add(new DropdownOption(id, $"현재 값: {id}"));
+            }
+
+            return result;
+        }
+
+        private static string[] BuildAddOptionLabels(IReadOnlyList<DropdownOption> options)
+        {
+            if (options == null || options.Count == 0)
+                return new[] { "추가할 항목 없음" };
+
+            return options.Select(option => option.DisplayText).ToArray();
+        }
+
+        private static DropdownOption FindOptionById(IReadOnlyList<DropdownOption> options, string id)
+        {
+            if (options != null)
+            {
+                for (int i = 0; i < options.Count; i++)
+                {
+                    if (SameId(options[i].Value, id))
+                        return options[i];
+                }
+            }
+
+            return new DropdownOption(id ?? string.Empty, $"현재 값: {id}");
+        }
+
+        private string BuildNpcMultiSelectAddIndexKey(string label)
+        {
+            string npcId = _selectedNpc != null ? _selectedNpc.NpcId : string.Empty;
+            return $"{npcId}:{label}";
+        }
+
+        private int GetNpcMultiSelectAddIndex(string key, int optionCount)
+        {
+            if (optionCount <= 0)
+                return 0;
+
+            if (_npcMultiSelectAddIndices.TryGetValue(key, out int index) == false)
+                return 0;
+
+            int clamped = Mathf.Clamp(index, 0, optionCount - 1);
+            if (clamped != index)
+                _npcMultiSelectAddIndices[key] = clamped;
+
+            return clamped;
+        }
+
+        private static void AddDropdownOptions(List<DropdownOption> target, IReadOnlyList<DropdownOption> source)
+        {
+            if (source == null)
+                return;
+
+            for (int i = 0; i < source.Count; i++)
+            {
+                DropdownOption option = source[i];
+                if (string.IsNullOrWhiteSpace(option.Value) || target.Any(existing => SameId(existing.Value, option.Value)))
+                    continue;
+
+                target.Add(option);
+            }
+        }
+
+        private static int FindDropdownIndex(IReadOnlyList<DropdownOption> options, string value)
+        {
+            for (int i = 0; i < options.Count; i++)
+            {
+                if (SameId(options[i].Value, value))
+                    return i;
+            }
+
+            return 0;
+        }
+
+        private static bool SameId(string left, string right)
+        {
+            return string.Equals(left?.Trim(), right?.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
         private void DrawVisitEventTextField(string label, VisitEventReference visitEvent, string columnName, ref string value)
@@ -2399,6 +3379,23 @@ namespace Work.NPC.Code.Editor
                 return;
 
             newEventId = newEventId?.Trim() ?? string.Empty;
+            oldEventId = oldEventId?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(newEventId))
+            {
+                _statusMessage = "이벤트 ID는 비워둘 수 없습니다.";
+                Repaint();
+                return;
+            }
+
+            if (string.Equals(oldEventId, newEventId, StringComparison.OrdinalIgnoreCase) == false
+                && _visitEvents.Any(existing => existing != visitEvent
+                                                && string.Equals(existing.EventId, newEventId, StringComparison.OrdinalIgnoreCase)))
+            {
+                _statusMessage = $"이미 존재하는 이벤트 ID입니다: {newEventId}";
+                Repaint();
+                return;
+            }
+
             visitEvent.EventId = newEventId;
             visitEvent.SetRaw("EventId", newEventId);
 
@@ -2441,6 +3438,15 @@ namespace Work.NPC.Code.Editor
                     visitEvent.NpcId = newNpcId;
                     visitEvent.SetRaw("NpcId", newNpcId);
                 }
+
+                foreach (RegionPoolDraft pool in _regionPools)
+                {
+                    if (string.Equals(pool.NpcId, oldNpcId, StringComparison.OrdinalIgnoreCase) == false)
+                        continue;
+
+                    pool.NpcId = newNpcId;
+                    pool.SyncRawValues();
+                }
             }
 
             if (_selectedNpc == npc)
@@ -2482,11 +3488,22 @@ namespace Work.NPC.Code.Editor
                 return;
 
             string npcId = _selectedNpc.NpcId;
-            int speakerLineCount = _dialogues.Count(line => string.Equals(line.Speaker, npcId, StringComparison.OrdinalIgnoreCase));
-            int visitEventCount = _visitEvents.Count(visitEvent => string.Equals(visitEvent.NpcId, npcId, StringComparison.OrdinalIgnoreCase));
+            HashSet<string> ownedEventIds = new HashSet<string>(
+                _visitEvents
+                    .Where(visitEvent => string.Equals(visitEvent.NpcId, npcId, StringComparison.OrdinalIgnoreCase))
+                    .Select(visitEvent => visitEvent.EventId)
+                    .Where(eventId => string.IsNullOrWhiteSpace(eventId) == false),
+                StringComparer.OrdinalIgnoreCase);
+            int visitEventCount = ownedEventIds.Count;
+            int ownedDialogueCount = _dialogues.Count(line =>
+                string.IsNullOrWhiteSpace(line.EventId) == false && ownedEventIds.Contains(line.EventId));
+            int orphanSpeakerLineCount = _dialogues.Count(line =>
+                string.Equals(line.Speaker, npcId, StringComparison.OrdinalIgnoreCase)
+                && (string.IsNullOrWhiteSpace(line.EventId) || ownedEventIds.Contains(line.EventId) == false));
+            int deleteDialogueCount = ownedDialogueCount + orphanSpeakerLineCount;
             bool confirmed = EditorUtility.DisplayDialog(
                 "NPC 삭제",
-                $"NPC '{npcId}'를 삭제할까요?\n\nSpeaker 대사 {speakerLineCount}개와 VisitEvent {visitEventCount}개는 자동 삭제하지 않습니다.",
+                $"NPC '{npcId}'를 삭제할까요?\n\n함께 삭제됩니다:\nVisitEvent {visitEventCount}개\n연결 대사 {deleteDialogueCount}개\n\n이 작업은 저장 전까지 CSV에 반영되지 않습니다.",
                 "삭제",
                 "취소");
 
@@ -2495,6 +3512,11 @@ namespace Work.NPC.Code.Editor
 
             ClearDialogueTextFocus();
             _npcs.Remove(_selectedNpc);
+            _visitEvents.RemoveAll(visitEvent => string.Equals(visitEvent.NpcId, npcId, StringComparison.OrdinalIgnoreCase));
+            _regionPools.RemoveAll(pool => string.Equals(pool.NpcId, npcId, StringComparison.OrdinalIgnoreCase));
+            _dialogues.RemoveAll(line =>
+                string.IsNullOrWhiteSpace(line.EventId) == false && ownedEventIds.Contains(line.EventId)
+                || string.Equals(line.Speaker, npcId, StringComparison.OrdinalIgnoreCase));
             _selectedNpc = _npcs.FirstOrDefault();
             _selectedEventId = _selectedNpc != null
                 ? GetEventIdsForNpc(_selectedNpc.NpcId).FirstOrDefault() ?? string.Empty
@@ -2502,7 +3524,11 @@ namespace Work.NPC.Code.Editor
             _newEventId = _selectedNpc != null ? GenerateUniqueEventId(_selectedNpc.NpcId) : string.Empty;
             _selectedDialogue = null;
             ResetDialogueTextSelection();
-            MarkDirty("NPC 삭제됨");
+            _eventListScroll = Vector2.zero;
+            _dialogueListScroll = Vector2.zero;
+            _dialogueDetailScroll = Vector2.zero;
+            _visitEventDetailScroll = Vector2.zero;
+            MarkDirty($"NPC 삭제됨. VisitEvent {visitEventCount}개, 대사 {deleteDialogueCount}개도 함께 삭제됨");
         }
 
         private void AddEvent()
@@ -2532,12 +3558,14 @@ namespace Work.NPC.Code.Editor
             };
 
             _dialogues.Add(dialogue);
-            _visitEvents.Add(VisitEventReference.CreateDefault(eventId, _selectedNpc.NpcId));
+            VisitEventReference visitEvent = VisitEventReference.CreateDefault(eventId, _selectedNpc.NpcId);
+            _visitEvents.Add(visitEvent);
+            EnsureRegionPoolsForVisitEvent(visitEvent);
             EnsureVisitEventHeaders();
             _selectedEventId = eventId;
             SelectDialogue(dialogue);
             _newEventId = GenerateUniqueEventId(_selectedNpc.NpcId);
-            MarkDirty("이벤트 대사 추가됨. VisitEvents.csv는 아직 자동 수정하지 않습니다.");
+            MarkDirty("이벤트와 지역 풀이 추가됨");
         }
 
         private void DeleteSelectedEvent()
@@ -2563,6 +3591,8 @@ namespace Work.NPC.Code.Editor
             if (option == 0)
                 _dialogues.RemoveAll(dialogue => string.Equals(dialogue.EventId, eventId, StringComparison.OrdinalIgnoreCase));
 
+            bool regionPoolChanged = _selectedNpc != null && SyncRegionPoolsForNpcEvents(_selectedNpc.NpcId);
+
             ClearDialogueTextFocus();
             _selectedEventId = _selectedNpc != null ? GetEventIdsForNpc(_selectedNpc.NpcId).FirstOrDefault() ?? string.Empty : string.Empty;
             _selectedDialogue = null;
@@ -2571,7 +3601,9 @@ namespace Work.NPC.Code.Editor
             _dialogueListScroll = Vector2.zero;
             _dialogueDetailScroll = Vector2.zero;
             _visitEventDetailScroll = Vector2.zero;
-            MarkDirty(option == 0 ? "이벤트와 대사 삭제됨" : "VisitEvent 연결 삭제됨");
+            MarkDirty(regionPoolChanged
+                ? "이벤트 삭제에 맞춰 지역 풀이 갱신됨"
+                : option == 0 ? "이벤트와 대사 삭제됨" : "VisitEvent 연결 삭제됨");
         }
 
         private void AddDialogueLine()
@@ -2821,6 +3853,7 @@ namespace Work.NPC.Code.Editor
             _npcs.Clear();
             _dialogues.Clear();
             _visitEvents.Clear();
+            _regionPools.Clear();
             _visitEventHeaders.Clear();
 
             foreach (Dictionary<string, string> row in ReadCsv(NpcCsvPath))
@@ -2834,6 +3867,13 @@ namespace Work.NPC.Code.Editor
             foreach (Dictionary<string, string> row in visitEventTable.Rows)
                 _visitEvents.Add(VisitEventReference.FromRow(row));
 
+            foreach (Dictionary<string, string> row in ReadCsv(RegionPoolCsvPath))
+                _regionPools.Add(RegionPoolDraft.FromRow(row));
+
+            bool regionPoolsWereRepaired = EnsureRegionPoolsForExistingEvents();
+            RebuildQuestionCategoryOptions();
+            RebuildRegionOptions();
+
             _selectedNpc = _npcs.FirstOrDefault();
             ClearDialogueTextFocus();
             _selectedEventId = _selectedNpc != null
@@ -2842,12 +3882,41 @@ namespace Work.NPC.Code.Editor
             _newEventId = _selectedNpc != null ? GenerateUniqueEventId(_selectedNpc.NpcId) : string.Empty;
             _selectedDialogue = null;
             ResetDialogueTextSelection();
-            _hasUnsavedChanges = false;
+            _hasUnsavedChanges = regionPoolsWereRepaired;
             ClearValidationResults();
             CaptureWriteTimes();
 
-            if (updateStatus)
+            if (regionPoolsWereRepaired)
+                _statusMessage = "방문 이벤트 기준으로 지역 풀이 갱신되었습니다. CSV 저장이 필요합니다.";
+            else if (updateStatus)
                 _statusMessage = "CSV 다시 불러오기 완료";
+        }
+
+        private bool EnsureRegionPoolsForExistingEvents()
+        {
+            List<string> beforeKeys = _regionPools
+                .Select(pool => $"{pool.RegionId}|{pool.NpcId}")
+                .OrderBy(key => key, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (string npcId in _visitEvents
+                         .Select(visitEvent => visitEvent.NpcId)
+                         .Where(npcId => string.IsNullOrWhiteSpace(npcId) == false)
+                         .Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                SyncRegionPoolsForNpcEvents(npcId);
+            }
+
+            List<string> afterKeys = _regionPools
+                .Select(pool => $"{pool.RegionId}|{pool.NpcId}")
+                .OrderBy(key => key, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (beforeKeys.SequenceEqual(afterKeys, StringComparer.OrdinalIgnoreCase))
+                return false;
+
+            RebuildRegionOptions();
+            return true;
         }
 
         private void SaveData()
@@ -2862,6 +3931,7 @@ namespace Work.NPC.Code.Editor
             WriteCsv(NpcCsvPath, NpcHeaders, _npcs.Select(npc => npc.ToRow()));
             WriteCsv(DialogueCsvPath, DialogueHeaders, _dialogues.OrderBy(line => line, DialogueComparer.Instance).Select(line => line.ToRow()));
             WriteCsv(VisitEventCsvPath, GetVisitEventHeadersForSave(), _visitEvents.Select(visitEvent => visitEvent.ToRow()));
+            WriteCsv(RegionPoolCsvPath, RegionPoolHeaders, _regionPools.Select(pool => pool.ToRow()));
             AssetDatabase.Refresh();
 
             _hasUnsavedChanges = false;
@@ -2937,7 +4007,8 @@ namespace Work.NPC.Code.Editor
         {
             return GetLastWriteTime(NpcCsvPath) != _npcLastWriteTime
                    || GetLastWriteTime(DialogueCsvPath) != _dialogueLastWriteTime
-                   || GetLastWriteTime(VisitEventCsvPath) != _visitEventLastWriteTime;
+                   || GetLastWriteTime(VisitEventCsvPath) != _visitEventLastWriteTime
+                   || GetLastWriteTime(RegionPoolCsvPath) != _regionPoolLastWriteTime;
         }
 
         private void CaptureWriteTimes()
@@ -2945,6 +4016,7 @@ namespace Work.NPC.Code.Editor
             _npcLastWriteTime = GetLastWriteTime(NpcCsvPath);
             _dialogueLastWriteTime = GetLastWriteTime(DialogueCsvPath);
             _visitEventLastWriteTime = GetLastWriteTime(VisitEventCsvPath);
+            _regionPoolLastWriteTime = GetLastWriteTime(RegionPoolCsvPath);
         }
 
         private void MarkDirty(string message)
@@ -3237,6 +4309,19 @@ namespace Work.NPC.Code.Editor
             Info,
             Warning,
             Error
+        }
+
+        private readonly struct DropdownOption
+        {
+            public DropdownOption(string value, string displayName)
+            {
+                Value = value ?? string.Empty;
+                DisplayName = string.IsNullOrWhiteSpace(displayName) ? Value : displayName;
+            }
+
+            public string Value { get; }
+            public string DisplayName { get; }
+            public string DisplayText => string.IsNullOrWhiteSpace(DisplayName) ? Value : DisplayName;
         }
 
         private sealed class NpcCsvValidationIssue
@@ -3536,6 +4621,75 @@ namespace Work.NPC.Code.Editor
                 SetRaw("RequestStateAfterEncounter", RequestStateAfterEncounter);
                 SetRaw("RequestSuccessResults", RequestSuccessResults);
                 SetRaw("RequestStateAfterSuccessResult", RequestStateAfterSuccessResult);
+            }
+        }
+
+        private sealed class RegionPoolDraft
+        {
+            private readonly Dictionary<string, string> _rawValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            public string RegionId;
+            public string NpcId;
+            public int Weight;
+            public int MinDay;
+            public int CooldownDays;
+            public string PoolType;
+            public string Condition;
+
+            public static RegionPoolDraft CreateDefault(string regionId, string npcId)
+            {
+                RegionPoolDraft pool = new RegionPoolDraft
+                {
+                    RegionId = regionId ?? string.Empty,
+                    NpcId = npcId ?? string.Empty,
+                    Weight = 80,
+                    MinDay = 1,
+                    CooldownDays = 1,
+                    PoolType = "Normal",
+                    Condition = string.Empty
+                };
+                pool.SyncRawValues();
+                return pool;
+            }
+
+            public static RegionPoolDraft FromRow(IReadOnlyDictionary<string, string> row)
+            {
+                RegionPoolDraft pool = new RegionPoolDraft
+                {
+                    RegionId = Get(row, "RegionId"),
+                    NpcId = Get(row, "NpcId"),
+                    Weight = int.TryParse(Get(row, "Weight"), out int weight) ? weight : 1,
+                    MinDay = int.TryParse(Get(row, "MinDay"), out int minDay) ? minDay : 1,
+                    CooldownDays = int.TryParse(Get(row, "CooldownDays"), out int cooldownDays) ? cooldownDays : 1,
+                    PoolType = string.IsNullOrWhiteSpace(Get(row, "PoolType")) ? "Normal" : Get(row, "PoolType"),
+                    Condition = Get(row, "Condition")
+                };
+
+                if (row != null)
+                {
+                    foreach (KeyValuePair<string, string> pair in row)
+                        pool._rawValues[pair.Key] = pair.Value ?? string.Empty;
+                }
+
+                pool.SyncRawValues();
+                return pool;
+            }
+
+            public Dictionary<string, string> ToRow()
+            {
+                SyncRawValues();
+                return new Dictionary<string, string>(_rawValues, StringComparer.OrdinalIgnoreCase);
+            }
+
+            public void SyncRawValues()
+            {
+                _rawValues["RegionId"] = RegionId ?? string.Empty;
+                _rawValues["NpcId"] = NpcId ?? string.Empty;
+                _rawValues["Weight"] = Mathf.Max(1, Weight).ToString();
+                _rawValues["MinDay"] = Mathf.Max(1, MinDay).ToString();
+                _rawValues["CooldownDays"] = Mathf.Max(0, CooldownDays).ToString();
+                _rawValues["PoolType"] = string.IsNullOrWhiteSpace(PoolType) ? "Normal" : PoolType;
+                _rawValues["Condition"] = Condition ?? string.Empty;
             }
         }
 

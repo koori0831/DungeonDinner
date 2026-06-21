@@ -10,6 +10,7 @@ namespace Work.Cook.Code.Data
         [SerializeField] private string displayName;
         [SerializeField, TextArea] private string description;
         [SerializeField] private IngredientCategorySO category;
+        [SerializeField] private GameObject modelPrefab;
         [SerializeField] private List<FoodTagSO> baseTags = new List<FoodTagSO>();
         [SerializeField] private List<IngredientPreparationOption> preparationOptions = new List<IngredientPreparationOption>();
 
@@ -17,6 +18,7 @@ namespace Work.Cook.Code.Data
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? ingredientId : displayName;
         public string Description => description;
         public IngredientCategorySO Category => category;
+        public GameObject ModelPrefab => modelPrefab;
         public IReadOnlyList<FoodTagSO> BaseTags => baseTags;
         public IReadOnlyList<IngredientPreparationOption> PreparationOptions => preparationOptions;
 

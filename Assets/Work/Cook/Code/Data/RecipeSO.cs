@@ -10,6 +10,11 @@ namespace Work.Cook.Code.Data
         [SerializeField] private string recipeId;
         [SerializeField] private string displayName;
         [SerializeField, TextArea] private string description;
+        [SerializeField] private bool revealNameByDefault = true;
+        [SerializeField] private string hiddenDisplayName = "???";
+        [SerializeField, TextArea] private string undiscoveredDescription;
+        [SerializeField, TextArea] private string hintDescription;
+        [SerializeField, TextArea] private string discoveredDescription;
         [SerializeField] private FoodCategorySO category;
         [SerializeField] private int priority;
         [SerializeField] private List<FoodTagSO> baseTags = new List<FoodTagSO>();
@@ -19,15 +24,47 @@ namespace Work.Cook.Code.Data
         public string RecipeId => recipeId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? recipeId : displayName;
         public string Description => description;
+        public bool RevealNameByDefault => revealNameByDefault;
+        public string HiddenDisplayName => string.IsNullOrWhiteSpace(hiddenDisplayName) ? "???" : hiddenDisplayName;
+        public string UndiscoveredDescription => undiscoveredDescription;
+        public string HintDescription => hintDescription;
+        public string DiscoveredDescription => discoveredDescription;
         public FoodCategorySO Category => category;
         public int Priority => priority;
         public IReadOnlyList<FoodTagSO> BaseTags => baseTags;
         public IReadOnlyList<RecipeIngredientRequirement> RequiredIngredients => requiredIngredients;
         public IReadOnlyList<RecipePreparationRule> PerfectPreparationRules => perfectPreparationRules;
 
+        public string GetKnowledgeDisplayName(bool discovered)
+        {
+            return discovered || revealNameByDefault ? DisplayName : HiddenDisplayName;
+        }
+
+        public string GetKnowledgeDescription(bool discovered, bool hasAttempted)
+        {
+            if (discovered)
+            {
+                if (string.IsNullOrWhiteSpace(discoveredDescription) == false)
+                    return discoveredDescription;
+
+                return Description;
+            }
+
+            if (hasAttempted && string.IsNullOrWhiteSpace(hintDescription) == false)
+                return hintDescription;
+
+            if (string.IsNullOrWhiteSpace(undiscoveredDescription) == false)
+                return undiscoveredDescription;
+
+            return string.IsNullOrWhiteSpace(Description) ? "아직 정확한 조리법을 알 수 없습니다." : Description;
+        }
+
         public bool MatchesIngredients(IReadOnlyList<IngredientSO> ingredients)
         {
             if (ingredients == null)
+                return false;
+
+            if (HasRecipeDefiningRequirement() == false)
                 return false;
 
             bool[] usedIngredients = new bool[ingredients.Count];
@@ -38,6 +75,9 @@ namespace Work.Cook.Code.Data
         public bool MatchesPreparedIngredients(IReadOnlyList<PreparedIngredientState> preparedIngredients)
         {
             if (preparedIngredients == null)
+                return false;
+
+            if (HasRecipeDefiningRequirement() == false)
                 return false;
 
             bool[] usedIngredients = new bool[preparedIngredients.Count];
@@ -54,7 +94,7 @@ namespace Work.Cook.Code.Data
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
-                if (requirement == null)
+                if (IsRecipeDefiningRequirement(requirement) == false)
                     continue;
 
                 if (requirement.Ingredient != null)
@@ -65,7 +105,7 @@ namespace Work.Cook.Code.Data
 
                 score += requirement.RequiredTags.Count * 20;
 
-                if (requirement.RequiredPreparationMethod != null)
+                if (requirement.HasRequiredPreparationMethods)
                     score += 80;
 
                 score += requirement.MinCount * 5;
@@ -119,7 +159,7 @@ namespace Work.Cook.Code.Data
                 for (int i = 0; i < requiredIngredients.Count; i++)
                 {
                     RecipeIngredientRequirement requirement = requiredIngredients[i];
-                    if (requirement != null && requirement.RequiredPreparationMethod != null)
+                    if (IsRecipeDefiningRequirement(requirement) && requirement.HasRequiredPreparationMethods)
                         return true;
                 }
 
@@ -143,7 +183,7 @@ namespace Work.Cook.Code.Data
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
-                if (requirement == null
+                if (IsRecipeDefiningRequirement(requirement) == false
                     || requirement.CanAcceptMore(counts[requirementIndex]) == false
                     || requirement.IsMatchedBy(ingredient) == false)
                 {
@@ -160,7 +200,7 @@ namespace Work.Cook.Code.Data
                 usedIngredients[ingredientIndex] = false;
             }
 
-            return false;
+            return TryMatchIngredientsRecursive(ingredients, usedIngredients, counts, ingredientIndex + 1);
         }
 
         private bool TryMatchPreparedRecursive(
@@ -179,7 +219,7 @@ namespace Work.Cook.Code.Data
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
-                if (requirement == null
+                if (IsRecipeDefiningRequirement(requirement) == false
                     || requirement.CanAcceptMore(counts[requirementIndex]) == false
                     || requirement.IsPreparedMatch(prepared) == false)
                 {
@@ -196,7 +236,7 @@ namespace Work.Cook.Code.Data
                 usedIngredients[preparedIndex] = false;
             }
 
-            return false;
+            return TryMatchPreparedRecursive(preparedIngredients, usedIngredients, counts, preparedIndex + 1);
         }
 
         private bool AreRequirementCountsSatisfied(IReadOnlyList<int> counts)
@@ -207,7 +247,7 @@ namespace Work.Cook.Code.Data
             for (int i = 0; i < requiredIngredients.Count; i++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[i];
-                if (requirement == null)
+                if (IsRecipeDefiningRequirement(requirement) == false)
                     continue;
 
                 if (requirement.IsCountSatisfied(counts[i]) == false)
@@ -215,6 +255,22 @@ namespace Work.Cook.Code.Data
             }
 
             return true;
+        }
+
+        private bool HasRecipeDefiningRequirement()
+        {
+            for (int i = 0; i < requiredIngredients.Count; i++)
+            {
+                if (IsRecipeDefiningRequirement(requiredIngredients[i]))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsRecipeDefiningRequirement(RecipeIngredientRequirement requirement)
+        {
+            return requirement != null && requirement.RecipeDefining;
         }
     }
 }

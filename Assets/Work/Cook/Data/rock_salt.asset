@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: rock_salt
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: rock_salt
+  displayName: "\uC554\uC5FC"
+  description: "\uAE38\uAC00\uB098 \uC18C\uAE08 \uACE8\uB818\uAC19\uC740 \uBAAC\uC2A4\uD130\uC5D0\uAC8C\uC11C
+    \uC5BB\uC744 \uC218 \uC788\uB294 \uC7AC\uB8CC\uC785\uB2C8\uB2E4. "
+  category: {fileID: 11400000, guid: 249342fcec40afd49865c30f96f8117b, type: 2}
+  modelPrefab: {fileID: 0}
+  baseTags:
+  - {fileID: 11400000, guid: 5b122f10b24af134fa18da0d725c4921, type: 2}
+  preparationOptions:
+  - method: {fileID: 11400000, guid: 3123a5c0376a3ed4dad2b40fbb0c357b, type: 2}
+    displayNameOverride: "\uAD6C\uC6CC\uC11C \uC0AC\uC6A9\uD558\uAE30"
+    description: "\uBD88\uC5D0 \uC0B4\uC9DD \uAD6C\uC6CC\uC11C \uB9DB\uC744 \uB04C\uC5B4\uB0C5\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 0}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 
+  - method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
+    displayNameOverride: "\uADF8\uB0E5 \uC0AC\uC6A9\uD558\uAE30"
+    description: "\uC7AC\uB8CC\uC758 \uBCF8\uC5F0\uC758 \uB9DB\uC744 \uAC00\uC7A5
+      \uC798 \uB290\uB084 \uC218 \uC788\uB294 \uC190\uC9C8\uBC95"
+    addTags: []
+    removeTags: []
+    qualityDelta: 0
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 
+  - method: {fileID: 11400000, guid: c6848ab63966aba45adc0b852c90d455, type: 2}
+    displayNameOverride: "\uACF1\uAC8C \uAC08\uC544\uC11C \uC0AC\uC6A9\uD558\uAE30"
+    description: "\uAD75\uC740 \uC18C\uAE08\uAC19\uC740 \uC554\uC5FC\uC744 \uC544\uC8FC
+      \uBD80\uB4DC\uB7FD\uAC8C \uAC08\uC544\uC11C \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC95"
+    addTags:
+    - {fileID: 11400000, guid: f73414f9cae048d47bcb30ad6215c784, type: 2}
+    removeTags: []
+    qualityDelta: 1
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 

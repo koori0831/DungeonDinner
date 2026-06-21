@@ -9,18 +9,24 @@ namespace Work.Cook.Code.Runtime
     {
         public RecipeSO Recipe { get; }
         public bool IsDirectIngredientSelection { get; }
+        public bool IsDiscovered { get; }
+        public bool HasAttempted { get; }
         public IReadOnlyList<FoodTagSO> KnownEffectiveTags { get; }
 
         public CookingRecipeEntryData(
             RecipeSO recipe,
             Sprite icon,
+            bool isDiscovered,
+            bool hasAttempted,
             IReadOnlyList<FoodTagSO> knownEffectiveTags)
             : base(
-                recipe != null ? recipe.DisplayName : string.Empty,
+                recipe != null ? recipe.GetKnowledgeDisplayName(isDiscovered) : string.Empty,
                 icon,
-                recipe != null ? recipe.Description : string.Empty)
+                recipe != null ? recipe.GetKnowledgeDescription(isDiscovered, hasAttempted) : string.Empty)
         {
             Recipe = recipe;
+            IsDiscovered = isDiscovered;
+            HasAttempted = hasAttempted;
             KnownEffectiveTags = knownEffectiveTags ?? new List<FoodTagSO>();
         }
 

@@ -54,6 +54,13 @@ namespace Work.Cook.Code.Runtime
         void Refresh();
     }
 
+    public interface ICookingKnowledgeUpdateView
+    {
+        void Initialize(CookingGamePanel owner, CookingKnowledgeStore store, TMP_FontAsset defaultFontAsset = null);
+        void SetFontAsset(TMP_FontAsset value);
+        bool ShowPendingUpdates(Action completed);
+    }
+
     public interface ICookingRewardView
     {
         void Initialize(CookingGamePanel owner, CookingRewardWallet wallet, TMP_FontAsset defaultFontAsset = null);

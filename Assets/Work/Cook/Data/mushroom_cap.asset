@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: mushroom_cap
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: mushroom_cap
+  displayName: "\uBC84\uC12F \uAC13"
+  description: "\uADF8\uB987\uCC98\uB7FC \uC0DD\uAE34 \uBC84\uC12F\uC758 \uAC13 \uBD80\uBD84"
+  category: {fileID: 11400000, guid: c09afd2ec0fc6144db663cb0e38a7b70, type: 2}
+  modelPrefab: {fileID: 0}
+  baseTags: []
+  preparationOptions:
+  - method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
+    displayNameOverride: "\uD1B5\uC73C\uB85C \uC0AC\uC6A9\uD558\uAE30"
+    description: "\uC7AC\uB8CC\uB97C \uC788\uB294 \uADF8\uB300\uB85C \uC0AC\uC6A9\uD558\uB294
+      \uBC29\uBC95\uC785\uB2C8\uB2E4."
+    addTags: []
+    removeTags: []
+    qualityDelta: 0
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 
+  - method: {fileID: 11400000, guid: 04676038e45c8fe4ab12e5097dce2760, type: 2}
+    displayNameOverride: "\uD55C\uC785 \uD06C\uAE30\uB85C \uC370\uAE30"
+    description: "\uD55C\uC785\uC5D0 \uB4E4\uC5B4\uAC00\uB294 \uD06C\uAE30\uB85C
+      \uC370\uC5B4\uC11C \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC95\uC785\uB2C8\uB2E4."
+    addTags: []
+    removeTags: []
+    qualityDelta: 0
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 
+  - method: {fileID: 11400000, guid: 9a9ab2bc5e82e934cb3c1c1b1246b55d, type: 2}
+    displayNameOverride: "\uC798\uAC8C \uB2E4\uC9C0\uAE30"
+    description: "\uC544\uC8FC \uC791\uAC8C \uB2E4\uC838\uC11C \uC0AC\uC6A9\uD558\uB294
+      \uC190\uC9C8\uBC95\uC785\uB2C8\uB2E4."
+    addTags:
+    - {fileID: 0}
+    removeTags: []
+    qualityDelta: 0
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 

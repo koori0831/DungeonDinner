@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: slime_nucleus_dango
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: slime_nucleus_dango
+  displayName: "\uC2AC\uB77C\uC784 \uD575 \uB2F9\uACE0"
+  description: "\uC2AC\uB77C\uC784\uC758 \uB2EC\uB2EC\uD55C \uD575\uC744 \uC774\uC6A9\uD574
+    \uB9CC\uB4E4\uC5B4\uB0B8 \uC870\uD654\uB85C\uC6B4 \uB2E8\uC9E0\uB2E8\uC9E0\uC744
+    \uAC00\uC9C4 \uC2AC\uB77C\uC784 \uD575 \uB2F9\uACE0 "
+  revealNameByDefault: 1
+  hiddenDisplayName: ???
+  undiscoveredDescription: 
+  hintDescription: 
+  discoveredDescription: 
+  category: {fileID: 11400000, guid: 469f91dc912b6cf4aaff04b5739775d6, type: 2}
+  priority: 0
+  baseTags:
+  - {fileID: 11400000, guid: dd7703eca9180d843943b69b0b1e7031, type: 2}
+  - {fileID: 11400000, guid: 5b122f10b24af134fa18da0d725c4921, type: 2}
+  - {fileID: 11400000, guid: 3b481dff6be21cf49bccc4590786d902, type: 2}
+  requiredIngredients:
+  - ingredient: {fileID: 11400000, guid: 1f93d6c1ee7d4204ab4cc51790be1f44, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 0
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 1
+  - ingredient: {fileID: 11400000, guid: 8047bb3271861f147a23403c44b5c7fc, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 0
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 0
+  - ingredient: {fileID: 11400000, guid: 07bec4b9989c44a4bbf5b8364376c15e, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    autoApplyRequiredPreparation: 0
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 0
+  perfectPreparationRules: []

@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75bf23c849305ec4ca45c181aa78ac56, type: 3}
+  m_Name: savory
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodTagSO
+  tagId: savory
+  displayName: "\uC9ED\uC9E4\uD55C"
+  description: "\uC18C\uAE08\uC774\uB098 \uAC04\uC7A5\uC774 \uB4E4\uC5B4\uAC04\uB4EF
+    \uC9E0\uB9DB\uC774 \uB290\uAEF4\uC9C0\uB294 \uC74C\uC2DD\uC5D0 \uB2EC\uB9AC\uB294
+    \uD0DC\uADF8"
