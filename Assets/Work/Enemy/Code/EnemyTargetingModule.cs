@@ -1,5 +1,6 @@
 using UnityEngine;
 using Work.Entities.Code;
+using Work.Players.Code;
 
 namespace Work.Enemy.Code
 {
@@ -17,53 +18,18 @@ namespace Work.Enemy.Code
     /// </summary>
     public sealed class EnemyTargetingModule : MonoBehaviour, IEntityModule
     {
-        private const int DEFAULT_MAX_RESOLVE_COLLIDER_COUNT = 8;
         private const float MIN_RANGE = 0f;
 
         [SerializeField]
         private float detectionRadius = 5f;
 
         [SerializeField]
-        private LayerMask targetLayerMask = ~0;
-
-        [SerializeField]
         private EnemyTargetRetentionMode targetRetentionMode = EnemyTargetRetentionMode.ActivityRange;
-
-        [SerializeField]
-        [Min(0f)]
-        [Tooltip("타겟 참조를 찾기 위해 검사할 최대 반경.")]
-        private float targetResolveRadius = 1000f;
-
-        [SerializeField]
-        [Min(1)]
-        [Tooltip("타겟 참조 검색 시 한 번에 받을 Collider 최대 수.")]
-        private int maxResolveColliderCount = DEFAULT_MAX_RESOLVE_COLLIDER_COUNT;
-
-        [SerializeField]
-        private QueryTriggerInteraction targetQueryTriggerInteraction = QueryTriggerInteraction.Ignore;
-
-        [SerializeField]
-        [Min(0f)]
-        [Tooltip("타겟 참조가 없을 때 다음 검색까지 대기할 시간.")]
-        private float resolveInterval = 1f;
-
-        [SerializeField]
-        [Min(0f)]
-        [Tooltip("타겟 참조 검색 실패가 반복될 때 적용할 최대 재검색 대기 시간.")]
-        private float maxResolveInterval = 5f;
-
-        [SerializeField]
-        [Min(0f)]
-        [Tooltip("여러 적의 타겟 참조 검색이 한 프레임에 몰리지 않도록 더하는 무작위 시간.")]
-        private float resolveIntervalJitter = 0.2f;
 
         private Entity _owner;
         private EnemyTerritoryModule _territoryModule;
-        private Collider[] _resolveColliders;
         private Transform _knownTarget;
         private Transform _target;
-        private float _nextResolveTime;
-        private int _resolveFailureCount;
 
         /// <summary>
         /// 현재 추적 대상.
@@ -88,8 +54,7 @@ namespace Work.Enemy.Code
                 entity.TryGetModule<EnemyTerritoryModule>(out _territoryModule, true);
             }
 
-            EnsureResolveBuffer();
-            _nextResolveTime = Time.time + GetResolveIntervalJitter();
+            ResolveKnownTarget();
         }
 
         /// <summary>
@@ -111,11 +76,7 @@ namespace Work.Enemy.Code
             if (IsValidTarget(_knownTarget) == false)
             {
                 ClearKnownTarget();
-
-                if (TryResolveKnownTarget() == false)
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (IsTransformInDetectionRange(_knownTarget) == false)
@@ -171,11 +132,6 @@ namespace Work.Enemy.Code
         private void OnValidate()
         {
             detectionRadius = Mathf.Max(MIN_RANGE, detectionRadius);
-            targetResolveRadius = Mathf.Max(MIN_RANGE, targetResolveRadius);
-            maxResolveColliderCount = Mathf.Max(1, maxResolveColliderCount);
-            resolveInterval = Mathf.Max(MIN_RANGE, resolveInterval);
-            maxResolveInterval = Mathf.Max(resolveInterval, maxResolveInterval);
-            resolveIntervalJitter = Mathf.Max(MIN_RANGE, resolveIntervalJitter);
         }
 
         private void OnDrawGizmosSelected()
@@ -184,104 +140,15 @@ namespace Work.Enemy.Code
             Gizmos.DrawWireSphere(transform.position, detectionRadius);
         }
 
-        private bool TryResolveKnownTarget()
+        private void ResolveKnownTarget()
         {
-            if (Time.time < _nextResolveTime)
+            if (PlayerTargetProvider.TryGetTarget(out Transform target) == false)
             {
-                return false;
-            }
-
-            EnsureResolveBuffer();
-
-            Vector3 ownerPosition = transform.position;
-            int colliderCount = Physics.OverlapSphereNonAlloc(
-                ownerPosition,
-                targetResolveRadius,
-                _resolveColliders,
-                targetLayerMask,
-                targetQueryTriggerInteraction
-            );
-
-            Transform nearestTarget = null;
-            float nearestSqrDistance = float.MaxValue;
-
-            for (int i = 0; i < colliderCount; i++)
-            {
-                Collider targetCollider = _resolveColliders[i];
-
-                if (targetCollider == null)
-                {
-                    continue;
-                }
-
-                Transform targetRoot = GetTargetRoot(targetCollider);
-
-                if (IsValidTarget(targetRoot) == false || IsSelfTarget(targetRoot) == true)
-                {
-                    continue;
-                }
-
-                float sqrDistance = GetHorizontalSqrDistance(ownerPosition, targetRoot.position);
-
-                if (sqrDistance >= nearestSqrDistance)
-                {
-                    continue;
-                }
-
-                nearestSqrDistance = sqrDistance;
-                nearestTarget = targetRoot;
-            }
-
-            _knownTarget = nearestTarget;
-
-            if (_knownTarget != null)
-            {
-                _resolveFailureCount = 0;
-                ScheduleNextResolveTime();
-                return true;
-            }
-
-            _resolveFailureCount++;
-            ScheduleNextResolveTime();
-            return false;
-        }
-
-        private void EnsureResolveBuffer()
-        {
-            int capacity = Mathf.Max(1, maxResolveColliderCount);
-
-            if (_resolveColliders != null && _resolveColliders.Length == capacity)
-            {
+                ClearKnownTarget();
                 return;
             }
 
-            _resolveColliders = new Collider[capacity];
-        }
-
-        private void ScheduleNextResolveTime()
-        {
-            _nextResolveTime = Time.time + GetResolveInterval() + GetResolveIntervalJitter();
-        }
-
-        private float GetResolveInterval()
-        {
-            if (resolveInterval <= MIN_RANGE)
-            {
-                return 0f;
-            }
-
-            float multiplier = Mathf.Pow(2f, _resolveFailureCount);
-            return Mathf.Min(resolveInterval * multiplier, maxResolveInterval);
-        }
-
-        private float GetResolveIntervalJitter()
-        {
-            if (resolveIntervalJitter <= MIN_RANGE)
-            {
-                return 0f;
-            }
-
-            return Random.Range(0f, resolveIntervalJitter);
+            _knownTarget = target;
         }
 
         private void ClearKnownTarget()
@@ -319,23 +186,6 @@ namespace Work.Enemy.Code
             }
 
             return IsTransformInActivityRange(target);
-        }
-
-        private bool IsSelfTarget(Transform target)
-        {
-            return target == transform || target.IsChildOf(transform) == true;
-        }
-
-        private static Transform GetTargetRoot(Collider targetCollider)
-        {
-            CharacterController characterController = targetCollider.GetComponentInParent<CharacterController>();
-
-            if (characterController != null)
-            {
-                return characterController.transform;
-            }
-
-            return targetCollider.transform;
         }
 
         private static bool IsValidTarget(Transform target)

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c7a0a632036f82f4e93ce90c1fdb0ce9
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 292284
+  packageName: Slime Material
+  packageVersion: 1.0
+  assetPath: Assets/GameSlave/SlimeMaterial/Materials/CharacterMat.mat
+  uploadId: 682719

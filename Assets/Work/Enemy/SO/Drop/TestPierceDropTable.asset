@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestPierceDropTable
   m_EditorClassIdentifier: 
   entries:
-  - item: {fileID: 11400000, guid: 8f5f0c0a5fb04e5aa0f5db1a5b000302, type: 2}
+  - item: {fileID: 11400000, guid: f3c69e0a4b214d7c8e9f012345a6b7c8, type: 2}
     minAmount: 1
     maxAmount: 1
     dropChance: 1

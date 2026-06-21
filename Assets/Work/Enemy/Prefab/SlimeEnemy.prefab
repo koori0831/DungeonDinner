@@ -564,6 +564,7 @@ GameObject:
   - component: {fileID: 1360752245627606639}
   - component: {fileID: 8323019224754915910}
   - component: {fileID: 910000000000000002}
+  - component: {fileID: 910000000000000003}
   - component: {fileID: 4487411034954568838}
   - component: {fileID: 7112657450339572718}
   m_Layer: 9
@@ -619,6 +620,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   stateController: {fileID: 6692055883979700493}
+  worldDropSpawner: {fileID: 910000000000000003}
   dropRules:
   - ruleId: Slash
     dropConditions:
@@ -632,6 +634,36 @@ MonoBehaviour:
   lastAttackType: 0
   lastDropCount: 0
   lastDropSummary:
+--- !u!114 &910000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7982013359736212995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1d4e8f0a924b63b7e5c2d1f903486a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  dropOrigin: {fileID: 1669982884520962904}
+  lootPrefab: {fileID: 0}
+  lootPoolManager: {fileID: 11400000, guid: 4693ddc30ce69104e81b99f2bc79f165, type: 2}
+  spawnRadius: 0.45
+  spawnHeightOffset: 0.15
+  fallbackVisualScale: 0.35
+  playDropArc: 1
+  dropArcDistance: 1.25
+  dropArcHeight: 0.75
+  dropArcDuration: 0.45
+  dropStartHeightOffset: 0.05
+  groundRaycastStartHeight: 2
+  groundRaycastDistance: 6
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  logSpawns: 1
+  lastSpawnCount: 0
 --- !u!114 &4487411034954568838
 MonoBehaviour:
   m_ObjectHideFlags: 0

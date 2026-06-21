@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e4a363e1991bb034e9c94c304215559f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 292284
+  packageName: Slime Material
+  packageVersion: 1.0
+  assetPath: Assets/GameSlave/SlimeMaterial/Materials/Fireflies.mat
+  uploadId: 682719

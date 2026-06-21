@@ -16,6 +16,8 @@ namespace Work.Players.Code
 
         private void Awake()
         {
+            PlayerTargetProvider.Register(transform);
+
             _inputContainer = new PlayerInputContainer();
             _inputContainer.Initialize();
             Init();
@@ -25,6 +27,7 @@ namespace Work.Players.Code
 
         private void OnDestroy()
         {
+            PlayerTargetProvider.Unregister(transform);
             _inputContainer?.Uninitialize();
         }
     }

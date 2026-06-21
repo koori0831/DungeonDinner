@@ -18,6 +18,9 @@ namespace Work.Enemy.Code.Drops
         private EnemyStateController stateController;
 
         [SerializeField]
+        private EnemyDropWorldSpawner worldDropSpawner;
+
+        [SerializeField]
         private EnemyDropRule[] dropRules;
 
         [SerializeField]
@@ -153,13 +156,19 @@ namespace Work.Enemy.Code.Drops
 
             UpdateDropSummary();
 
-            // TODO: 월드 드랍 또는 직접 루팅 흐름 구현 시 계산된 결과 전달
+            if (lastDropCount > 0)
+            {
+                SpawnLastDrops(in hitContext);
+            }
+
             LogDropResult();
             return lastDropCount;
         }
 
         private void ResolveSceneReferences(Entity entity)
         {
+            ResolveWorldDropSpawner();
+
             if (stateController != null)
             {
                 return;
@@ -176,6 +185,28 @@ namespace Work.Enemy.Code.Drops
             }
 
             stateController = GetComponentInParent<EnemyStateController>();
+        }
+
+        private void ResolveWorldDropSpawner()
+        {
+            if (worldDropSpawner != null)
+            {
+                return;
+            }
+
+            worldDropSpawner = GetComponent<EnemyDropWorldSpawner>();
+        }
+
+        private void SpawnLastDrops(in HitContext hitContext)
+        {
+            ResolveWorldDropSpawner();
+
+            if (worldDropSpawner == null)
+            {
+                return;
+            }
+
+            worldDropSpawner.SpawnDrops(DROP_RESULTS, lastDropCount, in hitContext);
         }
 
         private void ResetLastDrop(AttackType attackType)
