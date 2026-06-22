@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
+using Work.Cook.Code.Info;
 using Work.NPC.Code.Runtime;
 
 namespace Work.Cook.Code.Runtime
@@ -31,6 +32,8 @@ namespace Work.Cook.Code.Runtime
 
     public sealed class CookingGamePanel : MonoBehaviour
     {
+        private const string ORDER_SLIP_REFERENCE_PANEL_NAME = "InfoPanel";
+
         [Header("Flow")]
         [SerializeField] private CookingFlowRunner flowRunner;
         [SerializeField] private NpcConversationRunner npcRunner;
@@ -45,7 +48,6 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private bool keepNpcConversationVisibleDuringCooking = true;
         [SerializeField] private bool keepRecipeSelectionVisibleBeforePreparation = true;
         [SerializeField] private bool keepRecipeSelectionVisibleDuringInventory = true;
-        [SerializeField] private bool keepRecipeSelectionVisibleDuringPreparation = true;
         [SerializeField] private bool allowRecipeConfirmation;
         [SerializeField] private bool autoCreateTemporaryInventoryView = true;
         [SerializeField] private bool autoCreateTemporaryPreparationView = true;
@@ -85,6 +87,8 @@ namespace Work.Cook.Code.Runtime
         private NpcConversationRunner _subscribedNpcRunner;
         private CookingKnowledgeStore _subscribedKnowledgeStore;
         private CookingRewardWallet _subscribedRewardWallet;
+        private readonly List<GameObject> _preparationHiddenViews = new List<GameObject>();
+        private bool _isPreparationViewIsolated;
 
         public event Action<CookingGameScreenState> ScreenChanged;
         public event Action<DishResult> ResultReady;
@@ -254,7 +258,10 @@ namespace Work.Cook.Code.Runtime
                 RefreshIngredientSelectionView(inventoryView);
 
             if (CurrentScreen == CookingGameScreenState.Preparation)
+            {
                 RefreshPreparationView(preparationView);
+                RaiseOrderSlipPanel();
+            }
 
             if (CurrentScreen == CookingGameScreenState.Result)
                 RefreshResultView(resultView);
@@ -638,6 +645,7 @@ namespace Work.Cook.Code.Runtime
                 return CompleteCooking();
 
             RefreshPreparationView(preparationView);
+            RaiseOrderSlipPanel();
             PublishSnapshotChanged();
             return true;
         }
@@ -1088,21 +1096,25 @@ namespace Work.Cook.Code.Runtime
 
         private void ApplyViewActiveStates()
         {
+            if (CurrentScreen == CookingGameScreenState.Preparation)
+            {
+                ApplyPreparationViewActiveStates();
+                return;
+            }
+
+            RestorePreparationHiddenViews();
+
             bool beforePreparation = IsBeforePreparation(CurrentScreen);
-            bool duringCooking = CurrentScreen == CookingGameScreenState.Inventory
-                                 || CurrentScreen == CookingGameScreenState.Preparation;
+            bool duringIngredientSelection = CurrentScreen == CookingGameScreenState.Inventory;
             bool showNpcConversation = CurrentScreen == CookingGameScreenState.NpcConversation
-                                       || keepNpcConversationVisibleBeforePreparation && beforePreparation
-                                       || keepNpcConversationVisibleDuringCooking && duringCooking;
+                                        || keepNpcConversationVisibleBeforePreparation == true && beforePreparation == true
+                                        || keepNpcConversationVisibleDuringCooking == true && duringIngredientSelection == true;
             bool showRecipeSelection = CurrentScreen == CookingGameScreenState.RecipeSelection
-                                       || CurrentScreen == CookingGameScreenState.Inventory
-                                       || CurrentScreen == CookingGameScreenState.Preparation
-                                       || keepRecipeSelectionVisibleBeforePreparation
-                                       && beforePreparation
-                                       && (CurrentScreen != CookingGameScreenState.Inventory
-                                           || keepRecipeSelectionVisibleDuringInventory)
-                                       || keepRecipeSelectionVisibleDuringPreparation
-                                       && CurrentScreen == CookingGameScreenState.Preparation;
+                                        || CurrentScreen == CookingGameScreenState.Inventory
+                                        || keepRecipeSelectionVisibleBeforePreparation == true
+                                        && beforePreparation == true
+                                        && (CurrentScreen != CookingGameScreenState.Inventory
+                                            || keepRecipeSelectionVisibleDuringInventory == true);
 
             SetActive(npcConversationView, showNpcConversation);
             SetActive(recipeSelectionView, showRecipeSelection);
@@ -1126,6 +1138,133 @@ namespace Work.Cook.Code.Runtime
 
             if (knowledgeUpdateView != null && knowledgeUpdateView.activeSelf)
                 knowledgeUpdateView.transform.SetAsLastSibling();
+        }
+
+        private void ApplyPreparationViewActiveStates()
+        {
+            HideForPreparation(npcConversationView);
+            HideForPreparation(recipeSelectionView);
+            HideForPreparation(inventoryView);
+            HideForPreparation(resultView);
+            HideForPreparation(knowledgeUpdateView);
+            HideForPreparation(rewardView);
+            HideDictionaryPanelsForPreparation();
+
+            SetActive(preparationView, true);
+            if (preparationView != null)
+            {
+                preparationView.transform.SetAsLastSibling();
+            }
+
+            RaiseOrderSlipPanel();
+
+            _isPreparationViewIsolated = true;
+        }
+
+        private void RaiseOrderSlipPanel()
+        {
+            NpcOrderSlipPanel[] panels = FindObjectsByType<NpcOrderSlipPanel>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            RectTransform referencePanel = FindOrderSlipReferencePanel();
+            for (int i = 0; i < panels.Length; i++)
+            {
+                if (panels[i] != null)
+                {
+                    panels[i].PinToReferencePanel(referencePanel);
+                    panels[i].BringToFront();
+                }
+            }
+        }
+
+        private RectTransform FindOrderSlipReferencePanel()
+        {
+            RectTransform referencePanel = FindNamedAncestorRect(inventoryView, ORDER_SLIP_REFERENCE_PANEL_NAME);
+            if (referencePanel != null)
+            {
+                return referencePanel;
+            }
+
+            referencePanel = FindNamedAncestorRect(recipeSelectionView, ORDER_SLIP_REFERENCE_PANEL_NAME);
+            if (referencePanel != null)
+            {
+                return referencePanel;
+            }
+
+            referencePanel = FindNamedAncestorRect(resultView, ORDER_SLIP_REFERENCE_PANEL_NAME);
+            if (referencePanel != null)
+            {
+                return referencePanel;
+            }
+
+            Transform overlayParent = FindOverlayViewParent();
+            return overlayParent as RectTransform;
+        }
+
+        private static RectTransform FindNamedAncestorRect(GameObject view, string ancestorName)
+        {
+            if (view == null || string.IsNullOrEmpty(ancestorName) == true)
+            {
+                return null;
+            }
+
+            Transform current = view.transform;
+            while (current != null)
+            {
+                if (current.name == ancestorName)
+                {
+                    return current as RectTransform;
+                }
+
+                current = current.parent;
+            }
+
+            return null;
+        }
+
+        private void HideDictionaryPanelsForPreparation()
+        {
+            Canvas canvas = FindCanvasFromConnectedViews();
+            InfoDictionaryPanel[] panels = canvas != null
+                ? canvas.GetComponentsInChildren<InfoDictionaryPanel>(true)
+                : FindObjectsByType<InfoDictionaryPanel>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            for (int i = 0; i < panels.Length; i++)
+            {
+                if (panels[i] != null)
+                {
+                    HideForPreparation(panels[i].gameObject);
+                }
+            }
+        }
+
+        private void HideForPreparation(GameObject target)
+        {
+            if (target == null || target == preparationView)
+            {
+                return;
+            }
+
+            if (target.activeSelf == true && _preparationHiddenViews.Contains(target) == false)
+            {
+                _preparationHiddenViews.Add(target);
+            }
+
+            SetActive(target, false);
+        }
+
+        private void RestorePreparationHiddenViews()
+        {
+            if (_isPreparationViewIsolated == false && _preparationHiddenViews.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _preparationHiddenViews.Count; i++)
+            {
+                SetActive(_preparationHiddenViews[i], true);
+            }
+
+            _preparationHiddenViews.Clear();
+            _isPreparationViewIsolated = false;
         }
 
         private void EnsureInventoryView()

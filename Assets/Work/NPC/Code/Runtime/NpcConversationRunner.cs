@@ -33,6 +33,8 @@ namespace Work.NPC.Code.Runtime
         [Header("Output")]
         [SerializeField] private ChatPanel chatPanel;
         [SerializeField] private NpcOrderSlipPanel orderSlipPanel;
+        [SerializeField] private Sprite orderSlipPanelSprite;
+        [SerializeField] private Sprite orderSlipLabelSprite;
         [SerializeField] private bool playOnStart;
         [SerializeField] private bool showSpeakerName;
         [SerializeField] private bool useDirectChatPanelOutput = true;
@@ -573,12 +575,19 @@ namespace Work.NPC.Code.Runtime
 
         private void ResolveOrderSlipPanel()
         {
-            if (orderSlipPanel != null || autoCreateOrderSlipPanel == false)
-                return;
+            if (orderSlipPanel == null && autoCreateOrderSlipPanel == true)
+            {
+                orderSlipPanel = FindFirstObjectByType<NpcOrderSlipPanel>();
+                if (orderSlipPanel == null)
+                    orderSlipPanel = NpcOrderSlipPanel.GetOrCreateGeneratedPanel();
+            }
 
-            orderSlipPanel = FindFirstObjectByType<NpcOrderSlipPanel>();
             if (orderSlipPanel == null)
-                orderSlipPanel = NpcOrderSlipPanel.GetOrCreateGeneratedPanel();
+            {
+                return;
+            }
+
+            orderSlipPanel.SetVisualSprites(orderSlipPanelSprite, orderSlipLabelSprite);
         }
 
         private void NotifyQuestionOptionsOrReady()

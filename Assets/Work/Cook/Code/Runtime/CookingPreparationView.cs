@@ -10,7 +10,7 @@ namespace Work.Cook.Code.Runtime
 {
     public sealed class CookingPreparationView : MonoBehaviour, ICookingPreparationView
     {
-        private const int CurrentDefaultLayoutVersion = 2;
+        private const int CurrentDefaultLayoutVersion = 5;
 
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
@@ -29,15 +29,14 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private bool rebuildTemporaryDefaultLayoutWhenVersionChanges = true;
         [SerializeField] private int defaultLayoutVersion;
         [SerializeField] private TMP_FontAsset fontAsset;
-        [SerializeField] private Color panelColor = new Color(0.04f, 0.035f, 0.03f, 0.88f);
-        [SerializeField] private Color boardColor = new Color(0.44f, 0.30f, 0.18f, 1f);
+        [SerializeField] private Sprite panelSprite;
+        [SerializeField] private Sprite labelSprite;
         [SerializeField] private Color ingredientColor = new Color(0.78f, 0.66f, 0.47f, 1f);
         [SerializeField] private Color cardColor = new Color(0.18f, 0.15f, 0.12f, 0.96f);
         [SerializeField] private Color cardHoverColor = new Color(0.30f, 0.23f, 0.16f, 1f);
         [SerializeField] private Color buttonColor = new Color(0.55f, 0.70f, 0.46f, 1f);
 
         [Header("Text")]
-        [SerializeField] private string titleText = "재료 손질";
         [SerializeField] private string noIngredientText = "손질할 재료가 없습니다.";
         [SerializeField] private string noOptionText = "이 재료에는 등록된 손질법이 없습니다.";
         [SerializeField] private string noOptionButtonText = "그대로 진행";
@@ -264,7 +263,9 @@ namespace Work.Cook.Code.Runtime
                 && progressField != null
                 && cardRoot != null)
             {
-                ApplyDefaultRootSafeArea();
+                ApplyFullscreenRootLayout();
+                DisableRootBackground();
+                DisableBoardBackground();
                 return;
             }
 
@@ -279,49 +280,39 @@ namespace Work.Cook.Code.Runtime
                    && gameObject.name.Contains("TemporaryPreparationView");
         }
 
-        private void ApplyDefaultRootSafeArea()
+        private void ApplyFullscreenRootLayout()
         {
             RectTransform rect = EnsureRectTransform(gameObject);
             rect.localRotation = Quaternion.identity;
             rect.localScale = Vector3.one;
-
-            if (gameObject.name.Contains("TemporaryPreparationView") == false)
-                return;
-
-            rect.anchorMin = new Vector2(0.43f, 0.04f);
-            rect.anchorMax = new Vector2(0.96f, 0.88f);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
         }
 
         private void BuildDefaultLayout()
         {
-            ApplyDefaultRootSafeArea();
-
-            Image background = GetOrAdd<Image>(gameObject);
-            ApplyGeneratedSprite(background);
-            background.color = panelColor;
-            background.raycastTarget = true;
+            ApplyFullscreenRootLayout();
+            DisableRootBackground();
 
             VerticalLayoutGroup rootLayout = GetOrAdd<VerticalLayoutGroup>(gameObject);
-            rootLayout.padding = new RectOffset(18, 18, 14, 14);
-            rootLayout.spacing = 12f;
+            rootLayout.padding = new RectOffset(0, 0, 0, 0);
+            rootLayout.spacing = 0f;
             rootLayout.childControlWidth = true;
             rootLayout.childControlHeight = true;
             rootLayout.childForceExpandWidth = true;
             rootLayout.childForceExpandHeight = false;
 
-            TextMeshProUGUI title = CreateText(transform, "Title", titleText, 24f, TextAlignmentOptions.Left);
-            AddLayoutElement(title.gameObject, -1f, 34f, -1f, 0f);
-
             boardRoot = CreateLayoutObject(transform, "CuttingBoard");
             Image boardImage = boardRoot.gameObject.AddComponent<Image>();
             ApplyGeneratedSprite(boardImage);
-            boardImage.color = boardColor;
+            boardImage.color = new Color(0f, 0f, 0f, 0f);
+            boardImage.raycastTarget = false;
             AddLayoutElement(boardRoot.gameObject, -1f, 0f, 1f, 2.4f);
 
             VerticalLayoutGroup boardLayout = boardRoot.gameObject.AddComponent<VerticalLayoutGroup>();
-            boardLayout.padding = new RectOffset(22, 22, 20, 20);
+            boardLayout.padding = new RectOffset(0, 0, 0, 0);
             boardLayout.spacing = 10f;
             boardLayout.childControlWidth = true;
             boardLayout.childControlHeight = true;
@@ -330,8 +321,8 @@ namespace Work.Cook.Code.Runtime
 
             RectTransform ingredientPlate = CreateLayoutObject(boardRoot, "IngredientOnBoard");
             Image ingredientImage = ingredientPlate.gameObject.AddComponent<Image>();
-            ApplyGeneratedSprite(ingredientImage);
-            ingredientImage.color = ingredientColor;
+            ApplyUiAssetSprite(ingredientImage, panelSprite);
+            ingredientImage.color = panelSprite != null ? Color.white : ingredientColor;
             AddLayoutElement(ingredientPlate.gameObject, -1f, 132f, -1f, 0f);
 
             VerticalLayoutGroup ingredientLayout = ingredientPlate.gameObject.AddComponent<VerticalLayoutGroup>();
@@ -362,12 +353,37 @@ namespace Work.Cook.Code.Runtime
             AddLayoutElement(cardRoot.gameObject, -1f, 0f, 1f, 1.6f);
         }
 
+        private void DisableRootBackground()
+        {
+            Image background = GetOrAdd<Image>(gameObject);
+            ApplyGeneratedSprite(background);
+            background.color = new Color(0f, 0f, 0f, 0f);
+            background.raycastTarget = true;
+        }
+
+        private void DisableBoardBackground()
+        {
+            if (boardRoot == null)
+            {
+                return;
+            }
+
+            Image boardImage = boardRoot.GetComponent<Image>();
+            if (boardImage == null)
+            {
+                return;
+            }
+
+            boardImage.color = new Color(0f, 0f, 0f, 0f);
+            boardImage.raycastTarget = false;
+        }
+
         private RectTransform CreateCardObject(Transform parent, string name)
         {
             RectTransform card = CreateLayoutObject(parent, name);
             Image image = card.gameObject.AddComponent<Image>();
-            ApplyGeneratedSprite(image);
-            image.color = cardColor;
+            ApplyUiAssetSprite(image, panelSprite);
+            image.color = panelSprite != null ? Color.white : cardColor;
 
             VerticalLayoutGroup layout = card.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.padding = new RectOffset(12, 12, 12, 12);
@@ -385,15 +401,16 @@ namespace Work.Cook.Code.Runtime
             buttonObject.transform.SetParent(parent, false);
 
             Image image = buttonObject.GetComponent<Image>();
-            ApplyGeneratedSprite(image);
-            image.color = color;
+            ApplyUiAssetSprite(image, labelSprite);
+            Color visualColor = labelSprite != null ? Color.white : color;
+            image.color = visualColor;
 
             Button button = buttonObject.GetComponent<Button>();
             button.targetGraphic = image;
             ColorBlock colors = button.colors;
-            colors.normalColor = color;
-            colors.highlightedColor = Color.Lerp(color, Color.white, 0.16f);
-            colors.pressedColor = Color.Lerp(color, Color.black, 0.16f);
+            colors.normalColor = visualColor;
+            colors.highlightedColor = Color.Lerp(visualColor, Color.white, 0.16f);
+            colors.pressedColor = Color.Lerp(visualColor, Color.black, 0.16f);
             colors.selectedColor = colors.highlightedColor;
             button.colors = colors;
 
@@ -441,7 +458,7 @@ namespace Work.Cook.Code.Runtime
             {
                 card.localScale = new Vector3(1.06f, 1.06f, 1f);
                 if (card.TryGetComponent(out Image image))
-                    image.color = cardHoverColor;
+                    image.color = panelSprite != null ? Color.white : cardHoverColor;
                 SetDetailsActive(detailObjects, true);
             });
 
@@ -449,7 +466,7 @@ namespace Work.Cook.Code.Runtime
             {
                 card.localScale = Vector3.one;
                 if (card.TryGetComponent(out Image image))
-                    image.color = cardColor;
+                    image.color = panelSprite != null ? Color.white : cardColor;
                 SetDetailsActive(detailObjects, false);
             });
         }
@@ -705,6 +722,24 @@ namespace Work.Cook.Code.Runtime
 
             image.type = Image.Type.Simple;
             image.preserveAspect = false;
+        }
+
+        private void ApplyUiAssetSprite(Image image, Sprite sprite)
+        {
+            if (image == null)
+            {
+                return;
+            }
+
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.type = Image.Type.Sliced;
+                image.preserveAspect = false;
+                return;
+            }
+
+            ApplyGeneratedSprite(image);
         }
 
         private static Sprite GetGeneratedFallbackSprite()
