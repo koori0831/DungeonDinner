@@ -35,10 +35,10 @@ MonoBehaviour:
     alternatives: []
     alternativeOptions: []
     requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods: []
     minCount: 1
     maxCount: 1
     recipeDefining: 1
-    autoApplyRequiredPreparation: 0
     requireManualPreparation: 0
     usePreparationResultNameModifier: 1
   - ingredient: {fileID: 11400000, guid: 8047bb3271861f147a23403c44b5c7fc, type: 2}
@@ -47,10 +47,10 @@ MonoBehaviour:
     alternatives: []
     alternativeOptions: []
     requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods: []
     minCount: 1
     maxCount: 1
     recipeDefining: 1
-    autoApplyRequiredPreparation: 0
     requireManualPreparation: 0
     usePreparationResultNameModifier: 0
   - ingredient: {fileID: 11400000, guid: 07bec4b9989c44a4bbf5b8364376c15e, type: 2}
@@ -59,10 +59,10 @@ MonoBehaviour:
     alternatives: []
     alternativeOptions: []
     requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods: []
     minCount: 1
     maxCount: 1
-    recipeDefining: 1
-    autoApplyRequiredPreparation: 0
+    recipeDefining: 0
     requireManualPreparation: 0
     usePreparationResultNameModifier: 0
   perfectPreparationRules: []
