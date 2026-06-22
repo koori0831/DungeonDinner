@@ -20,11 +20,9 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private TextMeshProUGUI progressField;
         [SerializeField] private RectTransform cardRoot;
         [SerializeField] private CookingPreparationOptionItemView optionCardPrefab;
-        [SerializeField] private CookingPreparationBoardView boardView;
 
         [Header("Default Layout")]
         [SerializeField] private bool buildDefaultLayoutWhenMissing;
-        [SerializeField] private bool createBoardViewWhenMissing = true;
         [SerializeField] private TMP_FontAsset fontAsset;
 
         [Header("Text")]
@@ -102,13 +100,11 @@ namespace Work.Cook.Code.Runtime
             IngredientSO ingredient = flowRunner.GetNextUnpreparedIngredient();
             if (ingredient == null)
             {
-                RefreshBoardView();
                 CompleteCookingOnce();
                 return;
             }
 
             BindIngredient(ingredient);
-            RefreshBoardView();
             RebuildCards(ingredient);
         }
 
@@ -252,8 +248,6 @@ namespace Work.Cook.Code.Runtime
 
             if (knowledgeStore == null)
                 knowledgeStore = GetComponentInParent<CookingKnowledgeStore>();
-
-            EnsureBoardView();
         }
 
         private void EnsureLayout()
@@ -270,24 +264,6 @@ namespace Work.Cook.Code.Runtime
             {
                 Debug.LogWarning("CookingPreparationView no longer builds default layout. Assign layout references and option card prefab in the inspector.", this);
             }
-        }
-
-        private void EnsureBoardView()
-        {
-            if (boardView == null && boardRoot != null)
-                boardView = boardRoot.GetComponentInChildren<CookingPreparationBoardView>(true);
-
-            if (boardView == null && createBoardViewWhenMissing == true && boardRoot != null)
-                boardView = boardRoot.gameObject.AddComponent<CookingPreparationBoardView>();
-
-            if (boardView != null)
-                boardView.SetGamePanel(gamePanel);
-        }
-
-        private void RefreshBoardView()
-        {
-            EnsureBoardView();
-            boardView?.Refresh();
         }
 
         private void SubscribeFlowEvents()
