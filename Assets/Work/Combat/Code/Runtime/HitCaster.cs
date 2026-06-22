@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Work.Combat.Code.Core;
+using Work.Entities.Code;
 
 namespace Work.Combat.Code.Runtime
 {
@@ -157,8 +158,26 @@ namespace Work.Combat.Code.Runtime
             }
 
             IHitable hitable = targetCollider.GetComponentInParent<IHitable>();
+
+            if (IsMissingHitable(hitable) == true)
+            {
+                hitable = GetEntityHitable(targetCollider);
+            }
+
             HITABLE_BY_COLLIDER_ID.Add(colliderId, hitable);
             return hitable;
+        }
+
+        private static IHitable GetEntityHitable(Collider targetCollider)
+        {
+            Entity entity = targetCollider.GetComponentInParent<Entity>();
+
+            if (entity == null)
+            {
+                return null;
+            }
+
+            return entity.GetComponentInChildren<IHitable>(true);
         }
 
         private static bool IsSelf(Collider targetCollider, Transform ownerTransform)
