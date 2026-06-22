@@ -20,17 +20,10 @@ namespace Work.Enemy.Code
         [SerializeField]
         private AudioSource hitAudioSource;
 
-        [SerializeField]
-        private Animator animator;
-
-        [SerializeField]
-        private string hitTriggerName = "Hit";
-
         private void Reset()
         {
             movementModule = GetComponent<EnemyMovementModule>();
             hitAudioSource = GetComponent<AudioSource>();
-            animator = GetComponentInParent<Animator>();
         }
 
         private void Awake()
@@ -53,11 +46,6 @@ namespace Work.Enemy.Code
             {
                 ResolveMovementModule(entity);
             }
-
-            if (animator == null)
-            {
-                ResolveAnimator(entity);
-            }
         }
 
         private void ResolveMovementModule(Entity entity)
@@ -79,22 +67,6 @@ namespace Work.Enemy.Code
             ApplyKnockback(in hitContext);
             PlayHitEffect(in hitContext);
             PlayHitSound();
-            PlayHitAnimation();
-        }
-
-        private void ResolveAnimator(Entity entity)
-        {
-            if (entity != null)
-            {
-                animator = entity.GetComponentInChildren<Animator>();
-
-                if (animator != null)
-                {
-                    return;
-                }
-            }
-
-            animator = GetComponentInParent<Animator>();
         }
 
         private void ApplyKnockback(in HitContext hitContext)
@@ -136,16 +108,6 @@ namespace Work.Enemy.Code
             }
 
             hitAudioSource.Play();
-        }
-
-        private void PlayHitAnimation()
-        {
-            if (animator == null || string.IsNullOrEmpty(hitTriggerName) == true)
-            {
-                return;
-            }
-
-            animator.SetTrigger(hitTriggerName);
         }
     }
 }

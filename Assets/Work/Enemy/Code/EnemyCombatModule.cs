@@ -16,6 +16,9 @@ namespace Work.Enemy.Code
         private CombatAttackExecutor attackExecutor;
 
         [SerializeField]
+        private float attackDistance = 1.5f;
+
+        [SerializeField]
         private float attackEnterAngle = 12f;
 
         [SerializeField]
@@ -31,9 +34,9 @@ namespace Work.Enemy.Code
         private float _nextAttackTime;
 
         /// <summary>
-        /// 공격 데이터 기준 공격 거리.
+        /// 공격 거리.
         /// </summary>
-        public float AttackDistance => GetAttackReach();
+        public float AttackDistance => attackDistance;
 
         /// <summary>
         /// 공격 상태 진입 허용 각도.
@@ -83,16 +86,9 @@ namespace Work.Enemy.Code
                 return false;
             }
 
-            float attackReach = GetAttackReach();
-
-            if (attackReach <= MIN_RANGE)
-            {
-                return false;
-            }
-
             float sqrDistance = GetHorizontalSqrDistance(transform.position, target.position);
             bool isInActivityRange = territoryModule == null || territoryModule.IsPositionInActivityRange(target.position) == true;
-            return sqrDistance <= attackReach * attackReach && isInActivityRange == true;
+            return sqrDistance <= attackDistance * attackDistance && isInActivityRange == true;
         }
 
         /// <summary>
@@ -169,6 +165,7 @@ namespace Work.Enemy.Code
 
         private void OnValidate()
         {
+            attackDistance = Mathf.Max(MIN_RANGE, attackDistance);
             attackEnterAngle = Mathf.Max(MIN_RANGE, attackEnterAngle);
             attackCooldown = Mathf.Max(MIN_RANGE, attackCooldown);
             attackWindupTime = Mathf.Max(MIN_RANGE, attackWindupTime);
@@ -177,15 +174,8 @@ namespace Work.Enemy.Code
 
         private void OnDrawGizmosSelected()
         {
-            float attackReach = GetAttackReach();
-
-            if (attackReach <= MIN_RANGE)
-            {
-                return;
-            }
-
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, attackReach);
+            Gizmos.DrawWireSphere(transform.position, attackDistance);
         }
 
         private void ResolveSceneReferences(Entity entity)
@@ -201,12 +191,6 @@ namespace Work.Enemy.Code
             }
 
             attackExecutor = GetComponentInParent<CombatAttackExecutor>();
-        }
-
-        private float GetAttackReach()
-        {
-            ResolveSceneReferences(_ownerEntity);
-            return attackExecutor != null ? attackExecutor.AttackReach : 0f;
         }
 
         private static float GetHorizontalSqrDistance(Vector3 from, Vector3 to)

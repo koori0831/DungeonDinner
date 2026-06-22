@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using Work.Combat.Code.Core;
 using Work.Entities.Code;
 
@@ -8,20 +7,13 @@ namespace Work.Players.Code
     /// <summary>
     /// 플레이어의 기본 피격 판정 처리 컴포넌트.
     /// </summary>
-    public sealed class PlayerHittable : MonoBehaviour, IHitable
+    public sealed class PlayerHitable : MonoBehaviour, IHitable
     {
-        private const string HIT_STATE_NAME = "Hit";
-        private const string DEAD_STATE_NAME = "Dead";
-
         [SerializeField]
-        [FormerlySerializedAs("isHitable")]
-        private bool isHittable = true;
+        private bool isHitable = true;
 
         [SerializeField]
         private EntityHealthModule healthModule;
-
-        [SerializeField]
-        private EntityStateModule stateModule;
 
         /// <summary>
         /// 마지막 피격 정보.
@@ -54,7 +46,7 @@ namespace Work.Players.Code
                 return LastHitResult;
             }
 
-            if (isHittable == false)
+            if (isHitable == false)
             {
                 LastHitResult = new HitResult(false, false, HitResultType.Ignored);
                 return LastHitResult;
@@ -77,39 +69,17 @@ namespace Work.Players.Code
                 ? new HitResult(true, true, HitResultType.Killed)
                 : new HitResult(true, false, HitResultType.HitButNotKilled);
 
-            TryChangeHitState(isKilled);
-
             return LastHitResult;
         }
 
         private void ResolveSceneReferences()
         {
-            if (healthModule == null)
-            {
-                healthModule = GetComponentInParent<EntityHealthModule>();
-            }
-
-            if (stateModule == null)
-            {
-                stateModule = GetComponentInChildren<EntityStateModule>(true);
-            }
-        }
-
-        private void TryChangeHitState(bool isKilled)
-        {
-            if (stateModule == null || stateModule.StateMachine == null)
+            if (healthModule != null)
             {
                 return;
             }
 
-            string stateName = isKilled == true ? DEAD_STATE_NAME : HIT_STATE_NAME;
-
-            if (stateModule.StateMachine.HasState(stateName) == false)
-            {
-                return;
-            }
-
-            stateModule.StateMachine.TryChangeState(stateName, true);
+            healthModule = GetComponentInParent<EntityHealthModule>();
         }
 
         [System.Diagnostics.Conditional("UNITY_EDITOR")]

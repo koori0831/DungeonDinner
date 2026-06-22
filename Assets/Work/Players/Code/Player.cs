@@ -1,4 +1,3 @@
-using Work.Core.EventBus;
 using Work.Input.Code;
 using Work.Entities.Code;
 using Work.Players.Code.Inventory;
@@ -10,7 +9,6 @@ namespace Work.Players.Code
         private PlayerInputContainer _inputContainer;
         private EntityMovementModule _movementModule;
         private PlayerInventoryModule _inventoryModule;
-        private bool _hasStarted;
 
         public PlayerInputContainer InputContainer => _inputContainer;
         public EntityMovementModule MovementModule => _movementModule ??= GetModule<EntityMovementModule>(true);
@@ -18,6 +16,8 @@ namespace Work.Players.Code
 
         private void Awake()
         {
+            PlayerTargetProvider.Register(transform);
+
             _inputContainer = new PlayerInputContainer();
             _inputContainer.Initialize();
             Init();
@@ -25,38 +25,10 @@ namespace Work.Players.Code
             _movementModule = GetModule<EntityMovementModule>(true);
         }
 
-        private void OnEnable()
-        {
-            if (_hasStarted == true)
-            {
-                RaisePlayerTargetRegistered();
-            }
-        }
-
-        private void Start()
-        {
-            _hasStarted = true;
-            RaisePlayerTargetRegistered();
-        }
-
-        private void OnDisable()
-        {
-            if (_hasStarted == false)
-            {
-                return;
-            }
-
-            Bus<PlayerTargetChangedEvent>.Raise(new PlayerTargetChangedEvent(transform, false));
-        }
-
         private void OnDestroy()
         {
+            PlayerTargetProvider.Unregister(transform);
             _inputContainer?.Uninitialize();
-        }
-
-        private void RaisePlayerTargetRegistered()
-        {
-            Bus<PlayerTargetChangedEvent>.Raise(new PlayerTargetChangedEvent(transform, true));
         }
     }
 }

@@ -48,32 +48,6 @@ namespace Work.Combat.Code.Runtime
         /// </summary>
         public bool HasAnyHit { get; private set; }
 
-        /// <summary>
-        /// 현재 기본 공격 데이터
-        /// </summary>
-        public AttackDataSO AttackData => attackData;
-
-        /// <summary>
-        /// 공격 판정 기준 Transform
-        /// </summary>
-        public Transform AttackOrigin => attackOrigin != null ? attackOrigin : transform;
-
-        /// <summary>
-        /// 현재 공격 데이터 기준 공격 도달 거리
-        /// </summary>
-        public float AttackReach
-        {
-            get
-            {
-                if (attackData == null)
-                {
-                    return 0f;
-                }
-
-                return Mathf.Max(0f, attackData.Range) + Mathf.Max(0f, attackData.Radius);
-            }
-        }
-
         private void Awake()
         {
             ResolveSceneReferences();
@@ -180,7 +154,7 @@ namespace Work.Combat.Code.Runtime
         private AttackExecutionRequest CreateDefaultRequest(AttackDataSO requestAttackData)
         {
             ResolveOwnerEntity();
-            Transform originTransform = AttackOrigin;
+            Transform originTransform = attackOrigin != null ? attackOrigin : transform;
 
             return new AttackExecutionRequest(
                 GetAttackerGameObject(originTransform),
