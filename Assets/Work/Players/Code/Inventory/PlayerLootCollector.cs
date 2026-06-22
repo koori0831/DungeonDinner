@@ -13,6 +13,9 @@ namespace Work.Players.Code.Inventory
     [DisallowMultipleComponent]
     public sealed class PlayerLootCollector : MonoBehaviour, IEntityModule
     {
+        private const int MAX_OVERLAP_RESULT_COUNT = 32;
+        private const float FALLBACK_LOOT_RADIUS = 1.25f;
+
         [SerializeField]
         private PlayerInventoryModule inventoryModule;
 
@@ -35,6 +38,7 @@ namespace Work.Players.Code.Inventory
         private bool _isCollecting;
         private PlayerInventoryModule _subscribedInventoryModule;
         private readonly List<WorldLootItem> NEARBY_LOOT_ITEMS = new List<WorldLootItem>();
+        private readonly Collider[] OVERLAP_RESULTS = new Collider[MAX_OVERLAP_RESULT_COUNT];
 
         /// <summary>
         /// 마지막 자동 루팅으로 인벤토리에 들어간 수량
@@ -101,6 +105,9 @@ namespace Work.Players.Code.Inventory
                 LogMissingControllerOnce();
                 return 0;
             }
+
+            CollectOverlappingLootItems();
+            CollectNearbyLootItemsByDistance();
 
             if (NEARBY_LOOT_ITEMS.Count <= 0)
             {
@@ -250,6 +257,76 @@ namespace Work.Players.Code.Inventory
             }
 
             return false;
+        }
+
+        private void CollectOverlappingLootItems()
+        {
+            Vector3 center = collectorController.transform.TransformPoint(collectorController.center);
+            Vector3 up = collectorController.transform.up;
+            float radius = Mathf.Max(0f, collectorController.radius);
+            float height = Mathf.Max(collectorController.height, radius * 2f);
+            float halfSegmentHeight = Mathf.Max(0f, (height * 0.5f) - radius);
+            Vector3 top = center + up * halfSegmentHeight;
+            Vector3 bottom = center - up * halfSegmentHeight;
+            int hitCount = Physics.OverlapCapsuleNonAlloc(
+                top,
+                bottom,
+                radius,
+                OVERLAP_RESULTS,
+                ~0,
+                QueryTriggerInteraction.Collide
+            );
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                Collider hitCollider = OVERLAP_RESULTS[i];
+
+                if (hitCollider == null)
+                {
+                    continue;
+                }
+
+                WorldLootItem lootItem = hitCollider.GetComponentInParent<WorldLootItem>();
+
+                if (lootItem == null || lootItem.IsLootable == false)
+                {
+                    continue;
+                }
+
+                if (ContainsLootItem(lootItem) == false)
+                {
+                    NEARBY_LOOT_ITEMS.Add(lootItem);
+                }
+            }
+        }
+
+        private void CollectNearbyLootItemsByDistance()
+        {
+            WorldLootItem[] lootItems = Object.FindObjectsByType<WorldLootItem>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            Vector3 collectorPosition = collectorController.transform.position;
+            float maxSqrDistance = FALLBACK_LOOT_RADIUS * FALLBACK_LOOT_RADIUS;
+
+            for (int i = 0; i < lootItems.Length; i++)
+            {
+                WorldLootItem lootItem = lootItems[i];
+
+                if (lootItem == null || lootItem.IsLootable == false)
+                {
+                    continue;
+                }
+
+                float sqrDistance = (lootItem.transform.position - collectorPosition).sqrMagnitude;
+
+                if (sqrDistance > maxSqrDistance)
+                {
+                    continue;
+                }
+
+                if (ContainsLootItem(lootItem) == false)
+                {
+                    NEARBY_LOOT_ITEMS.Add(lootItem);
+                }
+            }
         }
 
         private void RemoveLootItem(WorldLootItem lootItem)
