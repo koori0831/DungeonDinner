@@ -1827,10 +1827,10 @@ RectTransform:
   - {fileID: 807848084}
   m_Father: {fileID: 967503739}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 274.28574, y: -540}
-  m_SizeDelta: {x: 548.5715, y: 1080}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &60794784
 MonoBehaviour:
@@ -2281,10 +2281,10 @@ RectTransform:
   - {fileID: 2109486036}
   m_Father: {fileID: 967503739}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1234.2859, y: -540}
-  m_SizeDelta: {x: 1371.4287, y: 1080}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &89226529
 MonoBehaviour:
@@ -9283,10 +9283,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 294261486}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 180, y: -87}
-  m_SizeDelta: {x: 332, y: 22}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &400086753
 GameObject:
@@ -11652,7 +11652,7 @@ MonoBehaviour:
   hideWhenConversationCompleted: 0
   showSpeakerNameInBubble: 1
   completeTypingOnSubmit: 1
-  playerNameColor: '#9FD4FF'
+  playerNameColor: '#000000'
   npcNameColor: '#D6A85A'
   conversationShown:
     m_PersistentCalls:
@@ -22480,10 +22480,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 294261486}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 180, y: -21}
-  m_SizeDelta: {x: 332, y: 22}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1040509945
 GameObject:
@@ -22828,8 +22828,8 @@ MonoBehaviour:
   startEventId: Odin_FirstVisit
   chatPanel: {fileID: 89226530}
   orderSlipPanel: {fileID: 0}
-  orderSlipPanelSprite: {fileID: 21300000, guid: cc51a4e9bbeb9ee488f5cf09bcf5e214, type: 3}
-  orderSlipLabelSprite: {fileID: 21300000, guid: 907354955703cfa4fa180bffdddc56f8, type: 3}
+  orderSlipPanelSprite: {fileID: 21300000, guid: 208374d4bc54c81479635f11a2a787af, type: 3}
+  orderSlipLabelSprite: {fileID: 0}
   playOnStart: 0
   showSpeakerName: 0
   useDirectChatPanelOutput: 1
@@ -25186,7 +25186,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0b3e8d4f50617293a1b2c3d4e5f60718, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Players.Code.Inventory.PlayerInventoryModule
   slotCapacity: 24
   slots:
@@ -25250,7 +25250,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e0b36d8f517c4a98b6d21e3f4059c7ab, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.InventoryCookingIngredientSource
   inventoryModule: {fileID: 1154906898}
   sourceName: Temp Inventory Ingredients
@@ -25266,7 +25266,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6862cd062d564421bcf732223576561d, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Dispatch.Code.Runtime.DispatchController
   dispatchMap: {fileID: 11400000, guid: c8d7e6f5a4b3492087654321fedcba09, type: 2}
   inventoryModule: {fileID: 1154906898}
@@ -32337,10 +32337,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 294261486}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 180, y: -54}
-  m_SizeDelta: {x: 332, y: 34}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1478277788
 GameObject:
@@ -38904,10 +38904,10 @@ RectTransform:
   - {fileID: 745710730}
   m_Father: {fileID: 1055854814}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 259.28574, y: -224.2857}
-  m_SizeDelta: {x: 398.57147, y: 328.5714}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1767051156
 CanvasRenderer:
@@ -43431,10 +43431,10 @@ RectTransform:
   - {fileID: 2015541530}
   m_Father: {fileID: 1055854814}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 259.28574, y: -719.2857}
-  m_SizeDelta: {x: 398.57147, y: 601.4286}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2041527737
 CanvasRenderer:
@@ -43519,7 +43519,7 @@ MonoBehaviour:
   discoveredRecipes: []
   knownRecipeTags: []
   encyclopediaOnlyMode: 0
-  includeDirectIngredientSelection: 1
+  includeDirectIngredientSelection: 0
   directSelectionDisplayName: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   directSelectionDescription: "\uAC00\uBC29\uC5D0\uC11C \uC7AC\uB8CC\uB97C \uC9C1\uC811
     \uACE8\uB77C \uC54C\uB824\uC9C4 \uB808\uC2DC\uD53C\uC5D0 \uC5C6\uB294 \uC870\uD569\uC744

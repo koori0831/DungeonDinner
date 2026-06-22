@@ -6,14 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="9572947c-97ba-46be-9cdd-73cd5f25d671" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/HitCaster.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/HitCaster.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Scene/CombatTest.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Scene/CombatTest.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Enemy/Prefab/MushroomMan.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Prefab/MushroomMan.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityAnimationModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityAnimationModule.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerLootCollector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerLootCollector.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerHittable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerHittable.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerTargetChangedEvent.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerTargetChangedEvent.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/SO/State/PlayerDead.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/SO/State/PlayerDead.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationView.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationView.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcConversationRunner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcConversationRunner.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcOrderSlipPanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcOrderSlipPanel.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +35,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;san232&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Complete-Cook-Test&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -108,6 +104,8 @@
       <workItem from="1780964868171" duration="5012000" />
       <workItem from="1782033055519" duration="1472000" />
       <workItem from="1782045479835" duration="6908000" />
+      <workItem from="1782085703678" duration="47720000" />
+      <workItem from="1782167805341" duration="1689000" />
     </task>
     <servers />
   </component>

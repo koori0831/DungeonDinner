@@ -22,7 +22,7 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private bool hideWhenConversationCompleted;
         [SerializeField] private bool showSpeakerNameInBubble = true;
         [SerializeField] private bool completeTypingOnSubmit = true;
-        [SerializeField] private string playerNameColor = "#9FD4FF";
+        [SerializeField] private string playerNameColor = "#000000";
         [SerializeField] private string npcNameColor = "#D6A85A";
 
         [Header("Events")]

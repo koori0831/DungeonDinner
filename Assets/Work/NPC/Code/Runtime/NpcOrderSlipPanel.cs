@@ -23,7 +23,7 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private Sprite panelSprite;
         [SerializeField] private Sprite labelSprite;
         [SerializeField] private Vector2 panelSize = new Vector2(320f, 360f);
-        [SerializeField] private Vector2 pinnedAnchoredPosition = new Vector2(28f, -28f);
+        [SerializeField] private Vector2 pinnedAnchoredPosition = new Vector2(1586f, -24f);
         [SerializeField, Min(0f)] private float referencePanelSidePadding = 14f;
         [SerializeField, Min(0f)] private float referencePanelTopPadding = 24f;
 
@@ -38,7 +38,6 @@ namespace Work.NPC.Code.Runtime
         private readonly Queue<string> _queuedEntries = new Queue<string>();
         private readonly List<string> _completedEntries = new List<string>();
         private readonly StringBuilder _displayedText = new StringBuilder();
-        private readonly Vector3[] _referenceCorners = new Vector3[4];
         private RectTransform _root;
         private CancellationTokenSource _animationCancellationTokenSource;
         private bool _isProcessingQueue;
@@ -155,6 +154,12 @@ namespace Work.NPC.Code.Runtime
             canvasGroup.alpha = visible ? 1f : 0f;
             canvasGroup.interactable = visible;
             canvasGroup.blocksRaycasts = visible;
+
+            if (visible == true)
+            {
+                EnsureTopRightFallbackPosition();
+                BringToFront();
+            }
         }
 
         /// <summary>
@@ -180,10 +185,9 @@ namespace Work.NPC.Code.Runtime
 
             Transform header = transform.Find("Header");
             Image headerImage = header != null ? header.GetComponent<Image>() : null;
-            ApplyUiSprite(headerImage, labelSprite);
-            if (headerImage != null && labelSprite != null)
+            if (headerImage != null)
             {
-                headerImage.color = Color.white;
+                headerImage.enabled = false;
             }
         }
 
@@ -196,12 +200,12 @@ namespace Work.NPC.Code.Runtime
         }
 
         /// <summary>
-        /// 기준 패널의 왼쪽에 주문 명세서 위치 고정
+        /// 기준 패널의 오른쪽에 주문 명세서 위치 고정
         /// </summary>
         /// <param name="referencePanel">위치 기준 패널</param>
         public void PinToReferencePanel(RectTransform referencePanel)
         {
-            if (_root == null || referencePanel == null)
+            if (_root == null)
             {
                 return;
             }
@@ -213,30 +217,44 @@ namespace Work.NPC.Code.Runtime
             }
 
             ApplyDefaultLayout();
-            referencePanel.GetWorldCorners(_referenceCorners);
-            float targetLeft = float.MaxValue;
-            float targetTop = float.MinValue;
-            for (int i = 0; i < _referenceCorners.Length; i++)
-            {
-                Vector3 localCorner = parentRect.InverseTransformPoint(_referenceCorners[i]);
-                targetLeft = Mathf.Min(targetLeft, localCorner.x);
-                targetTop = Mathf.Max(targetTop, localCorner.y);
-            }
+            pinnedAnchoredPosition = GetTopRightPosition(parentRect);
 
-            float leftOfReference = targetLeft - parentRect.rect.xMin - panelSize.x - referencePanelSidePadding;
-            float insideReferenceLeft = targetLeft - parentRect.rect.xMin + referencePanelSidePadding;
-            float targetX = leftOfReference >= referencePanelSidePadding ? leftOfReference : insideReferenceLeft;
-            float targetY = targetTop - parentRect.rect.yMax - referencePanelTopPadding;
-            pinnedAnchoredPosition = new Vector2(targetX, targetY);
+            ApplyPinnedPositionForCurrentVisibility();
+        }
 
+        private void ApplyPinnedPositionForCurrentVisibility()
+        {
             if (_hasEntered == true && canvasGroup != null && canvasGroup.alpha > 0f)
             {
                 _root.anchoredPosition = pinnedAnchoredPosition;
+                return;
             }
-            else
+
+            MoveToHiddenPosition();
+        }
+
+        private Vector2 GetTopRightPosition(RectTransform parentRect)
+        {
+            if (parentRect == null)
             {
-                MoveToHiddenPosition();
+                return pinnedAnchoredPosition;
             }
+
+            float targetX = Mathf.Max(
+                referencePanelSidePadding,
+                parentRect.rect.width - panelSize.x - referencePanelSidePadding);
+            return new Vector2(targetX, -referencePanelTopPadding);
+        }
+
+        private void EnsureTopRightFallbackPosition()
+        {
+            RectTransform parentRect = _root != null ? _root.parent as RectTransform : null;
+            if (parentRect == null)
+            {
+                return;
+            }
+
+            pinnedAnchoredPosition = GetTopRightPosition(parentRect);
         }
 
         private void StartProcessingQueue(bool playEntryAnimation)
@@ -286,6 +304,7 @@ namespace Work.NPC.Code.Runtime
 
         private async UniTask PlayEntryAnimationAsync(CancellationToken cancellationToken)
         {
+            EnsureTopRightFallbackPosition();
             Vector2 target = pinnedAnchoredPosition;
             MoveToHiddenPosition();
             Vector2 start = _root.anchoredPosition;
@@ -425,6 +444,7 @@ namespace Work.NPC.Code.Runtime
             _root.anchorMax = new Vector2(0f, 1f);
             _root.pivot = new Vector2(0f, 1f);
             _root.sizeDelta = panelSize;
+            EnsureTopRightFallbackPosition();
             _root.anchoredPosition = pinnedAnchoredPosition;
         }
 
@@ -456,7 +476,7 @@ namespace Work.NPC.Code.Runtime
             if (canvasGroup == null)
                 canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
-            GameObject headerObject = new GameObject("Header", typeof(RectTransform), typeof(Image));
+            GameObject headerObject = new GameObject("Header", typeof(RectTransform));
             headerObject.transform.SetParent(transform, false);
             RectTransform header = headerObject.GetComponent<RectTransform>();
             header.anchorMin = new Vector2(0f, 1f);
@@ -464,17 +484,14 @@ namespace Work.NPC.Code.Runtime
             header.pivot = new Vector2(0.5f, 1f);
             header.sizeDelta = new Vector2(0f, headerHeight);
             header.anchoredPosition = Vector2.zero;
-            Image headerImage = headerObject.GetComponent<Image>();
-            ApplyUiSprite(headerImage, labelSprite);
-            headerImage.color = labelSprite != null ? Color.white : new Color(0.22f, 0.19f, 0.16f, 0.95f);
 
-            titleText = CreateText(header, "Title", "주문 명세서", 20f, TextAlignmentOptions.MidlineLeft);
+            titleText = CreateText(header, "Title", "주문 명세서", 20f, TextAlignmentOptions.Center);
             RectTransform titleRect = titleText.rectTransform;
             titleRect.anchorMin = Vector2.zero;
             titleRect.anchorMax = Vector2.one;
-            titleRect.offsetMin = new Vector2(18f, 0f);
-            titleRect.offsetMax = new Vector2(-18f, 0f);
-            titleText.color = new Color(1f, 0.94f, 0.78f, 1f);
+            titleRect.offsetMin = Vector2.zero;
+            titleRect.offsetMax = Vector2.zero;
+            titleText.color = Color.black;
 
             GameObject bodyObject = new GameObject("Body", typeof(RectTransform), typeof(RectMask2D));
             bodyObject.transform.SetParent(transform, false);

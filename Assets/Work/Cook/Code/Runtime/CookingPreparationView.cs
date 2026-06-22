@@ -456,7 +456,6 @@ namespace Work.Cook.Code.Runtime
             EventTrigger trigger = card.gameObject.AddComponent<EventTrigger>();
             AddEventTrigger(trigger, EventTriggerType.PointerEnter, _ =>
             {
-                card.localScale = new Vector3(1.06f, 1.06f, 1f);
                 if (card.TryGetComponent(out Image image))
                     image.color = panelSprite != null ? Color.white : cardHoverColor;
                 SetDetailsActive(detailObjects, true);
@@ -464,7 +463,6 @@ namespace Work.Cook.Code.Runtime
 
             AddEventTrigger(trigger, EventTriggerType.PointerExit, _ =>
             {
-                card.localScale = Vector3.one;
                 if (card.TryGetComponent(out Image image))
                     image.color = panelSprite != null ? Color.white : cardColor;
                 SetDetailsActive(detailObjects, false);

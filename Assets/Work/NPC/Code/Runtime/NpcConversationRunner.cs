@@ -631,9 +631,20 @@ namespace Work.NPC.Code.Runtime
         private void NotifyConversationCompleted()
         {
             _conversationCompleted = true;
+            HideOrderSlipPanel();
             ConversationCompleted?.Invoke();
             conversationCompleted.Invoke();
             Debug.Log("NPC conversation completed.");
+        }
+
+        private void HideOrderSlipPanel()
+        {
+            if (orderSlipPanel == null)
+            {
+                orderSlipPanel = FindFirstObjectByType<NpcOrderSlipPanel>();
+            }
+
+            orderSlipPanel?.SetVisible(false);
         }
 
         private void NotifyConversationStarted()
