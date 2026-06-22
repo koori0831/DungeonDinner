@@ -10,6 +10,8 @@ namespace Work.Chat.Code
     {
         [SerializeField] private TextMeshProUGUI text;
         [SerializeField] private Image image;
+        [SerializeField] private Sprite playerBubbleSprite;
+        [SerializeField] private Sprite otherBubbleSprite;
         [SerializeField] private Vector2 padding = new Vector2(28f, 18f);
         [SerializeField] private float minWidth = 95f;
         [SerializeField] private float minHeight = 50f;
@@ -54,11 +56,27 @@ namespace Work.Chat.Code
             RectTransform rectTransform = transform as RectTransform;
             if (rectTransform != null)
                 rectTransform.pivot = new Vector2(isUserChat ? 1f : 0f, rectTransform.pivot.y);
-            
-            text.color = isUserChat ? Color.white : Color.black;
-            image.color = !isUserChat ? Color.white : Color.black;
+
+            ApplyBubbleVisual(isUserChat);
             ResizeToText();
             StartTyping();
+        }
+
+        private void ApplyBubbleVisual(bool isUserChat)
+        {
+            Sprite bubbleSprite = isUserChat == true ? playerBubbleSprite : otherBubbleSprite;
+            if (bubbleSprite != null && image != null)
+            {
+                image.sprite = bubbleSprite;
+                image.type = Image.Type.Sliced;
+                image.preserveAspect = false;
+                image.color = Color.white;
+                text.color = isUserChat == true ? Color.black : Color.white;
+                return;
+            }
+
+            text.color = isUserChat == true ? Color.white : Color.black;
+            image.color = isUserChat == false ? Color.white : Color.black;
         }
 
         public void SetMaxWidth(float width)

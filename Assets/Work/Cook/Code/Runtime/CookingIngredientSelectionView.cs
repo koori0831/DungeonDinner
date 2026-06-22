@@ -11,7 +11,8 @@ namespace Work.Cook.Code.Runtime
 {
     public sealed class CookingIngredientSelectionView : MonoBehaviour, ICookingIngredientSelectionView
     {
-        private const int CurrentDefaultLayoutVersion = 6;
+        private const int CurrentDefaultLayoutVersion = 7;
+        private const float SELECTED_GRID_BUTTON_SCALE = 1.07f;
 
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
@@ -43,6 +44,8 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
         [SerializeField] private bool rebuildTemporaryDefaultLayoutWhenVersionChanges = true;
         [SerializeField] private int defaultLayoutVersion;
+        [SerializeField] private Sprite panelSprite;
+        [SerializeField] private Sprite labelSprite;
         [SerializeField] private Color panelColor = new Color(0.20f, 0.12f, 0.065f, 0.94f);
         [SerializeField] private Color sectionColor = new Color(0.30f, 0.20f, 0.12f, 0.96f);
         [SerializeField] private Color defaultButtonColor = new Color(0.68f, 0.50f, 0.30f, 1f);
@@ -284,8 +287,10 @@ namespace Work.Cook.Code.Runtime
                     BuildAvailableIngredientLabel(ingredient, availableQuantity),
                     GetIngredientIcon(ingredient),
                     selected ? selectedButtonColor : defaultButtonColor,
-                    () => ToggleIngredient(ingredient));
-                button.interactable = selected || availableQuantity > 0 && CanSelectMore(selectedIngredients);
+                    () => ToggleIngredient(ingredient),
+                    selected);
+                button.interactable = selected == true
+                                      || availableQuantity > 0 && CanSelectMore(selectedIngredients) == true;
                 BindIngredientPointerEvents(button.gameObject, ingredient);
             }
         }
@@ -323,7 +328,8 @@ namespace Work.Cook.Code.Runtime
                     ingredient.DisplayName,
                     GetIngredientIcon(ingredient),
                     selectedButtonColor,
-                    () => RemoveIngredient(ingredient));
+                    () => RemoveIngredient(ingredient),
+                    false);
                 BindIngredientPointerEvents(button.gameObject, ingredient);
             }
         }
@@ -686,6 +692,8 @@ namespace Work.Cook.Code.Runtime
             if (selectedSection == null)
                 return;
 
+            EnsureScrollContentScrollbar(selectedIngredientRoot);
+
             if (selectionRuleField == null)
             {
                 selectionRuleField = FindNamedText(selectedSection, "SelectionRule");
@@ -790,12 +798,14 @@ namespace Work.Cook.Code.Runtime
         {
             RectTransform section = CreateLayoutObject(parent, name);
             Image image = section.gameObject.AddComponent<Image>();
-            ApplyGeneratedSprite(image);
+            ApplyUiAssetSprite(image, panelSprite);
             bool isBag = string.Equals(name, "BagSection", StringComparison.OrdinalIgnoreCase);
             bool isPocket = string.Equals(name, "SelectedSection", StringComparison.OrdinalIgnoreCase);
-            image.color = isBag
-                ? new Color(0.36f, 0.22f, 0.12f, 0.98f)
-                : isPocket ? new Color(0.18f, 0.12f, 0.08f, 0.96f) : sectionColor;
+            image.color = panelSprite != null
+                ? Color.white
+                : isBag == true
+                    ? new Color(0.36f, 0.22f, 0.12f, 0.98f)
+                    : isPocket == true ? new Color(0.18f, 0.12f, 0.08f, 0.96f) : sectionColor;
 
             Shadow shadow = section.gameObject.AddComponent<Shadow>();
             shadow.effectColor = new Color(0f, 0f, 0f, 0.42f);
@@ -822,8 +832,8 @@ namespace Work.Cook.Code.Runtime
         {
             RectTransform mouth = CreateLayoutObject(parent, "BagMouth");
             Image mouthImage = mouth.gameObject.AddComponent<Image>();
-            ApplyGeneratedSprite(mouthImage);
-            mouthImage.color = new Color(0.16f, 0.085f, 0.045f, 0.96f);
+            ApplyUiAssetSprite(mouthImage, labelSprite);
+            mouthImage.color = labelSprite != null ? Color.white : new Color(0.16f, 0.085f, 0.045f, 0.96f);
             AddLayoutElement(mouth.gameObject, -1f, 24f, -1f, 0f);
 
             HorizontalLayoutGroup layout = mouth.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -871,7 +881,7 @@ namespace Work.Cook.Code.Runtime
             content.offsetMax = Vector2.zero;
 
             VerticalLayoutGroup contentLayout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-            contentLayout.padding = new RectOffset(8, 8, 8, 8);
+            contentLayout.padding = new RectOffset(8, 18, 8, 8);
             contentLayout.spacing = 6f;
             contentLayout.childControlWidth = true;
             contentLayout.childControlHeight = true;
@@ -883,6 +893,8 @@ namespace Work.Cook.Code.Runtime
 
             scrollRect.viewport = viewport;
             scrollRect.content = content;
+            scrollRect.verticalScrollbar = CreateVerticalScrollbar(viewport);
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
             return content;
         }
 
@@ -910,8 +922,8 @@ namespace Work.Cook.Code.Runtime
 
             GridLayoutGroup grid = content.gameObject.AddComponent<GridLayoutGroup>();
             grid.padding = new RectOffset(10, 10, 10, 10);
-            grid.spacing = new Vector2(8f, 8f);
-            grid.cellSize = new Vector2(92f, 68f);
+            grid.spacing = new Vector2(12f, 12f);
+            grid.cellSize = new Vector2(100f, 74f);
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = 4;
             grid.childAlignment = TextAnchor.UpperLeft;
@@ -924,18 +936,116 @@ namespace Work.Cook.Code.Runtime
             return content;
         }
 
-        private Button CreateIngredientButton(Transform parent, string label, Sprite icon, Color color, UnityEngine.Events.UnityAction action)
+        private Button CreateIngredientButton(
+            Transform parent,
+            string label,
+            Sprite icon,
+            Color color,
+            UnityEngine.Events.UnityAction action,
+            bool selected)
         {
             Button button = CreateActionButton(parent, label, action, color);
             bool inGrid = parent != null && parent.GetComponent<GridLayoutGroup>() != null;
-            AddLayoutElement(button.gameObject, -1f, inGrid ? 68f : 38f, -1f, 0f);
+            AddLayoutElement(button.gameObject, -1f, inGrid ? 74f : 42f, -1f, 0f);
 
             if (icon != null)
             {
                 AddIconToIngredientButton(button, icon, inGrid);
             }
 
+            if (selected == true)
+            {
+                ApplySelectedIngredientVisual(button, inGrid);
+            }
+
             return button;
+        }
+
+        private Scrollbar CreateVerticalScrollbar(RectTransform viewport)
+        {
+            GameObject scrollbarObject = new GameObject("VerticalScrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
+            scrollbarObject.transform.SetParent(viewport, false);
+
+            RectTransform scrollbarRect = scrollbarObject.GetComponent<RectTransform>();
+            scrollbarRect.anchorMin = new Vector2(1f, 0f);
+            scrollbarRect.anchorMax = new Vector2(1f, 1f);
+            scrollbarRect.pivot = new Vector2(1f, 0.5f);
+            scrollbarRect.anchoredPosition = Vector2.zero;
+            scrollbarRect.sizeDelta = new Vector2(10f, 0f);
+
+            Image background = scrollbarObject.GetComponent<Image>();
+            ApplyGeneratedSprite(background);
+            background.color = new Color(0f, 0f, 0f, 0.34f);
+
+            GameObject handleObject = new GameObject("Handle", typeof(RectTransform), typeof(Image));
+            handleObject.transform.SetParent(scrollbarObject.transform, false);
+            RectTransform handleRect = handleObject.GetComponent<RectTransform>();
+            handleRect.anchorMin = Vector2.zero;
+            handleRect.anchorMax = Vector2.one;
+            handleRect.offsetMin = new Vector2(2f, 2f);
+            handleRect.offsetMax = new Vector2(-2f, -2f);
+
+            Image handleImage = handleObject.GetComponent<Image>();
+            ApplyGeneratedSprite(handleImage);
+            handleImage.color = new Color(0.92f, 0.72f, 0.46f, 0.86f);
+
+            Scrollbar scrollbar = scrollbarObject.GetComponent<Scrollbar>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            scrollbar.targetGraphic = handleImage;
+            scrollbar.handleRect = handleRect;
+            return scrollbar;
+        }
+
+        private void EnsureScrollContentScrollbar(RectTransform contentRoot)
+        {
+            if (contentRoot == null || contentRoot.parent == null)
+            {
+                return;
+            }
+
+            RectTransform viewport = contentRoot.parent as RectTransform;
+            if (viewport == null)
+            {
+                return;
+            }
+
+            ScrollRect scrollRect = viewport.GetComponent<ScrollRect>();
+            if (scrollRect == null || scrollRect.verticalScrollbar != null)
+            {
+                return;
+            }
+
+            scrollRect.verticalScrollbar = CreateVerticalScrollbar(viewport);
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+
+            VerticalLayoutGroup contentLayout = contentRoot.GetComponent<VerticalLayoutGroup>();
+            if (contentLayout != null)
+            {
+                contentLayout.padding = new RectOffset(
+                    contentLayout.padding.left,
+                    Mathf.Max(contentLayout.padding.right, 18),
+                    contentLayout.padding.top,
+                    contentLayout.padding.bottom);
+            }
+        }
+
+        private void ApplySelectedIngredientVisual(Button button, bool inGrid)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            RectTransform rectTransform = button.transform as RectTransform;
+            if (rectTransform != null && inGrid == true)
+            {
+                rectTransform.localScale = new Vector3(SELECTED_GRID_BUTTON_SCALE, SELECTED_GRID_BUTTON_SCALE, 1f);
+            }
+
+            Outline outline = GetOrAdd<Outline>(button.gameObject);
+            outline.effectColor = new Color(1f, 0.90f, 0.55f, 0.78f);
+            outline.effectDistance = new Vector2(2f, -2f);
+            outline.useGraphicAlpha = true;
         }
 
         private void AddIconToIngredientButton(Button button, Sprite icon, bool inGrid)
@@ -983,8 +1093,8 @@ namespace Work.Cook.Code.Runtime
             inputObject.transform.SetParent(parent, false);
 
             Image image = inputObject.GetComponent<Image>();
-            ApplyGeneratedSprite(image);
-            image.color = new Color(0f, 0f, 0f, 0.24f);
+            ApplyUiAssetSprite(image, labelSprite);
+            image.color = labelSprite != null ? Color.white : new Color(0f, 0f, 0f, 0.24f);
 
             TextMeshProUGUI text = CreateText(inputObject.transform, "Text", string.Empty, 15f, TextAlignmentOptions.Left);
             text.rectTransform.anchorMin = Vector2.zero;
@@ -1025,15 +1135,16 @@ namespace Work.Cook.Code.Runtime
             buttonObject.transform.SetParent(parent, false);
 
             Image image = buttonObject.GetComponent<Image>();
-            ApplyGeneratedSprite(image);
-            image.color = color;
+            ApplyUiAssetSprite(image, labelSprite);
+            Color visualColor = labelSprite != null ? Color.white : color;
+            image.color = visualColor;
 
             Button button = buttonObject.GetComponent<Button>();
             button.targetGraphic = image;
             ColorBlock colors = button.colors;
-            colors.normalColor = color;
-            colors.highlightedColor = Color.Lerp(color, Color.white, 0.16f);
-            colors.pressedColor = Color.Lerp(color, Color.black, 0.16f);
+            colors.normalColor = visualColor;
+            colors.highlightedColor = Color.Lerp(visualColor, Color.white, 0.16f);
+            colors.pressedColor = Color.Lerp(visualColor, Color.black, 0.16f);
             colors.selectedColor = colors.highlightedColor;
             colors.disabledColor = disabledButtonColor;
             colors.colorMultiplier = 1f;
@@ -1412,6 +1523,24 @@ namespace Work.Cook.Code.Runtime
 
             image.type = Image.Type.Simple;
             image.preserveAspect = false;
+        }
+
+        private void ApplyUiAssetSprite(Image image, Sprite sprite)
+        {
+            if (image == null)
+            {
+                return;
+            }
+
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.type = Image.Type.Sliced;
+                image.preserveAspect = false;
+                return;
+            }
+
+            ApplyGeneratedSprite(image);
         }
 
         private static Sprite GetGeneratedFallbackSprite()
