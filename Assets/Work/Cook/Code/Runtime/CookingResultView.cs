@@ -29,8 +29,6 @@ namespace Work.Cook.Code.Runtime
         [Header("Default Layout")]
         [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
         [SerializeField] private TMP_FontAsset fontAsset;
-        [SerializeField] private Sprite panelSprite;
-        [SerializeField] private Sprite labelSprite;
         [SerializeField] private Color panelColor = new Color(0.045f, 0.035f, 0.028f, 0.90f);
         [SerializeField] private Color sectionColor = new Color(0.13f, 0.105f, 0.08f, 0.94f);
         [SerializeField] private Color plateColor = new Color(0.31f, 0.23f, 0.16f, 0.98f);
@@ -232,7 +230,6 @@ namespace Work.Cook.Code.Runtime
             if (HasRequiredLayoutReferences() == true)
             {
                 EnsureDishIconReference();
-                ApplyExistingUiAssetSprites();
                 return;
             }
 
@@ -247,43 +244,6 @@ namespace Work.Cook.Code.Runtime
                    && preparationRoot != null
                    && reasonsField != null
                    && handToNpcButton != null;
-        }
-
-        private void ApplyExistingUiAssetSprites()
-        {
-            Image[] images = GetComponentsInChildren<Image>(true);
-            for (int i = 0; i < images.Length; i++)
-            {
-                Image image = images[i];
-                if (image == null)
-                {
-                    continue;
-                }
-
-                string objectName = image.gameObject.name;
-                if (objectName == "ResultPanel"
-                    || objectName == "DishSection"
-                    || objectName == "NpcMatchSection"
-                    || objectName == "PreparationSection"
-                    || objectName == "ReasonSection")
-                {
-                    ApplyUiAssetSprite(image, panelSprite);
-                    if (panelSprite != null)
-                    {
-                        image.color = Color.white;
-                    }
-                    continue;
-                }
-
-                if (objectName.StartsWith("Button_", System.StringComparison.Ordinal) == true)
-                {
-                    ApplyUiAssetSprite(image, labelSprite);
-                    if (labelSprite != null)
-                    {
-                        image.color = Color.white;
-                    }
-                }
-            }
         }
 
         private void EnsureDishIconReference()
@@ -327,8 +287,8 @@ namespace Work.Cook.Code.Runtime
             panel.anchoredPosition = Vector2.zero;
 
             Image panelImage = panel.gameObject.AddComponent<Image>();
-            ApplyUiAssetSprite(panelImage, panelSprite);
-            panelImage.color = panelSprite != null ? Color.white : panelColor;
+            ApplyGeneratedSprite(panelImage);
+            panelImage.color = panelColor;
 
             VerticalLayoutGroup rootLayout = GetOrAdd<VerticalLayoutGroup>(panel.gameObject);
             rootLayout.padding = new RectOffset(18, 18, 14, 14);
@@ -411,8 +371,8 @@ namespace Work.Cook.Code.Runtime
         {
             RectTransform section = CreateLayoutObject(parent, name);
             Image image = section.gameObject.AddComponent<Image>();
-            ApplyUiAssetSprite(image, panelSprite);
-            image.color = panelSprite != null ? Color.white : color;
+            ApplyGeneratedSprite(image);
+            image.color = color;
 
             VerticalLayoutGroup layout = section.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.padding = new RectOffset(12, 12, 10, 10);
@@ -476,16 +436,15 @@ namespace Work.Cook.Code.Runtime
             buttonObject.transform.SetParent(parent, false);
 
             Image image = buttonObject.GetComponent<Image>();
-            ApplyUiAssetSprite(image, labelSprite);
-            Color visualColor = labelSprite != null ? Color.white : color;
-            image.color = visualColor;
+            ApplyGeneratedSprite(image);
+            image.color = color;
 
             Button button = buttonObject.GetComponent<Button>();
             button.targetGraphic = image;
             ColorBlock colors = button.colors;
-            colors.normalColor = visualColor;
-            colors.highlightedColor = Color.Lerp(visualColor, Color.white, 0.16f);
-            colors.pressedColor = Color.Lerp(visualColor, Color.black, 0.16f);
+            colors.normalColor = color;
+            colors.highlightedColor = Color.Lerp(color, Color.white, 0.16f);
+            colors.pressedColor = Color.Lerp(color, Color.black, 0.16f);
             colors.selectedColor = colors.highlightedColor;
             colors.disabledColor = disabledButtonColor;
             colors.colorMultiplier = 1f;
@@ -886,24 +845,6 @@ namespace Work.Cook.Code.Runtime
 
             image.type = Image.Type.Simple;
             image.preserveAspect = false;
-        }
-
-        private void ApplyUiAssetSprite(Image image, Sprite sprite)
-        {
-            if (image == null)
-            {
-                return;
-            }
-
-            if (sprite != null)
-            {
-                image.sprite = sprite;
-                image.type = Image.Type.Sliced;
-                image.preserveAspect = false;
-                return;
-            }
-
-            ApplyGeneratedSprite(image);
         }
 
         private static Sprite GetGeneratedFallbackSprite()

@@ -1,15 +1,14 @@
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Work.NPC.Code.Runtime
 {
-    public sealed class NpcOrderSlipPanel : MonoBehaviour
+    public sealed class NpcOrderSlipPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         [Header("References")]
         [SerializeField] private TMP_FontAsset fontAsset;
@@ -20,29 +19,24 @@ namespace Work.NPC.Code.Runtime
         [Header("Generated UI")]
         [SerializeField] private bool createGeneratedUi = true;
         [SerializeField] private bool visibleOnStart;
-        [SerializeField] private Sprite panelSprite;
-        [SerializeField] private Sprite labelSprite;
+        [SerializeField] private bool visibleOnConversationStart = true;
         [SerializeField] private Vector2 panelSize = new Vector2(320f, 360f);
-        [SerializeField] private Vector2 pinnedAnchoredPosition = new Vector2(28f, -28f);
-        [SerializeField, Min(0f)] private float referencePanelSidePadding = 14f;
-        [SerializeField, Min(0f)] private float referencePanelTopPadding = 24f;
+        [SerializeField] private Vector2 defaultAnchoredPosition = new Vector2(360f, 0f);
 
         [Header("Motion")]
-        [SerializeField, Min(0f)] private float headerHeight = 48f;
-        [SerializeField, Min(0.01f)] private float enterDuration = 0.38f;
-        [SerializeField, Min(0f)] private float enterBounceDistance = 24f;
-        [SerializeField, Min(0f)] private float hiddenTopPadding = 36f;
+        [SerializeField, Min(0f)] private float dragTopHeight = 48f;
+        [SerializeField, Min(0f)] private float horizontalOverhang = 80f;
+        [SerializeField, Min(0f)] private float verticalOverhang = 80f;
         [SerializeField, Min(0.001f)] private float characterDelay = 0.025f;
         [SerializeField, Min(1)] private int maxEntries = 12;
 
         private readonly Queue<string> _queuedEntries = new Queue<string>();
         private readonly List<string> _completedEntries = new List<string>();
         private readonly StringBuilder _displayedText = new StringBuilder();
-        private readonly Vector3[] _referenceCorners = new Vector3[4];
         private RectTransform _root;
-        private CancellationTokenSource _animationCancellationTokenSource;
-        private bool _isProcessingQueue;
-        private bool _hasEntered;
+        private Canvas _canvas;
+        private Coroutine _typingRoutine;
+        private bool _isDragging;
         private int _entrySequence;
 
         public static NpcOrderSlipPanel GetOrCreateGeneratedPanel()
@@ -76,6 +70,7 @@ namespace Work.NPC.Code.Runtime
         private void Awake()
         {
             _root = transform as RectTransform;
+            _canvas = GetComponentInParent<Canvas>();
             ResolveFont();
 
             if (canvasGroup == null)
@@ -86,33 +81,25 @@ namespace Work.NPC.Code.Runtime
 
             ApplyDefaultLayout();
             SetVisible(visibleOnStart);
-            if (visibleOnStart == false)
-            {
-                MoveToHiddenPosition();
-            }
-
             RefreshContentText();
-        }
-
-        private void OnDestroy()
-        {
-            CancelAnimation();
         }
 
         public void ResetForConversation(string eventId = "", string npcId = "")
         {
-            CancelAnimation();
+            if (_typingRoutine != null)
+            {
+                StopCoroutine(_typingRoutine);
+                _typingRoutine = null;
+            }
 
             _queuedEntries.Clear();
             _completedEntries.Clear();
             _displayedText.Clear();
             _entrySequence = 0;
-            _hasEntered = false;
-            _isProcessingQueue = false;
-            ApplyDefaultLayout();
-            MoveToHiddenPosition();
-            SetVisible(false);
             RefreshContentText();
+
+            if (visibleOnConversationStart)
+                SetVisible(true);
         }
 
         public void AppendOrderClues(IEnumerable<string> clues)
@@ -120,7 +107,6 @@ namespace Work.NPC.Code.Runtime
             if (clues == null)
                 return;
 
-            bool startedFirstEntry = false;
             foreach (string clue in clues)
             {
                 string normalized = NormalizeClue(clue);
@@ -128,23 +114,11 @@ namespace Work.NPC.Code.Runtime
                     continue;
 
                 _entrySequence++;
-                string entry = $"{_entrySequence:00}  {normalized}";
-                if (_hasEntered == false && startedFirstEntry == false)
-                {
-                    AppendVisibleCompletedEntry(entry);
-                    _hasEntered = true;
-                    startedFirstEntry = true;
-                    StartProcessingQueue(true);
-                    continue;
-                }
-
-                _queuedEntries.Enqueue(entry);
+                _queuedEntries.Enqueue($"{_entrySequence:00}  {normalized}");
             }
 
-            if (_queuedEntries.Count > 0 && _isProcessingQueue == false)
-            {
-                StartProcessingQueue(false);
-            }
+            if (_queuedEntries.Count > 0 && _typingRoutine == null)
+                _typingRoutine = StartCoroutine(TypeQueuedEntriesRoutine());
         }
 
         public void SetVisible(bool visible)
@@ -157,223 +131,50 @@ namespace Work.NPC.Code.Runtime
             canvasGroup.blocksRaycasts = visible;
         }
 
-        /// <summary>
-        /// 주문 명세서 UI 배경 Sprite 설정
-        /// </summary>
-        /// <param name="panel">패널 배경 Sprite</param>
-        /// <param name="label">라벨 배경 Sprite</param>
-        public void SetVisualSprites(Sprite panel, Sprite label)
+        public void OnBeginDrag(PointerEventData eventData)
         {
-            panelSprite = panel;
-            labelSprite = label;
-            ApplyExistingVisualSprites();
+            _isDragging = IsPointerInDragArea(eventData);
         }
 
-        private void ApplyExistingVisualSprites()
+        public void OnDrag(PointerEventData eventData)
         {
-            Image background = GetComponent<Image>();
-            ApplyUiSprite(background, panelSprite);
-            if (background != null && panelSprite != null)
-            {
-                background.color = Color.white;
-            }
-
-            Transform header = transform.Find("Header");
-            Image headerImage = header != null ? header.GetComponent<Image>() : null;
-            ApplyUiSprite(headerImage, labelSprite);
-            if (headerImage != null && labelSprite != null)
-            {
-                headerImage.color = Color.white;
-            }
-        }
-
-        /// <summary>
-        /// 주문 명세서를 UI 최상단으로 이동
-        /// </summary>
-        public void BringToFront()
-        {
-            transform.SetAsLastSibling();
-        }
-
-        /// <summary>
-        /// 기준 패널의 왼쪽에 주문 명세서 위치 고정
-        /// </summary>
-        /// <param name="referencePanel">위치 기준 패널</param>
-        public void PinToReferencePanel(RectTransform referencePanel)
-        {
-            if (_root == null || referencePanel == null)
-            {
+            if (_isDragging == false || _root == null)
                 return;
-            }
 
-            RectTransform parentRect = _root.parent as RectTransform;
-            if (parentRect == null)
-            {
-                return;
-            }
-
-            ApplyDefaultLayout();
-            referencePanel.GetWorldCorners(_referenceCorners);
-            float targetLeft = float.MaxValue;
-            float targetTop = float.MinValue;
-            for (int i = 0; i < _referenceCorners.Length; i++)
-            {
-                Vector3 localCorner = parentRect.InverseTransformPoint(_referenceCorners[i]);
-                targetLeft = Mathf.Min(targetLeft, localCorner.x);
-                targetTop = Mathf.Max(targetTop, localCorner.y);
-            }
-
-            float leftOfReference = targetLeft - parentRect.rect.xMin - panelSize.x - referencePanelSidePadding;
-            float insideReferenceLeft = targetLeft - parentRect.rect.xMin + referencePanelSidePadding;
-            float targetX = leftOfReference >= referencePanelSidePadding ? leftOfReference : insideReferenceLeft;
-            float targetY = targetTop - parentRect.rect.yMax - referencePanelTopPadding;
-            pinnedAnchoredPosition = new Vector2(targetX, targetY);
-
-            if (_hasEntered == true && canvasGroup != null && canvasGroup.alpha > 0f)
-            {
-                _root.anchoredPosition = pinnedAnchoredPosition;
-            }
-            else
-            {
-                MoveToHiddenPosition();
-            }
+            float scaleFactor = _canvas != null && _canvas.scaleFactor > 0f ? _canvas.scaleFactor : 1f;
+            Vector2 position = _root.anchoredPosition;
+            position.x += eventData.delta.x / scaleFactor;
+            position.y += eventData.delta.y / scaleFactor;
+            position.x = ClampHorizontalPosition(position.x);
+            position.y = ClampVerticalPosition(position.y);
+            _root.anchoredPosition = position;
         }
 
-        private void StartProcessingQueue(bool playEntryAnimation)
+        public void OnEndDrag(PointerEventData eventData)
         {
-            CancelAnimation();
-            _animationCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
-            ProcessQueuedEntriesAsync(playEntryAnimation, _animationCancellationTokenSource).Forget();
+            _isDragging = false;
         }
 
-        private async UniTask ProcessQueuedEntriesAsync(
-            bool playEntryAnimation,
-            CancellationTokenSource cancellationTokenSource)
+        private IEnumerator TypeQueuedEntriesRoutine()
         {
-            CancellationToken cancellationToken = cancellationTokenSource.Token;
-            _isProcessingQueue = true;
-            try
+            while (_queuedEntries.Count > 0)
             {
-                if (playEntryAnimation == true)
+                string entry = _queuedEntries.Dequeue();
+                if (_displayedText.Length > 0)
+                    _displayedText.AppendLine();
+
+                for (int i = 0; i < entry.Length; i++)
                 {
-                    await PlayEntryAnimationAsync(cancellationToken);
-                }
-                else
-                {
-                    SetVisible(true);
-                    ApplyDefaultLayout();
+                    _displayedText.Append(entry[i]);
+                    RefreshContentText();
+                    yield return new WaitForSeconds(characterDelay);
                 }
 
-                while (_queuedEntries.Count > 0)
-                {
-                    await TypeQueuedEntryAsync(_queuedEntries.Dequeue(), cancellationToken);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // 새 손님 시작 또는 패널 초기화로 연출이 취소되는 정상 흐름
-            }
-            finally
-            {
-                _isProcessingQueue = false;
-                if (_animationCancellationTokenSource == cancellationTokenSource)
-                {
-                    _animationCancellationTokenSource.Dispose();
-                    _animationCancellationTokenSource = null;
-                }
-            }
-        }
-
-        private async UniTask PlayEntryAnimationAsync(CancellationToken cancellationToken)
-        {
-            Vector2 target = pinnedAnchoredPosition;
-            MoveToHiddenPosition();
-            Vector2 start = _root.anchoredPosition;
-            SetVisible(true);
-            BringToFront();
-            await AnimateAnchoredPositionAsync(start, target, enterDuration, cancellationToken);
-            _root.anchoredPosition = target;
-        }
-
-        private async UniTask AnimateAnchoredPositionAsync(
-            Vector2 from,
-            Vector2 to,
-            float duration,
-            CancellationToken cancellationToken)
-        {
-            float elapsedTime = 0f;
-            while (elapsedTime < duration)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                elapsedTime += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsedTime / duration);
-                float eased = EaseOutBounce(t);
-                _root.anchoredPosition = Vector2.LerpUnclamped(from, to, eased);
-                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
-            }
-        }
-
-        private static float EaseOutBounce(float t)
-        {
-            const float BOUNCE_SCALE = 7.5625f;
-            const float BOUNCE_DIVISOR = 2.75f;
-
-            if (t < 1f / BOUNCE_DIVISOR)
-            {
-                return BOUNCE_SCALE * t * t;
+                _completedEntries.Add(entry);
+                TrimCompletedEntries();
             }
 
-            if (t < 2f / BOUNCE_DIVISOR)
-            {
-                float shifted = t - 1.5f / BOUNCE_DIVISOR;
-                return BOUNCE_SCALE * shifted * shifted + 0.75f;
-            }
-
-            if (t < 2.5f / BOUNCE_DIVISOR)
-            {
-                float shifted = t - 2.25f / BOUNCE_DIVISOR;
-                return BOUNCE_SCALE * shifted * shifted + 0.9375f;
-            }
-
-            float finalShifted = t - 2.625f / BOUNCE_DIVISOR;
-            return BOUNCE_SCALE * finalShifted * finalShifted + 0.984375f;
-        }
-
-        private async UniTask TypeQueuedEntryAsync(string entry, CancellationToken cancellationToken)
-        {
-            if (_displayedText.Length > 0)
-            {
-                _displayedText.AppendLine();
-            }
-
-            int delayMilliseconds = Mathf.Max(1, Mathf.RoundToInt(characterDelay * 1000f));
-            for (int i = 0; i < entry.Length; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                _displayedText.Append(entry[i]);
-                RefreshContentText();
-                await UniTask.Delay(delayMilliseconds, cancellationToken: cancellationToken);
-            }
-
-            AppendCompletedEntry(entry);
-        }
-
-        private void AppendCompletedEntry(string entry)
-        {
-            _completedEntries.Add(entry);
-            TrimCompletedEntries();
-        }
-
-        private void AppendVisibleCompletedEntry(string entry)
-        {
-            if (_displayedText.Length > 0)
-            {
-                _displayedText.AppendLine();
-            }
-
-            _displayedText.Append(entry);
-            AppendCompletedEntry(entry);
-            RefreshContentText();
+            _typingRoutine = null;
         }
 
         private void TrimCompletedEntries()
@@ -404,16 +205,44 @@ namespace Work.NPC.Code.Runtime
             contentText.text = _displayedText.Length > 0 ? _displayedText.ToString() : "...";
         }
 
-        private void CancelAnimation()
+        private bool IsPointerInDragArea(PointerEventData eventData)
         {
-            if (_animationCancellationTokenSource == null)
+            if (_root == null || eventData == null)
+                return false;
+
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _root,
+                    eventData.position,
+                    eventData.pressEventCamera,
+                    out Vector2 localPoint) == false)
             {
-                return;
+                return false;
             }
 
-            _animationCancellationTokenSource.Cancel();
-            _animationCancellationTokenSource.Dispose();
-            _animationCancellationTokenSource = null;
+            return localPoint.x >= 0f
+                   && localPoint.x <= _root.rect.width
+                   && localPoint.y <= 0f
+                   && localPoint.y >= -_root.rect.height;
+        }
+
+        private float ClampHorizontalPosition(float x)
+        {
+            if (_root == null || _root.parent is RectTransform parent == false)
+                return x;
+
+            float minX = -horizontalOverhang;
+            float maxX = Mathf.Max(0f, parent.rect.width - _root.rect.width) + horizontalOverhang;
+            return Mathf.Clamp(x, minX, maxX);
+        }
+
+        private float ClampVerticalPosition(float y)
+        {
+            if (_root == null || _root.parent is RectTransform parent == false)
+                return y;
+
+            float minY = -Mathf.Max(0f, parent.rect.height - _root.rect.height) - verticalOverhang;
+            float maxY = verticalOverhang;
+            return Mathf.Clamp(y, minY, maxY);
         }
 
         private void ApplyDefaultLayout()
@@ -425,18 +254,9 @@ namespace Work.NPC.Code.Runtime
             _root.anchorMax = new Vector2(0f, 1f);
             _root.pivot = new Vector2(0f, 1f);
             _root.sizeDelta = panelSize;
-            _root.anchoredPosition = pinnedAnchoredPosition;
-        }
-
-        private void MoveToHiddenPosition()
-        {
-            if (_root == null)
-            {
-                return;
-            }
-
-            float hiddenY = pinnedAnchoredPosition.y + panelSize.y + hiddenTopPadding + enterBounceDistance;
-            _root.anchoredPosition = new Vector2(pinnedAnchoredPosition.x, hiddenY);
+            _root.anchoredPosition = new Vector2(
+                ClampHorizontalPosition(defaultAnchoredPosition.x),
+                defaultAnchoredPosition.y);
         }
 
         private void BuildGeneratedUi()
@@ -449,8 +269,7 @@ namespace Work.NPC.Code.Runtime
             if (background == null)
                 background = gameObject.AddComponent<Image>();
 
-            ApplyUiSprite(background, panelSprite);
-            background.color = panelSprite != null ? Color.white : new Color(0.96f, 0.92f, 0.78f, 0.96f);
+            background.color = new Color(0.96f, 0.92f, 0.78f, 0.96f);
             background.raycastTarget = true;
 
             if (canvasGroup == null)
@@ -462,11 +281,9 @@ namespace Work.NPC.Code.Runtime
             header.anchorMin = new Vector2(0f, 1f);
             header.anchorMax = Vector2.one;
             header.pivot = new Vector2(0.5f, 1f);
-            header.sizeDelta = new Vector2(0f, headerHeight);
+            header.sizeDelta = new Vector2(0f, dragTopHeight);
             header.anchoredPosition = Vector2.zero;
-            Image headerImage = headerObject.GetComponent<Image>();
-            ApplyUiSprite(headerImage, labelSprite);
-            headerImage.color = labelSprite != null ? Color.white : new Color(0.22f, 0.19f, 0.16f, 0.95f);
+            headerObject.GetComponent<Image>().color = new Color(0.22f, 0.19f, 0.16f, 0.95f);
 
             titleText = CreateText(header, "Title", "주문 명세서", 20f, TextAlignmentOptions.MidlineLeft);
             RectTransform titleRect = titleText.rectTransform;
@@ -482,7 +299,7 @@ namespace Work.NPC.Code.Runtime
             body.anchorMin = Vector2.zero;
             body.anchorMax = Vector2.one;
             body.offsetMin = new Vector2(18f, 18f);
-            body.offsetMax = new Vector2(-18f, -headerHeight - 16f);
+            body.offsetMax = new Vector2(-18f, -dragTopHeight - 16f);
 
             contentText = CreateText(body, "Content", string.Empty, 17f, TextAlignmentOptions.TopLeft);
             RectTransform content = contentText.rectTransform;
@@ -515,18 +332,6 @@ namespace Work.NPC.Code.Runtime
                 text.font = fontAsset;
 
             return text;
-        }
-
-        private static void ApplyUiSprite(Image image, Sprite sprite)
-        {
-            if (image == null || sprite == null)
-            {
-                return;
-            }
-
-            image.sprite = sprite;
-            image.type = Image.Type.Sliced;
-            image.preserveAspect = false;
         }
 
         private void ResolveFont()

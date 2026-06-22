@@ -21,7 +21,6 @@ namespace Work.Cook.Code.Runtime
         [Header("Default Layout")]
         [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
         [SerializeField] private TMP_FontAsset fontAsset;
-        [SerializeField] private Sprite panelSprite;
         [SerializeField] private Color panelColor = new Color(0.05f, 0.04f, 0.03f, 0.92f);
         [SerializeField] private Color positiveColor = new Color(0.92f, 0.78f, 0.35f, 1f);
         [SerializeField] private Color emptyColor = new Color(0.72f, 0.68f, 0.60f, 1f);
@@ -177,7 +176,6 @@ namespace Work.Cook.Code.Runtime
                 && rewardField != null
                 && balanceField != null)
             {
-                ApplyExistingUiAssetSprites();
                 return;
             }
 
@@ -200,8 +198,8 @@ namespace Work.Cook.Code.Runtime
             canvasGroup.interactable = false;
 
             Image background = GetOrAdd<Image>(gameObject);
-            ApplyUiAssetSprite(background, panelSprite);
-            background.color = panelSprite != null ? Color.white : panelColor;
+            ApplyGeneratedSprite(background);
+            background.color = panelColor;
             background.raycastTarget = false;
 
             VerticalLayoutGroup layout = GetOrAdd<VerticalLayoutGroup>(gameObject);
@@ -347,34 +345,6 @@ namespace Work.Cook.Code.Runtime
 
             image.type = Image.Type.Simple;
             image.preserveAspect = false;
-        }
-
-        private void ApplyExistingUiAssetSprites()
-        {
-            Image background = GetComponent<Image>();
-            ApplyUiAssetSprite(background, panelSprite);
-            if (background != null && panelSprite != null)
-            {
-                background.color = Color.white;
-            }
-        }
-
-        private void ApplyUiAssetSprite(Image image, Sprite sprite)
-        {
-            if (image == null)
-            {
-                return;
-            }
-
-            if (sprite != null)
-            {
-                image.sprite = sprite;
-                image.type = Image.Type.Sliced;
-                image.preserveAspect = false;
-                return;
-            }
-
-            ApplyGeneratedSprite(image);
         }
 
         private static Sprite GetGeneratedFallbackSprite()
