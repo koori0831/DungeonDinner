@@ -22821,7 +22821,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.NPC.Code.Runtime.NpcConversationRunner
   resourceFolder: NPCData
-  startEventId: Novice_FirstVisit_SweetDrink
+  startEventId: Odin_FirstVisit
   chatPanel: {fileID: 89226530}
   orderSlipPanel: {fileID: 0}
   playOnStart: 0
@@ -25025,6 +25025,9 @@ GameObject:
   - component: {fileID: 1154906897}
   - component: {fileID: 1154906896}
   - component: {fileID: 1154906895}
+  - component: {fileID: 1154906898}
+  - component: {fileID: 1154906899}
+  - component: {fileID: 1154906900}
   m_Layer: 0
   m_Name: CookingGamePanel
   m_TagString: Untagged
@@ -25073,7 +25076,7 @@ MonoBehaviour:
   keepRecipeSelectionVisibleBeforePreparation: 1
   keepRecipeSelectionVisibleDuringInventory: 0
   keepRecipeSelectionVisibleDuringPreparation: 1
-  allowRecipeConfirmation: 0
+  allowRecipeConfirmation: 1
   autoCreateTemporaryInventoryView: 1
   autoCreateTemporaryPreparationView: 1
   autoCreateTemporaryResultView: 1
@@ -25140,8 +25143,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRewardWallet
   startingBalance: 0
-  loadFromPlayerPrefsOnAwake: 1
-  saveToPlayerPrefs: 1
+  loadFromPlayerPrefsOnAwake: 0
+  saveToPlayerPrefs: 0
   playerPrefsKey: DungeonDinner.CookingRewardBalance
   balanceChanged:
     m_PersistentCalls:
@@ -25162,9 +25165,126 @@ MonoBehaviour:
   initialDiscoveredRecipes: []
   initialKnownRecipeTags: []
   initialKnownPreparationEffects: []
-  loadFromPlayerPrefsOnAwake: 1
-  saveToPlayerPrefs: 1
+  loadFromPlayerPrefsOnAwake: 0
+  saveToPlayerPrefs: 0
   playerPrefsKey: DungeonDinner.CookingKnowledge
+--- !u!114 &1154906898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154906892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b3e8d4f50617293a1b2c3d4e5f60718, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Players.Code.Inventory.PlayerInventoryModule
+  slotCapacity: 24
+  slots:
+  - item: {fileID: 11400000, guid: 50f56f458c6a45dbb85feddecd3b2fb1, type: 2}
+    amount: 20
+  - item: {fileID: 11400000, guid: f889fb720df847858ad65d2dcd77f536, type: 2}
+    amount: 20
+  - item: {fileID: 11400000, guid: 07f6ea565ce24a5798f3fd36ccbd6b32, type: 2}
+    amount: 20
+  - item: {fileID: 11400000, guid: 4d12c1c6cd2345e9a96bfd7d88e8dc17, type: 2}
+    amount: 20
+  - item: {fileID: 11400000, guid: 3b3858c376a94420afed3190905d141d, type: 2}
+    amount: 20
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  - item: {fileID: 0}
+    amount: 0
+  lastAddedAmount: 0
+  lastRemainingAmount: 0
+--- !u!114 &1154906899
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154906892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0b36d8f517c4a98b6d21e3f4059c7ab, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.InventoryCookingIngredientSource
+  inventoryModule: {fileID: 1154906898}
+  sourceName: Temp Inventory Ingredients
+  searchInventoryInParents: 1
+  searchInventoryInChildren: 1
+--- !u!114 &1154906900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154906892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6862cd062d564421bcf732223576561d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Dispatch.Code.Runtime.DispatchController
+  dispatchMap: {fileID: 11400000, guid: c8d7e6f5a4b3492087654321fedcba09, type: 2}
+  inventoryModule: {fileID: 1154906898}
+  targetCanvas: {fileID: 0}
+  generatedUiRoot: {fileID: 0}
+  mapView: {fileID: 0}
+  progressView: {fileID: 0}
+  openButton: {fileID: 0}
+  fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
+  autoCreateDefaultUI: 1
+  autoCreateOpenButton: 1
+  openButtonText: "\uD30C\uACAC"
+  lastRewardAddedAmount: 0
+  lastRewardRemainingAmount: 0
+  dispatchStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  dispatchCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+  mapOpened:
+    m_PersistentCalls:
+      m_Calls: []
+  mapClosed:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1154924331
 GameObject:
   m_ObjectHideFlags: 0
@@ -28915,9 +29035,9 @@ MonoBehaviour:
   regionId: MossCave
   playOnStart: 0
   currentDay: 1
-  persistHistory: 1
+  persistHistory: 0
   historySaveKey: DungeonDinner.NpcEncounterHistory
-  continueDayFromHistoryOnLoad: 1
+  continueDayFromHistoryOnLoad: 0
   ignoreNpcCooldownWhenPoolIsEmpty: 0
   maxEncountersPerDay: 3
   blockSameNpcOncePerDay: 1
@@ -32333,7 +32453,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingIngredientSelectionView
   gamePanel: {fileID: 1154906894}
   flowRunner: {fileID: 752288113}
-  ingredientSourceBehaviour: {fileID: 0}
+  ingredientSourceBehaviour: {fileID: 1154906899}
   searchIngredientSourceInParents: 1
   searchIngredientSourceInChildren: 1
   availableIngredientRoot: {fileID: 662147787}
@@ -43387,7 +43507,7 @@ MonoBehaviour:
   showBaseTagsAsKnownForTesting: 0
   discoveredRecipes: []
   knownRecipeTags: []
-  encyclopediaOnlyMode: 1
+  encyclopediaOnlyMode: 0
   includeDirectIngredientSelection: 1
   directSelectionDisplayName: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   directSelectionDescription: "\uAC00\uBC29\uC5D0\uC11C \uC7AC\uB8CC\uB97C \uC9C1\uC811

@@ -80,6 +80,7 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private CookingGameSnapshotEvent snapshotChanged = new CookingGameSnapshotEvent();
 
         private DishResult _currentResult;
+        private CookingSession _consumedIngredientSession;
         private CookingFlowRunner _subscribedFlowRunner;
         private NpcConversationRunner _subscribedNpcRunner;
         private CookingKnowledgeStore _subscribedKnowledgeStore;
@@ -143,6 +144,7 @@ namespace Work.Cook.Code.Runtime
         public void SetFlowRunner(CookingFlowRunner value)
         {
             flowRunner = value;
+            ResetConsumedIngredientSession();
             InitializeKnowledgeStore();
             ReinitializeCookingViews();
         }
@@ -304,6 +306,7 @@ namespace Work.Cook.Code.Runtime
                 flowRunner.ResetFlow();
 
             _currentResult = null;
+            ResetConsumedIngredientSession();
             SetScreen(CookingGameScreenState.RecipeSelection);
         }
 
@@ -322,6 +325,8 @@ namespace Work.Cook.Code.Runtime
                 Debug.LogWarning("CookingGamePanel needs a CookingFlowRunner before it can confirm a recipe.", this);
                 return false;
             }
+
+            ResetConsumedIngredientSession();
 
             if (TryBeginRecipeWithIngredientChoices(recipe))
                 return true;
@@ -465,6 +470,7 @@ namespace Work.Cook.Code.Runtime
             if (flowRunner.State != CookingFlowState.SelectingIngredients)
                 flowRunner.BeginDirectSelection();
 
+            ResetConsumedIngredientSession();
             SetIngredientSelectionSource(null);
             SetIngredientSelectionLimits(1, 0);
             _currentResult = null;
@@ -646,9 +652,18 @@ namespace Work.Cook.Code.Runtime
                 return false;
             }
 
-            if (flowRunner.TryCompleteCooking(out DishResult result) == false)
+            if (flowRunner.Controller.CanCompleteCooking() == false)
             {
                 Debug.LogWarning("CookingGamePanel could not complete cooking. Make sure every selected ingredient is prepared.", this);
+                return false;
+            }
+
+            if (TryConsumeSelectedIngredientsForCompletion(flowRunner.Controller.CurrentSession) == false)
+                return false;
+
+            if (flowRunner.TryCompleteCooking(out DishResult result) == false)
+            {
+                Debug.LogWarning("CookingGamePanel could not complete cooking after ingredients were consumed.", this);
                 return false;
             }
 
@@ -797,6 +812,7 @@ namespace Work.Cook.Code.Runtime
             rewardWallet?.ClearForDebug();
             encounterDirector?.ClearEncounterHistory();
             _currentResult = null;
+            ResetConsumedIngredientSession();
 
             CookingGameScreenState resetScreen = applyInitialScreenOnAwake
                 ? initialScreen
@@ -914,6 +930,47 @@ namespace Work.Cook.Code.Runtime
             return grant;
         }
 
+        private bool TryConsumeSelectedIngredientsForCompletion(CookingSession session)
+        {
+            if (session == null)
+                return false;
+
+            if (_consumedIngredientSession == session)
+                return true;
+
+            ICookingIngredientConsumer consumer = GetCurrentIngredientConsumer();
+            if (consumer == null)
+                return true;
+
+            if (consumer.TryConsumeIngredients(session.SelectedIngredients, this, flowRunner, out string reason) == false)
+            {
+                Debug.LogWarning($"CookingGamePanel could not consume selected ingredients. reason={reason}", this);
+                RefreshIngredientSelectionView(inventoryView);
+                PublishSnapshotChanged();
+                return false;
+            }
+
+            _consumedIngredientSession = session;
+            RefreshIngredientSelectionView(inventoryView);
+            PublishSnapshotChanged();
+            return true;
+        }
+
+        private ICookingIngredientConsumer GetCurrentIngredientConsumer()
+        {
+            ICookingIngredientSelectionView selectionView = GetIngredientSelectionView();
+            if (selectionView == null)
+                return null;
+
+            ICookingIngredientSource source = selectionView.GetCurrentIngredientSource();
+            return source as ICookingIngredientConsumer;
+        }
+
+        private void ResetConsumedIngredientSession()
+        {
+            _consumedIngredientSession = null;
+        }
+
         private void SetScreen(CookingGameScreenState screen)
         {
             CurrentScreen = screen;
@@ -996,6 +1053,9 @@ namespace Work.Cook.Code.Runtime
 
         private void HandleFlowRunnerStateChanged(CookingFlowState state)
         {
+            if (state == CookingFlowState.Idle || state == CookingFlowState.SelectingIngredients)
+                ResetConsumedIngredientSession();
+
             RefreshCookingViews();
             PublishSnapshotChanged();
         }

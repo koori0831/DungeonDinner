@@ -159,6 +159,11 @@ namespace Work.Cook.Code.Runtime
             Refresh();
         }
 
+        public ICookingIngredientSource GetCurrentIngredientSource()
+        {
+            return ResolveIngredientSource();
+        }
+
         public void SetFontAsset(TMP_FontAsset value)
         {
             if (value == null)
@@ -277,6 +282,7 @@ namespace Work.Cook.Code.Runtime
                 Button button = CreateIngredientButton(
                     availableIngredientRoot,
                     BuildAvailableIngredientLabel(ingredient, availableQuantity),
+                    GetIngredientIcon(ingredient),
                     selected ? selectedButtonColor : defaultButtonColor,
                     () => ToggleIngredient(ingredient));
                 button.interactable = selected || availableQuantity > 0 && CanSelectMore(selectedIngredients);
@@ -315,6 +321,7 @@ namespace Work.Cook.Code.Runtime
                 Button button = CreateIngredientButton(
                     selectedIngredientRoot,
                     ingredient.DisplayName,
+                    GetIngredientIcon(ingredient),
                     selectedButtonColor,
                     () => RemoveIngredient(ingredient));
                 BindIngredientPointerEvents(button.gameObject, ingredient);
@@ -374,6 +381,26 @@ namespace Work.Cook.Code.Runtime
                 return 1;
 
             return Mathf.Max(0, quantitySource.GetAvailableIngredientQuantity(ingredient, gamePanel, flowRunner));
+        }
+
+        private Sprite GetIngredientIcon(IngredientSO ingredient)
+        {
+            if (ingredient == null)
+            {
+                return null;
+            }
+
+            ICookingIngredientIconSource iconSource = ResolveIngredientSource() as ICookingIngredientIconSource;
+            if (iconSource != null)
+            {
+                Sprite icon = iconSource.GetAvailableIngredientIcon(ingredient, gamePanel, flowRunner);
+                if (icon != null)
+                {
+                    return icon;
+                }
+            }
+
+            return CookingTempVisualUtility.ResolveIngredientIcon(ingredient);
         }
 
         private string BuildAvailableIngredientLabel(IngredientSO ingredient, int availableQuantity)
@@ -897,12 +924,52 @@ namespace Work.Cook.Code.Runtime
             return content;
         }
 
-        private Button CreateIngredientButton(Transform parent, string label, Color color, UnityEngine.Events.UnityAction action)
+        private Button CreateIngredientButton(Transform parent, string label, Sprite icon, Color color, UnityEngine.Events.UnityAction action)
         {
             Button button = CreateActionButton(parent, label, action, color);
             bool inGrid = parent != null && parent.GetComponent<GridLayoutGroup>() != null;
             AddLayoutElement(button.gameObject, -1f, inGrid ? 68f : 38f, -1f, 0f);
+
+            if (icon != null)
+            {
+                AddIconToIngredientButton(button, icon, inGrid);
+            }
+
             return button;
+        }
+
+        private void AddIconToIngredientButton(Button button, Sprite icon, bool inGrid)
+        {
+            if (button == null || icon == null)
+            {
+                return;
+            }
+
+            GameObject iconObject = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconObject.transform.SetParent(button.transform, false);
+
+            RectTransform iconRect = iconObject.GetComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0f, 0.5f);
+            iconRect.anchorMax = new Vector2(0f, 0.5f);
+            iconRect.pivot = new Vector2(0f, 0.5f);
+            iconRect.anchoredPosition = new Vector2(8f, 0f);
+            iconRect.sizeDelta = inGrid == true ? new Vector2(24f, 24f) : new Vector2(22f, 22f);
+
+            Image image = iconObject.GetComponent<Image>();
+            image.sprite = icon;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+
+            TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label == null)
+            {
+                return;
+            }
+
+            RectTransform labelRect = label.rectTransform;
+            labelRect.offsetMin = new Vector2(inGrid == true ? 34f : 32f, 4f);
+            labelRect.offsetMax = new Vector2(-6f, -4f);
+            label.alignment = TextAlignmentOptions.MidlineLeft;
         }
 
         private TMP_InputField CreateSearchInput(Transform parent)

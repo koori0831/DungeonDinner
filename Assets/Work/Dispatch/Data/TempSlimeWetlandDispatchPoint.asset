@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 129f46e0136a444cbf1cd9d102707c32, type: 3}
+  m_Name: TempSlimeWetlandDispatchPoint
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Dispatch.Code.Data.DispatchPointSO
+  pointId: temp_slime_wetland
+  displayName: Slime Wetland
+  description: A quick ingredient run near a damp slime nest.
+  icon: {fileID: 0}
+  normalizedMapPosition: {x: 0.22, y: 0.60}
+  durationSeconds: 2.5
+  rewards:
+  - item: {fileID: 11400000, guid: 50f56f458c6a45dbb85feddecd3b2fb1, type: 2}
+    amount: 3
+  - item: {fileID: 11400000, guid: f889fb720df847858ad65d2dcd77f536, type: 2}
+    amount: 1

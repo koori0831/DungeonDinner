@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
 using Work.Cook.Code.Data;
 
 namespace Work.Cook.Code.Runtime
@@ -20,6 +21,29 @@ namespace Work.Cook.Code.Runtime
             CookingFlowRunner runner);
     }
 
+    public interface ICookingIngredientIconSource
+    {
+        Sprite GetAvailableIngredientIcon(
+            IngredientSO ingredient,
+            CookingGamePanel owner,
+            CookingFlowRunner runner);
+    }
+
+    public interface ICookingIngredientConsumer
+    {
+        bool CanConsumeIngredients(
+            IReadOnlyList<IngredientSO> ingredients,
+            CookingGamePanel owner,
+            CookingFlowRunner runner,
+            out string reason);
+
+        bool TryConsumeIngredients(
+            IReadOnlyList<IngredientSO> ingredients,
+            CookingGamePanel owner,
+            CookingFlowRunner runner,
+            out string reason);
+    }
+
     public interface ICookingRecipeSelectionView
     {
         void Initialize(CookingGamePanel owner, CookingFlowRunner runner, CookingKnowledgeStore knowledgeStore);
@@ -33,6 +57,7 @@ namespace Work.Cook.Code.Runtime
         void SetSelectionLimits(int minCount, int maxCount = 0);
         void SetFontAsset(TMP_FontAsset value);
         void SetSearchQuery(string query);
+        ICookingIngredientSource GetCurrentIngredientSource();
         void ToggleIngredient(IngredientSO ingredient);
         void RemoveIngredient(IngredientSO ingredient);
         void ClearSelection();

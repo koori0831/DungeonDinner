@@ -16,6 +16,7 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private CookingFlowRunner flowRunner;
 
         [Header("Layout References")]
+        [SerializeField] private Image dishIconImage;
         [SerializeField] private TextMeshProUGUI dishNameField;
         [SerializeField] private TextMeshProUGUI resultSummaryField;
         [SerializeField] private TextMeshProUGUI npcMatchField;
@@ -103,6 +104,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
+            BindDishIcon(result);
             SetText(dishNameField, result.DisplayName);
             SetText(resultSummaryField, BuildResultSummaryText(result));
             SetText(npcMatchField, BuildNpcMatchText(result));
@@ -124,6 +126,7 @@ namespace Work.Cook.Code.Runtime
             SetText(resultSummaryField, string.Empty);
             SetText(npcMatchField, "요리 결과가 준비되면 NPC 예상 반응이 표시됩니다.");
             SetText(reasonsField, string.Empty);
+            BindDishIcon(null);
             ClearChildren(preparationRoot);
             SetSectionPreferredHeight(preparationSection, 94f);
             SetSectionPreferredHeight(reasonsSection, 84f);
@@ -199,6 +202,17 @@ namespace Work.Cook.Code.Runtime
             gamePanel?.AdvanceFromResult();
         }
 
+        private void BindDishIcon(DishResult result)
+        {
+            if (dishIconImage == null)
+            {
+                return;
+            }
+
+            dishIconImage.sprite = CookingTempVisualUtility.ResolveDishIcon(result);
+            dishIconImage.color = Color.white;
+        }
+
         private void EnsureReferences()
         {
             if (gamePanel == null)
@@ -213,7 +227,8 @@ namespace Work.Cook.Code.Runtime
             if (buildDefaultLayoutWhenMissing == false)
                 return;
 
-            if (dishNameField != null
+            if (dishIconImage != null
+                && dishNameField != null
                 && resultSummaryField != null
                 && npcMatchField != null
                 && preparationRoot != null
@@ -263,7 +278,9 @@ namespace Work.Cook.Code.Runtime
             TextMeshProUGUI title = CreateText(panel, "Title", titleText, 24f, TextAlignmentOptions.Left);
             AddLayoutElement(title.gameObject, -1f, 34f, -1f, 0f);
 
-            RectTransform dishSection = CreateSection(panel, "DishSection", "완성된 음식", 132f, plateColor);
+            RectTransform dishSection = CreateSection(panel, "DishSection", "완성된 음식", 190f, plateColor);
+            dishIconImage = CreateDishIcon(dishSection);
+
             dishNameField = CreateText(dishSection, "DishName", string.Empty, 27f, TextAlignmentOptions.Center);
             dishNameField.textWrappingMode = TextWrappingModes.Normal;
             AddLayoutElement(dishNameField.gameObject, -1f, 42f, -1f, 0f);
@@ -306,6 +323,20 @@ namespace Work.Cook.Code.Runtime
             AddLayoutElement(actionRow.gameObject, -1f, 46f, -1f, 0f);
 
             handToNpcButton = CreateButton(actionRow, handToNpcText, HandToNpc, primaryButtonColor);
+        }
+
+        private Image CreateDishIcon(Transform parent)
+        {
+            GameObject iconObject = new GameObject("DishIcon", typeof(RectTransform), typeof(Image));
+            iconObject.transform.SetParent(parent, false);
+            AddLayoutElement(iconObject, 76f, 76f, 0f, 0f);
+
+            Image image = iconObject.GetComponent<Image>();
+            ApplyGeneratedSprite(image);
+            image.color = Color.white;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            return image;
         }
 
         private RectTransform CreateSection(

@@ -50,6 +50,7 @@ namespace Work.NPC.Code.Runtime
 
         [Header("Events")]
         [SerializeField] private QuestionOptionsChangedEvent questionOptionsChanged = new QuestionOptionsChangedEvent();
+        [SerializeField] private UnityEvent conversationStarted = new UnityEvent();
         [SerializeField] private UnityEvent readyForCooking = new UnityEvent();
         [SerializeField] private UnityEvent conversationCompleted = new UnityEvent();
         [SerializeField] private NpcOrderReadySummaryEvent orderReady = new NpcOrderReadySummaryEvent();
@@ -69,6 +70,10 @@ namespace Work.NPC.Code.Runtime
         public event Action<NpcOrderContext> OrderReady;
         public event Action<NpcDishResultContext> DishEvaluated;
         public event Action<NpcDialogueLineContext> DialogueLinePlayed;
+        /// <summary>
+        /// NPC 응대 대화가 시작될 때 발생하는 이벤트
+        /// </summary>
+        public event Action ConversationStarted;
         public event Action CookingStepReady;
         public event Action ConversationCompleted;
         public event Action<string, NpcConversationResult> ResultDialogueStarted;
@@ -127,6 +132,7 @@ namespace Work.NPC.Code.Runtime
             _cookingStepNotified = false;
             ResetOrderSlipPanel(visitEvent);
             ClearQuestionOptions();
+            NotifyConversationStarted();
             _playRoutine = StartCoroutine(PlayStartGroupsRoutine());
         }
 
@@ -619,6 +625,12 @@ namespace Work.NPC.Code.Runtime
             ConversationCompleted?.Invoke();
             conversationCompleted.Invoke();
             Debug.Log("NPC conversation completed.");
+        }
+
+        private void NotifyConversationStarted()
+        {
+            ConversationStarted?.Invoke();
+            conversationStarted.Invoke();
         }
 
         private void ClearQuestionOptions()
