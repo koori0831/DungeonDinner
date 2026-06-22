@@ -227,18 +227,41 @@ namespace Work.Cook.Code.Runtime
             if (buildDefaultLayoutWhenMissing == false)
                 return;
 
-            if (dishIconImage != null
-                && dishNameField != null
-                && resultSummaryField != null
-                && npcMatchField != null
-                && preparationRoot != null
-                && reasonsField != null
-                && handToNpcButton != null)
+            if (HasRequiredLayoutReferences() == true)
             {
+                EnsureDishIconReference();
                 return;
             }
 
             BuildDefaultLayout();
+        }
+
+        private bool HasRequiredLayoutReferences()
+        {
+            return dishNameField != null
+                   && resultSummaryField != null
+                   && npcMatchField != null
+                   && preparationRoot != null
+                   && reasonsField != null
+                   && handToNpcButton != null;
+        }
+
+        private void EnsureDishIconReference()
+        {
+            if (dishIconImage != null)
+            {
+                return;
+            }
+
+            if (dishNameField == null || dishNameField.transform.parent == null)
+            {
+                return;
+            }
+
+            Transform parent = dishNameField.transform.parent;
+            int siblingIndex = dishNameField.transform.GetSiblingIndex();
+            dishIconImage = CreateDishIcon(parent);
+            dishIconImage.transform.SetSiblingIndex(siblingIndex);
         }
 
         private void BuildDefaultLayout()
