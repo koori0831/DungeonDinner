@@ -2,16 +2,12 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 using Work.Cook.Code.Data;
 
 namespace Work.Cook.Code.Runtime
 {
     public sealed class CookingPreparationView : MonoBehaviour, ICookingPreparationView
     {
-        private const int CurrentDefaultLayoutVersion = 5;
-
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private CookingFlowRunner flowRunner;
@@ -23,18 +19,11 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private TextMeshProUGUI ingredientDescriptionField;
         [SerializeField] private TextMeshProUGUI progressField;
         [SerializeField] private RectTransform cardRoot;
+        [SerializeField] private CookingPreparationOptionItemView optionCardPrefab;
 
         [Header("Default Layout")]
-        [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
-        [SerializeField] private bool rebuildTemporaryDefaultLayoutWhenVersionChanges = true;
-        [SerializeField] private int defaultLayoutVersion;
+        [SerializeField] private bool buildDefaultLayoutWhenMissing;
         [SerializeField] private TMP_FontAsset fontAsset;
-        [SerializeField] private Sprite panelSprite;
-        [SerializeField] private Sprite labelSprite;
-        [SerializeField] private Color ingredientColor = new Color(0.78f, 0.66f, 0.47f, 1f);
-        [SerializeField] private Color cardColor = new Color(0.18f, 0.15f, 0.12f, 0.96f);
-        [SerializeField] private Color cardHoverColor = new Color(0.30f, 0.23f, 0.16f, 1f);
-        [SerializeField] private Color buttonColor = new Color(0.55f, 0.70f, 0.46f, 1f);
 
         [Header("Text")]
         [SerializeField] private string noIngredientText = "손질할 재료가 없습니다.";
@@ -47,9 +36,9 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private bool showAllEffectsForTesting;
 
         private readonly HashSet<string> _knownEffectKeys = new HashSet<string>();
-        private static Sprite _generatedFallbackSprite;
         private bool _isSubscribed;
         private bool _isCompletingCooking;
+        private bool _loggedMissingOptionCardPrefab;
 
         private void Awake()
         {
@@ -160,44 +149,62 @@ namespace Work.Cook.Code.Runtime
 
         private void CreateNoOptionCard(IngredientSO ingredient)
         {
-            RectTransform card = CreateCardObject(cardRoot, "NoPreparationOptionCard");
-            AddLayoutElement(card.gameObject, 0f, -1f, 1f, 1f);
-
-            TextMeshProUGUI title = CreateText(card, "Title", noOptionText, 18f, TextAlignmentOptions.Center);
-            AddLayoutElement(title.gameObject, -1f, 72f, -1f, 0f);
-
-            Button button = CreateButton(card, noOptionButtonText, () => SelectPreparation(ingredient, null), buttonColor);
-            AddLayoutElement(button.gameObject, -1f, 46f, -1f, 0f);
+            CreateOptionCard(
+                ingredient,
+                null,
+                0,
+                string.Empty,
+                noOptionText,
+                noOptionButtonText,
+                string.Empty,
+                false,
+                () => SelectPreparation(ingredient, null));
         }
 
         private void CreatePreparationCard(IngredientSO ingredient, IngredientPreparationOption option, int index)
         {
-            RectTransform card = CreateCardObject(cardRoot, $"PreparationCard_{index}");
-            AddLayoutElement(card.gameObject, 0f, -1f, 1f, 1f);
+            CreateOptionCard(
+                ingredient,
+                option,
+                index,
+                BuildOptionIconText(index, option),
+                option.DisplayName,
+                BuildOptionDescription(option),
+                BuildKnownEffectText(ingredient, option),
+                showAllEffectsForTesting == true || IsKnownEffect(ingredient, option) == true,
+                () => SelectPreparation(ingredient, option));
+        }
 
-            TextMeshProUGUI icon = CreateText(card, "Icon", BuildOptionIconText(index, option), 28f, TextAlignmentOptions.Center);
-            icon.color = new Color(1f, 0.88f, 0.58f, 1f);
-            AddLayoutElement(icon.gameObject, -1f, 42f, -1f, 0f);
+        private void CreateOptionCard(
+            IngredientSO ingredient,
+            IngredientPreparationOption option,
+            int index,
+            string iconText,
+            string nameText,
+            string descriptionText,
+            string effectText,
+            bool showEffect,
+            UnityEngine.Events.UnityAction clickAction)
+        {
+            if (cardRoot == null)
+            {
+                return;
+            }
 
-            TextMeshProUGUI name = CreateText(card, "Name", option.DisplayName, 18f, TextAlignmentOptions.Center);
-            name.textWrappingMode = TextWrappingModes.Normal;
-            name.overflowMode = TextOverflowModes.Ellipsis;
-            AddLayoutElement(name.gameObject, -1f, 42f, -1f, 0f);
+            if (optionCardPrefab == null)
+            {
+                if (_loggedMissingOptionCardPrefab == false)
+                {
+                    Debug.LogWarning("CookingPreparationView needs an option card prefab before it can build preparation cards.", this);
+                    _loggedMissingOptionCardPrefab = true;
+                }
 
-            TextMeshProUGUI description = CreateText(card, "Description", BuildOptionDescription(option), 14f, TextAlignmentOptions.TopLeft);
-            description.textWrappingMode = TextWrappingModes.Normal;
-            AddLayoutElement(description.gameObject, -1f, 74f, -1f, 0f);
-            description.gameObject.SetActive(false);
+                return;
+            }
 
-            TextMeshProUGUI effect = CreateText(card, "Effect", BuildKnownEffectText(ingredient, option), 13f, TextAlignmentOptions.TopLeft);
-            effect.textWrappingMode = TextWrappingModes.Normal;
-            AddLayoutElement(effect.gameObject, -1f, 78f, -1f, 0f);
-            effect.gameObject.SetActive(false);
-
-            Button button = CreateButton(card, "선택", () => SelectPreparation(ingredient, option), buttonColor);
-            AddLayoutElement(button.gameObject, -1f, 42f, -1f, 0f);
-
-            BindHover(card, description.gameObject, effect.gameObject);
+            CookingPreparationOptionItemView card = Instantiate(optionCardPrefab, cardRoot);
+            card.name = option != null ? $"PreparationCard_{index}" : "NoPreparationOptionCard";
+            card.Bind(iconText, nameText, descriptionText, effectText, showEffect, clickAction);
         }
 
         private void SelectPreparation(IngredientSO ingredient, IngredientPreparationOption option)
@@ -245,241 +252,17 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureLayout()
         {
-            if (buildDefaultLayoutWhenMissing == false)
-                return;
-
-            if (ShouldRebuildTemporaryDefaultLayout())
-            {
-                ClearChildren(transform);
-                boardRoot = null;
-                ingredientNameField = null;
-                ingredientDescriptionField = null;
-                progressField = null;
-                cardRoot = null;
-            }
-
             if (boardRoot != null
                 && ingredientNameField != null
                 && progressField != null
                 && cardRoot != null)
             {
-                ApplyFullscreenRootLayout();
-                DisableRootBackground();
-                DisableBoardBackground();
                 return;
             }
 
-            BuildDefaultLayout();
-            defaultLayoutVersion = CurrentDefaultLayoutVersion;
-        }
-
-        private bool ShouldRebuildTemporaryDefaultLayout()
-        {
-            return rebuildTemporaryDefaultLayoutWhenVersionChanges
-                   && defaultLayoutVersion < CurrentDefaultLayoutVersion
-                   && gameObject.name.Contains("TemporaryPreparationView");
-        }
-
-        private void ApplyFullscreenRootLayout()
-        {
-            RectTransform rect = EnsureRectTransform(gameObject);
-            rect.localRotation = Quaternion.identity;
-            rect.localScale = Vector3.one;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
-
-        private void BuildDefaultLayout()
-        {
-            ApplyFullscreenRootLayout();
-            DisableRootBackground();
-
-            VerticalLayoutGroup rootLayout = GetOrAdd<VerticalLayoutGroup>(gameObject);
-            rootLayout.padding = new RectOffset(0, 0, 0, 0);
-            rootLayout.spacing = 0f;
-            rootLayout.childControlWidth = true;
-            rootLayout.childControlHeight = true;
-            rootLayout.childForceExpandWidth = true;
-            rootLayout.childForceExpandHeight = false;
-
-            boardRoot = CreateLayoutObject(transform, "CuttingBoard");
-            Image boardImage = boardRoot.gameObject.AddComponent<Image>();
-            ApplyGeneratedSprite(boardImage);
-            boardImage.color = new Color(0f, 0f, 0f, 0f);
-            boardImage.raycastTarget = false;
-            AddLayoutElement(boardRoot.gameObject, -1f, 0f, 1f, 2.4f);
-
-            VerticalLayoutGroup boardLayout = boardRoot.gameObject.AddComponent<VerticalLayoutGroup>();
-            boardLayout.padding = new RectOffset(0, 0, 0, 0);
-            boardLayout.spacing = 10f;
-            boardLayout.childControlWidth = true;
-            boardLayout.childControlHeight = true;
-            boardLayout.childForceExpandWidth = true;
-            boardLayout.childForceExpandHeight = false;
-
-            RectTransform ingredientPlate = CreateLayoutObject(boardRoot, "IngredientOnBoard");
-            Image ingredientImage = ingredientPlate.gameObject.AddComponent<Image>();
-            ApplyUiAssetSprite(ingredientImage, panelSprite);
-            ingredientImage.color = panelSprite != null ? Color.white : ingredientColor;
-            AddLayoutElement(ingredientPlate.gameObject, -1f, 132f, -1f, 0f);
-
-            VerticalLayoutGroup ingredientLayout = ingredientPlate.gameObject.AddComponent<VerticalLayoutGroup>();
-            ingredientLayout.padding = new RectOffset(18, 18, 16, 16);
-            ingredientLayout.spacing = 8f;
-            ingredientLayout.childControlWidth = true;
-            ingredientLayout.childControlHeight = true;
-            ingredientLayout.childForceExpandWidth = true;
-            ingredientLayout.childForceExpandHeight = false;
-
-            ingredientNameField = CreateText(ingredientPlate, "IngredientName", string.Empty, 26f, TextAlignmentOptions.Center);
-            AddLayoutElement(ingredientNameField.gameObject, -1f, 38f, -1f, 0f);
-
-            ingredientDescriptionField = CreateText(ingredientPlate, "IngredientDescription", string.Empty, 15f, TextAlignmentOptions.Center);
-            ingredientDescriptionField.textWrappingMode = TextWrappingModes.Normal;
-            AddLayoutElement(ingredientDescriptionField.gameObject, -1f, 50f, -1f, 0f);
-
-            progressField = CreateText(boardRoot, "Progress", string.Empty, 15f, TextAlignmentOptions.Center);
-            AddLayoutElement(progressField.gameObject, -1f, 42f, -1f, 0f);
-
-            cardRoot = CreateLayoutObject(transform, "PreparationCards");
-            HorizontalLayoutGroup cardLayout = cardRoot.gameObject.AddComponent<HorizontalLayoutGroup>();
-            cardLayout.spacing = 12f;
-            cardLayout.childControlWidth = true;
-            cardLayout.childControlHeight = true;
-            cardLayout.childForceExpandWidth = true;
-            cardLayout.childForceExpandHeight = true;
-            AddLayoutElement(cardRoot.gameObject, -1f, 0f, 1f, 1.6f);
-        }
-
-        private void DisableRootBackground()
-        {
-            Image background = GetOrAdd<Image>(gameObject);
-            ApplyGeneratedSprite(background);
-            background.color = new Color(0f, 0f, 0f, 0f);
-            background.raycastTarget = true;
-        }
-
-        private void DisableBoardBackground()
-        {
-            if (boardRoot == null)
+            if (buildDefaultLayoutWhenMissing == true)
             {
-                return;
-            }
-
-            Image boardImage = boardRoot.GetComponent<Image>();
-            if (boardImage == null)
-            {
-                return;
-            }
-
-            boardImage.color = new Color(0f, 0f, 0f, 0f);
-            boardImage.raycastTarget = false;
-        }
-
-        private RectTransform CreateCardObject(Transform parent, string name)
-        {
-            RectTransform card = CreateLayoutObject(parent, name);
-            Image image = card.gameObject.AddComponent<Image>();
-            ApplyUiAssetSprite(image, panelSprite);
-            image.color = panelSprite != null ? Color.white : cardColor;
-
-            VerticalLayoutGroup layout = card.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(12, 12, 12, 12);
-            layout.spacing = 7f;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            return card;
-        }
-
-        private Button CreateButton(Transform parent, string label, UnityEngine.Events.UnityAction action, Color color)
-        {
-            GameObject buttonObject = new GameObject($"Button_{SanitizeName(label)}", typeof(RectTransform), typeof(Image), typeof(Button));
-            buttonObject.transform.SetParent(parent, false);
-
-            Image image = buttonObject.GetComponent<Image>();
-            ApplyUiAssetSprite(image, labelSprite);
-            Color visualColor = labelSprite != null ? Color.white : color;
-            image.color = visualColor;
-
-            Button button = buttonObject.GetComponent<Button>();
-            button.targetGraphic = image;
-            ColorBlock colors = button.colors;
-            colors.normalColor = visualColor;
-            colors.highlightedColor = Color.Lerp(visualColor, Color.white, 0.16f);
-            colors.pressedColor = Color.Lerp(visualColor, Color.black, 0.16f);
-            colors.selectedColor = colors.highlightedColor;
-            button.colors = colors;
-
-            if (action != null)
-                button.onClick.AddListener(action);
-
-            TextMeshProUGUI text = CreateText(buttonObject.transform, "Label", label, 15f, TextAlignmentOptions.Center);
-            RectTransform textRect = text.rectTransform;
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(8f, 4f);
-            textRect.offsetMax = new Vector2(-8f, -4f);
-            return button;
-        }
-
-        private TextMeshProUGUI CreateText(
-            Transform parent,
-            string name,
-            string text,
-            float fontSize,
-            TextAlignmentOptions alignment)
-        {
-            GameObject textObject = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            textObject.transform.SetParent(parent, false);
-
-            TextMeshProUGUI label = textObject.GetComponent<TextMeshProUGUI>();
-            label.text = text;
-            label.fontSize = fontSize;
-            if (fontAsset != null)
-                label.font = fontAsset;
-            label.color = Color.white;
-            label.alignment = alignment;
-            label.textWrappingMode = TextWrappingModes.NoWrap;
-            label.overflowMode = TextOverflowModes.Ellipsis;
-            return label;
-        }
-
-        private void BindHover(RectTransform card, params GameObject[] detailObjects)
-        {
-            if (card == null || detailObjects == null)
-                return;
-
-            EventTrigger trigger = card.gameObject.AddComponent<EventTrigger>();
-            AddEventTrigger(trigger, EventTriggerType.PointerEnter, _ =>
-            {
-                card.localScale = new Vector3(1.06f, 1.06f, 1f);
-                if (card.TryGetComponent(out Image image))
-                    image.color = panelSprite != null ? Color.white : cardHoverColor;
-                SetDetailsActive(detailObjects, true);
-            });
-
-            AddEventTrigger(trigger, EventTriggerType.PointerExit, _ =>
-            {
-                card.localScale = Vector3.one;
-                if (card.TryGetComponent(out Image image))
-                    image.color = panelSprite != null ? Color.white : cardColor;
-                SetDetailsActive(detailObjects, false);
-            });
-        }
-
-        private static void SetDetailsActive(IReadOnlyList<GameObject> detailObjects, bool active)
-        {
-            if (detailObjects == null)
-                return;
-
-            for (int i = 0; i < detailObjects.Count; i++)
-            {
-                if (detailObjects[i] != null)
-                    detailObjects[i].SetActive(active);
+                Debug.LogWarning("CookingPreparationView no longer builds default layout. Assign layout references and option card prefab in the inspector.", this);
             }
         }
 
@@ -642,47 +425,6 @@ namespace Work.Cook.Code.Runtime
             }
         }
 
-        private static void AddEventTrigger(
-            EventTrigger trigger,
-            EventTriggerType eventType,
-            UnityEngine.Events.UnityAction<BaseEventData> action)
-        {
-            EventTrigger.Entry entry = new EventTrigger.Entry { eventID = eventType };
-            entry.callback.AddListener(action);
-            trigger.triggers.Add(entry);
-        }
-
-        private static RectTransform CreateLayoutObject(Transform parent, string name)
-        {
-            GameObject item = new GameObject(name, typeof(RectTransform), typeof(LayoutElement));
-            item.transform.SetParent(parent, false);
-            return item.GetComponent<RectTransform>();
-        }
-
-        private static RectTransform EnsureRectTransform(GameObject target)
-        {
-            RectTransform rect = target.transform as RectTransform;
-            if (rect != null)
-                return rect;
-
-            return target.AddComponent<RectTransform>();
-        }
-
-        private static LayoutElement AddLayoutElement(
-            GameObject target,
-            float preferredWidth,
-            float preferredHeight,
-            float flexibleWidth,
-            float flexibleHeight)
-        {
-            LayoutElement element = GetOrAdd<LayoutElement>(target);
-            element.preferredWidth = preferredWidth;
-            element.preferredHeight = preferredHeight;
-            element.flexibleWidth = flexibleWidth;
-            element.flexibleHeight = flexibleHeight;
-            return element;
-        }
-
         private static void ClearChildren(Transform root)
         {
             if (root == null)
@@ -702,82 +444,6 @@ namespace Work.Cook.Code.Runtime
         {
             if (field != null)
                 field.text = text;
-        }
-
-        private static T GetOrAdd<T>(GameObject target) where T : Component
-        {
-            if (target.TryGetComponent(out T component))
-                return component;
-
-            return target.AddComponent<T>();
-        }
-
-        private static void ApplyGeneratedSprite(Image image)
-        {
-            if (image == null)
-                return;
-
-            if (image.sprite == null)
-                image.sprite = GetGeneratedFallbackSprite();
-
-            image.type = Image.Type.Simple;
-            image.preserveAspect = false;
-        }
-
-        private void ApplyUiAssetSprite(Image image, Sprite sprite)
-        {
-            if (image == null)
-            {
-                return;
-            }
-
-            if (sprite != null)
-            {
-                image.sprite = sprite;
-                image.type = Image.Type.Sliced;
-                image.preserveAspect = false;
-                return;
-            }
-
-            ApplyGeneratedSprite(image);
-        }
-
-        private static Sprite GetGeneratedFallbackSprite()
-        {
-            if (_generatedFallbackSprite != null)
-                return _generatedFallbackSprite;
-
-            Texture2D texture = new Texture2D(1, 1, TextureFormat.RGBA32, false)
-            {
-                name = "GeneratedCookingPreparationUiSpriteTexture",
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp
-            };
-            texture.SetPixel(0, 0, Color.white);
-            texture.Apply(false, true);
-
-            _generatedFallbackSprite = Sprite.Create(
-                texture,
-                new Rect(0f, 0f, 1f, 1f),
-                new Vector2(0.5f, 0.5f),
-                1f);
-            _generatedFallbackSprite.name = "GeneratedCookingPreparationUiSprite";
-            return _generatedFallbackSprite;
-        }
-
-        private static string SanitizeName(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                return "Empty";
-
-            char[] chars = value.ToCharArray();
-            for (int i = 0; i < chars.Length; i++)
-            {
-                if (char.IsLetterOrDigit(chars[i]) == false)
-                    chars[i] = '_';
-            }
-
-            return new string(chars);
         }
     }
 }

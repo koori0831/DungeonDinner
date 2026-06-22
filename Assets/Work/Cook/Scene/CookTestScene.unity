@@ -7721,8 +7721,6 @@ MonoBehaviour:
   balanceField: {fileID: 380591302}
   buildDefaultLayoutWhenMissing: 1
   fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
-  panelSprite: {fileID: 21300000, guid: cc51a4e9bbeb9ee488f5cf09bcf5e214, type: 3}
-  panelColor: {r: 0.05, g: 0.04, b: 0.03, a: 0.92}
   positiveColor: {r: 0.92, g: 0.78, b: 0.35, a: 1}
   emptyColor: {r: 0.72, g: 0.68, b: 0.6, a: 1}
   visibleDuration: 3
@@ -16467,22 +16465,14 @@ MonoBehaviour:
   npcMatchField: {fileID: 858226153}
   preparationSection: {fileID: 1257595868}
   preparationRoot: {fileID: 33856042}
+  preparationEntryPrefab: {fileID: 300005, guid: d1f260da3cb34564b4a2d63e9c4e76bc, type: 3}
+  emptyPreparationField: {fileID: 0}
   reasonsSection: {fileID: 328025312}
   reasonsField: {fileID: 836030855}
   handToNpcButton: {fileID: 1232598503}
   buildDefaultLayoutWhenMissing: 1
   fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
-  panelSprite: {fileID: 21300000, guid: cc51a4e9bbeb9ee488f5cf09bcf5e214, type: 3}
-  labelSprite: {fileID: 21300000, guid: 907354955703cfa4fa180bffdddc56f8, type: 3}
-  panelColor: {r: 0.045, g: 0.035, b: 0.028, a: 0.9}
-  sectionColor: {r: 0.13, g: 0.105, b: 0.08, a: 0.94}
-  plateColor: {r: 0.31, g: 0.23, b: 0.16, a: 0.98}
-  entryColor: {r: 0.2, g: 0.16, b: 0.12, a: 0.96}
-  primaryButtonColor: {r: 0.62, g: 0.77, b: 0.48, a: 1}
-  disabledButtonColor: {r: 0.34, g: 0.31, b: 0.28, a: 1}
-  titleText: "\uC694\uB9AC \uC644\uC131"
   noResultText: "\uC644\uC131\uB41C \uC74C\uC2DD\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."
-  handToNpcText: "NPC\uC5D0\uAC8C \uAC74\uB124\uC8FC\uAE30"
 --- !u!1 &817237886
 GameObject:
   m_ObjectHideFlags: 0
@@ -25134,17 +25124,11 @@ MonoBehaviour:
   keepRecipeSelectionVisibleBeforePreparation: 1
   keepRecipeSelectionVisibleDuringInventory: 0
   allowRecipeConfirmation: 1
-  autoCreateTemporaryInventoryView: 1
-  autoCreateTemporaryPreparationView: 1
-  autoCreateTemporaryResultView: 1
-  autoCreateTemporaryKnowledgeUpdateView: 1
   temporaryUiFontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   rewardWallet: {fileID: 1154906896}
   rewardCalculator: {fileID: 1154906895}
   autoCreateRewardSystems: 1
-  autoCreateTemporaryRewardView: 1
   businessFlowController: {fileID: 0}
-  autoCreateBusinessFlowController: 1
   npcConversationView: {fileID: 1269012764}
   recipeSelectionView: {fileID: 2041527735}
   inventoryView: {fileID: 1478277788}
@@ -25320,16 +25304,10 @@ MonoBehaviour:
   dispatchMap: {fileID: 11400000, guid: c8d7e6f5a4b3492087654321fedcba09, type: 2}
   inventoryModule: {fileID: 1154906898}
   npcRunner: {fileID: 0}
-  targetCanvas: {fileID: 0}
-  generatedUiRoot: {fileID: 0}
   mapView: {fileID: 0}
   progressView: {fileID: 0}
   resultView: {fileID: 0}
   openButton: {fileID: 0}
-  fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
-  autoCreateDefaultUI: 1
-  autoCreateOpenButton: 1
-  openButtonText: "\uD30C\uACAC"
   lastRewardAddedAmount: 0
   lastRewardRemainingAmount: 0
   dispatchStarted:
@@ -27623,16 +27601,9 @@ MonoBehaviour:
   ingredientDescriptionField: {fileID: 1675711407}
   progressField: {fileID: 1230785533}
   cardRoot: {fileID: 1738079359}
+  optionCardPrefab: {fileID: 200006, guid: 56415722c26041408dff1a99889a1d37, type: 3}
   buildDefaultLayoutWhenMissing: 1
-  rebuildTemporaryDefaultLayoutWhenVersionChanges: 1
-  defaultLayoutVersion: 0
   fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
-  panelSprite: {fileID: 21300000, guid: cc51a4e9bbeb9ee488f5cf09bcf5e214, type: 3}
-  labelSprite: {fileID: 21300000, guid: 907354955703cfa4fa180bffdddc56f8, type: 3}
-  ingredientColor: {r: 0.78, g: 0.66, b: 0.47, a: 1}
-  cardColor: {r: 0.18, g: 0.15, b: 0.12, a: 0.96}
-  cardHoverColor: {r: 0.3, g: 0.23, b: 0.16, a: 1}
-  buttonColor: {r: 0.55, g: 0.7, b: 0.46, a: 1}
   noIngredientText: "\uC190\uC9C8\uD560 \uC7AC\uB8CC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."
   noOptionText: "\uC774 \uC7AC\uB8CC\uC5D0\uB294 \uB4F1\uB85D\uB41C \uC190\uC9C8\uBC95\uC774
     \uC5C6\uC2B5\uB2C8\uB2E4."
@@ -32516,6 +32487,7 @@ MonoBehaviour:
   searchIngredientSourceInChildren: 1
   availableIngredientRoot: {fileID: 662147787}
   selectedIngredientRoot: {fileID: 1031538901}
+  ingredientButtonPrefab: {fileID: 100006, guid: 91a4bb7c6bb04b0f9936523dcaf53f1d, type: 3}
   searchInputField: {fileID: 0}
   availableSummaryField: {fileID: 0}
   selectedSummaryField: {fileID: 2136962488}
@@ -32530,28 +32502,15 @@ MonoBehaviour:
   showIngredientQuantities: 1
   hideUnavailableIngredients: 1
   buildDefaultLayoutWhenMissing: 1
-  rebuildTemporaryDefaultLayoutWhenVersionChanges: 1
-  defaultLayoutVersion: 0
-  panelSprite: {fileID: 21300000, guid: cc51a4e9bbeb9ee488f5cf09bcf5e214, type: 3}
-  labelSprite: {fileID: 21300000, guid: 907354955703cfa4fa180bffdddc56f8, type: 3}
-  panelColor: {r: 0.05, g: 0.04, b: 0.03, a: 0.88}
-  sectionColor: {r: 0.12, g: 0.1, b: 0.08, a: 0.92}
-  defaultButtonColor: {r: 0.78, g: 0.7, b: 0.56, a: 1}
-  selectedButtonColor: {r: 0.54, g: 0.72, b: 0.48, a: 1}
-  disabledButtonColor: {r: 0.36, g: 0.33, b: 0.29, a: 1}
   fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
-  titleText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   availableTitleText: "\uC784\uC2DC \uAC00\uBC29"
   selectedTitleText: "\uC120\uD0DD\uD55C \uC7AC\uB8CC"
-  searchPlaceholderText: "\uC7AC\uB8CC \uAC80\uC0C9"
   emptyAvailableText: "\uC0AC\uC6A9 \uAC00\uB2A5\uD55C \uC7AC\uB8CC \uC5C6\uC74C"
   emptySearchResultText: "\uAC80\uC0C9 \uC870\uAC74\uC5D0 \uB9DE\uB294 \uC7AC\uB8CC
     \uC5C6\uC74C"
   emptySelectedText: "\uC120\uD0DD\uB41C \uC7AC\uB8CC \uC5C6\uC74C"
   emptyIngredientDetailText: "\uC7AC\uB8CC\uC5D0 \uB9C8\uC6B0\uC2A4\uB97C \uC62C\uB9AC\uBA74
     \uC815\uBCF4\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4."
-  confirmText: "\uC7AC\uB8CC \uD655\uC815"
-  clearText: "\uBE44\uC6B0\uAE30"
 --- !u!1 &1481410993
 GameObject:
   m_ObjectHideFlags: 0
