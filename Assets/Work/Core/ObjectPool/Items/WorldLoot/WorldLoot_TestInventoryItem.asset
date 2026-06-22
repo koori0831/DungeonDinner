@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cce3d017ddc3464e88742eaf91ebea0d, type: 3}
-  m_Name: WorldLoot_TestInventoryItemPool
+  m_Name: WorldLoot_TestInventoryItem
   m_EditorClassIdentifier: ObjectPool.RuntimeAssembly::Work.Core.ObjectPool.RunTime.PoolItemSO
   poolingName: WorldLoot_TestInventoryItem
   prefab: {fileID: 100000, guid: d1d0a1b2c3d44567a8901234567890ab, type: 3}
