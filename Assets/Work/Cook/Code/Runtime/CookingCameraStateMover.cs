@@ -1,4 +1,6 @@
-using System.Collections;
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Work.Cook.Code.Runtime
@@ -12,7 +14,7 @@ namespace Work.Cook.Code.Runtime
         [SerializeField, Min(0.01f)] private float moveDuration = 0.45f;
         [SerializeField] private AnimationCurve easing = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
-        private Coroutine _moveRoutine;
+        private CancellationTokenSource _moveCancellationTokenSource;
         private CookingGamePanel _subscribedPanel;
 
         private void Reset()
@@ -30,6 +32,7 @@ namespace Work.Cook.Code.Runtime
 
         private void OnDisable()
         {
+            CancelMove();
             UnsubscribePanel();
         }
 
@@ -51,11 +54,7 @@ namespace Work.Cook.Code.Runtime
             if (pose == null || targetCamera == null)
                 return;
 
-            if (_moveRoutine != null)
-            {
-                StopCoroutine(_moveRoutine);
-                _moveRoutine = null;
-            }
+            CancelMove();
 
             if (instant || isActiveAndEnabled == false)
             {
@@ -63,7 +62,9 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            _moveRoutine = StartCoroutine(MoveCamera(pose));
+            CancellationTokenSource moveCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
+            _moveCancellationTokenSource = moveCancellationTokenSource;
+            MoveCameraAsync(pose, moveCancellationTokenSource).Forget();
         }
 
         private Transform ResolvePose(CookingGameScreenState state)
@@ -74,25 +75,51 @@ namespace Work.Cook.Code.Runtime
             return conversationPose;
         }
 
-        private IEnumerator MoveCamera(Transform pose)
+        private async UniTaskVoid MoveCameraAsync(Transform pose, CancellationTokenSource moveCancellationTokenSource)
         {
+            CancellationToken cancellationToken = moveCancellationTokenSource.Token;
             Transform cameraTransform = targetCamera.transform;
             Vector3 startPosition = cameraTransform.position;
             Quaternion startRotation = cameraTransform.rotation;
             float elapsed = 0f;
 
-            while (elapsed < moveDuration)
+            try
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / moveDuration);
-                float eased = easing != null ? easing.Evaluate(t) : t;
-                cameraTransform.position = Vector3.Lerp(startPosition, pose.position, eased);
-                cameraTransform.rotation = Quaternion.Slerp(startRotation, pose.rotation, eased);
-                yield return null;
-            }
+                while (elapsed < moveDuration)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    elapsed += Time.deltaTime;
+                    float t = Mathf.Clamp01(elapsed / moveDuration);
+                    float eased = easing != null ? easing.Evaluate(t) : t;
+                    cameraTransform.position = Vector3.Lerp(startPosition, pose.position, eased);
+                    cameraTransform.rotation = Quaternion.Slerp(startRotation, pose.rotation, eased);
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
 
-            cameraTransform.SetPositionAndRotation(pose.position, pose.rotation);
-            _moveRoutine = null;
+                cameraTransform.SetPositionAndRotation(pose.position, pose.rotation);
+            }
+            catch (OperationCanceledException)
+            {
+                // 화면 전환 또는 오브젝트 비활성화로 인한 정상 취소
+            }
+            finally
+            {
+                if (_moveCancellationTokenSource == moveCancellationTokenSource)
+                {
+                    _moveCancellationTokenSource = null;
+                }
+
+                moveCancellationTokenSource.Dispose();
+            }
+        }
+
+        private void CancelMove()
+        {
+            if (_moveCancellationTokenSource == null)
+                return;
+
+            _moveCancellationTokenSource.Cancel();
+            _moveCancellationTokenSource = null;
         }
 
         private void EnsureReferences()
