@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
+using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
@@ -10,6 +11,9 @@ namespace Work.Cook.Code.Runtime
 {
     public sealed class CookingIngredientSelectionView : MonoBehaviour, ICookingIngredientSelectionView
     {
+        private const int CurrentDefaultLayoutVersion = 7;
+        private const float SELECTED_GRID_BUTTON_SCALE = 1.07f;
+
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private CookingFlowRunner flowRunner;
@@ -20,7 +24,6 @@ namespace Work.Cook.Code.Runtime
         [Header("Layout References")]
         [SerializeField] private RectTransform availableIngredientRoot;
         [SerializeField] private RectTransform selectedIngredientRoot;
-        [SerializeField] private CookingIngredientButtonView ingredientButtonPrefab;
         [SerializeField] private TMP_InputField searchInputField;
         [SerializeField] private TextMeshProUGUI availableSummaryField;
         [SerializeField] private TextMeshProUGUI selectedSummaryField;
@@ -38,23 +41,36 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private bool hideUnavailableIngredients = true;
 
         [Header("Default Layout")]
-        [SerializeField] private bool buildDefaultLayoutWhenMissing;
+        [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
+        [SerializeField] private bool rebuildTemporaryDefaultLayoutWhenVersionChanges = true;
+        [SerializeField] private int defaultLayoutVersion;
+        [SerializeField] private Sprite panelSprite;
+        [SerializeField] private Sprite labelSprite;
+        [SerializeField] private Color panelColor = new Color(0.20f, 0.12f, 0.065f, 0.94f);
+        [SerializeField] private Color sectionColor = new Color(0.30f, 0.20f, 0.12f, 0.96f);
+        [SerializeField] private Color defaultButtonColor = new Color(0.68f, 0.50f, 0.30f, 1f);
+        [SerializeField] private Color selectedButtonColor = new Color(0.60f, 0.72f, 0.42f, 1f);
+        [SerializeField] private Color disabledButtonColor = new Color(0.36f, 0.33f, 0.29f, 1f);
 
         [Header("Text")]
         [SerializeField] private TMP_FontAsset fontAsset;
+        [SerializeField] private string titleText = "재료 직접 선택";
         [SerializeField] private string availableTitleText = "임시 가방";
         [SerializeField] private string selectedTitleText = "선택한 재료";
+        [SerializeField] private string searchPlaceholderText = "재료 검색";
         [SerializeField] private string emptyAvailableText = "사용 가능한 재료 없음";
         [SerializeField] private string emptySearchResultText = "검색 조건에 맞는 재료 없음";
         [SerializeField] private string emptySelectedText = "선택된 재료 없음";
         [SerializeField] private string emptyIngredientDetailText = "재료에 마우스를 올리면 정보가 표시됩니다.";
+        [SerializeField] private string confirmText = "재료 확정";
+        [SerializeField] private string clearText = "비우기";
 
         private bool _isSubscribed;
         private ICookingIngredientSource _runtimeIngredientSource;
         private ICookingIngredientSource _subscribedIngredientSource;
         private IngredientSO _focusedIngredient;
         private string _searchQuery = string.Empty;
-        private bool _loggedMissingIngredientButtonPrefab;
+        private static Sprite _generatedFallbackSprite;
 
         private void OnValidate()
         {
@@ -266,16 +282,16 @@ namespace Work.Cook.Code.Runtime
                     continue;
 
                 bool selected = ContainsIngredient(selectedIngredients, ingredient);
-                bool interactable = selected == true
-                                    || (availableQuantity > 0 && CanSelectMore(selectedIngredients) == true);
-                CreateIngredientButton(
+                Button button = CreateIngredientButton(
                     availableIngredientRoot,
-                    ingredient,
                     BuildAvailableIngredientLabel(ingredient, availableQuantity),
                     GetIngredientIcon(ingredient),
-                    selected,
-                    interactable,
-                    () => ToggleIngredient(ingredient));
+                    selected ? selectedButtonColor : defaultButtonColor,
+                    () => ToggleIngredient(ingredient),
+                    selected);
+                button.interactable = selected == true
+                                      || availableQuantity > 0 && CanSelectMore(selectedIngredients) == true;
+                BindIngredientPointerEvents(button.gameObject, ingredient);
             }
         }
 
@@ -307,14 +323,14 @@ namespace Work.Cook.Code.Runtime
                 if (ingredient == null)
                     continue;
 
-                CreateIngredientButton(
+                Button button = CreateIngredientButton(
                     selectedIngredientRoot,
-                    ingredient,
                     ingredient.DisplayName,
                     GetIngredientIcon(ingredient),
-                    false,
-                    true,
-                    () => RemoveIngredient(ingredient));
+                    selectedButtonColor,
+                    () => RemoveIngredient(ingredient),
+                    false);
+                BindIngredientPointerEvents(button.gameObject, ingredient);
             }
         }
 
@@ -571,55 +587,629 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureLayout()
         {
+            if (buildDefaultLayoutWhenMissing == false)
+                return;
+
+            if (ShouldRebuildTemporaryDefaultLayout())
+            {
+                ClearChildren(transform);
+                availableIngredientRoot = null;
+                selectedIngredientRoot = null;
+                searchInputField = null;
+                availableSummaryField = null;
+                selectedSummaryField = null;
+                selectionRuleField = null;
+                ingredientDetailField = null;
+                emptyAvailableField = null;
+                emptySelectedField = null;
+                confirmButton = null;
+                clearButton = null;
+            }
+
             if (availableIngredientRoot != null
                 && selectedIngredientRoot != null
                 && selectedSummaryField != null
                 && confirmButton != null)
             {
+                EnsureSupplementalLayout();
                 return;
             }
 
-            if (buildDefaultLayoutWhenMissing == true)
+            BuildDefaultLayout();
+            defaultLayoutVersion = CurrentDefaultLayoutVersion;
+        }
+
+        private bool ShouldRebuildTemporaryDefaultLayout()
+        {
+            return rebuildTemporaryDefaultLayoutWhenVersionChanges
+                   && defaultLayoutVersion < CurrentDefaultLayoutVersion
+                   && gameObject.name.Contains("TemporaryIngredientSelectionView");
+        }
+
+        private void EnsureSupplementalLayout()
+        {
+            EnsureAvailableSupplementalLayout();
+            EnsureSelectedSupplementalLayout();
+        }
+
+        private void EnsureAvailableSupplementalLayout()
+        {
+            Transform bagSection = FindSectionRoot(availableIngredientRoot);
+            if (bagSection == null)
+                return;
+
+            if (availableSummaryField == null)
+                availableSummaryField = bagSection.GetComponentInChildren<TextMeshProUGUI>(true);
+
+            if (searchInputField == null)
             {
-                Debug.LogWarning("CookingIngredientSelectionView no longer builds default layout. Assign layout references and item prefabs in the inspector.", this);
+                searchInputField = FindNamedInputField(bagSection, "IngredientSearchField");
+                if (searchInputField == null)
+                {
+                    searchInputField = CreateSearchInput(bagSection);
+                    searchInputField.transform.SetSiblingIndex(Mathf.Min(1, bagSection.childCount - 1));
+                }
+            }
+
+            if (ingredientDetailField == null)
+            {
+                ingredientDetailField = FindNamedText(bagSection, "IngredientDetail");
+                if (ingredientDetailField == null)
+                {
+                    ingredientDetailField = CreateText(
+                        bagSection,
+                        "IngredientDetail",
+                        emptyIngredientDetailText,
+                        13f,
+                        TextAlignmentOptions.TopLeft);
+                    ingredientDetailField.transform.SetSiblingIndex(Mathf.Min(1, bagSection.childCount - 1));
+                    AddLayoutElement(ingredientDetailField.gameObject, -1f, 92f, -1f, 0f);
+                }
+
+                ingredientDetailField.textWrappingMode = TextWrappingModes.Normal;
+                ingredientDetailField.overflowMode = TextOverflowModes.Ellipsis;
+            }
+
+            if (emptyAvailableField == null)
+            {
+                emptyAvailableField = FindNamedText(bagSection, "EmptyAvailable");
+                if (emptyAvailableField == null)
+                {
+                    emptyAvailableField = CreateText(
+                        bagSection,
+                        "EmptyAvailable",
+                        emptyAvailableText,
+                        15f,
+                        TextAlignmentOptions.Center);
+                    AddLayoutElement(emptyAvailableField.gameObject, -1f, 28f, -1f, 0f);
+                }
             }
         }
 
-        private void CreateIngredientButton(
+        private void EnsureSelectedSupplementalLayout()
+        {
+            Transform selectedSection = FindSectionRoot(selectedIngredientRoot);
+            if (selectedSection == null)
+                return;
+
+            EnsureScrollContentScrollbar(selectedIngredientRoot);
+
+            if (selectionRuleField == null)
+            {
+                selectionRuleField = FindNamedText(selectedSection, "SelectionRule");
+                if (selectionRuleField == null)
+                {
+                    selectionRuleField = CreateText(
+                        selectedSection,
+                        "SelectionRule",
+                        string.Empty,
+                        13f,
+                        TextAlignmentOptions.Left);
+                    selectionRuleField.transform.SetSiblingIndex(Mathf.Min(1, selectedSection.childCount - 1));
+                    AddLayoutElement(selectionRuleField.gameObject, -1f, 24f, -1f, 0f);
+                }
+            }
+        }
+
+        private void BuildDefaultLayout()
+        {
+            RectTransform rect = EnsureRectTransform(gameObject);
+            rect.localRotation = Quaternion.identity;
+            rect.localScale = Vector3.one;
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.sizeDelta = new Vector2(820f, 330f);
+            rect.anchoredPosition = new Vector2(820f, 18f);
+
+            Image background = GetOrAdd<Image>(gameObject);
+            ApplyGeneratedSprite(background);
+            background.color = new Color(0f, 0f, 0f, 0f);
+            background.raycastTarget = true;
+
+            VerticalLayoutGroup rootLayout = GetOrAdd<VerticalLayoutGroup>(gameObject);
+            rootLayout.padding = new RectOffset(24, 24, 18, 22);
+            rootLayout.spacing = 10f;
+            rootLayout.childControlWidth = true;
+            rootLayout.childControlHeight = true;
+            rootLayout.childForceExpandWidth = true;
+            rootLayout.childForceExpandHeight = false;
+
+            RectTransform header = CreateLayoutObject(transform, "BagHeader");
+            HorizontalLayoutGroup headerLayout = header.gameObject.AddComponent<HorizontalLayoutGroup>();
+            headerLayout.spacing = 10f;
+            headerLayout.childControlWidth = true;
+            headerLayout.childControlHeight = true;
+            headerLayout.childForceExpandWidth = false;
+            headerLayout.childForceExpandHeight = false;
+            AddLayoutElement(header.gameObject, -1f, 34f, -1f, 0f);
+
+            TextMeshProUGUI title = CreateText(header, "Title", titleText, 22f, TextAlignmentOptions.Left);
+            AddLayoutElement(title.gameObject, 220f, 34f, 0f, 0f);
+
+            TextMeshProUGUI hint = CreateText(header, "Hint", "대화창 아래에서 가방을 열어 재료를 고릅니다.", 13f, TextAlignmentOptions.Left);
+            hint.color = new Color(1f, 0.90f, 0.74f, 0.82f);
+            AddLayoutElement(hint.gameObject, -1f, 34f, 1f, 0f);
+
+            RectTransform body = CreateLayoutObject(transform, "Body");
+            HorizontalLayoutGroup bodyLayout = body.gameObject.AddComponent<HorizontalLayoutGroup>();
+            bodyLayout.spacing = 12f;
+            bodyLayout.childControlWidth = true;
+            bodyLayout.childControlHeight = true;
+            bodyLayout.childForceExpandWidth = true;
+            bodyLayout.childForceExpandHeight = true;
+            AddLayoutElement(body.gameObject, -1f, -1f, 1f, 1f);
+
+            RectTransform bagPanel = CreateSection(body, "BagSection", availableTitleText);
+            availableSummaryField = bagPanel.GetComponentInChildren<TextMeshProUGUI>();
+            searchInputField = CreateSearchInput(bagPanel);
+            ingredientDetailField = CreateText(bagPanel, "IngredientDetail", emptyIngredientDetailText, 13f, TextAlignmentOptions.TopLeft);
+            ingredientDetailField.textWrappingMode = TextWrappingModes.Normal;
+            ingredientDetailField.overflowMode = TextOverflowModes.Ellipsis;
+            AddLayoutElement(ingredientDetailField.gameObject, -1f, 58f, -1f, 0f);
+            availableIngredientRoot = CreateGridScrollContent(bagPanel, "AvailableIngredients");
+            emptyAvailableField = CreateText(bagPanel, "EmptyAvailable", emptyAvailableText, 15f, TextAlignmentOptions.Center);
+            AddLayoutElement(emptyAvailableField.gameObject, -1f, 28f, -1f, 0f);
+            AddLayoutElement(bagPanel.gameObject, 0f, -1f, 2.6f, 1f);
+
+            RectTransform selectedPanel = CreateSection(body, "SelectedSection", selectedTitleText);
+            selectedSummaryField = selectedPanel.GetComponentInChildren<TextMeshProUGUI>();
+            selectionRuleField = CreateText(selectedPanel, "SelectionRule", string.Empty, 13f, TextAlignmentOptions.Left);
+            AddLayoutElement(selectionRuleField.gameObject, -1f, 24f, -1f, 0f);
+            selectedIngredientRoot = CreateScrollContent(selectedPanel, "SelectedIngredients");
+            emptySelectedField = CreateText(selectedPanel, "EmptySelected", emptySelectedText, 15f, TextAlignmentOptions.Center);
+            AddLayoutElement(emptySelectedField.gameObject, -1f, 28f, -1f, 0f);
+            AddLayoutElement(selectedPanel.gameObject, 0f, -1f, 1f, 1f);
+
+            RectTransform actionRow = CreateLayoutObject(selectedPanel, "ActionRow");
+            HorizontalLayoutGroup actionLayout = actionRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            actionLayout.spacing = 8f;
+            actionLayout.childControlWidth = true;
+            actionLayout.childControlHeight = true;
+            actionLayout.childForceExpandWidth = true;
+            actionLayout.childForceExpandHeight = false;
+            AddLayoutElement(actionRow.gameObject, -1f, 44f, -1f, 0f);
+
+            clearButton = CreateActionButton(actionRow, clearText, ClearSelection, defaultButtonColor);
+            confirmButton = CreateActionButton(actionRow, confirmText, ConfirmSelection, selectedButtonColor);
+        }
+
+        private RectTransform CreateSection(Transform parent, string name, string title)
+        {
+            RectTransform section = CreateLayoutObject(parent, name);
+            Image image = section.gameObject.AddComponent<Image>();
+            ApplyUiAssetSprite(image, panelSprite);
+            bool isBag = string.Equals(name, "BagSection", StringComparison.OrdinalIgnoreCase);
+            bool isPocket = string.Equals(name, "SelectedSection", StringComparison.OrdinalIgnoreCase);
+            image.color = panelSprite != null
+                ? Color.white
+                : isBag == true
+                    ? new Color(0.36f, 0.22f, 0.12f, 0.98f)
+                    : isPocket == true ? new Color(0.18f, 0.12f, 0.08f, 0.96f) : sectionColor;
+
+            Shadow shadow = section.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.42f);
+            shadow.effectDistance = new Vector2(2f, -5f);
+
+            VerticalLayoutGroup layout = section.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = isBag ? new RectOffset(22, 22, 12, 18) : new RectOffset(16, 16, 14, 16);
+            layout.spacing = isBag ? 8f : 10f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            if (isBag)
+                CreateBagMouth(section);
+
+            TextMeshProUGUI label = CreateText(section, "SectionTitle", title, 18f, TextAlignmentOptions.Left);
+            label.color = isBag ? new Color(1f, 0.88f, 0.62f, 1f) : Color.white;
+            AddLayoutElement(label.gameObject, -1f, 30f, -1f, 0f);
+            return section;
+        }
+
+        private void CreateBagMouth(Transform parent)
+        {
+            RectTransform mouth = CreateLayoutObject(parent, "BagMouth");
+            Image mouthImage = mouth.gameObject.AddComponent<Image>();
+            ApplyUiAssetSprite(mouthImage, labelSprite);
+            mouthImage.color = labelSprite != null ? Color.white : new Color(0.16f, 0.085f, 0.045f, 0.96f);
+            AddLayoutElement(mouth.gameObject, -1f, 24f, -1f, 0f);
+
+            HorizontalLayoutGroup layout = mouth.gameObject.AddComponent<HorizontalLayoutGroup>();
+            layout.padding = new RectOffset(12, 12, 5, 5);
+            layout.spacing = 8f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+
+            CreateMouthStitch(mouth, 44f);
+            CreateMouthStitch(mouth, 92f);
+            CreateMouthStitch(mouth, 44f);
+        }
+
+        private void CreateMouthStitch(Transform parent, float width)
+        {
+            RectTransform stitch = CreateLayoutObject(parent, "Stitch");
+            Image image = stitch.gameObject.AddComponent<Image>();
+            ApplyGeneratedSprite(image);
+            image.color = new Color(0.72f, 0.52f, 0.30f, 0.78f);
+            AddLayoutElement(stitch.gameObject, width, 7f, 0f, 0f);
+        }
+
+        private RectTransform CreateScrollContent(Transform parent, string name)
+        {
+            RectTransform viewport = CreateLayoutObject(parent, $"{name}Viewport");
+            Image viewportImage = viewport.gameObject.AddComponent<Image>();
+            ApplyGeneratedSprite(viewportImage);
+            viewportImage.color = new Color(0f, 0f, 0f, 0.18f);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            AddLayoutElement(viewport.gameObject, -1f, -1f, 1f, 1f);
+
+            ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 18f;
+
+            RectTransform content = CreateLayoutObject(viewport, name);
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.offsetMin = Vector2.zero;
+            content.offsetMax = Vector2.zero;
+
+            VerticalLayoutGroup contentLayout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            contentLayout.padding = new RectOffset(8, 18, 8, 8);
+            contentLayout.spacing = 6f;
+            contentLayout.childControlWidth = true;
+            contentLayout.childControlHeight = true;
+            contentLayout.childForceExpandWidth = true;
+            contentLayout.childForceExpandHeight = false;
+
+            ContentSizeFitter fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.viewport = viewport;
+            scrollRect.content = content;
+            scrollRect.verticalScrollbar = CreateVerticalScrollbar(viewport);
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+            return content;
+        }
+
+        private RectTransform CreateGridScrollContent(Transform parent, string name)
+        {
+            RectTransform viewport = CreateLayoutObject(parent, $"{name}Viewport");
+            Image viewportImage = viewport.gameObject.AddComponent<Image>();
+            ApplyGeneratedSprite(viewportImage);
+            viewportImage.color = new Color(0.08f, 0.045f, 0.025f, 0.38f);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            AddLayoutElement(viewport.gameObject, -1f, -1f, 1f, 1f);
+
+            ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 18f;
+
+            RectTransform content = CreateLayoutObject(viewport, name);
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.offsetMin = Vector2.zero;
+            content.offsetMax = Vector2.zero;
+
+            GridLayoutGroup grid = content.gameObject.AddComponent<GridLayoutGroup>();
+            grid.padding = new RectOffset(10, 10, 10, 10);
+            grid.spacing = new Vector2(12f, 12f);
+            grid.cellSize = new Vector2(100f, 74f);
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 4;
+            grid.childAlignment = TextAnchor.UpperLeft;
+
+            ContentSizeFitter fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.viewport = viewport;
+            scrollRect.content = content;
+            return content;
+        }
+
+        private Button CreateIngredientButton(
             Transform parent,
-            IngredientSO ingredient,
             string label,
             Sprite icon,
-            bool selected,
-            bool interactable,
-            UnityEngine.Events.UnityAction action)
+            Color color,
+            UnityEngine.Events.UnityAction action,
+            bool selected)
         {
-            if (parent == null)
+            Button button = CreateActionButton(parent, label, action, color);
+            bool inGrid = parent != null && parent.GetComponent<GridLayoutGroup>() != null;
+            AddLayoutElement(button.gameObject, -1f, inGrid ? 74f : 42f, -1f, 0f);
+
+            if (icon != null)
+            {
+                AddIconToIngredientButton(button, icon, inGrid);
+            }
+
+            if (selected == true)
+            {
+                ApplySelectedIngredientVisual(button, inGrid);
+            }
+
+            return button;
+        }
+
+        private Scrollbar CreateVerticalScrollbar(RectTransform viewport)
+        {
+            GameObject scrollbarObject = new GameObject("VerticalScrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
+            scrollbarObject.transform.SetParent(viewport, false);
+
+            RectTransform scrollbarRect = scrollbarObject.GetComponent<RectTransform>();
+            scrollbarRect.anchorMin = new Vector2(1f, 0f);
+            scrollbarRect.anchorMax = new Vector2(1f, 1f);
+            scrollbarRect.pivot = new Vector2(1f, 0.5f);
+            scrollbarRect.anchoredPosition = Vector2.zero;
+            scrollbarRect.sizeDelta = new Vector2(10f, 0f);
+
+            Image background = scrollbarObject.GetComponent<Image>();
+            ApplyGeneratedSprite(background);
+            background.color = new Color(0f, 0f, 0f, 0.34f);
+
+            GameObject handleObject = new GameObject("Handle", typeof(RectTransform), typeof(Image));
+            handleObject.transform.SetParent(scrollbarObject.transform, false);
+            RectTransform handleRect = handleObject.GetComponent<RectTransform>();
+            handleRect.anchorMin = Vector2.zero;
+            handleRect.anchorMax = Vector2.one;
+            handleRect.offsetMin = new Vector2(2f, 2f);
+            handleRect.offsetMax = new Vector2(-2f, -2f);
+
+            Image handleImage = handleObject.GetComponent<Image>();
+            ApplyGeneratedSprite(handleImage);
+            handleImage.color = new Color(0.92f, 0.72f, 0.46f, 0.86f);
+
+            Scrollbar scrollbar = scrollbarObject.GetComponent<Scrollbar>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            scrollbar.targetGraphic = handleImage;
+            scrollbar.handleRect = handleRect;
+            return scrollbar;
+        }
+
+        private void EnsureScrollContentScrollbar(RectTransform contentRoot)
+        {
+            if (contentRoot == null || contentRoot.parent == null)
             {
                 return;
             }
 
-            if (ingredientButtonPrefab == null)
+            RectTransform viewport = contentRoot.parent as RectTransform;
+            if (viewport == null)
             {
-                if (_loggedMissingIngredientButtonPrefab == false)
-                {
-                    Debug.LogWarning("CookingIngredientSelectionView needs an ingredient button prefab before it can build item entries.", this);
-                    _loggedMissingIngredientButtonPrefab = true;
-                }
-
                 return;
             }
 
-            CookingIngredientButtonView itemView = Instantiate(ingredientButtonPrefab, parent);
-            itemView.Bind(
-                ingredient,
-                label,
-                icon,
-                selected,
-                interactable,
-                action,
-                FocusIngredient,
-                ClearFocusedIngredient);
+            ScrollRect scrollRect = viewport.GetComponent<ScrollRect>();
+            if (scrollRect == null || scrollRect.verticalScrollbar != null)
+            {
+                return;
+            }
+
+            scrollRect.verticalScrollbar = CreateVerticalScrollbar(viewport);
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+
+            VerticalLayoutGroup contentLayout = contentRoot.GetComponent<VerticalLayoutGroup>();
+            if (contentLayout != null)
+            {
+                contentLayout.padding = new RectOffset(
+                    contentLayout.padding.left,
+                    Mathf.Max(contentLayout.padding.right, 18),
+                    contentLayout.padding.top,
+                    contentLayout.padding.bottom);
+            }
+        }
+
+        private void ApplySelectedIngredientVisual(Button button, bool inGrid)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            RectTransform rectTransform = button.transform as RectTransform;
+            if (rectTransform != null && inGrid == true)
+            {
+                rectTransform.localScale = new Vector3(SELECTED_GRID_BUTTON_SCALE, SELECTED_GRID_BUTTON_SCALE, 1f);
+            }
+
+            Outline outline = GetOrAdd<Outline>(button.gameObject);
+            outline.effectColor = new Color(1f, 0.90f, 0.55f, 0.78f);
+            outline.effectDistance = new Vector2(2f, -2f);
+            outline.useGraphicAlpha = true;
+        }
+
+        private void AddIconToIngredientButton(Button button, Sprite icon, bool inGrid)
+        {
+            if (button == null || icon == null)
+            {
+                return;
+            }
+
+            GameObject iconObject = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconObject.transform.SetParent(button.transform, false);
+
+            RectTransform iconRect = iconObject.GetComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0f, 0.5f);
+            iconRect.anchorMax = new Vector2(0f, 0.5f);
+            iconRect.pivot = new Vector2(0f, 0.5f);
+            iconRect.anchoredPosition = new Vector2(8f, 0f);
+            iconRect.sizeDelta = inGrid == true ? new Vector2(24f, 24f) : new Vector2(22f, 22f);
+
+            Image image = iconObject.GetComponent<Image>();
+            image.sprite = icon;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+
+            TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label == null)
+            {
+                return;
+            }
+
+            RectTransform labelRect = label.rectTransform;
+            labelRect.offsetMin = new Vector2(inGrid == true ? 34f : 32f, 4f);
+            labelRect.offsetMax = new Vector2(-6f, -4f);
+            label.alignment = TextAlignmentOptions.MidlineLeft;
+        }
+
+        private TMP_InputField CreateSearchInput(Transform parent)
+        {
+            GameObject inputObject = new GameObject(
+                "IngredientSearchField",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(TMP_InputField),
+                typeof(LayoutElement));
+            inputObject.transform.SetParent(parent, false);
+
+            Image image = inputObject.GetComponent<Image>();
+            ApplyUiAssetSprite(image, labelSprite);
+            image.color = labelSprite != null ? Color.white : new Color(0f, 0f, 0f, 0.24f);
+
+            TextMeshProUGUI text = CreateText(inputObject.transform, "Text", string.Empty, 15f, TextAlignmentOptions.Left);
+            text.rectTransform.anchorMin = Vector2.zero;
+            text.rectTransform.anchorMax = Vector2.one;
+            text.rectTransform.offsetMin = new Vector2(10f, 4f);
+            text.rectTransform.offsetMax = new Vector2(-10f, -4f);
+
+            TextMeshProUGUI placeholder = CreateText(
+                inputObject.transform,
+                "Placeholder",
+                searchPlaceholderText,
+                15f,
+                TextAlignmentOptions.Left);
+            placeholder.color = new Color(1f, 1f, 1f, 0.48f);
+            placeholder.rectTransform.anchorMin = Vector2.zero;
+            placeholder.rectTransform.anchorMax = Vector2.one;
+            placeholder.rectTransform.offsetMin = new Vector2(10f, 4f);
+            placeholder.rectTransform.offsetMax = new Vector2(-10f, -4f);
+
+            TMP_InputField input = inputObject.GetComponent<TMP_InputField>();
+            input.targetGraphic = image;
+            input.textComponent = text;
+            input.placeholder = placeholder;
+            input.lineType = TMP_InputField.LineType.SingleLine;
+            input.text = _searchQuery;
+
+            AddLayoutElement(inputObject, -1f, 34f, -1f, 0f);
+            return input;
+        }
+
+        private Button CreateActionButton(
+            Transform parent,
+            string label,
+            UnityEngine.Events.UnityAction action,
+            Color color)
+        {
+            GameObject buttonObject = new GameObject($"Button_{SanitizeName(label)}", typeof(RectTransform), typeof(Image), typeof(Button));
+            buttonObject.transform.SetParent(parent, false);
+
+            Image image = buttonObject.GetComponent<Image>();
+            ApplyUiAssetSprite(image, labelSprite);
+            Color visualColor = labelSprite != null ? Color.white : color;
+            image.color = visualColor;
+
+            Button button = buttonObject.GetComponent<Button>();
+            button.targetGraphic = image;
+            ColorBlock colors = button.colors;
+            colors.normalColor = visualColor;
+            colors.highlightedColor = Color.Lerp(visualColor, Color.white, 0.16f);
+            colors.pressedColor = Color.Lerp(visualColor, Color.black, 0.16f);
+            colors.selectedColor = colors.highlightedColor;
+            colors.disabledColor = disabledButtonColor;
+            colors.colorMultiplier = 1f;
+            button.colors = colors;
+
+            if (action != null)
+                button.onClick.AddListener(action);
+
+            TextMeshProUGUI text = CreateText(buttonObject.transform, "Label", label, 15f, TextAlignmentOptions.Center);
+            RectTransform textRect = text.rectTransform;
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(8f, 4f);
+            textRect.offsetMax = new Vector2(-8f, -4f);
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 10f;
+            text.fontSizeMax = 15f;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Ellipsis;
+            return button;
+        }
+
+        private void BindIngredientPointerEvents(GameObject target, IngredientSO ingredient)
+        {
+            if (target == null || ingredient == null)
+                return;
+
+            EventTrigger trigger = GetOrAdd<EventTrigger>(target);
+            trigger.triggers.Clear();
+
+            EventTrigger.Entry enter = new EventTrigger.Entry
+            {
+                eventID = EventTriggerType.PointerEnter
+            };
+            enter.callback.AddListener(_ => FocusIngredient(ingredient));
+            trigger.triggers.Add(enter);
+
+            EventTrigger.Entry exit = new EventTrigger.Entry
+            {
+                eventID = EventTriggerType.PointerExit
+            };
+            exit.callback.AddListener(_ => ClearFocusedIngredient(ingredient));
+            trigger.triggers.Add(exit);
+        }
+
+        private TextMeshProUGUI CreateText(
+            Transform parent,
+            string name,
+            string text,
+            float fontSize,
+            TextAlignmentOptions alignment)
+        {
+            GameObject textObject = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
+            textObject.transform.SetParent(parent, false);
+
+            TextMeshProUGUI label = textObject.GetComponent<TextMeshProUGUI>();
+            label.text = text;
+            label.fontSize = fontSize;
+            if (fontAsset != null)
+                label.font = fontAsset;
+            label.color = Color.white;
+            label.alignment = alignment;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            label.overflowMode = TextOverflowModes.Ellipsis;
+            return label;
         }
 
         private void BindFixedButtons()
@@ -824,6 +1414,76 @@ namespace Work.Cook.Code.Runtime
             return null;
         }
 
+        private static Transform FindSectionRoot(RectTransform contentRoot)
+        {
+            if (contentRoot == null)
+                return null;
+
+            Transform viewport = contentRoot.parent;
+            return viewport != null ? viewport.parent : null;
+        }
+
+        private static TextMeshProUGUI FindNamedText(Transform root, string objectName)
+        {
+            if (root == null || string.IsNullOrWhiteSpace(objectName))
+                return null;
+
+            TextMeshProUGUI[] labels = root.GetComponentsInChildren<TextMeshProUGUI>(true);
+            for (int i = 0; i < labels.Length; i++)
+            {
+                if (labels[i] != null && labels[i].name == objectName)
+                    return labels[i];
+            }
+
+            return null;
+        }
+
+        private static TMP_InputField FindNamedInputField(Transform root, string objectName)
+        {
+            if (root == null || string.IsNullOrWhiteSpace(objectName))
+                return null;
+
+            TMP_InputField[] inputFields = root.GetComponentsInChildren<TMP_InputField>(true);
+            for (int i = 0; i < inputFields.Length; i++)
+            {
+                if (inputFields[i] != null && inputFields[i].name == objectName)
+                    return inputFields[i];
+            }
+
+            return null;
+        }
+
+        private static RectTransform CreateLayoutObject(Transform parent, string name)
+        {
+            GameObject item = new GameObject(name, typeof(RectTransform), typeof(LayoutElement));
+            item.transform.SetParent(parent, false);
+            return item.GetComponent<RectTransform>();
+        }
+
+        private static RectTransform EnsureRectTransform(GameObject target)
+        {
+            RectTransform rect = target.transform as RectTransform;
+            if (rect != null)
+                return rect;
+
+            return target.AddComponent<RectTransform>();
+        }
+
+        private static LayoutElement AddLayoutElement(
+            GameObject target,
+            float preferredWidth,
+            float preferredHeight,
+            float flexibleWidth,
+            float flexibleHeight)
+        {
+            LayoutElement element = GetOrAdd<LayoutElement>(target);
+            element.preferredWidth = preferredWidth;
+            element.preferredHeight = preferredHeight;
+            element.flexibleWidth = flexibleWidth;
+            element.flexibleHeight = flexibleHeight;
+            return element;
+        }
+
         private static void ClearChildren(Transform root)
         {
             if (root == null)
@@ -845,5 +1505,80 @@ namespace Work.Cook.Code.Runtime
                 field.text = text;
         }
 
+        private static T GetOrAdd<T>(GameObject target) where T : Component
+        {
+            if (target.TryGetComponent(out T component))
+                return component;
+
+            return target.AddComponent<T>();
+        }
+
+        private static void ApplyGeneratedSprite(Image image)
+        {
+            if (image == null)
+                return;
+
+            if (image.sprite == null)
+                image.sprite = GetGeneratedFallbackSprite();
+
+            image.type = Image.Type.Simple;
+            image.preserveAspect = false;
+        }
+
+        private void ApplyUiAssetSprite(Image image, Sprite sprite)
+        {
+            if (image == null)
+            {
+                return;
+            }
+
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.type = Image.Type.Sliced;
+                image.preserveAspect = false;
+                return;
+            }
+
+            ApplyGeneratedSprite(image);
+        }
+
+        private static Sprite GetGeneratedFallbackSprite()
+        {
+            if (_generatedFallbackSprite != null)
+                return _generatedFallbackSprite;
+
+            Texture2D texture = new Texture2D(1, 1, TextureFormat.RGBA32, false)
+            {
+                name = "GeneratedCookingUiSpriteTexture",
+                filterMode = FilterMode.Point,
+                wrapMode = TextureWrapMode.Clamp
+            };
+            texture.SetPixel(0, 0, Color.white);
+            texture.Apply(false, true);
+
+            _generatedFallbackSprite = Sprite.Create(
+                texture,
+                new Rect(0f, 0f, 1f, 1f),
+                new Vector2(0.5f, 0.5f),
+                1f);
+            _generatedFallbackSprite.name = "GeneratedCookingUiSprite";
+            return _generatedFallbackSprite;
+        }
+
+        private static string SanitizeName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return "Empty";
+
+            char[] chars = value.ToCharArray();
+            for (int i = 0; i < chars.Length; i++)
+            {
+                if (char.IsLetterOrDigit(chars[i]) == false)
+                    chars[i] = '_';
+            }
+
+            return new string(chars);
+        }
     }
 }
