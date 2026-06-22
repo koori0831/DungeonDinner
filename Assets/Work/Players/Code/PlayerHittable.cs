@@ -10,11 +10,18 @@ namespace Work.Players.Code
     /// </summary>
     public sealed class PlayerHittable : MonoBehaviour, IHitable
     {
+        private const string HIT_STATE_NAME = "Hit";
+        private const string DEAD_STATE_NAME = "Dead";
+
         [SerializeField]
+        [FormerlySerializedAs("isHitable")]
         private bool isHittable = true;
 
         [SerializeField]
         private EntityHealthModule healthModule;
+
+        [SerializeField]
+        private EntityStateModule stateModule;
 
         /// <summary>
         /// 마지막 피격 정보.
@@ -70,17 +77,39 @@ namespace Work.Players.Code
                 ? new HitResult(true, true, HitResultType.Killed)
                 : new HitResult(true, false, HitResultType.HitButNotKilled);
 
+            TryChangeHitState(isKilled);
+
             return LastHitResult;
         }
 
         private void ResolveSceneReferences()
         {
-            if (healthModule != null)
+            if (healthModule == null)
+            {
+                healthModule = GetComponentInParent<EntityHealthModule>();
+            }
+
+            if (stateModule == null)
+            {
+                stateModule = GetComponentInChildren<EntityStateModule>(true);
+            }
+        }
+
+        private void TryChangeHitState(bool isKilled)
+        {
+            if (stateModule == null || stateModule.StateMachine == null)
             {
                 return;
             }
 
-            healthModule = GetComponentInParent<EntityHealthModule>();
+            string stateName = isKilled == true ? DEAD_STATE_NAME : HIT_STATE_NAME;
+
+            if (stateModule.StateMachine.HasState(stateName) == false)
+            {
+                return;
+            }
+
+            stateModule.StateMachine.TryChangeState(stateName, true);
         }
 
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
