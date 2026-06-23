@@ -10,7 +10,9 @@ namespace Work.Cook.Code.Runtime
     {
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private Camera targetCamera;
+        [SerializeField] private Transform cameraMoveTarget;
         [SerializeField] private Transform cookingCameraPose;
+        [SerializeField, Min(0.01f)] private float preparationOrthographicSize = 3.54f;
         [SerializeField] private Transform cuttingBoard;
         [SerializeField] private Vector3 cuttingBoardHiddenLocalOffset = new Vector3(0f, 4f, 0f);
         [SerializeField, Min(0.01f)] private float enterDuration = 0.65f;
@@ -21,6 +23,7 @@ namespace Work.Cook.Code.Runtime
 
         private Vector3 _cameraDefaultPosition;
         private Quaternion _cameraDefaultRotation;
+        private float _cameraDefaultOrthographicSize;
         private Vector3 _cuttingBoardDefaultLocalPosition;
         private bool _hasCapturedDefaults;
         private bool _isPreparationActive;
@@ -95,12 +98,12 @@ namespace Work.Cook.Code.Runtime
             KillActiveSequence();
             MoveBoardToHiddenPositionInstantly();
 
-            Transform cameraTransform = targetCamera.transform;
             _activeSequence = DOTween.Sequence();
             _activeSequence.SetTarget(this);
             _activeSequence.Join(cuttingBoard.DOLocalMove(_cuttingBoardDefaultLocalPosition, enterDuration).SetEase(boardEnterEase));
-            _activeSequence.Join(cameraTransform.DOMove(cookingCameraPose.position, enterDuration).SetEase(cameraEase));
-            _activeSequence.Join(cameraTransform.DORotateQuaternion(cookingCameraPose.rotation, enterDuration).SetEase(cameraEase));
+            _activeSequence.Join(cameraMoveTarget.DOMove(cookingCameraPose.position, enterDuration).SetEase(cameraEase));
+            _activeSequence.Join(cameraMoveTarget.DORotateQuaternion(cookingCameraPose.rotation, enterDuration).SetEase(cameraEase));
+            _activeSequence.Join(DOTween.To(GetCameraOrthographicSize, SetCameraOrthographicSize, preparationOrthographicSize, enterDuration).SetEase(cameraEase));
         }
 
         private void PlayPreparationExitSequence()
@@ -114,13 +117,13 @@ namespace Work.Cook.Code.Runtime
             _isPreparationActive = false;
             KillActiveSequence();
 
-            Transform cameraTransform = targetCamera.transform;
             Vector3 hiddenBoardPosition = _cuttingBoardDefaultLocalPosition + cuttingBoardHiddenLocalOffset;
             _activeSequence = DOTween.Sequence();
             _activeSequence.SetTarget(this);
             _activeSequence.Join(cuttingBoard.DOLocalMove(hiddenBoardPosition, restoreDuration).SetEase(boardRestoreEase));
-            _activeSequence.Join(cameraTransform.DOMove(_cameraDefaultPosition, restoreDuration).SetEase(cameraEase));
-            _activeSequence.Join(cameraTransform.DORotateQuaternion(_cameraDefaultRotation, restoreDuration).SetEase(cameraEase));
+            _activeSequence.Join(cameraMoveTarget.DOMove(_cameraDefaultPosition, restoreDuration).SetEase(cameraEase));
+            _activeSequence.Join(cameraMoveTarget.DORotateQuaternion(_cameraDefaultRotation, restoreDuration).SetEase(cameraEase));
+            _activeSequence.Join(DOTween.To(GetCameraOrthographicSize, SetCameraOrthographicSize, _cameraDefaultOrthographicSize, restoreDuration).SetEase(cameraEase));
         }
 
         private void MoveBoardToHiddenPositionInstantly()
@@ -136,6 +139,7 @@ namespace Work.Cook.Code.Runtime
         private bool CanPlaySequence()
         {
             return targetCamera != null
+                   && cameraMoveTarget != null
                    && cookingCameraPose != null
                    && cuttingBoard != null
                    && _hasCapturedDefaults == true;
@@ -152,20 +156,50 @@ namespace Work.Cook.Code.Runtime
             {
                 targetCamera = Camera.main;
             }
+
+            if (targetCamera != null && targetCamera.orthographic == false)
+            {
+                targetCamera.orthographic = true;
+            }
+
+            if (cameraMoveTarget == null && targetCamera != null)
+            {
+                cameraMoveTarget = targetCamera.transform;
+            }
         }
 
         private void CaptureDefaultsIfNeeded()
         {
-            if (_hasCapturedDefaults == true || targetCamera == null || cuttingBoard == null)
+            if (_hasCapturedDefaults == true || targetCamera == null || cameraMoveTarget == null || cuttingBoard == null)
             {
                 return;
             }
 
-            Transform cameraTransform = targetCamera.transform;
-            _cameraDefaultPosition = cameraTransform.position;
-            _cameraDefaultRotation = cameraTransform.rotation;
+            _cameraDefaultPosition = cameraMoveTarget.position;
+            _cameraDefaultRotation = cameraMoveTarget.rotation;
+            _cameraDefaultOrthographicSize = targetCamera.orthographicSize;
             _cuttingBoardDefaultLocalPosition = cuttingBoard.localPosition;
             _hasCapturedDefaults = true;
+        }
+
+        private float GetCameraOrthographicSize()
+        {
+            if (targetCamera == null)
+            {
+                return _cameraDefaultOrthographicSize;
+            }
+
+            return targetCamera.orthographicSize;
+        }
+
+        private void SetCameraOrthographicSize(float value)
+        {
+            if (targetCamera == null)
+            {
+                return;
+            }
+
+            targetCamera.orthographicSize = value;
         }
 
         private void KillActiveSequence()
