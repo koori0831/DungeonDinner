@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 using Work.Cook.Code.Data;
 
@@ -175,6 +178,7 @@ namespace Work.Cook.Code.Runtime
             {
                 if (_spawnedIngredientObjects[i] != null)
                 {
+                    ClearEditorSelectionIfTargetWillBeDestroyed(_spawnedIngredientObjects[i]);
                     Destroy(_spawnedIngredientObjects[i]);
                 }
             }
@@ -189,8 +193,46 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
+            ClearEditorSelectionIfTargetWillBeDestroyed(_spawnedDishObject);
             Destroy(_spawnedDishObject);
             _spawnedDishObject = null;
         }
+
+        private static void ClearEditorSelectionIfTargetWillBeDestroyed(GameObject target)
+        {
+#if UNITY_EDITOR
+            if (target == null)
+            {
+                return;
+            }
+
+            Transform targetTransform = target.transform;
+            UnityEngine.Object[] selectedObjects = Selection.objects;
+            for (int i = 0; i < selectedObjects.Length; i++)
+            {
+                Transform selectedTransform = GetSelectedTransform(selectedObjects[i]);
+                if (selectedTransform != null
+                    && (selectedTransform == targetTransform || selectedTransform.IsChildOf(targetTransform) == true))
+                {
+                    Selection.objects = Array.Empty<UnityEngine.Object>();
+                    return;
+                }
+            }
+#endif
+        }
+
+#if UNITY_EDITOR
+        private static Transform GetSelectedTransform(UnityEngine.Object selectedObject)
+        {
+            GameObject selectedGameObject = selectedObject as GameObject;
+            if (selectedGameObject != null)
+            {
+                return selectedGameObject.transform;
+            }
+
+            Component selectedComponent = selectedObject as Component;
+            return selectedComponent != null ? selectedComponent.transform : null;
+        }
+#endif
     }
 }

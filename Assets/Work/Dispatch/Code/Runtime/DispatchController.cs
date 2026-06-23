@@ -32,6 +32,9 @@ namespace Work.Dispatch.Code.Runtime
         [SerializeField] private DispatchResultView resultView;
         [SerializeField] private Button openButton;
         [SerializeField] private TMP_FontAsset fontAsset;
+        [SerializeField] private Sprite panelSprite;
+        [SerializeField] private Sprite labelSprite;
+        [SerializeField] private Sprite buttonSprite;
         [SerializeField] private bool autoCreateDefaultUI = true;
         [SerializeField] private bool autoCreateOpenButton = true;
         [SerializeField] private string openButtonText = "파견";
@@ -453,6 +456,11 @@ namespace Work.Dispatch.Code.Runtime
                 mapView.SetFontAsset(fontAsset);
             }
 
+            if (mapView != null)
+            {
+                mapView.SetUiSprites(panelSprite, labelSprite, buttonSprite);
+            }
+
             if (progressView == null)
             {
                 GameObject progressObject = new GameObject("TempDispatchProgressView", typeof(RectTransform), typeof(DispatchProgressView));
@@ -536,6 +544,7 @@ namespace Work.Dispatch.Code.Runtime
                 new Color(0.43f, 0.29f, 0.16f, 1f),
                 fontAsset,
                 OpenMapClicked);
+            ApplyOpenButtonSprite(button);
 
             RectTransform rectTransform = button.GetComponent<RectTransform>();
             rectTransform.anchorMin = new Vector2(1f, 1f);
@@ -544,6 +553,32 @@ namespace Work.Dispatch.Code.Runtime
             rectTransform.anchoredPosition = new Vector2(-28f, -28f);
             rectTransform.sizeDelta = new Vector2(132f, 48f);
             return button;
+        }
+
+        private void ApplyOpenButtonSprite(Button button)
+        {
+            if (button == null || buttonSprite == null)
+            {
+                return;
+            }
+
+            Image image = button.GetComponent<Image>();
+            if (image == null)
+            {
+                return;
+            }
+
+            image.sprite = buttonSprite;
+            image.type = Image.Type.Sliced;
+            image.color = Color.white;
+
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = Color.Lerp(Color.white, Color.gray, 0.1f);
+            colors.pressedColor = Color.Lerp(Color.white, Color.black, 0.18f);
+            colors.selectedColor = colors.highlightedColor;
+            colors.disabledColor = new Color(0.45f, 0.45f, 0.45f, 0.65f);
+            button.colors = colors;
         }
 
         private void BindOpenButton()

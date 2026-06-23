@@ -6,28 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="9572947c-97ba-46be-9cdd-73cd5f25d671" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Data/PreparationMethodSO.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Data/PreparationMethodSO.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingDataEditorWindow.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingDataEditorWindow.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGamePanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGamePanel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationView.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationView.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingResultView.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingResultView.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/boil_water.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/boil_water.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/chopping.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/chopping.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/flat_mushroom.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/flat_mushroom.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/mushroom_cap.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/mushroom_cap.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/parboil.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/parboil.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/rock_salt.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/rock_salt.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slicing.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/slicing.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_mucus.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_mucus.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_nucleus.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_nucleus.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/1111 4.FBX.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/1111 4.FBX.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/Got.FBX.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/Got.FBX.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/Mom.FBX.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/Mom.FBX.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/Pane.FBX.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/Pane.FBX.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/SlimeCore.FBX.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/SlimeCore.FBX.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/SlimeMuscus.FBX.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/Treat/Ingredient/Mesh/SlimeMuscus.FBX.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationVisualDirector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationVisualDirector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/Dish/MushroomSoupPane.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/Dish/MushroomSoupPane.prefab" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcEncounterDirector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcEncounterDirector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Dispatch/Code/Runtime/DispatchController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Dispatch/Code/Runtime/DispatchController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Dispatch/Code/Runtime/DispatchMapView.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Dispatch/Code/Runtime/DispatchMapView.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
