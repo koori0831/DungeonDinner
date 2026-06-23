@@ -11644,7 +11644,7 @@ MonoBehaviour:
   canvasGroup: {fileID: 0}
   resolveReferencesOnEnable: 1
   disableRunnerDirectChatOutput: 1
-  visibleOnEnable: 1
+  visibleOnEnable: 0
   showWhenDialogueLinePlayed: 1
   showWhenQuestionOptionsAvailable: 1
   showWhenOrderReady: 1
@@ -16035,13 +16035,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 796597985}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.13052616, y: 0, z: 0, w: 0.9914449}
-  m_LocalPosition: {x: 0, y: 0, z: -9.5}
+  m_LocalRotation: {x: 0.30070576, y: 0, z: 0, w: 0.953717}
+  m_LocalPosition: {x: 0, y: 1.2, z: -9.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 15, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 35, y: 0, z: 0}
 --- !u!1 &802509396
 GameObject:
   m_ObjectHideFlags: 0
@@ -25265,6 +25265,7 @@ GameObject:
   - component: {fileID: 1154906898}
   - component: {fileID: 1154906899}
   - component: {fileID: 1154906900}
+  - component: {fileID: 1154906901}
   m_Layer: 0
   m_Name: CookingGamePanel
   m_TagString: Untagged
@@ -25523,6 +25524,28 @@ MonoBehaviour:
   mapClosed:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1154906901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154906892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a4fbb44b8244e73a601d66ee876e6a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingPreparationSequenceDirector
+  gamePanel: {fileID: 1154906894}
+  targetCamera: {fileID: 1003540149}
+  cookingCameraPose: {fileID: 796597986}
+  cuttingBoard: {fileID: 820256645}
+  cuttingBoardHiddenLocalOffset: {x: 0, y: 4, z: 0}
+  enterDuration: 0.65
+  restoreDuration: 0.45
+  boardEnterEase: 30
+  boardRestoreEase: 26
+  cameraEase: 4
 --- !u!1 &1154924331
 GameObject:
   m_ObjectHideFlags: 0
