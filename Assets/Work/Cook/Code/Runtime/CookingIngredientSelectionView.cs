@@ -46,6 +46,7 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private int defaultLayoutVersion;
         [SerializeField] private Sprite panelSprite;
         [SerializeField] private Sprite labelSprite;
+        [SerializeField] private Sprite ingredientButtonSprite;
         [SerializeField] private Color panelColor = new Color(0.20f, 0.12f, 0.065f, 0.94f);
         [SerializeField] private Color sectionColor = new Color(0.30f, 0.20f, 0.12f, 0.96f);
         [SerializeField] private Color defaultButtonColor = new Color(0.68f, 0.50f, 0.30f, 1f);
@@ -945,6 +946,7 @@ namespace Work.Cook.Code.Runtime
             bool selected)
         {
             Button button = CreateActionButton(parent, label, action, color);
+            ApplyIngredientButtonVisual(button, color);
             bool inGrid = parent != null && parent.GetComponent<GridLayoutGroup>() != null;
             AddLayoutElement(button.gameObject, -1f, inGrid ? 74f : 42f, -1f, 0f);
 
@@ -959,6 +961,28 @@ namespace Work.Cook.Code.Runtime
             }
 
             return button;
+        }
+
+        private void ApplyIngredientButtonVisual(Button button, Color color)
+        {
+            if (button == null || ingredientButtonSprite == null)
+            {
+                return;
+            }
+
+            Image image = button.GetComponent<Image>();
+            ApplyUiAssetSprite(image, ingredientButtonSprite);
+            image.color = Color.white;
+            button.targetGraphic = image;
+
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = Color.Lerp(Color.white, color, 0.10f);
+            colors.pressedColor = Color.Lerp(Color.white, Color.black, 0.16f);
+            colors.selectedColor = colors.highlightedColor;
+            colors.disabledColor = disabledButtonColor;
+            colors.colorMultiplier = 1f;
+            button.colors = colors;
         }
 
         private Scrollbar CreateVerticalScrollbar(RectTransform viewport)
@@ -1507,7 +1531,7 @@ namespace Work.Cook.Code.Runtime
 
         private static T GetOrAdd<T>(GameObject target) where T : Component
         {
-            if (target.TryGetComponent(out T component))
+            if (target.TryGetComponent(out T component) == true)
                 return component;
 
             return target.AddComponent<T>();

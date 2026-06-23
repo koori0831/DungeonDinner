@@ -6,10 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="9572947c-97ba-46be-9cdd-73cd5f25d671" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientSelectionView.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientSelectionView.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationView.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationView.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcConversationRunner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcConversationRunner.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcOrderSlipPanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcOrderSlipPanel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectSettings/URPProjectSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/URPProjectSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +105,7 @@
       <workItem from="1782033055519" duration="1472000" />
       <workItem from="1782045479835" duration="6908000" />
       <workItem from="1782085703678" duration="47720000" />
-      <workItem from="1782167805341" duration="1689000" />
+      <workItem from="1782167805341" duration="5516000" />
     </task>
     <servers />
   </component>

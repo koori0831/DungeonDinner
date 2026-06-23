@@ -11,6 +11,9 @@ namespace Work.Cook.Code.Runtime
     public sealed class CookingPreparationView : MonoBehaviour, ICookingPreparationView
     {
         private const int CurrentDefaultLayoutVersion = 5;
+        private const float CARD_TEXT_HORIZONTAL_MARGIN = 6f;
+        private const float CARD_TEXT_VERTICAL_MARGIN = 2f;
+        private const float HOVERED_CARD_SCALE = 1.04f;
 
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
@@ -164,6 +167,7 @@ namespace Work.Cook.Code.Runtime
             AddLayoutElement(card.gameObject, 0f, -1f, 1f, 1f);
 
             TextMeshProUGUI title = CreateText(card, "Title", noOptionText, 18f, TextAlignmentOptions.Center);
+            ApplyCardTextMargin(title);
             AddLayoutElement(title.gameObject, -1f, 72f, -1f, 0f);
 
             Button button = CreateButton(card, noOptionButtonText, () => SelectPreparation(ingredient, null), buttonColor);
@@ -177,27 +181,33 @@ namespace Work.Cook.Code.Runtime
 
             TextMeshProUGUI icon = CreateText(card, "Icon", BuildOptionIconText(index, option), 28f, TextAlignmentOptions.Center);
             icon.color = new Color(1f, 0.88f, 0.58f, 1f);
+            ApplyCardTextMargin(icon);
             AddLayoutElement(icon.gameObject, -1f, 42f, -1f, 0f);
 
             TextMeshProUGUI name = CreateText(card, "Name", option.DisplayName, 18f, TextAlignmentOptions.Center);
             name.textWrappingMode = TextWrappingModes.Normal;
             name.overflowMode = TextOverflowModes.Ellipsis;
+            ApplyCardTextMargin(name);
             AddLayoutElement(name.gameObject, -1f, 42f, -1f, 0f);
 
             TextMeshProUGUI description = CreateText(card, "Description", BuildOptionDescription(option), 14f, TextAlignmentOptions.TopLeft);
             description.textWrappingMode = TextWrappingModes.Normal;
-            AddLayoutElement(description.gameObject, -1f, 74f, -1f, 0f);
-            description.gameObject.SetActive(false);
+            ApplyCardTextMargin(description);
+            AddLayoutElement(description.gameObject, -1f, 50f, -1f, 0f);
+            CanvasGroup descriptionGroup = GetOrAdd<CanvasGroup>(description.gameObject);
+            SetDetailVisible(descriptionGroup, false);
 
             TextMeshProUGUI effect = CreateText(card, "Effect", BuildKnownEffectText(ingredient, option), 13f, TextAlignmentOptions.TopLeft);
             effect.textWrappingMode = TextWrappingModes.Normal;
-            AddLayoutElement(effect.gameObject, -1f, 78f, -1f, 0f);
-            effect.gameObject.SetActive(false);
+            ApplyCardTextMargin(effect);
+            AddLayoutElement(effect.gameObject, -1f, 58f, -1f, 0f);
+            CanvasGroup effectGroup = GetOrAdd<CanvasGroup>(effect.gameObject);
+            SetDetailVisible(effectGroup, false);
 
             Button button = CreateButton(card, "선택", () => SelectPreparation(ingredient, option), buttonColor);
             AddLayoutElement(button.gameObject, -1f, 42f, -1f, 0f);
 
-            BindHover(card, description.gameObject, effect.gameObject);
+            BindHover(card, descriptionGroup, effectGroup);
         }
 
         private void SelectPreparation(IngredientSO ingredient, IngredientPreparationOption option)
@@ -386,7 +396,7 @@ namespace Work.Cook.Code.Runtime
             image.color = panelSprite != null ? Color.white : cardColor;
 
             VerticalLayoutGroup layout = card.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(12, 12, 12, 12);
+            layout.padding = new RectOffset(18, 18, 14, 14);
             layout.spacing = 7f;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
@@ -448,37 +458,60 @@ namespace Work.Cook.Code.Runtime
             return label;
         }
 
-        private void BindHover(RectTransform card, params GameObject[] detailObjects)
+        private static void ApplyCardTextMargin(TextMeshProUGUI label)
         {
-            if (card == null || detailObjects == null)
+            if (label == null)
+                return;
+
+            label.margin = new Vector4(
+                CARD_TEXT_HORIZONTAL_MARGIN,
+                CARD_TEXT_VERTICAL_MARGIN,
+                CARD_TEXT_HORIZONTAL_MARGIN,
+                CARD_TEXT_VERTICAL_MARGIN);
+        }
+
+        private void BindHover(RectTransform card, params CanvasGroup[] detailGroups)
+        {
+            if (card == null)
                 return;
 
             EventTrigger trigger = card.gameObject.AddComponent<EventTrigger>();
             AddEventTrigger(trigger, EventTriggerType.PointerEnter, _ =>
             {
-                if (card.TryGetComponent(out Image image))
+                card.localScale = new Vector3(HOVERED_CARD_SCALE, HOVERED_CARD_SCALE, 1f);
+                if (card.TryGetComponent(out Image image) == true)
                     image.color = panelSprite != null ? Color.white : cardHoverColor;
-                SetDetailsActive(detailObjects, true);
+                SetDetailsVisible(detailGroups, true);
             });
 
             AddEventTrigger(trigger, EventTriggerType.PointerExit, _ =>
             {
-                if (card.TryGetComponent(out Image image))
+                card.localScale = Vector3.one;
+                if (card.TryGetComponent(out Image image) == true)
                     image.color = panelSprite != null ? Color.white : cardColor;
-                SetDetailsActive(detailObjects, false);
+                SetDetailsVisible(detailGroups, false);
             });
         }
 
-        private static void SetDetailsActive(IReadOnlyList<GameObject> detailObjects, bool active)
+        private static void SetDetailsVisible(IReadOnlyList<CanvasGroup> detailGroups, bool visible)
         {
-            if (detailObjects == null)
+            if (detailGroups == null)
                 return;
 
-            for (int i = 0; i < detailObjects.Count; i++)
+            for (int i = 0; i < detailGroups.Count; i++)
             {
-                if (detailObjects[i] != null)
-                    detailObjects[i].SetActive(active);
+                SetDetailVisible(detailGroups[i], visible);
             }
+        }
+
+        private static void SetDetailVisible(CanvasGroup detailGroup, bool visible)
+        {
+            if (detailGroup == null)
+                return;
+
+            detailGroup.alpha = visible == true ? 1f : 0f;
+            detailGroup.interactable = false;
+            detailGroup.blocksRaycasts = false;
         }
 
         private void SubscribeFlowEvents()
@@ -704,7 +737,7 @@ namespace Work.Cook.Code.Runtime
 
         private static T GetOrAdd<T>(GameObject target) where T : Component
         {
-            if (target.TryGetComponent(out T component))
+            if (target.TryGetComponent(out T component) == true)
                 return component;
 
             return target.AddComponent<T>();
