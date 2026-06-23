@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
 using Work.NPC.Code.Data;
@@ -36,6 +37,14 @@ namespace Work.NPC.Code.Runtime
         [SerializeField, Min(0)] private int recentNpcRepeatBlockCount = 2;
         [SerializeField, Min(0)] private int recentEventRepeatBlockCount = 3;
 
+        [Header("Encounter Intro")]
+        [SerializeField] private Transform npcRiseTarget;
+        [SerializeField] private bool playNpcRiseBeforeConversation;
+        [SerializeField] private float npcRiseStartEulerX = 110f;
+        [SerializeField] private float npcRiseEndEulerX;
+        [SerializeField, Min(0f)] private float npcRiseDuration = 0.55f;
+        [SerializeField] private Ease npcRiseEase = Ease.OutBack;
+
         [Header("Events")]
         [SerializeField] private NpcAffinityChangeSummaryEvent affinityChanged = new NpcAffinityChangeSummaryEvent();
         [SerializeField] private NpcAffinityChangeSummaryEvent affinityLevelChanged = new NpcAffinityChangeSummaryEvent();
@@ -50,6 +59,8 @@ namespace Work.NPC.Code.Runtime
         private int _encountersStartedToday;
         private string _lastAffinityChangeSummary;
         private string _lastRequestUnlockSummary;
+        private Tween _npcRiseTween;
+        private bool _isStartingEncounter;
 
         public event Action<NpcAffinityChangeContext> AffinityChanged;
         public event Action<NpcAffinityChangeContext> AffinityLevelChanged;
@@ -101,6 +112,9 @@ namespace Work.NPC.Code.Runtime
 
         private void OnDestroy()
         {
+            _npcRiseTween?.Kill();
+            _npcRiseTween = null;
+
             if (runner != null)
             {
                 runner.ResultDialogueStarted -= HandleResultDialogueStarted;
@@ -474,7 +488,7 @@ namespace Work.NPC.Code.Runtime
             if (runner == null)
                 runner = FindFirstObjectByType<NpcConversationRunner>();
 
-            if (runner == null || runner.HasActiveConversation)
+            if (runner == null || runner.HasActiveConversation == true || _isStartingEncounter == true)
                 return false;
 
             SyncDailySessionState();
@@ -492,7 +506,7 @@ namespace Work.NPC.Code.Runtime
                 return false;
             }
 
-            if (runner.HasActiveConversation)
+            if (runner.HasActiveConversation == true || _isStartingEncounter == true)
             {
                 Debug.LogWarning("NPC encounter already has an active conversation. Complete the current conversation before starting another encounter.");
                 return false;
@@ -520,9 +534,59 @@ namespace Work.NPC.Code.Runtime
             Debug.Log(
                 $"NPC encounter selected: date={NpcImperialCalendar.FormatDayIndex(_activeEncounterDay)}, " +
                 $"region={regionId}, npc={visitEvent.NpcId}, event={visitEvent.EventId}");
-            runner.PlayEvent(visitEvent.EventId, _history.GetNpcAffinity(visitEvent.NpcId));
+            PlayEncounterConversationAfterIntro(visitEvent);
             RecordEncounter(visitEvent, _activeEncounterDay, advanceDay);
             return true;
+        }
+
+        private void PlayEncounterConversationAfterIntro(VisitEventData visitEvent)
+        {
+            if (visitEvent == null)
+            {
+                return;
+            }
+
+            if (playNpcRiseBeforeConversation == false || npcRiseTarget == null || npcRiseDuration <= 0f)
+            {
+                PlayEncounterConversation(visitEvent);
+                return;
+            }
+
+            _isStartingEncounter = true;
+            _npcRiseTween?.Kill();
+
+            Quaternion startRotation = Quaternion.Euler(npcRiseStartEulerX, 0f, 0f);
+            Quaternion endRotation = Quaternion.Euler(npcRiseEndEulerX, 0f, 0f);
+            npcRiseTarget.localRotation = startRotation;
+
+            _npcRiseTween = npcRiseTarget
+                .DOLocalRotateQuaternion(endRotation, npcRiseDuration)
+                .SetEase(npcRiseEase)
+                .SetTarget(npcRiseTarget)
+                .OnComplete(() => CompleteNpcRiseIntro(visitEvent, endRotation));
+        }
+
+        private void CompleteNpcRiseIntro(VisitEventData visitEvent, Quaternion endRotation)
+        {
+            if (npcRiseTarget != null)
+            {
+                npcRiseTarget.localRotation = endRotation;
+            }
+
+            PlayEncounterConversation(visitEvent);
+        }
+
+        private void PlayEncounterConversation(VisitEventData visitEvent)
+        {
+            _isStartingEncounter = false;
+            _npcRiseTween = null;
+
+            if (runner == null || visitEvent == null)
+            {
+                return;
+            }
+
+            runner.PlayEvent(visitEvent.EventId, _history.GetNpcAffinity(visitEvent.NpcId));
         }
 
         public bool TryPickVisitEvent(string targetRegionId, out VisitEventData visitEvent)

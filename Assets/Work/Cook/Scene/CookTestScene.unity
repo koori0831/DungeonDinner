@@ -20198,7 +20198,7 @@ Transform:
   m_GameObject: {fileID: 958902682}
   serializedVersion: 2
   m_LocalRotation: {x: 0.81915206, y: -0, z: -0, w: 0.57357645}
-  m_LocalPosition: {x: 1, y: -1, z: -5.1}
+  m_LocalPosition: {x: -1.3, y: -1, z: -5.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -29314,6 +29314,12 @@ MonoBehaviour:
   avoidImmediateRepeat: 1
   recentNpcRepeatBlockCount: 2
   recentEventRepeatBlockCount: 3
+  npcRiseTarget: {fileID: 958902684}
+  playNpcRiseBeforeConversation: 1
+  npcRiseStartEulerX: 110
+  npcRiseEndEulerX: 0
+  npcRiseDuration: 0.55
+  npcRiseEase: 27
   affinityChanged:
     m_PersistentCalls:
       m_Calls: []
