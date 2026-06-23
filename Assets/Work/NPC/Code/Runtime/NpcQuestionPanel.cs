@@ -14,6 +14,13 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private Button skipButton;
         [SerializeField] private string skipButtonLabel = "요리하기";
         [SerializeField] private bool hideWhenNoOptions = true;
+        [SerializeField] private Sprite optionButtonSprite;
+        [SerializeField] private Sprite optionButtonHighlightedSprite;
+        [SerializeField] private Color optionButtonColor = new Color(0.43f, 0.29f, 0.16f, 1f);
+        [SerializeField] private Color optionTextColor = Color.white;
+        [SerializeField] private Vector2 optionTextPadding = new Vector2(22f, 10f);
+        [SerializeField, Min(1f)] private float optionMinHeight = 54f;
+        [SerializeField, Min(1f)] private float optionPreferredHeight = 58f;
 
         private readonly List<Button> _spawnedButtons = new List<Button>();
         private CanvasGroup _canvasGroup;
@@ -117,6 +124,7 @@ namespace Work.NPC.Code.Runtime
                 Button button = Instantiate(questionButtonPrefab, optionRoot);
                 button.gameObject.SetActive(true);
                 PrepareButtonLayout(button);
+                ApplyOptionButtonStyle(button);
                 return button;
             }
 
@@ -129,11 +137,11 @@ namespace Work.NPC.Code.Runtime
             buttonObject.transform.SetParent(optionRoot, false);
 
             Image image = buttonObject.GetComponent<Image>();
-            image.color = new Color(0.12f, 0.12f, 0.12f, 0.92f);
+            image.color = optionButtonColor;
 
             LayoutElement layoutElement = buttonObject.GetComponent<LayoutElement>();
-            layoutElement.minHeight = 48f;
-            layoutElement.preferredHeight = 52f;
+            layoutElement.minHeight = optionMinHeight;
+            layoutElement.preferredHeight = optionPreferredHeight;
 
             GameObject textObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             textObject.transform.SetParent(buttonObject.transform, false);
@@ -141,15 +149,17 @@ namespace Work.NPC.Code.Runtime
             RectTransform textRect = textObject.transform as RectTransform;
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(14f, 8f);
-            textRect.offsetMax = new Vector2(-14f, -8f);
+            textRect.offsetMin = new Vector2(optionTextPadding.x, optionTextPadding.y);
+            textRect.offsetMax = new Vector2(-optionTextPadding.x, -optionTextPadding.y);
 
             TextMeshProUGUI label = textObject.GetComponent<TextMeshProUGUI>();
             label.alignment = TextAlignmentOptions.Center;
             label.fontSize = 22f;
-            label.color = Color.white;
+            label.color = optionButtonSprite != null ? optionTextColor : Color.white;
 
-            return buttonObject.GetComponent<Button>();
+            Button button = buttonObject.GetComponent<Button>();
+            ApplyOptionButtonStyle(button);
+            return button;
         }
 
         private void PrepareButtonLayout(Button button)
@@ -171,9 +181,80 @@ namespace Work.NPC.Code.Runtime
             if (layoutElement == null)
                 layoutElement = button.gameObject.AddComponent<LayoutElement>();
 
-            layoutElement.minHeight = Mathf.Max(layoutElement.minHeight, 48f);
-            layoutElement.preferredHeight = Mathf.Max(layoutElement.preferredHeight, 52f);
+            layoutElement.minHeight = Mathf.Max(layoutElement.minHeight, optionMinHeight);
+            layoutElement.preferredHeight = Mathf.Max(layoutElement.preferredHeight, optionPreferredHeight);
             layoutElement.flexibleWidth = 1f;
+        }
+
+        private void ApplyOptionButtonStyle(Button button)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            Image image = button.GetComponent<Image>();
+            if (image != null)
+            {
+                if (optionButtonSprite != null)
+                {
+                    image.sprite = optionButtonSprite;
+                    image.type = Image.Type.Sliced;
+                    image.color = Color.white;
+                }
+                else
+                {
+                    image.color = optionButtonColor;
+                }
+
+                button.targetGraphic = image;
+            }
+
+            SpriteState spriteState = button.spriteState;
+            spriteState.highlightedSprite = optionButtonHighlightedSprite;
+            spriteState.selectedSprite = optionButtonHighlightedSprite;
+            spriteState.pressedSprite = optionButtonHighlightedSprite;
+            button.spriteState = spriteState;
+
+            Color visualColor = optionButtonSprite != null ? Color.white : optionButtonColor;
+            ColorBlock colors = button.colors;
+            colors.normalColor = visualColor;
+            colors.highlightedColor = Color.Lerp(visualColor, Color.white, 0.12f);
+            colors.pressedColor = Color.Lerp(visualColor, Color.black, 0.14f);
+            colors.selectedColor = colors.highlightedColor;
+            colors.disabledColor = new Color(visualColor.r * 0.45f, visualColor.g * 0.45f, visualColor.b * 0.45f, 0.65f);
+            button.colors = colors;
+
+            ApplyOptionTextStyle(button);
+        }
+
+        private void ApplyOptionTextStyle(Button button)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            TextMeshProUGUI tmp = button.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (tmp != null)
+            {
+                tmp.color = optionButtonSprite != null ? optionTextColor : Color.white;
+                tmp.alignment = TextAlignmentOptions.Center;
+
+                RectTransform textRect = tmp.rectTransform;
+                textRect.anchorMin = Vector2.zero;
+                textRect.anchorMax = Vector2.one;
+                textRect.offsetMin = new Vector2(optionTextPadding.x, optionTextPadding.y);
+                textRect.offsetMax = new Vector2(-optionTextPadding.x, -optionTextPadding.y);
+                return;
+            }
+
+            Text legacyText = button.GetComponentInChildren<Text>(true);
+            if (legacyText != null)
+            {
+                legacyText.color = optionButtonSprite != null ? optionTextColor : Color.white;
+                legacyText.alignment = TextAnchor.MiddleCenter;
+            }
         }
 
         private void SetButtonLabel(Button button, string label)
@@ -185,12 +266,16 @@ namespace Work.NPC.Code.Runtime
             if (tmp != null)
             {
                 tmp.text = label;
+                ApplyOptionTextStyle(button);
                 return;
             }
 
             Text legacyText = button.GetComponentInChildren<Text>(true);
             if (legacyText != null)
+            {
                 legacyText.text = label;
+                ApplyOptionTextStyle(button);
+            }
         }
 
         private void SetSkipButtonLabel()

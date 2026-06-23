@@ -17,6 +17,7 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private Transform cuttingBoard;
         [SerializeField] private GameObject temporaryDishPrefab;
         [SerializeField] private Vector3 boardCompletionLocalOffset = new Vector3(0f, 0f, -10f);
+        [SerializeField, Min(0f)] private float boardCompletionHoldDelay = 0.5f;
         [SerializeField, Min(0f)] private float boardExitDuration = 0.45f;
         [SerializeField, Min(0f)] private float swapDelay = 0.25f;
         [SerializeField, Min(0f)] private float boardReturnDuration = 0.45f;
@@ -87,6 +88,7 @@ namespace Work.Cook.Code.Runtime
             Vector3 hiddenPosition = _cuttingBoardDefaultLocalPosition + boardCompletionLocalOffset;
             _activeSequence = DOTween.Sequence();
             _activeSequence.SetTarget(cuttingBoard);
+            _activeSequence.AppendInterval(boardCompletionHoldDelay);
             _activeSequence.Append(cuttingBoard.DOLocalMove(hiddenPosition, boardExitDuration).SetEase(boardExitEase));
             _activeSequence.AppendInterval(swapDelay);
             _activeSequence.AppendCallback(SwapIngredientsToDish);

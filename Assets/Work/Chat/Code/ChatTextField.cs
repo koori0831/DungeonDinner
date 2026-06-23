@@ -12,10 +12,11 @@ namespace Work.Chat.Code
         [SerializeField] private Image image;
         [SerializeField] private Sprite playerBubbleSprite;
         [SerializeField] private Sprite otherBubbleSprite;
-        [SerializeField] private Vector2 padding = new Vector2(28f, 18f);
-        [SerializeField] private float minWidth = 95f;
-        [SerializeField] private float minHeight = 50f;
-        [SerializeField] private float maxWidth = 520f;
+        [SerializeField] private Vector2 padding = new Vector2(88f, 32f);
+        [SerializeField] private Vector2 bubbleExtraSize = new Vector2(52f, 16f);
+        [SerializeField] private float minWidth = 200f;
+        [SerializeField] private float minHeight = 72f;
+        [SerializeField] private float maxWidth = 700f;
         [SerializeField] private float startScale = 0.35f;
         [SerializeField] private float overScale = 1.08f;
         [SerializeField] private float underScale = 0.97f;
@@ -104,14 +105,14 @@ namespace Work.Chat.Code
             if (rectTransform == null)
                 return;
 
-            float textMaxWidth = Mathf.Max(1f, maxWidth - padding.x);
+            float textMaxWidth = Mathf.Max(1f, maxWidth - padding.x - bubbleExtraSize.x);
             Vector2 preferred = text.GetPreferredValues(Chat, textMaxWidth, 0f);
 
-            float bubbleWidth = Mathf.Clamp(preferred.x + padding.x, minWidth, maxWidth);
-            float wrappedTextWidth = Mathf.Max(1f, bubbleWidth - padding.x);
+            float bubbleWidth = Mathf.Clamp(preferred.x + padding.x + bubbleExtraSize.x, minWidth, maxWidth);
+            float wrappedTextWidth = Mathf.Max(1f, bubbleWidth - padding.x - bubbleExtraSize.x);
             preferred = text.GetPreferredValues(Chat, wrappedTextWidth, 0f);
 
-            float bubbleHeight = Mathf.Max(minHeight, preferred.y + padding.y);
+            float bubbleHeight = Mathf.Max(minHeight, preferred.y + padding.y + bubbleExtraSize.y);
             rectTransform.sizeDelta = new Vector2(bubbleWidth, bubbleHeight);
 
             RectTransform textRectTransform = text.rectTransform;

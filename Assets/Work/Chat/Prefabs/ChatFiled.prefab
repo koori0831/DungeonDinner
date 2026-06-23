@@ -230,3 +230,20 @@ MonoBehaviour:
   image: {fileID: 7589369931723174250}
   playerBubbleSprite: {fileID: 21300000, guid: 7bf2aa6bf92731949bdf20928cd7a78c, type: 3}
   otherBubbleSprite: {fileID: 21300000, guid: d2e48b9cdc065f34a81d5a5d738bafe0, type: 3}
+  padding: {x: 52, y: 16}
+  bubbleExtraSize: {x: 24, y: 2}
+  minWidth: 200
+  minHeight: 72
+  maxWidth: 700
+  startScale: 0.35
+  overScale: 1.08
+  underScale: 0.97
+  growDuration: 0.22
+  shrinkDuration: 0.07
+  settleDuration: 0.06
+  useTypewriter: 1
+  charactersPerSecond: 28
+  wordPause: 0.03
+  commaPause: 0.11
+  sentencePause: 0.2
+  finishTypingOnDisable: 1
