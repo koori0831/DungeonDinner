@@ -65,6 +65,9 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private CookingBusinessFlowController businessFlowController;
         [SerializeField] private bool autoCreateBusinessFlowController = true;
 
+        [Header("Preparation Visuals")]
+        [SerializeField] private CookingPreparationVisualDirector preparationVisualDirector;
+
         [Header("Views")]
         [SerializeField] private GameObject npcConversationView;
         [SerializeField] private GameObject recipeSelectionView;
@@ -89,6 +92,8 @@ namespace Work.Cook.Code.Runtime
         private CookingRewardWallet _subscribedRewardWallet;
         private readonly List<GameObject> _preparationHiddenViews = new List<GameObject>();
         private bool _isPreparationViewIsolated;
+        private bool _isCompletingPreparationVisualSequence;
+        private bool _isResultHandBlockedByPreparationVisual;
 
         public event Action<CookingGameScreenState> ScreenChanged;
         public event Action<DishResult> ResultReady;
@@ -620,6 +625,11 @@ namespace Work.Cook.Code.Runtime
         {
             EnsureReferences();
 
+            if (_isCompletingPreparationVisualSequence == true)
+            {
+                return false;
+            }
+
             if (flowRunner == null)
             {
                 Debug.LogWarning("CookingGamePanel needs a CookingFlowRunner before it can select a preparation.", this);
@@ -641,13 +651,44 @@ namespace Work.Cook.Code.Runtime
                 return false;
             }
 
+            preparationVisualDirector?.SpawnPreparedIngredient(ingredient);
+
             if (flowRunner.GetNextUnpreparedIngredient() == null)
+            {
+                if (preparationVisualDirector != null)
+                {
+                    _isCompletingPreparationVisualSequence = true;
+                    _isResultHandBlockedByPreparationVisual = true;
+                    if (preparationVisualDirector.PlayCompletionSequence(
+                            CompleteCookingAfterPreparationDishReplacement,
+                            EnableResultHandAfterPreparationVisualSequence) == true)
+                    {
+                        return true;
+                    }
+
+                    _isCompletingPreparationVisualSequence = false;
+                    _isResultHandBlockedByPreparationVisual = false;
+                }
+
                 return CompleteCooking();
+            }
 
             RefreshPreparationView(preparationView);
             RaiseOrderSlipPanel();
             PublishSnapshotChanged();
             return true;
+        }
+
+        private void CompleteCookingAfterPreparationDishReplacement()
+        {
+            CompleteCooking();
+        }
+
+        private void EnableResultHandAfterPreparationVisualSequence()
+        {
+            _isCompletingPreparationVisualSequence = false;
+            _isResultHandBlockedByPreparationVisual = false;
+            PublishSnapshotChanged();
         }
 
         public bool CompleteCooking()
@@ -702,7 +743,9 @@ namespace Work.Cook.Code.Runtime
 
         public bool CanHandCurrentResultToNpc()
         {
-            return GetCurrentDishResult() != null && NpcRunner != null;
+            return GetCurrentDishResult() != null
+                   && NpcRunner != null
+                   && _isResultHandBlockedByPreparationVisual == false;
         }
 
         public bool TryBuildCurrentNpcMatchReport(out NpcDishMatchReport matchReport)
@@ -745,6 +788,11 @@ namespace Work.Cook.Code.Runtime
                 return false;
             }
 
+            if (CanHandCurrentResultToNpc() == false)
+            {
+                return false;
+            }
+
             TryBuildNpcMatchReport(result, out NpcDishMatchReport matchReport);
 
             ReturnToNpcConversation();
@@ -761,6 +809,7 @@ namespace Work.Cook.Code.Runtime
 
             DishHandedToNpc?.Invoke(result);
             dishHandedToNpc.Invoke(result);
+            preparationVisualDirector?.PlayDishDismissSequence();
             GrantReward(result, matchReport);
 
             if (resetFlowAfterHandingDish && flowRunner != null)
@@ -841,7 +890,17 @@ namespace Work.Cook.Code.Runtime
             EnsureKnowledgeStore();
             EnsureRewardSystems();
             EnsureRecipeIngredientChoiceSource();
+            EnsurePreparationVisualDirector();
             SubscribeStateSources();
+        }
+
+        private void EnsurePreparationVisualDirector()
+        {
+            if (preparationVisualDirector == null)
+                preparationVisualDirector = GetComponentInChildren<CookingPreparationVisualDirector>(true);
+
+            if (preparationVisualDirector == null)
+                preparationVisualDirector = GetComponent<CookingPreparationVisualDirector>();
         }
 
         private void EnsureRecipeIngredientChoiceSource()

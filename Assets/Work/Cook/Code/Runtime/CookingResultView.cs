@@ -777,6 +777,7 @@ namespace Work.Cook.Code.Runtime
                 return;
 
             gamePanel.ResultReady += HandleResultReady;
+            gamePanel.SnapshotChanged += HandleSnapshotChanged;
             _subscribedPanel = gamePanel;
         }
 
@@ -786,10 +787,16 @@ namespace Work.Cook.Code.Runtime
                 return;
 
             _subscribedPanel.ResultReady -= HandleResultReady;
+            _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
             _subscribedPanel = null;
         }
 
         private void HandleResultReady(DishResult result)
+        {
+            Refresh();
+        }
+
+        private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
         {
             Refresh();
         }

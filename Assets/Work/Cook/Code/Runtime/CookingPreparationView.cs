@@ -13,6 +13,7 @@ namespace Work.Cook.Code.Runtime
         private const int CurrentDefaultLayoutVersion = 5;
         private const float CARD_TEXT_HORIZONTAL_MARGIN = 6f;
         private const float CARD_TEXT_VERTICAL_MARGIN = 2f;
+        private const float CARD_ICON_HEIGHT = 64f;
         private const float HOVERED_CARD_SCALE = 1.04f;
 
         [Header("Flow")]
@@ -179,10 +180,19 @@ namespace Work.Cook.Code.Runtime
             RectTransform card = CreateCardObject(cardRoot, $"PreparationCard_{index}");
             AddLayoutElement(card.gameObject, 0f, -1f, 1f, 1f);
 
-            TextMeshProUGUI icon = CreateText(card, "Icon", BuildOptionIconText(index, option), 28f, TextAlignmentOptions.Center);
-            icon.color = new Color(1f, 0.88f, 0.58f, 1f);
-            ApplyCardTextMargin(icon);
-            AddLayoutElement(icon.gameObject, -1f, 42f, -1f, 0f);
+            Sprite iconSprite = GetOptionIconSprite(option);
+            if (iconSprite != null)
+            {
+                Image icon = CreateIconImage(card, "Icon", iconSprite);
+                AddLayoutElement(icon.gameObject, -1f, CARD_ICON_HEIGHT, -1f, 0f);
+            }
+            else
+            {
+                TextMeshProUGUI icon = CreateText(card, "Icon", BuildOptionIconText(index, option), 28f, TextAlignmentOptions.Center);
+                icon.color = new Color(1f, 0.88f, 0.58f, 1f);
+                ApplyCardTextMargin(icon);
+                AddLayoutElement(icon.gameObject, -1f, CARD_ICON_HEIGHT, -1f, 0f);
+            }
 
             TextMeshProUGUI name = CreateText(card, "Name", option.DisplayName, 18f, TextAlignmentOptions.Center);
             name.textWrappingMode = TextWrappingModes.Normal;
@@ -458,6 +468,19 @@ namespace Work.Cook.Code.Runtime
             return label;
         }
 
+        private static Image CreateIconImage(Transform parent, string name, Sprite sprite)
+        {
+            GameObject imageObject = new GameObject(name, typeof(RectTransform), typeof(Image));
+            imageObject.transform.SetParent(parent, false);
+
+            Image image = imageObject.GetComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            image.color = Color.white;
+            return image;
+        }
+
         private static void ApplyCardTextMargin(TextMeshProUGUI label)
         {
             if (label == null)
@@ -642,6 +665,14 @@ namespace Work.Cook.Code.Runtime
                 return option.DisplayName.Substring(0, 1);
 
             return (index + 1).ToString();
+        }
+
+        private static Sprite GetOptionIconSprite(IngredientPreparationOption option)
+        {
+            if (option == null || option.Method == null)
+                return null;
+
+            return option.Method.IconSprite;
         }
 
         private static void AppendTags(StringBuilder builder, string title, IReadOnlyList<FoodTagSO> tags)

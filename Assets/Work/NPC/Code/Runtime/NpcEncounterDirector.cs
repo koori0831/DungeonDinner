@@ -45,6 +45,11 @@ namespace Work.NPC.Code.Runtime
         [SerializeField, Min(0f)] private float npcRiseDuration = 0.55f;
         [SerializeField] private Ease npcRiseEase = Ease.OutBack;
 
+        [Header("Encounter Outro")]
+        [SerializeField] private bool playNpcReturnAfterResultConversation = true;
+        [SerializeField, Min(0f)] private float npcReturnDuration = 0.45f;
+        [SerializeField] private Ease npcReturnEase = Ease.InBack;
+
         [Header("Events")]
         [SerializeField] private NpcAffinityChangeSummaryEvent affinityChanged = new NpcAffinityChangeSummaryEvent();
         [SerializeField] private NpcAffinityChangeSummaryEvent affinityLevelChanged = new NpcAffinityChangeSummaryEvent();
@@ -61,6 +66,8 @@ namespace Work.NPC.Code.Runtime
         private string _lastRequestUnlockSummary;
         private Tween _npcRiseTween;
         private bool _isStartingEncounter;
+        private bool _isPlayingNpcReturn;
+        private bool _shouldReturnNpcAfterResultConversation;
 
         public event Action<NpcAffinityChangeContext> AffinityChanged;
         public event Action<NpcAffinityChangeContext> AffinityLevelChanged;
@@ -105,6 +112,7 @@ namespace Work.NPC.Code.Runtime
 
             if (runner != null)
             {
+                runner.DishEvaluated += HandleDishEvaluated;
                 runner.ResultDialogueStarted += HandleResultDialogueStarted;
                 runner.ConversationCompleted += HandleConversationCompleted;
             }
@@ -117,6 +125,7 @@ namespace Work.NPC.Code.Runtime
 
             if (runner != null)
             {
+                runner.DishEvaluated -= HandleDishEvaluated;
                 runner.ResultDialogueStarted -= HandleResultDialogueStarted;
                 runner.ConversationCompleted -= HandleConversationCompleted;
             }
@@ -488,8 +497,12 @@ namespace Work.NPC.Code.Runtime
             if (runner == null)
                 runner = FindFirstObjectByType<NpcConversationRunner>();
 
-            if (runner == null || runner.HasActiveConversation == true || _isStartingEncounter == true)
+            if (runner == null
+                || runner.HasActiveConversation == true
+                || _isStartingEncounter == true)
+            {
                 return false;
+            }
 
             SyncDailySessionState();
             ReconcileRequestStatesFromPlayedRequestEvents();
@@ -506,11 +519,13 @@ namespace Work.NPC.Code.Runtime
                 return false;
             }
 
-            if (runner.HasActiveConversation == true || _isStartingEncounter == true)
+            if (runner.HasActiveConversation == true || _isStartingEncounter == true || _isPlayingNpcReturn == true)
             {
                 Debug.LogWarning("NPC encounter already has an active conversation. Complete the current conversation before starting another encounter.");
                 return false;
             }
+
+            _shouldReturnNpcAfterResultConversation = false;
 
             SyncDailySessionState();
             ReconcileRequestStatesFromPlayedRequestEvents();
@@ -1220,6 +1235,17 @@ namespace Work.NPC.Code.Runtime
             return count;
         }
 
+        private void HandleDishEvaluated(NpcDishResultContext resultContext)
+        {
+            if (resultContext == null
+                || string.Equals(resultContext.EventId, _activeEventId, StringComparison.OrdinalIgnoreCase) == false)
+            {
+                return;
+            }
+
+            _shouldReturnNpcAfterResultConversation = true;
+        }
+
         private void HandleResultDialogueStarted(string eventId, NpcConversationResult result)
         {
             result = NpcConversationRunner.NormalizeResult(result);
@@ -1235,6 +1261,8 @@ namespace Work.NPC.Code.Runtime
                 Debug.LogWarning($"Cannot record NPC result. Visit event not found: {eventId}");
                 return;
             }
+
+            _shouldReturnNpcAfterResultConversation = true;
 
             int affinityDelta = GetAffinityDelta(result);
             int beforeAffinity = _history.GetNpcAffinity(visitEvent.NpcId);
@@ -1325,7 +1353,50 @@ namespace Work.NPC.Code.Runtime
 
         private void HandleConversationCompleted()
         {
+            if (_shouldReturnNpcAfterResultConversation == true)
+            {
+                _shouldReturnNpcAfterResultConversation = false;
+                PlayNpcReturnAfterResultConversation();
+            }
+
             _activeEventId = string.Empty;
+        }
+
+        private void PlayNpcReturnAfterResultConversation()
+        {
+            if (playNpcReturnAfterResultConversation == false || npcRiseTarget == null)
+            {
+                return;
+            }
+
+            Quaternion returnRotation = Quaternion.Euler(npcRiseStartEulerX, 0f, 0f);
+            _npcRiseTween?.Kill();
+
+            if (npcReturnDuration <= 0f)
+            {
+                npcRiseTarget.localRotation = returnRotation;
+                _npcRiseTween = null;
+                _isPlayingNpcReturn = false;
+                return;
+            }
+
+            _isPlayingNpcReturn = true;
+            _npcRiseTween = npcRiseTarget
+                .DOLocalRotateQuaternion(returnRotation, npcReturnDuration)
+                .SetEase(npcReturnEase)
+                .SetTarget(npcRiseTarget)
+                .OnComplete(() => CompleteNpcReturnAfterResultConversation(returnRotation));
+        }
+
+        private void CompleteNpcReturnAfterResultConversation(Quaternion returnRotation)
+        {
+            if (npcRiseTarget != null)
+            {
+                npcRiseTarget.localRotation = returnRotation;
+            }
+
+            _npcRiseTween = null;
+            _isPlayingNpcReturn = false;
         }
 
         private void RecordEncounter(VisitEventData visitEvent, int encounterDay, bool advanceDay)
