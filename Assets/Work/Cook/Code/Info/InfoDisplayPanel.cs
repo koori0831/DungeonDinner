@@ -29,6 +29,8 @@ namespace Work.Cook.Code.Info
 
         public virtual void InitializeDisplay(Action backAction)
         {
+            ClearDisplayText();
+
             if (backBtn == null)
             {
                 Debug.LogWarning("InfoDisplayPanel needs a back button before it can bind back navigation.", this);
@@ -77,6 +79,15 @@ namespace Work.Cook.Code.Info
         public virtual void Disable()
         {
             gameObject.SetActive(false);
+        }
+
+        private void ClearDisplayText()
+        {
+            if (nameField != null)
+                nameField.text = string.Empty;
+
+            if (descriptionField != null)
+                descriptionField.text = string.Empty;
         }
 
         private void BindNavigationButtons()

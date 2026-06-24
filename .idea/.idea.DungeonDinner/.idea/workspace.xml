@@ -6,13 +6,18 @@
   <component name="ChangeListManager">
     <list default="true" id="9572947c-97ba-46be-9cdd-73cd5f25d671" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/3DPixelCamera/URP/UpscaleMaterialURP.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/3DPixelCamera/URP/UpscaleMaterialURP.mat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Chat/Code/ChatTextField.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Chat/Code/ChatTextField.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Chat/Prefabs/ChatFiled.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Chat/Prefabs/ChatFiled.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationVisualDirector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationVisualDirector.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/UIAsset/Btn1.png.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Graphics/UIAsset/Btn1.png.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Resources/NPCData/DialogueLines.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/NPCData/DialogueLines.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingGamePanelEditor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingGamePanelEditor.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Info/InfoDisplayPanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Info/InfoDisplayPanel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientSelectionView.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientSelectionView.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeDisplayPanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeDisplayPanel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/ChapterButton.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/ChapterButton.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/FoodSelectIcon.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/FoodSelectIcon.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/InfoDisplayPanel.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/InfoDisplayPanel.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/RecipeInfoDisplayPanel.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/RecipeInfoDisplayPanel.prefab" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcQuestionPanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcQuestionPanel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcConversationRunner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcConversationRunner.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcOrderSlipPanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/NPC/Code/Runtime/NpcOrderSlipPanel.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,6 +57,14 @@
       <option name="EXE_PATH" value="C:\Program Files\Unity\Hub\Editor\6000.3.13f1\Editor\Unity.exe" />
       <option name="PROGRAM_PARAMETERS" value="-runTests -batchmode -projectPath D:\devsan232\DungeonDinner -testResults Logs/results.xml -logFile Logs/Editor.log -testPlatform EditMode -debugCodeOptimization" />
       <option name="WORKING_DIRECTORY" value="D:\devsan232\DungeonDinner" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <method v="2" />
+    </configuration>
+    <configuration name="독립실행형 플레이어" type="RunUnityExe" factoryName="Unity Executable">
+      <option name="EXE_PATH" value="$PROJECT_DIR$/../DDB\DungeonDinner.exe" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="D:\devsan232\DDB" />
       <option name="PASS_PARENT_ENVS" value="1" />
       <option name="USE_EXTERNAL_CONSOLE" value="0" />
       <method v="2" />

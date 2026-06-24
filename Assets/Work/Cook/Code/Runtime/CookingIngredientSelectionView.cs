@@ -56,7 +56,7 @@ namespace Work.Cook.Code.Runtime
         [Header("Text")]
         [SerializeField] private TMP_FontAsset fontAsset;
         [SerializeField] private string titleText = "재료 직접 선택";
-        [SerializeField] private string availableTitleText = "임시 가방";
+        [SerializeField] private string availableTitleText = "가방";
         [SerializeField] private string selectedTitleText = "선택한 재료";
         [SerializeField] private string searchPlaceholderText = "재료 검색";
         [SerializeField] private string emptyAvailableText = "사용 가능한 재료 없음";

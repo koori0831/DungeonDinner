@@ -174,6 +174,21 @@ namespace Work.NPC.Code.Runtime
             ApplyExistingVisualSprites();
         }
 
+        /// <summary>
+        /// 주문 명세서에 사용할 TMP FontAsset 지정
+        /// </summary>
+        /// <param name="value">주문 명세서 텍스트에 적용할 TMP FontAsset</param>
+        public void SetFontAsset(TMP_FontAsset value)
+        {
+            if (value == null)
+            {
+                return;
+            }
+
+            fontAsset = value;
+            ApplyFontAssetToTexts();
+        }
+
         private void ApplyExistingVisualSprites()
         {
             Image background = GetComponent<Image>();
@@ -532,6 +547,24 @@ namespace Work.NPC.Code.Runtime
                 text.font = fontAsset;
 
             return text;
+        }
+
+        private void ApplyFontAssetToTexts()
+        {
+            if (fontAsset == null)
+            {
+                return;
+            }
+
+            if (titleText != null)
+            {
+                titleText.font = fontAsset;
+            }
+
+            if (contentText != null)
+            {
+                contentText.font = fontAsset;
+            }
         }
 
         private static void ApplyUiSprite(Image image, Sprite sprite)

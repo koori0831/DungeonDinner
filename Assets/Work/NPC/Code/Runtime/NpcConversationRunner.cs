@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using Work.Chat.Code;
@@ -35,6 +36,7 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private NpcOrderSlipPanel orderSlipPanel;
         [SerializeField] private Sprite orderSlipPanelSprite;
         [SerializeField] private Sprite orderSlipLabelSprite;
+        [SerializeField] private TMP_FontAsset orderSlipFontAsset;
         [SerializeField] private bool playOnStart;
         [SerializeField] private bool showSpeakerName;
         [SerializeField] private bool useDirectChatPanelOutput = true;
@@ -587,6 +589,7 @@ namespace Work.NPC.Code.Runtime
                 return;
             }
 
+            orderSlipPanel.SetFontAsset(orderSlipFontAsset);
             orderSlipPanel.SetVisualSprites(orderSlipPanelSprite, orderSlipLabelSprite);
         }
 
