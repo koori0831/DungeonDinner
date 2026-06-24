@@ -651,8 +651,6 @@ namespace Work.Cook.Code.Runtime
                 return false;
             }
 
-            preparationVisualDirector?.SpawnPreparedIngredient(ingredient);
-
             if (flowRunner.GetNextUnpreparedIngredient() == null)
             {
                 if (preparationVisualDirector != null)
@@ -660,6 +658,7 @@ namespace Work.Cook.Code.Runtime
                     _isCompletingPreparationVisualSequence = true;
                     _isResultHandBlockedByPreparationVisual = true;
                     if (preparationVisualDirector.PlayCompletionSequence(
+                            ingredient,
                             CompleteCookingAfterPreparationDishReplacement,
                             EnableResultHandAfterPreparationVisualSequence) == true)
                     {
@@ -668,10 +667,13 @@ namespace Work.Cook.Code.Runtime
 
                     _isCompletingPreparationVisualSequence = false;
                     _isResultHandBlockedByPreparationVisual = false;
+                    preparationVisualDirector.SpawnPreparedIngredient(ingredient);
                 }
 
                 return CompleteCooking();
             }
+
+            preparationVisualDirector?.SpawnPreparedIngredient(ingredient);
 
             RefreshPreparationView(preparationView);
             RaiseOrderSlipPanel();

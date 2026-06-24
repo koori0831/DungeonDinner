@@ -40,7 +40,7 @@ namespace Work.NPC.Code.Runtime
         [Header("Encounter Intro")]
         [SerializeField] private Transform npcRiseTarget;
         [SerializeField] private bool playNpcRiseBeforeConversation;
-        [SerializeField] private float npcRiseStartEulerX = 110f;
+        [SerializeField] private float npcRiseStartEulerX = 90f;
         [SerializeField] private float npcRiseEndEulerX;
         [SerializeField, Min(0f)] private float npcRiseDuration = 0.55f;
         [SerializeField] private Ease npcRiseEase = Ease.OutBack;
