@@ -96,9 +96,12 @@ namespace Work.Cook.Code.Runtime
                 return false;
             }
 
+            gamePanel?.ReturnToNpcConversation();
+
             bool started = encounterDirector.StartEncounter();
             if (started == false)
             {
+                gamePanel?.CloseCookingViews();
                 ShowCloseShopOnly();
                 return false;
             }
