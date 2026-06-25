@@ -41,10 +41,31 @@ namespace Work.Cook.Code.Runtime
                     continue;
 
                 AppendModifier(builder, seen, FindAlternativeModifier(recipe, prepared.Ingredient));
-                AppendModifier(builder, seen, prepared.ResultNameModifier);
+                if (CanUsePreparationModifier(recipe, prepared.Ingredient))
+                    AppendModifier(builder, seen, prepared.ResultNameModifier);
             }
 
             return builder.ToString();
+        }
+
+        private static bool CanUsePreparationModifier(RecipeSO recipe, IngredientSO ingredient)
+        {
+            if (recipe == null || ingredient == null)
+                return true;
+
+            bool matchedAnyRequirement = false;
+            for (int i = 0; i < recipe.RequiredIngredients.Count; i++)
+            {
+                RecipeIngredientRequirement requirement = recipe.RequiredIngredients[i];
+                if (requirement == null || requirement.IsMatchedBy(ingredient) == false)
+                    continue;
+
+                matchedAnyRequirement = true;
+                if (requirement.UsePreparationResultNameModifier)
+                    return true;
+            }
+
+            return matchedAnyRequirement == false;
         }
 
         private static string FindAlternativeModifier(RecipeSO recipe, IngredientSO ingredient)

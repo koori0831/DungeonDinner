@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: PlayerDead
   m_EditorClassIdentifier: Assembly-CSharp::Work.FSM.Code.StateSO
   stateName: Dead
-  targetClass: Work.Enemy.Code.EnemyDeadState, Assembly-CSharp, Version=0.0.0.0,
+  targetClass: Work.Players.Code.PlayerDeadState, Assembly-CSharp, Version=0.0.0.0,
     Culture=neutral, PublicKeyToken=null
   _animationHash: 1293411866

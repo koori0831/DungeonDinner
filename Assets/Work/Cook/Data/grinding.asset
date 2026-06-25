@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74164158a6dc1304e8724f55b2ffb957, type: 3}
+  m_Name: grinding
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
+  methodId: grinding
+  displayName: "\uBE7B\uAE30"
+  description: "\uC7AC\uB8CC\uB97C \uC808\uAD6C\uAC19\uC740\uAC83\uC5D0 \uBE7B\uC544\uC11C
+    \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC95"

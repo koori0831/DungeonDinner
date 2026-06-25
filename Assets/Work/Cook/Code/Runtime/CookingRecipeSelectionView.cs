@@ -20,13 +20,15 @@ namespace Work.Cook.Code.Runtime
             ViewHaveInfoEnum.Name | ViewHaveInfoEnum.Image | ViewHaveInfoEnum.Description;
 
         [Header("Recipe Discovery")]
+        [SerializeField] private bool showAllRecipeNamesInEncyclopedia = true;
         [SerializeField] private bool showAllRecipesUntilKnowledgeStoreExists = true;
         [SerializeField] private bool showBaseTagsAsKnownForTesting;
         [SerializeField] private List<RecipeSO> discoveredRecipes = new List<RecipeSO>();
         [SerializeField] private List<KnownRecipeTagEntry> knownRecipeTags = new List<KnownRecipeTagEntry>();
 
         [Header("Direct Selection Entry")]
-        [SerializeField] private bool includeDirectIngredientSelection = true;
+        [SerializeField] private bool encyclopediaOnlyMode = true;
+        [SerializeField] private bool includeDirectIngredientSelection;
         [SerializeField] private string directSelectionDisplayName = "재료 직접 선택";
         [SerializeField, TextArea] private string directSelectionDescription =
             "가방에서 재료를 직접 골라 알려진 레시피에 없는 조합을 시도합니다.";
@@ -101,7 +103,7 @@ namespace Work.Cook.Code.Runtime
 
             AddRecipeCategories(categories);
 
-            if (includeDirectIngredientSelection)
+            if (includeDirectIngredientSelection && encyclopediaOnlyMode == false)
             {
                 EnsureDirectSelectionCategories(categories);
                 AddDirectSelectionToEveryCategory(categories);
@@ -127,6 +129,8 @@ namespace Work.Cook.Code.Runtime
                 CookingRecipeEntryData entry = new CookingRecipeEntryData(
                     recipe,
                     null,
+                    IsRecipeDiscovered(recipe),
+                    HasAttemptedRecipe(recipe),
                     GetKnownEffectiveTags(recipe));
 
                 FoodCategorySO category = recipe.Category;
@@ -272,10 +276,32 @@ namespace Work.Cook.Code.Runtime
             if (recipe == null)
                 return false;
 
+            if (showAllRecipeNamesInEncyclopedia)
+                return true;
+
             if (knowledgeStore != null)
                 return knowledgeStore.IsRecipeDiscovered(recipe);
 
             return showAllRecipesUntilKnowledgeStoreExists || discoveredRecipes.Contains(recipe);
+        }
+
+        private bool IsRecipeDiscovered(RecipeSO recipe)
+        {
+            if (recipe == null)
+                return false;
+
+            if (knowledgeStore != null)
+                return knowledgeStore.IsRecipeDiscovered(recipe);
+
+            return discoveredRecipes.Contains(recipe);
+        }
+
+        private bool HasAttemptedRecipe(RecipeSO recipe)
+        {
+            if (recipe == null)
+                return false;
+
+            return knowledgeStore != null && knowledgeStore.HasAttemptedRecipe(recipe);
         }
 
         private IReadOnlyList<FoodTagSO> GetKnownEffectiveTags(RecipeSO recipe)

@@ -148,7 +148,6 @@ namespace Work.Cook.Code.Runtime
                 case NpcConversationResult.Similar:
                     return "비슷한 요리";
                 case NpcConversationResult.Disgusting:
-                    return "보상 없음";
                 case NpcConversationResult.Wrong:
                 default:
                     return titleText;

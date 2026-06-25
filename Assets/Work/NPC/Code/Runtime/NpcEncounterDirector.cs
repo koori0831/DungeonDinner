@@ -148,7 +148,18 @@ namespace Work.NPC.Code.Runtime
 
         public void ClearEncounterHistory()
         {
-            _history?.Clear();
+            if (_history == null)
+            {
+                _history = persistHistory
+                    ? NpcEncounterHistory.Load(historySaveKey)
+                    : NpcEncounterHistory.CreateUnsaved();
+            }
+
+            _history.Clear();
+            _activeEventId = string.Empty;
+            _encountersStartedToday = 0;
+            _lastAffinityChangeSummary = string.Empty;
+            _lastRequestUnlockSummary = string.Empty;
             SyncDailySessionState(true);
         }
 
@@ -331,14 +342,14 @@ namespace Work.NPC.Code.Runtime
             return builder.ToString();
         }
 
-        public void StartEncounter()
+        public bool StartEncounter()
         {
-            StartEncounterInternal(false);
+            return StartEncounterInternal(false);
         }
 
-        public void StartEncounterAndAdvanceDay()
+        public bool StartEncounterAndAdvanceDay()
         {
-            StartEncounterInternal(true);
+            return StartEncounterInternal(true);
         }
 
         public bool ForceStartEvent(string eventId, bool advanceDay = false)
@@ -458,18 +469,33 @@ namespace Work.NPC.Code.Runtime
             return builder.ToString();
         }
 
-        private void StartEncounterInternal(bool advanceDay)
+        public bool CanStartEncounter()
+        {
+            if (runner == null)
+                runner = FindFirstObjectByType<NpcConversationRunner>();
+
+            if (runner == null || runner.HasActiveConversation)
+                return false;
+
+            SyncDailySessionState();
+            ReconcileRequestStatesFromPlayedRequestEvents();
+
+            return IsBusinessDayComplete == false
+                   && TryPickVisitEvent(regionId, out _);
+        }
+
+        private bool StartEncounterInternal(bool advanceDay)
         {
             if (runner == null)
             {
                 Debug.LogError("NPC conversation runner is not assigned.");
-                return;
+                return false;
             }
 
             if (runner.HasActiveConversation)
             {
                 Debug.LogWarning("NPC encounter already has an active conversation. Complete the current conversation before starting another encounter.");
-                return;
+                return false;
             }
 
             SyncDailySessionState();
@@ -480,13 +506,13 @@ namespace Work.NPC.Code.Runtime
                 Debug.LogWarning(
                     $"NPC encounter skipped. Business day is complete. date={CurrentDateText}, " +
                     $"region={regionId}, encounters={EncountersStartedToday}/{MaxEncountersPerDay}");
-                return;
+                return false;
             }
 
             if (TryPickVisitEvent(regionId, out VisitEventData visitEvent) == false)
             {
                 Debug.LogWarning($"NPC encounter failed. {GetEncounterFailureReason(regionId)}");
-                return;
+                return false;
             }
 
             _activeEncounterDay = currentDay;
@@ -496,6 +522,7 @@ namespace Work.NPC.Code.Runtime
                 $"region={regionId}, npc={visitEvent.NpcId}, event={visitEvent.EventId}");
             runner.PlayEvent(visitEvent.EventId, _history.GetNpcAffinity(visitEvent.NpcId));
             RecordEncounter(visitEvent, _activeEncounterDay, advanceDay);
+            return true;
         }
 
         public bool TryPickVisitEvent(string targetRegionId, out VisitEventData visitEvent)
@@ -1131,6 +1158,7 @@ namespace Work.NPC.Code.Runtime
 
         private void HandleResultDialogueStarted(string eventId, NpcConversationResult result)
         {
+            result = NpcConversationRunner.NormalizeResult(result);
             if (string.Equals(eventId, _activeEventId, StringComparison.OrdinalIgnoreCase) == false)
             {
                 Debug.LogWarning(
@@ -1255,13 +1283,12 @@ namespace Work.NPC.Code.Runtime
 
         private static int GetAffinityDelta(NpcConversationResult result)
         {
-            return result switch
+            return NpcConversationRunner.NormalizeResult(result) switch
             {
                 NpcConversationResult.Perfect => 3,
                 NpcConversationResult.Correct => 2,
                 NpcConversationResult.Similar => 1,
                 NpcConversationResult.Wrong => 0,
-                NpcConversationResult.Disgusting => 0,
                 _ => 0
             };
         }
@@ -1411,6 +1438,7 @@ namespace Work.NPC.Code.Runtime
             if (Enum.TryParse(lastResult, true, out NpcConversationResult result) == false)
                 return false;
 
+            result = NpcConversationRunner.NormalizeResult(result);
             if (TryGetRequestStateAfterSuccessResult(visitEvent, result, out NpcRequestState targetState) == false)
                 return false;
 
@@ -1444,7 +1472,7 @@ namespace Work.NPC.Code.Runtime
             foreach (string resultName in visitEvent.RequestSuccessResults)
             {
                 if (Enum.TryParse(resultName, true, out NpcConversationResult successResult)
-                    && successResult == result)
+                    && NpcConversationRunner.NormalizeResult(successResult) == NpcConversationRunner.NormalizeResult(result))
                 {
                     return true;
                 }

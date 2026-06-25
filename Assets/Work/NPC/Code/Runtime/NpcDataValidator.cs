@@ -119,8 +119,7 @@ namespace Work.NPC.Code.Runtime
         private static readonly string[] RequiredResultGroups =
         {
             "Result_Correct",
-            "Result_Wrong",
-            "Result_Disgusting"
+            "Result_Wrong"
         };
 
         private static readonly string[] OptionalResultGroups =

@@ -26,6 +26,7 @@ namespace Work.NPC.Code.Runtime
         [Header("Motion")]
         [SerializeField, Min(0f)] private float dragTopHeight = 48f;
         [SerializeField, Min(0f)] private float horizontalOverhang = 80f;
+        [SerializeField, Min(0f)] private float verticalOverhang = 80f;
         [SerializeField, Min(0.001f)] private float characterDelay = 0.025f;
         [SerializeField, Min(1)] private int maxEntries = 12;
 
@@ -143,8 +144,9 @@ namespace Work.NPC.Code.Runtime
             float scaleFactor = _canvas != null && _canvas.scaleFactor > 0f ? _canvas.scaleFactor : 1f;
             Vector2 position = _root.anchoredPosition;
             position.x += eventData.delta.x / scaleFactor;
+            position.y += eventData.delta.y / scaleFactor;
             position.x = ClampHorizontalPosition(position.x);
-            position.y = defaultAnchoredPosition.y;
+            position.y = ClampVerticalPosition(position.y);
             _root.anchoredPosition = position;
         }
 
@@ -220,7 +222,7 @@ namespace Work.NPC.Code.Runtime
             return localPoint.x >= 0f
                    && localPoint.x <= _root.rect.width
                    && localPoint.y <= 0f
-                   && localPoint.y >= -dragTopHeight;
+                   && localPoint.y >= -_root.rect.height;
         }
 
         private float ClampHorizontalPosition(float x)
@@ -231,6 +233,16 @@ namespace Work.NPC.Code.Runtime
             float minX = -horizontalOverhang;
             float maxX = Mathf.Max(0f, parent.rect.width - _root.rect.width) + horizontalOverhang;
             return Mathf.Clamp(x, minX, maxX);
+        }
+
+        private float ClampVerticalPosition(float y)
+        {
+            if (_root == null || _root.parent is RectTransform parent == false)
+                return y;
+
+            float minY = -Mathf.Max(0f, parent.rect.height - _root.rect.height) - verticalOverhang;
+            float maxY = verticalOverhang;
+            return Mathf.Clamp(y, minY, maxY);
         }
 
         private void ApplyDefaultLayout()

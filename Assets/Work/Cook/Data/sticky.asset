@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75bf23c849305ec4ca45c181aa78ac56, type: 3}
+  m_Name: sticky
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodTagSO
+  tagId: sticky
+  displayName: "\uB048\uC801\uD568"
+  description: "\uB5A1\uACFC \uAC19\uC774 \uB048\uC801\uD55C \uC74C\uC2DD\uC5D0 \uB2EC\uB9AC\uB294
+    \uD0DC\uADF8"

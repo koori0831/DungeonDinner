@@ -173,6 +173,27 @@ namespace Work.NPC.Code.Runtime
             RefreshPanel();
         }
 
+        private void ClearDiagnosticInfo()
+        {
+            ClearText(_statusText);
+            ClearText(_relationshipText);
+            ClearText(_affinityChangeText);
+            ClearText(_requestUnlockText);
+            ClearText(_requestStateText);
+            ClearText(_requestFlowText);
+            ClearText(_eventPreviewText);
+            ClearText(_orderRequirementText);
+            ClearText(_dishPreviewText);
+            ClearText(_validationText);
+            ClearText(_historyText);
+        }
+
+        private static void ClearText(TextMeshProUGUI text)
+        {
+            if (text != null)
+                text.text = string.Empty;
+        }
+
         private void ForceStartEvent()
         {
             ApplyRegionAndDayInputs();
@@ -576,6 +597,7 @@ namespace Work.NPC.Code.Runtime
             RectTransform utilityRow = CreateRow(contentRoot, "UtilityRow", 42f);
             CreateButton(utilityRow, "질문 종료", SkipQuestions);
             CreateButton(utilityRow, "Validate Data", ValidateData);
+            CreateButton(utilityRow, "정보 Clear", ClearDiagnosticInfo);
 
             CreateSectionLabel(contentRoot, "Event Preview");
             _eventPreviewText = CreateInfoBox(contentRoot, "EventPreviewBox", 170f, 12f);
@@ -646,7 +668,6 @@ namespace Work.NPC.Code.Runtime
 
             RectTransform resultRowB = CreateRow(contentRoot, "ResultRowB", 42f);
             CreateButton(resultRowB, "Wrong", () => PlayResult(NpcConversationResult.Wrong));
-            CreateButton(resultRowB, "Disgusting", () => PlayResult(NpcConversationResult.Disgusting));
 
             RectTransform resultRowC = CreateRow(contentRoot, "ResultRowC", 42f);
             CreateButton(resultRowC, "Perfect", () => PlayResult(NpcConversationResult.Perfect));

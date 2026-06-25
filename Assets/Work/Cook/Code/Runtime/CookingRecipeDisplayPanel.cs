@@ -21,6 +21,7 @@ namespace Work.Cook.Code.Runtime
 
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
+        [SerializeField] private bool showConfirmButtonForDirectSelection = true;
 
         private CookingRecipeEntryData _currentEntry;
 
@@ -62,7 +63,10 @@ namespace Work.Cook.Code.Runtime
 
             SetText(requiredIngredientsField, BuildRequiredIngredientText(_currentEntry));
             SetText(knownEffectiveTagsField, BuildKnownEffectiveTagText(_currentEntry));
-            SetConfirmButton(true, _currentEntry.IsDirectIngredientSelection ? directSelectionText : confirmRecipeText);
+            bool canConfirm = _currentEntry.IsDirectIngredientSelection
+                ? showConfirmButtonForDirectSelection
+                : gamePanel != null && gamePanel.AllowRecipeConfirmation;
+            SetConfirmButton(canConfirm, _currentEntry.IsDirectIngredientSelection ? directSelectionText : confirmRecipeText);
         }
 
         private void ConfirmCurrentEntry()
@@ -83,6 +87,9 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
+            if (gamePanel.AllowRecipeConfirmation == false)
+                return;
+
             gamePanel.ConfirmRecipe(_currentEntry.Recipe);
         }
 
@@ -98,7 +105,10 @@ namespace Work.Cook.Code.Runtime
         private void SetConfirmButton(bool interactable, string label)
         {
             if (confirmButton != null)
+            {
+                confirmButton.gameObject.SetActive(interactable);
                 confirmButton.interactable = interactable;
+            }
 
             if (confirmButtonLabel != null)
                 confirmButtonLabel.text = label;
@@ -113,23 +123,140 @@ namespace Work.Cook.Code.Runtime
             if (recipe == null || recipe.RequiredIngredients.Count == 0)
                 return "필요 재료: 없음";
 
+            if (entry.IsDiscovered == false)
+                return entry.HasAttempted
+                    ? "아직 정확한 재료와 손질법은 정리되지 않았습니다. 이번에 시도한 조합은 도감에 기록됩니다."
+                    : "아직 정확한 재료와 손질법을 알 수 없습니다.";
+
             StringBuilder builder = new StringBuilder();
             builder.AppendLine("필요 재료");
 
             for (int i = 0; i < recipe.RequiredIngredients.Count; i++)
             {
                 RecipeIngredientRequirement requirement = recipe.RequiredIngredients[i];
-                IngredientSO ingredient = requirement != null ? requirement.Ingredient : null;
-                if (ingredient == null)
+                string requirementText = BuildRequirementText(requirement);
+                if (string.IsNullOrWhiteSpace(requirementText))
                     continue;
 
                 builder.Append("- ");
-                builder.Append(ingredient.DisplayName);
-                AppendAlternativeText(builder, requirement.AlternativeOptions);
+                builder.Append(requirementText);
                 builder.AppendLine();
             }
 
             return builder.ToString();
+        }
+
+        private static string BuildRequirementText(RecipeIngredientRequirement requirement)
+        {
+            if (requirement == null)
+                return string.Empty;
+
+            List<string> targets = new List<string>();
+
+            if (requirement.Ingredient != null)
+                targets.Add(requirement.Ingredient.DisplayName);
+
+            if (requirement.IngredientCategory != null)
+                targets.Add($"{requirement.IngredientCategory.DisplayName} 재료군");
+
+            AppendTagTargets(targets, requirement.RequiredTags);
+            AppendSimpleAlternativeTargets(targets, requirement.Alternatives);
+            AppendAlternativeOptionTargets(targets, requirement.AlternativeOptions);
+
+            if (targets.Count == 0)
+                targets.Add("아무 재료");
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append(string.Join(" / ", targets));
+            AppendCountText(builder, requirement);
+            AppendPreparationText(builder, requirement.RequiredPreparationMethods);
+            return builder.ToString();
+        }
+
+        private static void AppendTagTargets(ICollection<string> targets, IReadOnlyList<FoodTagSO> tags)
+        {
+            if (targets == null || tags == null || tags.Count == 0)
+                return;
+
+            List<string> names = new List<string>();
+            for (int i = 0; i < tags.Count; i++)
+            {
+                FoodTagSO tag = tags[i];
+                if (tag != null)
+                    names.Add(tag.DisplayName);
+            }
+
+            if (names.Count > 0)
+                targets.Add($"태그: {string.Join(", ", names)}");
+        }
+
+        private static void AppendSimpleAlternativeTargets(
+            ICollection<string> targets,
+            IReadOnlyList<IngredientSO> alternatives)
+        {
+            if (targets == null || alternatives == null || alternatives.Count == 0)
+                return;
+
+            List<string> names = new List<string>();
+            for (int i = 0; i < alternatives.Count; i++)
+            {
+                IngredientSO ingredient = alternatives[i];
+                if (ingredient != null)
+                    names.Add(ingredient.DisplayName);
+            }
+
+            if (names.Count > 0)
+                targets.Add($"대체: {string.Join(", ", names)}");
+        }
+
+        private static void AppendAlternativeOptionTargets(
+            ICollection<string> targets,
+            IReadOnlyList<RecipeIngredientAlternative> alternatives)
+        {
+            if (targets == null || alternatives == null || alternatives.Count == 0)
+                return;
+
+            List<string> names = new List<string>();
+            for (int i = 0; i < alternatives.Count; i++)
+            {
+                RecipeIngredientAlternative alternative = alternatives[i];
+                if (alternative != null && alternative.Ingredient != null)
+                    names.Add(alternative.Ingredient.DisplayName);
+            }
+
+            if (names.Count > 0)
+                targets.Add($"대체: {string.Join(", ", names)}");
+        }
+
+        private static void AppendCountText(StringBuilder builder, RecipeIngredientRequirement requirement)
+        {
+            if (builder == null || requirement == null)
+                return;
+
+            if (requirement.MinCount <= 1 && requirement.HasMaxCount && requirement.MaxCount <= 1)
+                return;
+
+            if (requirement.HasMaxCount)
+                builder.Append($" x{requirement.MinCount}-{requirement.MaxCount}");
+            else
+                builder.Append($" x{requirement.MinCount}+");
+        }
+
+        private static void AppendPreparationText(StringBuilder builder, IReadOnlyList<PreparationMethodSO> methods)
+        {
+            if (builder == null || methods == null || methods.Count == 0)
+                return;
+
+            List<string> names = new List<string>();
+            for (int i = 0; i < methods.Count; i++)
+            {
+                PreparationMethodSO method = methods[i];
+                if (method != null)
+                    names.Add(method.DisplayName);
+            }
+
+            if (names.Count > 0)
+                builder.Append($" ({string.Join(" / ", names)})");
         }
 
         private static void AppendAlternativeText(

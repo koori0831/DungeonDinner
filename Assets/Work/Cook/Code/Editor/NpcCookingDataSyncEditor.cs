@@ -347,11 +347,17 @@ namespace Work.Cook.Code.Editor
             element.FindPropertyRelative("requiredTags").ClearArray();
             element.FindPropertyRelative("alternatives").ClearArray();
             element.FindPropertyRelative("alternativeOptions").ClearArray();
-            element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = requiredMethod;
+            element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = null;
+            SerializedProperty requiredMethods = element.FindPropertyRelative("requiredPreparationMethods");
+            requiredMethods.ClearArray();
+            if (requiredMethod != null)
+            {
+                requiredMethods.InsertArrayElementAtIndex(0);
+                requiredMethods.GetArrayElementAtIndex(0).objectReferenceValue = requiredMethod;
+            }
             element.FindPropertyRelative("minCount").intValue = 1;
             element.FindPropertyRelative("maxCount").intValue = 1;
             element.FindPropertyRelative("recipeDefining").boolValue = true;
-            element.FindPropertyRelative("autoApplyRequiredPreparation").boolValue = true;
             element.FindPropertyRelative("requireManualPreparation").boolValue = false;
         }
 

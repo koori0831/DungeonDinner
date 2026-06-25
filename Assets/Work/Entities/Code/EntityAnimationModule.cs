@@ -60,5 +60,12 @@ namespace Work.Entities.Code
         {
             _stateModule?.TriggerEvent(eventType);
         }
+
+        /// <summary>
+        /// 공격 타이밍을 코드 상태에서 처리하는 애니메이션의 레거시 공격 이벤트 수신
+        /// </summary>
+        public void AttackTrigger()
+        {
+        }
     }
 }

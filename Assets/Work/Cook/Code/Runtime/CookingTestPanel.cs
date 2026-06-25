@@ -745,7 +745,6 @@ namespace Work.Cook.Code.Runtime
                 case NpcConversationResult.Similar:
                     return "일부 일치";
                 case NpcConversationResult.Disgusting:
-                    return "괴식";
                 case NpcConversationResult.Wrong:
                 default:
                     return "불일치";
