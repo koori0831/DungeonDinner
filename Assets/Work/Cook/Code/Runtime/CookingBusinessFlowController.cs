@@ -2,10 +2,33 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Work.Core.EventBus;
 using Work.NPC.Code.Runtime;
 
 namespace Work.Cook.Code.Runtime
 {
+    /// <summary>
+    /// 가게 접기 처리 완료 시 발생하는 이벤트
+    /// </summary>
+    /// <param name="Source">영업 흐름 컨트롤러</param>
+    /// <param name="CurrentDay">영업 종료 시점의 일차</param>
+    /// <param name="EncountersStartedToday">오늘 접대한 손님 수</param>
+    /// <param name="MaxEncountersPerDay">하루 최대 접대 손님 수</param>
+    public readonly record struct CookingBusinessClosedEvent(
+        CookingBusinessFlowController Source,
+        int CurrentDay,
+        int EncountersStartedToday,
+        int MaxEncountersPerDay
+    ) : IEvent;
+
+    /// <summary>
+    /// 영업 종료 후 다음날 진행을 요청하는 이벤트
+    /// </summary>
+    /// <param name="Target">대상 영업 흐름 컨트롤러, null이면 현재 종료 대기 중인 컨트롤러</param>
+    public readonly record struct CookingBusinessAdvanceDayRequestedEvent(
+        CookingBusinessFlowController Target
+    ) : IEvent;
+    
     public sealed class CookingBusinessFlowController : MonoBehaviour
     {
         [SerializeField] private CookingGamePanel gamePanel;
@@ -48,13 +71,13 @@ namespace Work.Cook.Code.Runtime
             EnsureReferences();
             Subscribe();
 
-            if (hideCookingTestPanelOnStart)
+            if (hideCookingTestPanelOnStart == true)
                 HideCookingTestPanels();
         }
 
         private void Start()
         {
-            if (startFirstCustomerOnStart && _businessClosed == false)
+            if (startFirstCustomerOnStart == true && _businessClosed == false)
                 StartNextCustomer();
         }
 
@@ -104,9 +127,25 @@ namespace Work.Cook.Code.Runtime
             SetStatus(completedText);
             gamePanel?.CloseCookingViews();
             businessClosed.Invoke();
+            RaiseBusinessClosed();
+        }
+
+        private void HandleBusinessAdvanceDayRequested(CookingBusinessAdvanceDayRequestedEvent businessEvent)
+        {
+            if (businessEvent.Target != null && businessEvent.Target != this)
+            {
+                return;
+            }
 
             if (advanceDayWhenShopCloses == false || encounterDirector == null)
+            {
                 return;
+            }
+
+            if (_businessClosed == false)
+            {
+                return;
+            }
 
             encounterDirector.AdvanceDay();
             _businessClosed = false;
@@ -114,6 +153,20 @@ namespace Work.Cook.Code.Runtime
 
             if (startNextCustomerAfterAdvancingDay == true)
                 StartNextCustomer();
+        }
+
+        private void RaiseBusinessClosed()
+        {
+            int currentDay = encounterDirector != null ? encounterDirector.CurrentDay : 0;
+            int encountersStartedToday = encounterDirector != null ? encounterDirector.EncountersStartedToday : 0;
+            int maxEncountersPerDay = encounterDirector != null ? encounterDirector.MaxEncountersPerDay : 0;
+
+            Bus<CookingBusinessClosedEvent>.Raise(
+                new CookingBusinessClosedEvent(
+                    this,
+                    currentDay,
+                    encountersStartedToday,
+                    maxEncountersPerDay));
         }
 
         private void HandleDishHandedToNpc(DishResult result)
@@ -124,7 +177,7 @@ namespace Work.Cook.Code.Runtime
 
         private void HandleConversationCompleted()
         {
-            if (_businessClosed || _dishHandedToCurrentCustomer == false)
+            if (_businessClosed == true || _dishHandedToCurrentCustomer == false)
                 return;
 
             _dishHandedToCurrentCustomer = false;
@@ -138,7 +191,7 @@ namespace Work.Cook.Code.Runtime
             SetActive(actionRoot, true);
 
             bool canContinue = encounterDirector != null && encounterDirector.CanStartEncounter();
-            if (canContinue)
+            if (canContinue == true)
             {
                 SetStatus(BuildProgressText());
                 SetActive(nextCustomerButton, true);
@@ -195,6 +248,7 @@ namespace Work.Cook.Code.Runtime
                 gamePanel.DishHandedToNpc += HandleDishHandedToNpc;
             if (npcRunner != null)
                 npcRunner.ConversationCompleted += HandleConversationCompleted;
+            Bus<CookingBusinessAdvanceDayRequestedEvent>.Events += HandleBusinessAdvanceDayRequested;
         }
 
         private void Unsubscribe()
@@ -203,6 +257,7 @@ namespace Work.Cook.Code.Runtime
                 gamePanel.DishHandedToNpc -= HandleDishHandedToNpc;
             if (npcRunner != null)
                 npcRunner.ConversationCompleted -= HandleConversationCompleted;
+            Bus<CookingBusinessAdvanceDayRequestedEvent>.Events -= HandleBusinessAdvanceDayRequested;
         }
 
         private void BindButtons()
@@ -246,9 +301,11 @@ namespace Work.Cook.Code.Runtime
             CookingTestPanel[] panels = Resources.FindObjectsOfTypeAll<CookingTestPanel>();
             for (int i = 0; i < panels.Length; i++)
             {
-                if (panels[i] != null && panels[i].gameObject.scene.IsValid())
+                if (panels[i] != null && panels[i].gameObject.scene.IsValid() == true)
                     panels[i].gameObject.SetActive(false);
             }
         }
     }
+
+    
 }
