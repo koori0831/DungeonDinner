@@ -15,25 +15,21 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private CookingFlowRunner flowRunner;
 
-        [Header("Layout References")]
+        [Header("UI References")]
         [SerializeField] private Image dishIconImage;
         [SerializeField] private TextMeshProUGUI dishNameField;
         [SerializeField] private TextMeshProUGUI resultSummaryField;
         [SerializeField] private TextMeshProUGUI npcMatchField;
         [SerializeField] private RectTransform preparationSection;
-        [SerializeField] private RectTransform preparationRoot;
+        [SerializeField] private TextMeshProUGUI preparedIngredientsField;
         [SerializeField] private RectTransform reasonsSection;
         [SerializeField] private TextMeshProUGUI reasonsField;
         [SerializeField] private Button handToNpcButton;
 
-        [Header("Prefabs")]
-        [SerializeField] private CookingPreparedIngredientRowView preparedIngredientRowPrefab;
-
-        [Header("View Settings")]
+        [Header("Display")]
+        [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
         [SerializeField] private TMP_FontAsset fontAsset;
-
-        [Header("Text")]
-        [SerializeField] private string noResultText = "완성된 음식이 없습니다.";
+        [SerializeField] private string noResultText = "완성된 요리가 없습니다.";
 
         private CookingGamePanel _subscribedPanel;
 
@@ -101,9 +97,16 @@ namespace Work.Cook.Code.Runtime
             SetText(dishNameField, result.DisplayName);
             SetText(resultSummaryField, BuildResultSummaryText(result));
             SetText(npcMatchField, BuildNpcMatchText(result));
-            RebuildPreparationEntries(result);
-            BindReasons(result);
+            SetText(preparedIngredientsField, BuildPreparedIngredientsText(result));
+            SetText(reasonsField, BuildReasonText(result));
+            SetActive(preparationSection, true);
+            SetActive(reasonsSection, true);
             SetHandButtonInteractable(gamePanel != null && gamePanel.CanHandCurrentResultToNpc());
+        }
+
+        public void HandToNpc()
+        {
+            gamePanel?.AdvanceFromResult();
         }
 
         private DishResult GetCurrentResult()
@@ -118,71 +121,18 @@ namespace Work.Cook.Code.Runtime
             SetText(dishNameField, noResultText);
             SetText(resultSummaryField, string.Empty);
             SetText(npcMatchField, "요리 결과가 준비되면 NPC 예상 반응이 표시됩니다.");
+            SetText(preparedIngredientsField, string.Empty);
             SetText(reasonsField, string.Empty);
             BindDishIcon(null);
-            ClearChildren(preparationRoot);
-            SetSectionPreferredHeight(preparationSection, 94f);
-            SetSectionPreferredHeight(reasonsSection, 84f);
+            SetActive(preparationSection, false);
+            SetActive(reasonsSection, false);
             SetHandButtonInteractable(false);
-        }
-
-        private void RebuildPreparationEntries(DishResult result)
-        {
-            ClearChildren(preparationRoot);
-
-            if (preparationRoot == null)
-                return;
-
-            int count = result?.PreparedIngredients?.Count ?? 0;
-            if (count == 0)
-            {
-                SetSectionPreferredHeight(preparationSection, 94f);
-                return;
-            }
-
-            for (int i = 0; i < count; i++)
-                CreatePreparationEntry(preparationRoot, result.PreparedIngredients[i], i);
-
-            SetSectionPreferredHeight(preparationSection, 58f + count * 84f);
-        }
-
-        private void BindReasons(DishResult result)
-        {
-            if (result == null || result.Reasons.Count == 0)
-            {
-                SetText(reasonsField, "추가 판정 사유 없음");
-                SetSectionPreferredHeight(reasonsSection, 78f);
-                return;
-            }
-
-            SetText(reasonsField, BuildReasonText(result));
-            SetSectionPreferredHeight(reasonsSection, 72f + result.Reasons.Count * 26f);
-        }
-
-        private void CreatePreparationEntry(Transform parent, PreparedIngredientState prepared, int index)
-        {
-            if (preparedIngredientRowPrefab != null)
-            {
-                CookingPreparedIngredientRowView view = Instantiate(preparedIngredientRowPrefab, parent);
-                Sprite icon = prepared != null ? CookingTempVisualUtility.ResolveIngredientIcon(prepared.Ingredient) : null;
-                view.Bind(BuildPreparedIngredientText(prepared, index), icon);
-                return;
-            }
-
-            Debug.LogError("CookingResultView preparedIngredientRowPrefab is missing. Assign a row prefab.", this);
-        }
-
-        private void HandToNpc()
-        {
-            gamePanel?.AdvanceFromResult();
         }
 
         private void BindDishIcon(DishResult result)
         {
             if (dishIconImage == null)
-            {
                 return;
-            }
 
             dishIconImage.sprite = CookingTempVisualUtility.ResolveDishIcon(result);
             dishIconImage.color = Color.white;
@@ -199,30 +149,18 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureLayout()
         {
-            if (HasRequiredLayoutReferences() == true)
-            {
+            if (dishNameField != null && resultSummaryField != null && handToNpcButton != null)
                 return;
-            }
 
-            Debug.LogError("CookingResultView is missing inspector layout references or preparedIngredientRowPrefab. Assign references from a prefab/scene object.", this);
-        }
-
-        private bool HasRequiredLayoutReferences()
-        {
-            return dishIconImage != null
-                   && dishNameField != null
-                   && resultSummaryField != null
-                   && npcMatchField != null
-                   && preparationSection != null
-                   && preparationRoot != null
-                   && reasonsSection != null
-                   && reasonsField != null
-                   && handToNpcButton != null
-                   && preparedIngredientRowPrefab != null;
+            if (buildDefaultLayoutWhenMissing)
+                Debug.LogWarning("CookingResultView is missing UI references. Assign a custom result UI instead of using generated layout.", this);
         }
 
         private string BuildResultSummaryText(DishResult result)
         {
+            if (result == null)
+                return string.Empty;
+
             StringBuilder builder = new StringBuilder();
             builder.Append($"품질: {BuildQualityText(result.Quality)}");
             builder.Append($"  |  기준: {BuildRecipeText(result)}");
@@ -249,35 +187,14 @@ namespace Work.Cook.Code.Runtime
                 return BuildNpcMatchReportText(result, panelReport, true);
             }
 
-            NpcConversationRunner runner = gamePanel != null ? gamePanel.NpcRunner : null;
-            if (runner == null)
-                runner = FindFirstObjectByType<NpcConversationRunner>();
-
+            NpcConversationRunner runner = FindFirstObjectByType<NpcConversationRunner>();
             if (runner == null)
                 return "현재 씬에서 NpcConversationRunner를 찾지 못했습니다.\nNPC 대화 UI와 연결되면 예상 판정이 표시됩니다.";
 
             if (CookingNpcDishAdapter.TryBuildMatchReport(runner, result, out NpcDishMatchReport report) == false)
                 return "현재 NPC 주문 정보가 아직 준비되지 않았습니다.\nNPC 대화에서 요리 단계까지 진행한 뒤 다시 확인해 주세요.";
 
-            int percent = Mathf.RoundToInt(report.MatchRatio * 100f);
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine($"NPC: {ValueOrNone(report.Order?.NpcId)}  |  예상 반응: {BuildNpcResultText(report.Evaluation?.Result ?? NpcConversationResult.Wrong)}");
-            builder.AppendLine($"요청 일치도: {report.MatchScore}/{report.MaxMatchScore} ({percent}%)");
-            builder.AppendLine($"레시피: {BuildMatchStateText(report.RecipeMatches)}  목표 {ValueOrNone(report.Order?.CorrectRecipeId)} / 제출 {ValueOrNone(report.Dish?.RecipeId)}");
-            builder.AppendLine($"분류: {BuildMatchStateText(report.FoodTypeMatches)}  목표 {BuildStringListText(report.Order?.AllowedFoodTypes)} / 제출 {ValueOrNone(report.Dish?.FoodType)}");
-            builder.AppendLine($"필수 태그: 맞음 {BuildStringListText(report.MatchedRequiredTags)} / 부족 {BuildStringListText(report.MissingRequiredTags)}");
-            builder.AppendLine($"선호 태그: 맞음 {BuildStringListText(report.MatchedPreferredTags)} / 없음 {BuildStringListText(report.MissingPreferredTags)}");
-
-            if (report.MatchedAvoidTags.Count > 0)
-                builder.AppendLine($"회피 태그 감지: {BuildStringListText(report.MatchedAvoidTags)}");
-
-            if (report.Dish != null && (report.Dish.IsDisgusting || report.MatchedDisgustingTags.Count > 0))
-                builder.AppendLine($"실패 위험: {BuildStringListText(report.MatchedDisgustingTags)}");
-
-            if (report.Evaluation != null)
-                builder.AppendLine($"판정 사유: {report.Evaluation.Reason}");
-
-            return builder.ToString();
+            return BuildNpcMatchReportText(result, report, false);
         }
 
         private string BuildNpcMatchReportText(
@@ -309,6 +226,23 @@ namespace Work.Cook.Code.Runtime
 
             if (report.Evaluation != null)
                 builder.AppendLine($"판정 사유: {report.Evaluation.Reason}");
+
+            return builder.ToString();
+        }
+
+        private static string BuildPreparedIngredientsText(DishResult result)
+        {
+            IReadOnlyList<PreparedIngredientState> preparedIngredients = result?.PreparedIngredients;
+            if (preparedIngredients == null || preparedIngredients.Count == 0)
+                return "손질한 재료 없음";
+
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < preparedIngredients.Count; i++)
+            {
+                builder.AppendLine(BuildPreparedIngredientText(preparedIngredients[i], i));
+                if (i < preparedIngredients.Count - 1)
+                    builder.AppendLine();
+            }
 
             return builder.ToString();
         }
@@ -358,6 +292,9 @@ namespace Work.Cook.Code.Runtime
 
         private static string BuildReasonText(DishResult result)
         {
+            if (result == null || result.Reasons == null || result.Reasons.Count == 0)
+                return "추가 판정 사유 없음";
+
             StringBuilder builder = new StringBuilder();
             for (int i = 0; i < result.Reasons.Count; i++)
                 builder.AppendLine($"- {result.Reasons[i]}");
@@ -470,7 +407,6 @@ namespace Work.Cook.Code.Runtime
                 return;
 
             gamePanel.ResultReady += HandleResultReady;
-            gamePanel.SnapshotChanged += HandleSnapshotChanged;
             _subscribedPanel = gamePanel;
         }
 
@@ -480,16 +416,10 @@ namespace Work.Cook.Code.Runtime
                 return;
 
             _subscribedPanel.ResultReady -= HandleResultReady;
-            _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
             _subscribedPanel = null;
         }
 
         private void HandleResultReady(DishResult result)
-        {
-            Refresh();
-        }
-
-        private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
         {
             Refresh();
         }
@@ -507,38 +437,16 @@ namespace Work.Cook.Code.Runtime
             }
         }
 
-        private static void SetSectionPreferredHeight(RectTransform section, float preferredHeight)
+        private static void SetActive(Component component, bool active)
         {
-            if (section == null)
-                return;
-
-            LayoutElement element = section.GetComponent<LayoutElement>();
-            if (element == null)
-                return;
-
-            element.preferredHeight = preferredHeight;
-        }
-
-        private static void ClearChildren(Transform root)
-        {
-            if (root == null)
-                return;
-
-            for (int i = root.childCount - 1; i >= 0; i--)
-            {
-                Transform child = root.GetChild(i);
-                if (Application.isPlaying)
-                    Destroy(child.gameObject);
-                else
-                    DestroyImmediate(child.gameObject);
-            }
+            if (component != null && component.gameObject.activeSelf != active)
+                component.gameObject.SetActive(active);
         }
 
         private static void SetText(TextMeshProUGUI field, string text)
         {
             if (field != null)
-                field.text = text;
+                field.text = text ?? string.Empty;
         }
-
     }
 }

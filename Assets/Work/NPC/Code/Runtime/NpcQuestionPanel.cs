@@ -17,19 +17,18 @@ namespace Work.NPC.Code.Runtime
 
         private readonly List<Button> _spawnedButtons = new List<Button>();
         private CanvasGroup _canvasGroup;
+        private LayoutGroup _optionLayoutGroup;
 
         private void Awake()
         {
             if (optionRoot == null)
-            {
-                Debug.LogError("NpcQuestionPanel optionRoot is missing. Assign a content root RectTransform in the inspector.", this);
-            }
+                optionRoot = transform as RectTransform;
+
+            EnsureOptionRootLayout();
 
             _canvasGroup = GetComponent<CanvasGroup>();
             if (_canvasGroup == null)
-            {
-                Debug.LogError("NpcQuestionPanel CanvasGroup is missing. Add it to the prefab or scene object.", this);
-            }
+                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
             SetSkipButtonLabel();
         }
@@ -48,7 +47,7 @@ namespace Work.NPC.Code.Runtime
             if (skipButton != null)
                 skipButton.onClick.AddListener(HandleSkipButtonClicked);
 
-            if (hideWhenNoOptions == true)
+            if (hideWhenNoOptions)
                 SetVisible(false);
         }
 
@@ -66,10 +65,11 @@ namespace Work.NPC.Code.Runtime
 
         private void HandleQuestionOptionsUpdated(IReadOnlyList<QuestionCategoryData> options)
         {
+            EnsureOptionRootLayout();
             ClearButtons();
 
             bool hasOptions = options != null && options.Count > 0;
-            if (hideWhenNoOptions == true)
+            if (hideWhenNoOptions)
                 SetVisible(hasOptions);
 
             if (hasOptions == false)
@@ -79,18 +79,13 @@ namespace Work.NPC.Code.Runtime
             {
                 QuestionCategoryData option = options[i];
                 Button button = CreateQuestionButton();
-                if (button == null)
-                {
-                    continue;
-                }
-
                 SetButtonLabel(button, option.DisplayName);
 
                 string categoryId = option.CategoryId;
                 button.onClick.AddListener(() =>
                 {
                     ClearButtons();
-                    if (hideWhenNoOptions == true)
+                    if (hideWhenNoOptions)
                         SetVisible(false);
 
                     runner.SelectQuestionCategory(categoryId);
@@ -106,7 +101,7 @@ namespace Work.NPC.Code.Runtime
         {
             ClearButtons();
 
-            if (hideWhenNoOptions == true)
+            if (hideWhenNoOptions)
                 SetVisible(false);
         }
 
@@ -117,21 +112,68 @@ namespace Work.NPC.Code.Runtime
 
         private Button CreateQuestionButton()
         {
-            if (optionRoot == null)
-            {
-                Debug.LogError("NpcQuestionPanel cannot create a question button because optionRoot is missing. Assign a content root RectTransform in the inspector.", this);
-                return null;
-            }
-
             if (questionButtonPrefab != null)
             {
                 Button button = Instantiate(questionButtonPrefab, optionRoot);
                 button.gameObject.SetActive(true);
+                PrepareButtonLayout(button);
                 return button;
             }
 
-            Debug.LogError("NpcQuestionPanel questionButtonPrefab is missing. Assign a question button prefab in the inspector.", this);
-            return null;
+            return CreateFallbackButton();
+        }
+
+        private Button CreateFallbackButton()
+        {
+            GameObject buttonObject = new GameObject("QuestionButton", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+            buttonObject.transform.SetParent(optionRoot, false);
+
+            Image image = buttonObject.GetComponent<Image>();
+            image.color = new Color(0.12f, 0.12f, 0.12f, 0.92f);
+
+            LayoutElement layoutElement = buttonObject.GetComponent<LayoutElement>();
+            layoutElement.minHeight = 48f;
+            layoutElement.preferredHeight = 52f;
+
+            GameObject textObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textObject.transform.SetParent(buttonObject.transform, false);
+
+            RectTransform textRect = textObject.transform as RectTransform;
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(14f, 8f);
+            textRect.offsetMax = new Vector2(-14f, -8f);
+
+            TextMeshProUGUI label = textObject.GetComponent<TextMeshProUGUI>();
+            label.alignment = TextAlignmentOptions.Center;
+            label.fontSize = 22f;
+            label.color = Color.white;
+
+            return buttonObject.GetComponent<Button>();
+        }
+
+        private void PrepareButtonLayout(Button button)
+        {
+            if (button == null)
+                return;
+
+            RectTransform rectTransform = button.transform as RectTransform;
+            if (rectTransform != null)
+            {
+                rectTransform.anchorMin = new Vector2(0f, 1f);
+                rectTransform.anchorMax = new Vector2(1f, 1f);
+                rectTransform.pivot = new Vector2(0.5f, 1f);
+                rectTransform.anchoredPosition = Vector2.zero;
+                rectTransform.sizeDelta = new Vector2(0f, rectTransform.sizeDelta.y);
+            }
+
+            LayoutElement layoutElement = button.GetComponent<LayoutElement>();
+            if (layoutElement == null)
+                layoutElement = button.gameObject.AddComponent<LayoutElement>();
+
+            layoutElement.minHeight = Mathf.Max(layoutElement.minHeight, 48f);
+            layoutElement.preferredHeight = Mathf.Max(layoutElement.preferredHeight, 52f);
+            layoutElement.flexibleWidth = 1f;
         }
 
         private void SetButtonLabel(Button button, string label)
@@ -148,9 +190,7 @@ namespace Work.NPC.Code.Runtime
 
             Text legacyText = button.GetComponentInChildren<Text>(true);
             if (legacyText != null)
-            {
                 legacyText.text = label;
-            }
         }
 
         private void SetSkipButtonLabel()
@@ -185,5 +225,29 @@ namespace Work.NPC.Code.Runtime
             _canvasGroup.blocksRaycasts = visible;
         }
 
+        private void EnsureOptionRootLayout()
+        {
+            if (optionRoot == null)
+                return;
+
+            _optionLayoutGroup = optionRoot.GetComponent<LayoutGroup>();
+            if (_optionLayoutGroup != null)
+                return;
+
+            VerticalLayoutGroup verticalLayoutGroup = optionRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+            verticalLayoutGroup.childAlignment = TextAnchor.UpperCenter;
+            verticalLayoutGroup.spacing = 10f;
+            verticalLayoutGroup.childControlWidth = true;
+            verticalLayoutGroup.childControlHeight = true;
+            verticalLayoutGroup.childForceExpandWidth = true;
+            verticalLayoutGroup.childForceExpandHeight = false;
+
+            ContentSizeFitter contentSizeFitter = optionRoot.GetComponent<ContentSizeFitter>();
+            if (contentSizeFitter == null)
+                contentSizeFitter = optionRoot.gameObject.AddComponent<ContentSizeFitter>();
+
+            contentSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            _optionLayoutGroup = verticalLayoutGroup;
+        }
     }
 }

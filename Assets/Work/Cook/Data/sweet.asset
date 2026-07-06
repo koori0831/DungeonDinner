@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: sweet
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodTagSO
   tagId: sweet
-  displayName: "\uB2EC\uCF64\uD568"
-  description: "NPC \uC8FC\uBB38 \uD3C9\uAC00\uC5D0 \uC0AC\uC6A9\uB418\uB294 \uD0DC\uADF8
-    'sweet'\uC785\uB2C8\uB2E4."
+  displayName: "\uB2EC\uB2EC\uD568"
+  description: "\uC124\uD0D5\uC774 \uB4E4\uC5B4\uAC04\uB4EF\uD55C \uB2EC\uB2EC\uD55C
+    \uC74C\uC2DD\uC5D0 \uB2EC\uB9AC\uB294 \uD0DC\uADF8"

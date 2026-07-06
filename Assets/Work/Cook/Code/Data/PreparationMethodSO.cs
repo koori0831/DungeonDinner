@@ -7,12 +7,10 @@ namespace Work.Cook.Code.Data
     {
         [SerializeField] private string methodId;
         [SerializeField] private string displayName;
-        [SerializeField] private Sprite iconSprite;
         [SerializeField, TextArea] private string description;
 
         public string MethodId => methodId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? methodId : displayName;
-        public Sprite IconSprite => iconSprite;
         public string Description => description;
     }
 }

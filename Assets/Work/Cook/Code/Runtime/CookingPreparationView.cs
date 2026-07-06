@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
@@ -13,32 +14,26 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private CookingFlowRunner flowRunner;
         [SerializeField] private CookingKnowledgeStore knowledgeStore;
 
-        [Header("Layout References")]
-        [SerializeField] private RectTransform boardRoot;
+        [Header("UI References")]
         [SerializeField] private TextMeshProUGUI ingredientNameField;
         [SerializeField] private TextMeshProUGUI ingredientDescriptionField;
         [SerializeField] private TextMeshProUGUI progressField;
-        [SerializeField] private RectTransform cardRoot;
+        [SerializeField] private TextMeshProUGUI optionsSummaryField;
 
-        [Header("Prefabs")]
-        [SerializeField] private CookingPreparationOptionCardView preparationOptionCardPrefab;
-
-        [Header("View Settings")]
+        [Header("Display")]
+        [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
         [SerializeField] private TMP_FontAsset fontAsset;
-
-        [Header("Text")]
         [SerializeField] private string noIngredientText = "손질할 재료가 없습니다.";
         [SerializeField] private string noOptionText = "이 재료에는 등록된 손질법이 없습니다.";
         [SerializeField] private string noOptionButtonText = "그대로 진행";
         [SerializeField] private string unknownEffectText = "아직 결과를 모릅니다.";
-        [SerializeField] private string knownEffectTitleText = "확인한 효과";
+        [SerializeField] private string knownEffectTitleText = "확인된 효과";
 
         [Header("Knowledge")]
         [SerializeField] private bool showAllEffectsForTesting;
 
         private readonly HashSet<string> _knownEffectKeys = new HashSet<string>();
         private bool _isSubscribed;
-        private bool _isCompletingCooking;
 
         private void Awake()
         {
@@ -91,21 +86,73 @@ namespace Work.Cook.Code.Runtime
             EnsureReferences();
             EnsureLayout();
 
-            if (flowRunner == null)
-            {
-                BindEmptyState("손질 데이터 없음");
-                return;
-            }
-
-            IngredientSO ingredient = flowRunner.GetNextUnpreparedIngredient();
+            IngredientSO ingredient = GetCurrentIngredient();
             if (ingredient == null)
             {
-                CompleteCookingOnce();
+                BindEmptyState(noIngredientText);
                 return;
             }
 
             BindIngredient(ingredient);
-            RebuildCards(ingredient);
+            SetText(optionsSummaryField, BuildOptionSummaryText(ingredient));
+        }
+
+        public IngredientSO GetCurrentIngredient()
+        {
+            EnsureReferences();
+            return flowRunner != null ? flowRunner.GetNextUnpreparedIngredient() : null;
+        }
+
+        public IReadOnlyList<IngredientPreparationOption> GetCurrentOptions()
+        {
+            IngredientSO ingredient = GetCurrentIngredient();
+            return GetPreparationOptions(ingredient);
+        }
+
+        public bool SelectCurrentPreparationByIndex(int optionIndex)
+        {
+            IngredientSO ingredient = GetCurrentIngredient();
+            IReadOnlyList<IngredientPreparationOption> options = GetPreparationOptions(ingredient);
+
+            if (optionIndex < 0 || options == null || optionIndex >= options.Count)
+            {
+                Debug.LogWarning($"CookingPreparationView could not select preparation index {optionIndex}.", this);
+                return false;
+            }
+
+            return SelectPreparation(ingredient, options[optionIndex]);
+        }
+
+        public bool SelectCurrentPreparation(IngredientPreparationOption option)
+        {
+            return SelectPreparation(GetCurrentIngredient(), option);
+        }
+
+        public bool SelectPreparation(IngredientSO ingredient, IngredientPreparationOption option)
+        {
+            EnsureReferences();
+
+            if (ingredient == null)
+            {
+                Debug.LogWarning("CookingPreparationView could not select a preparation because the ingredient is missing.", this);
+                return false;
+            }
+
+            if (gamePanel != null)
+                return gamePanel.SelectPreparation(ingredient, option);
+
+            if (flowRunner == null)
+                return false;
+
+            if (option != null)
+                LearnPreparationEffect(ingredient, option);
+
+            bool selected = flowRunner.SelectPreparation(ingredient, option);
+            if (selected && flowRunner.GetNextUnpreparedIngredient() == null)
+                flowRunner.TryCompleteCooking(out _);
+
+            Refresh();
+            return selected;
         }
 
         private void BindIngredient(IngredientSO ingredient)
@@ -120,100 +167,7 @@ namespace Work.Cook.Code.Runtime
             SetText(ingredientNameField, message);
             SetText(ingredientDescriptionField, string.Empty);
             SetText(progressField, string.Empty);
-            ClearChildren(cardRoot);
-        }
-
-        private void RebuildCards(IngredientSO ingredient)
-        {
-            ClearChildren(cardRoot);
-
-            if (cardRoot == null || ingredient == null)
-                return;
-
-            IReadOnlyList<IngredientPreparationOption> options = flowRunner.GetPreparationOptions(ingredient);
-            if (options == null || options.Count == 0)
-            {
-                CreateNoOptionCard(ingredient);
-                return;
-            }
-
-            for (int i = 0; i < options.Count; i++)
-            {
-                IngredientPreparationOption option = options[i];
-                if (option == null)
-                    continue;
-
-                CreatePreparationCard(ingredient, option, i);
-            }
-        }
-
-        private void CreateNoOptionCard(IngredientSO ingredient)
-        {
-            if (preparationOptionCardPrefab != null)
-            {
-                CookingPreparationOptionCardView view = Instantiate(preparationOptionCardPrefab, cardRoot);
-                view.Bind(
-                    string.Empty,
-                    null,
-                    noOptionText,
-                    string.Empty,
-                    string.Empty,
-                    noOptionButtonText,
-                    false,
-                    () => SelectPreparation(ingredient, null));
-                return;
-            }
-
-            Debug.LogError("CookingPreparationView preparationOptionCardPrefab is missing. Assign a card prefab.", this);
-        }
-
-        private void CreatePreparationCard(IngredientSO ingredient, IngredientPreparationOption option, int index)
-        {
-            if (preparationOptionCardPrefab != null)
-            {
-                CookingPreparationOptionCardView view = Instantiate(preparationOptionCardPrefab, cardRoot);
-                Sprite prefabIconSprite = GetOptionIconSprite(option);
-                view.Bind(
-                    BuildOptionIconText(index, option),
-                    prefabIconSprite,
-                    option.DisplayName,
-                    BuildOptionDescription(option),
-                    BuildKnownEffectText(ingredient, option),
-                    "선택",
-                    true,
-                    () => SelectPreparation(ingredient, option));
-                return;
-            }
-
-            Debug.LogError("CookingPreparationView preparationOptionCardPrefab is missing. Assign a card prefab.", this);
-        }
-
-        private void SelectPreparation(IngredientSO ingredient, IngredientPreparationOption option)
-        {
-            if (gamePanel != null)
-            {
-                gamePanel.SelectPreparation(ingredient, option);
-                return;
-            }
-
-            if (flowRunner == null || ingredient == null)
-                return;
-
-            if (option != null)
-                LearnPreparationEffect(ingredient, option);
-
-            flowRunner.SelectPreparation(ingredient, option);
-            Refresh();
-        }
-
-        private void CompleteCookingOnce()
-        {
-            if (_isCompletingCooking)
-                return;
-
-            _isCompletingCooking = true;
-            gamePanel?.CompleteCooking();
-            _isCompletingCooking = false;
+            SetText(optionsSummaryField, string.Empty);
         }
 
         private void EnsureReferences()
@@ -233,46 +187,19 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureLayout()
         {
-            if (HasRequiredLayoutReferences() == true)
-            {
-                return;
-            }
-
-            Debug.LogError("CookingPreparationView is missing inspector layout references or preparationOptionCardPrefab. Assign references from a prefab/scene object.", this);
-        }
-
-        private bool HasRequiredLayoutReferences()
-        {
-            return boardRoot != null
-                   && ingredientNameField != null
-                   && ingredientDescriptionField != null
-                   && progressField != null
-                   && cardRoot != null
-                   && preparationOptionCardPrefab != null;
-        }
-
-        private void SubscribeFlowEvents()
-        {
-            if (_isSubscribed || flowRunner == null)
+            if (ingredientNameField != null && progressField != null)
                 return;
 
-            flowRunner.StateChanged += HandleFlowStateChanged;
-            _isSubscribed = true;
+            if (buildDefaultLayoutWhenMissing)
+                Debug.LogWarning("CookingPreparationView is missing UI references. Assign a custom preparation UI instead of using generated layout.", this);
         }
 
-        private void UnsubscribeFlowEvents()
+        private IReadOnlyList<IngredientPreparationOption> GetPreparationOptions(IngredientSO ingredient)
         {
-            if (_isSubscribed == false || flowRunner == null)
-                return;
+            if (flowRunner == null || ingredient == null)
+                return Array.Empty<IngredientPreparationOption>();
 
-            flowRunner.StateChanged -= HandleFlowStateChanged;
-            _isSubscribed = false;
-        }
-
-        private void HandleFlowStateChanged(CookingFlowState state)
-        {
-            if (isActiveAndEnabled)
-                Refresh();
+            return flowRunner.GetPreparationOptions(ingredient);
         }
 
         private string BuildProgressText()
@@ -288,6 +215,32 @@ namespace Work.Cook.Code.Runtime
             return $"손질 진행 {preparedCount} / {session.SelectedIngredients.Count}";
         }
 
+        private string BuildOptionSummaryText(IngredientSO ingredient)
+        {
+            IReadOnlyList<IngredientPreparationOption> options = GetPreparationOptions(ingredient);
+            if (options == null || options.Count == 0)
+                return $"{noOptionText}\n{noOptionButtonText}";
+
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < options.Count; i++)
+            {
+                IngredientPreparationOption option = options[i];
+                if (option == null)
+                    continue;
+
+                builder.AppendLine($"{i + 1}. {option.DisplayName}");
+                string description = BuildOptionDescription(option);
+                if (string.IsNullOrWhiteSpace(description) == false)
+                    builder.AppendLine(description);
+                builder.AppendLine(BuildKnownEffectText(ingredient, option));
+
+                if (i < options.Count - 1)
+                    builder.AppendLine();
+            }
+
+            return builder.ToString();
+        }
+
         private static string BuildIngredientDescription(IngredientSO ingredient)
         {
             if (ingredient == null)
@@ -296,7 +249,7 @@ namespace Work.Cook.Code.Runtime
             if (string.IsNullOrWhiteSpace(ingredient.Description) == false)
                 return ingredient.Description;
 
-            return "도마 위에 올려진 재료를 어떻게 손질할지 선택합니다.";
+            return "재료를 어떻게 손질할지 선택합니다.";
         }
 
         private static string BuildOptionDescription(IngredientPreparationOption option)
@@ -337,7 +290,7 @@ namespace Work.Cook.Code.Runtime
                 builder.AppendLine("독성이 추가됩니다.");
 
             return builder.Length > knownEffectTitleText.Length + 1
-                ? builder.ToString()
+                ? builder.ToString().TrimEnd()
                 : $"{knownEffectTitleText}\n특별한 변화 없음";
         }
 
@@ -366,27 +319,48 @@ namespace Work.Cook.Code.Runtime
             _knownEffectKeys.Add(BuildEffectKey(ingredient, option));
         }
 
+        private void SubscribeFlowEvents()
+        {
+            if (_isSubscribed || flowRunner == null)
+                return;
+
+            flowRunner.StateChanged += HandleFlowStateChanged;
+            _isSubscribed = true;
+        }
+
+        private void UnsubscribeFlowEvents()
+        {
+            if (_isSubscribed == false || flowRunner == null)
+                return;
+
+            flowRunner.StateChanged -= HandleFlowStateChanged;
+            _isSubscribed = false;
+        }
+
+        private void HandleFlowStateChanged(CookingFlowState state)
+        {
+            if (isActiveAndEnabled)
+                Refresh();
+        }
+
+        private void ApplyFontToExistingTexts()
+        {
+            if (fontAsset == null)
+                return;
+
+            TextMeshProUGUI[] labels = GetComponentsInChildren<TextMeshProUGUI>(true);
+            for (int i = 0; i < labels.Length; i++)
+            {
+                if (labels[i] != null)
+                    labels[i].font = fontAsset;
+            }
+        }
+
         private static string BuildEffectKey(IngredientSO ingredient, IngredientPreparationOption option)
         {
             string ingredientId = ingredient != null ? ingredient.IngredientId : string.Empty;
             string methodId = option != null && option.Method != null ? option.Method.MethodId : option?.DisplayName;
             return $"{ingredientId}:{methodId}";
-        }
-
-        private static string BuildOptionIconText(int index, IngredientPreparationOption option)
-        {
-            if (option != null && string.IsNullOrWhiteSpace(option.DisplayName) == false)
-                return option.DisplayName.Substring(0, 1);
-
-            return (index + 1).ToString();
-        }
-
-        private static Sprite GetOptionIconSprite(IngredientPreparationOption option)
-        {
-            if (option == null || option.Method == null)
-                return null;
-
-            return option.Method.IconSprite;
         }
 
         private static void AppendTags(StringBuilder builder, string title, IReadOnlyList<FoodTagSO> tags)
@@ -405,38 +379,10 @@ namespace Work.Cook.Code.Runtime
                 builder.AppendLine($"{title}: {string.Join(", ", names)}");
         }
 
-        private void ApplyFontToExistingTexts()
-        {
-            if (fontAsset == null)
-                return;
-
-            TextMeshProUGUI[] labels = GetComponentsInChildren<TextMeshProUGUI>(true);
-            for (int i = 0; i < labels.Length; i++)
-            {
-                if (labels[i] != null)
-                    labels[i].font = fontAsset;
-            }
-        }
-
-        private static void ClearChildren(Transform root)
-        {
-            if (root == null)
-                return;
-
-            for (int i = root.childCount - 1; i >= 0; i--)
-            {
-                Transform child = root.GetChild(i);
-                if (Application.isPlaying)
-                    Destroy(child.gameObject);
-                else
-                    DestroyImmediate(child.gameObject);
-            }
-        }
-
         private static void SetText(TextMeshProUGUI field, string text)
         {
             if (field != null)
-                field.text = text;
+                field.text = text ?? string.Empty;
         }
     }
 }

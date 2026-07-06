@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -24,11 +25,16 @@ namespace Work.Dispatch.Code.Runtime
         [SerializeField] private NpcConversationRunner npcRunner;
 
         [Header("UI")]
+        [SerializeField] private Canvas targetCanvas;
         [SerializeField] private RectTransform generatedUiRoot;
         [SerializeField] private DispatchMapView mapView;
         [SerializeField] private DispatchProgressView progressView;
         [SerializeField] private DispatchResultView resultView;
         [SerializeField] private Button openButton;
+        [SerializeField] private TMP_FontAsset fontAsset;
+        [SerializeField] private bool autoCreateDefaultUI = true;
+        [SerializeField] private bool autoCreateOpenButton = true;
+        [SerializeField] private string openButtonText = "파견";
 
         [Header("Last Result")]
         [SerializeField] private int lastRewardAddedAmount;
@@ -44,7 +50,6 @@ namespace Work.Dispatch.Code.Runtime
         private DispatchPointSO _currentPoint;
         private CancellationTokenSource _dispatchCancellationTokenSource;
         private NpcConversationRunner _subscribedNpcRunner;
-        private bool _loggedMissingUiReferences;
 
         /// <summary>
         /// 파견이 시작될 때 발생하는 이벤트
@@ -89,7 +94,7 @@ namespace Work.Dispatch.Code.Runtime
         private void Awake()
         {
             EnsureReferences();
-            EnsureUiReferences();
+            EnsureDefaultUI();
             BindOpenButton();
             HideViews();
         }
@@ -98,7 +103,7 @@ namespace Work.Dispatch.Code.Runtime
         {
             EnsureReferences();
             SyncNpcRunnerSubscription();
-            EnsureUiReferences();
+            EnsureDefaultUI();
             BindOpenButton();
             RefreshOpenButtonInteractable();
         }
@@ -141,7 +146,7 @@ namespace Work.Dispatch.Code.Runtime
         {
             EnsureReferences();
             SyncNpcRunnerSubscription();
-            EnsureUiReferences();
+            EnsureDefaultUI();
 
             if (_isDispatching == true)
             {
@@ -168,7 +173,7 @@ namespace Work.Dispatch.Code.Runtime
 
             progressView?.Hide();
             resultView?.Hide();
-            mapView.Show(this, dispatchMap);
+            mapView.Show(this, dispatchMap, fontAsset);
             mapOpened.Invoke();
             RefreshOpenButtonInteractable();
             return true;
@@ -200,7 +205,7 @@ namespace Work.Dispatch.Code.Runtime
         {
             EnsureReferences();
             SyncNpcRunnerSubscription();
-            EnsureUiReferences();
+            EnsureDefaultUI();
 
             if (_isDispatching == true)
             {
@@ -426,26 +431,119 @@ namespace Work.Dispatch.Code.Runtime
             }
         }
 
-        private bool EnsureUiReferences()
+        private void EnsureDefaultUI()
         {
-            bool hasRequiredReferences = generatedUiRoot != null
-                                         && mapView != null
-                                         && progressView != null
-                                         && resultView != null
-                                         && openButton != null;
-            if (hasRequiredReferences == true)
+            if (autoCreateDefaultUI == false)
             {
-                _loggedMissingUiReferences = false;
-                return true;
+                return;
             }
 
-            if (_loggedMissingUiReferences == false)
+            RectTransform root = EnsureGeneratedUiRoot();
+            if (root == null)
             {
-                _loggedMissingUiReferences = true;
-                Debug.LogError("DispatchController is missing generatedUiRoot/mapView/progressView/resultView/openButton inspector references. Place the UI instances in the scene and assign them before runtime.", this);
+                return;
             }
 
-            return false;
+            if (mapView == null)
+            {
+                GameObject mapObject = new GameObject("TempDispatchMapView", typeof(RectTransform), typeof(DispatchMapView));
+                mapObject.transform.SetParent(root, false);
+                DispatchDefaultUiUtility.StretchToParent(mapObject.GetComponent<RectTransform>());
+                mapView = mapObject.GetComponent<DispatchMapView>();
+                mapView.SetFontAsset(fontAsset);
+            }
+
+            if (progressView == null)
+            {
+                GameObject progressObject = new GameObject("TempDispatchProgressView", typeof(RectTransform), typeof(DispatchProgressView));
+                progressObject.transform.SetParent(root, false);
+                DispatchDefaultUiUtility.StretchToParent(progressObject.GetComponent<RectTransform>());
+                progressView = progressObject.GetComponent<DispatchProgressView>();
+                progressView.SetFontAsset(fontAsset);
+            }
+
+            if (resultView == null)
+            {
+                GameObject resultObject = new GameObject("TempDispatchResultView", typeof(RectTransform), typeof(DispatchResultView));
+                resultObject.transform.SetParent(root, false);
+                DispatchDefaultUiUtility.StretchToParent(resultObject.GetComponent<RectTransform>());
+                resultView = resultObject.GetComponent<DispatchResultView>();
+                resultView.SetFontAsset(fontAsset);
+            }
+
+            if (openButton == null && autoCreateOpenButton == true)
+            {
+                openButton = CreateOpenButton(root);
+            }
+        }
+
+        private RectTransform EnsureGeneratedUiRoot()
+        {
+            if (generatedUiRoot != null)
+            {
+                return generatedUiRoot;
+            }
+
+            Canvas canvas = EnsureTargetCanvas();
+            if (canvas == null)
+            {
+                return null;
+            }
+
+            GameObject rootObject = new GameObject("DispatchTempUiRoot", typeof(RectTransform));
+            rootObject.transform.SetParent(canvas.transform, false);
+            generatedUiRoot = rootObject.GetComponent<RectTransform>();
+            DispatchDefaultUiUtility.StretchToParent(generatedUiRoot);
+            return generatedUiRoot;
+        }
+
+        private Canvas EnsureTargetCanvas()
+        {
+            if (targetCanvas != null)
+            {
+                return targetCanvas;
+            }
+
+            targetCanvas = GetComponentInParent<Canvas>();
+            if (targetCanvas != null)
+            {
+                return targetCanvas;
+            }
+
+            targetCanvas = FindFirstObjectByType<Canvas>();
+            if (targetCanvas != null)
+            {
+                return targetCanvas;
+            }
+
+            GameObject canvasObject = new GameObject("DispatchTempCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            targetCanvas = canvasObject.GetComponent<Canvas>();
+            targetCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+            CanvasScaler canvasScaler = canvasObject.GetComponent<CanvasScaler>();
+            canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            canvasScaler.referenceResolution = new Vector2(1920f, 1080f);
+            canvasScaler.matchWidthOrHeight = 0.5f;
+            return targetCanvas;
+        }
+
+        private Button CreateOpenButton(Transform parent)
+        {
+            Button button = DispatchDefaultUiUtility.CreateButton(
+                parent,
+                "DispatchOpenButton",
+                openButtonText,
+                new Color(0.43f, 0.29f, 0.16f, 1f),
+                fontAsset,
+                OpenMapClicked);
+
+            RectTransform rectTransform = button.GetComponent<RectTransform>();
+            rectTransform.anchorMin = new Vector2(1f, 1f);
+            rectTransform.anchorMax = new Vector2(1f, 1f);
+            rectTransform.pivot = new Vector2(1f, 1f);
+            rectTransform.anchoredPosition = new Vector2(-28f, -28f);
+            rectTransform.sizeDelta = new Vector2(132f, 48f);
+            return button;
         }
 
         private void BindOpenButton()

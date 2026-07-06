@@ -22,6 +22,7 @@ namespace Work.Cook.Code.Info
 
         private Action _previousAction;
         private Action _nextAction;
+        private Action _backAction;
         private Coroutine _transitionRoutine;
         private RectTransform _transitionRoot;
         private Vector2 _transitionBasePosition;
@@ -29,14 +30,17 @@ namespace Work.Cook.Code.Info
 
         public virtual void InitializeDisplay(Action backAction)
         {
-            ClearDisplayText();
+            _backAction = backAction;
 
             if (backBtn == null)
             {
                 Debug.LogWarning("InfoDisplayPanel needs a back button before it can bind back navigation.", this);
             }
             else
-                backBtn.onClick.AddListener(() => backAction?.Invoke());
+            {
+                backBtn.onClick.RemoveListener(InvokeBack);
+                backBtn.onClick.AddListener(InvokeBack);
+            }
 
             EnsureNavigationButtons();
             BindNavigationButtons();
@@ -81,15 +85,6 @@ namespace Work.Cook.Code.Info
             gameObject.SetActive(false);
         }
 
-        private void ClearDisplayText()
-        {
-            if (nameField != null)
-                nameField.text = string.Empty;
-
-            if (descriptionField != null)
-                descriptionField.text = string.Empty;
-        }
-
         private void BindNavigationButtons()
         {
             if (previousBtn != null)
@@ -117,29 +112,21 @@ namespace Work.Cook.Code.Info
             _nextAction?.Invoke();
         }
 
+        private void InvokeBack()
+        {
+            _backAction?.Invoke();
+        }
+
         private void EnsureNavigationButtons()
         {
-            if (previousBtn != null && nextBtn != null)
-                return;
-
-            RectTransform root = transform as RectTransform;
-            if (root == null)
-                return;
-
-            if (previousBtn == null)
-                previousBtn = CreateNavigationButton(root, "PreviousEntryButton", "<", new Vector2(0f, 0.5f), new Vector2(18f, 0f));
-
-            if (nextBtn == null)
-                nextBtn = CreateNavigationButton(root, "NextEntryButton", ">", new Vector2(1f, 0.5f), new Vector2(-18f, 0f));
+            // Navigation buttons are optional serialized references now.
+            // Custom encyclopedia prefabs can provide them, but this class no longer creates UI objects at runtime.
         }
 
         private void EnsureTransitionReferences()
         {
             if (transitionCanvasGroup == null)
                 transitionCanvasGroup = GetComponent<CanvasGroup>();
-
-            if (transitionCanvasGroup == null)
-                transitionCanvasGroup = gameObject.AddComponent<CanvasGroup>();
 
             if (_transitionRoot == null)
             {
@@ -188,40 +175,6 @@ namespace Work.Cook.Code.Info
             transitionCanvasGroup.alpha = 1f;
             _transitionRoot.anchoredPosition = _transitionBasePosition;
             _transitionRoutine = null;
-        }
-
-        private Button CreateNavigationButton(RectTransform parent, string objectName, string label, Vector2 anchor, Vector2 anchoredPosition)
-        {
-            GameObject buttonObject = new GameObject(objectName, typeof(RectTransform), typeof(Image), typeof(Button));
-            RectTransform rect = buttonObject.GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.anchorMin = anchor;
-            rect.anchorMax = anchor;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = new Vector2(42f, 74f);
-            rect.anchoredPosition = anchoredPosition;
-
-            Image image = buttonObject.GetComponent<Image>();
-            image.color = new Color(0.05f, 0.04f, 0.035f, 0.82f);
-
-            Button button = buttonObject.GetComponent<Button>();
-
-            GameObject textObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            RectTransform textRect = textObject.GetComponent<RectTransform>();
-            textRect.SetParent(rect, false);
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = Vector2.zero;
-            textRect.offsetMax = Vector2.zero;
-
-            TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
-            text.text = label;
-            text.fontSize = 32f;
-            text.alignment = TextAlignmentOptions.Center;
-            text.color = Color.white;
-
-            rect.SetAsLastSibling();
-            return button;
         }
 
         private static void SetButtonVisible(Button button, bool visible)

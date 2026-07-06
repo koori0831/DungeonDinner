@@ -32,6 +32,8 @@ namespace Work.Cook.Code.Runtime
 
     public sealed class CookingGamePanel : MonoBehaviour
     {
+        private const string ORDER_SLIP_REFERENCE_PANEL_NAME = "InfoPanel";
+
         [Header("Flow")]
         [SerializeField] private CookingFlowRunner flowRunner;
         [SerializeField] private NpcConversationRunner npcRunner;
@@ -57,9 +59,6 @@ namespace Work.Cook.Code.Runtime
         [Header("Business Flow")]
         [SerializeField] private CookingBusinessFlowController businessFlowController;
 
-        [Header("Preparation Visuals")]
-        [SerializeField] private CookingPreparationVisualDirector preparationVisualDirector;
-
         [Header("Views")]
         [SerializeField] private GameObject npcConversationView;
         [SerializeField] private GameObject recipeSelectionView;
@@ -84,8 +83,6 @@ namespace Work.Cook.Code.Runtime
         private CookingRewardWallet _subscribedRewardWallet;
         private readonly List<GameObject> _preparationHiddenViews = new List<GameObject>();
         private bool _isPreparationViewIsolated;
-        private bool _isCompletingPreparationVisualSequence;
-        private bool _isResultHandBlockedByPreparationVisual;
 
         public event Action<CookingGameScreenState> ScreenChanged;
         public event Action<DishResult> ResultReady;
@@ -166,6 +163,7 @@ namespace Work.Cook.Code.Runtime
         public void SetTemporaryUiFontAsset(TMP_FontAsset value)
         {
             temporaryUiFontAsset = value;
+            ApplyTemporaryFontToViews();
         }
 
         public void SetNpcConversationView(GameObject value)
@@ -256,6 +254,7 @@ namespace Work.Cook.Code.Runtime
             if (CurrentScreen == CookingGameScreenState.Preparation)
             {
                 RefreshPreparationView(preparationView);
+                RaiseOrderSlipPanel();
             }
 
             if (CurrentScreen == CookingGameScreenState.Result)
@@ -615,11 +614,6 @@ namespace Work.Cook.Code.Runtime
         {
             EnsureReferences();
 
-            if (_isCompletingPreparationVisualSequence == true)
-            {
-                return false;
-            }
-
             if (flowRunner == null)
             {
                 Debug.LogWarning("CookingGamePanel needs a CookingFlowRunner before it can select a preparation.", this);
@@ -642,44 +636,12 @@ namespace Work.Cook.Code.Runtime
             }
 
             if (flowRunner.GetNextUnpreparedIngredient() == null)
-            {
-                if (preparationVisualDirector != null)
-                {
-                    _isCompletingPreparationVisualSequence = true;
-                    _isResultHandBlockedByPreparationVisual = true;
-                    if (preparationVisualDirector.PlayCompletionSequence(
-                            ingredient,
-                            CompleteCookingAfterPreparationDishReplacement,
-                            EnableResultHandAfterPreparationVisualSequence) == true)
-                    {
-                        return true;
-                    }
-
-                    _isCompletingPreparationVisualSequence = false;
-                    _isResultHandBlockedByPreparationVisual = false;
-                    preparationVisualDirector.SpawnPreparedIngredient(ingredient);
-                }
-
                 return CompleteCooking();
-            }
-
-            preparationVisualDirector?.SpawnPreparedIngredient(ingredient);
 
             RefreshPreparationView(preparationView);
+            RaiseOrderSlipPanel();
             PublishSnapshotChanged();
             return true;
-        }
-
-        private void CompleteCookingAfterPreparationDishReplacement()
-        {
-            CompleteCooking();
-        }
-
-        private void EnableResultHandAfterPreparationVisualSequence()
-        {
-            _isCompletingPreparationVisualSequence = false;
-            _isResultHandBlockedByPreparationVisual = false;
-            PublishSnapshotChanged();
         }
 
         public bool CompleteCooking()
@@ -734,9 +696,7 @@ namespace Work.Cook.Code.Runtime
 
         public bool CanHandCurrentResultToNpc()
         {
-            return GetCurrentDishResult() != null
-                   && NpcRunner != null
-                   && _isResultHandBlockedByPreparationVisual == false;
+            return GetCurrentDishResult() != null && NpcRunner != null;
         }
 
         public bool TryBuildCurrentNpcMatchReport(out NpcDishMatchReport matchReport)
@@ -779,11 +739,6 @@ namespace Work.Cook.Code.Runtime
                 return false;
             }
 
-            if (CanHandCurrentResultToNpc() == false)
-            {
-                return false;
-            }
-
             TryBuildNpcMatchReport(result, out NpcDishMatchReport matchReport);
 
             ReturnToNpcConversation();
@@ -800,7 +755,6 @@ namespace Work.Cook.Code.Runtime
 
             DishHandedToNpc?.Invoke(result);
             dishHandedToNpc.Invoke(result);
-            preparationVisualDirector?.PlayDishDismissSequence();
             GrantReward(result, matchReport);
 
             if (resetFlowAfterHandingDish && flowRunner != null)
@@ -881,17 +835,7 @@ namespace Work.Cook.Code.Runtime
             EnsureKnowledgeStore();
             EnsureRewardSystems();
             EnsureRecipeIngredientChoiceSource();
-            EnsurePreparationVisualDirector();
             SubscribeStateSources();
-        }
-
-        private void EnsurePreparationVisualDirector()
-        {
-            if (preparationVisualDirector == null)
-                preparationVisualDirector = GetComponentInChildren<CookingPreparationVisualDirector>(true);
-
-            if (preparationVisualDirector == null)
-                preparationVisualDirector = GetComponent<CookingPreparationVisualDirector>();
         }
 
         private void EnsureRecipeIngredientChoiceSource()
@@ -1170,9 +1114,24 @@ namespace Work.Cook.Code.Runtime
             SetActive(recipeSelectionView, showRecipeSelection);
             SetActive(inventoryView, CurrentScreen == CookingGameScreenState.Inventory);
 
+            if (CurrentScreen == CookingGameScreenState.Inventory && inventoryView != null)
+                inventoryView.transform.SetAsLastSibling();
+
             SetActive(preparationView, CurrentScreen == CookingGameScreenState.Preparation);
 
+            if (CurrentScreen == CookingGameScreenState.Preparation && preparationView != null)
+                preparationView.transform.SetAsLastSibling();
+
             SetActive(resultView, CurrentScreen == CookingGameScreenState.Result);
+
+            if (CurrentScreen == CookingGameScreenState.Result && resultView != null)
+                resultView.transform.SetAsLastSibling();
+
+            if (rewardView != null)
+                rewardView.transform.SetAsLastSibling();
+
+            if (knowledgeUpdateView != null && knowledgeUpdateView.activeSelf)
+                knowledgeUpdateView.transform.SetAsLastSibling();
         }
 
         private void ApplyPreparationViewActiveStates()
@@ -1186,8 +1145,73 @@ namespace Work.Cook.Code.Runtime
             HideDictionaryPanelsForPreparation();
 
             SetActive(preparationView, true);
+            if (preparationView != null)
+            {
+                preparationView.transform.SetAsLastSibling();
+            }
+
+            RaiseOrderSlipPanel();
 
             _isPreparationViewIsolated = true;
+        }
+
+        private void RaiseOrderSlipPanel()
+        {
+            NpcOrderSlipPanel[] panels = FindObjectsByType<NpcOrderSlipPanel>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            RectTransform referencePanel = FindOrderSlipReferencePanel();
+            for (int i = 0; i < panels.Length; i++)
+            {
+                if (panels[i] != null)
+                {
+                    panels[i].PinToReferencePanel(referencePanel);
+                    panels[i].BringToFront();
+                }
+            }
+        }
+
+        private RectTransform FindOrderSlipReferencePanel()
+        {
+            RectTransform referencePanel = FindNamedAncestorRect(inventoryView, ORDER_SLIP_REFERENCE_PANEL_NAME);
+            if (referencePanel != null)
+            {
+                return referencePanel;
+            }
+
+            referencePanel = FindNamedAncestorRect(recipeSelectionView, ORDER_SLIP_REFERENCE_PANEL_NAME);
+            if (referencePanel != null)
+            {
+                return referencePanel;
+            }
+
+            referencePanel = FindNamedAncestorRect(resultView, ORDER_SLIP_REFERENCE_PANEL_NAME);
+            if (referencePanel != null)
+            {
+                return referencePanel;
+            }
+
+            Transform overlayParent = FindOverlayViewParent();
+            return overlayParent as RectTransform;
+        }
+
+        private static RectTransform FindNamedAncestorRect(GameObject view, string ancestorName)
+        {
+            if (view == null || string.IsNullOrEmpty(ancestorName) == true)
+            {
+                return null;
+            }
+
+            Transform current = view.transform;
+            while (current != null)
+            {
+                if (current.name == ancestorName)
+                {
+                    return current as RectTransform;
+                }
+
+                current = current.parent;
+            }
+
+            return null;
         }
 
         private void HideDictionaryPanelsForPreparation()
@@ -1239,13 +1263,14 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureInventoryView()
         {
+            inventoryView = ClearGeneratedTemporaryReference(inventoryView);
             if (inventoryView != null)
             {
                 InitializeIngredientSelectionView(inventoryView);
                 return;
             }
 
-            CookingIngredientSelectionView existingView = GetComponentInChildren<CookingIngredientSelectionView>(true);
+            CookingIngredientSelectionView existingView = FindExistingSceneView<CookingIngredientSelectionView>();
             if (existingView != null)
             {
                 inventoryView = existingView.gameObject;
@@ -1253,7 +1278,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            LogMissingViewReference(nameof(inventoryView), nameof(CookingIngredientSelectionView));
+            Debug.LogWarning("CookingGamePanel has no ingredient selection view. Assign a custom inventory UI instead of relying on a generated temporary view.", this);
         }
 
         private Transform FindInventoryViewParent()
@@ -1312,11 +1337,12 @@ namespace Work.Cook.Code.Runtime
             if (selectionView == null)
                 return;
 
-            selectionView.Initialize(this, flowRunner);
+            selectionView.Initialize(this, flowRunner, temporaryUiFontAsset);
         }
 
         private void EnsurePreparationView()
         {
+            preparationView = ClearGeneratedTemporaryReference(preparationView);
             if (preparationView != null)
             {
                 AttachPreparationViewToOverlayRoot(preparationView);
@@ -1324,7 +1350,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            CookingPreparationView existingView = GetComponentInChildren<CookingPreparationView>(true);
+            CookingPreparationView existingView = FindExistingSceneView<CookingPreparationView>();
             if (existingView != null)
             {
                 preparationView = existingView.gameObject;
@@ -1333,7 +1359,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            LogMissingViewReference(nameof(preparationView), nameof(CookingPreparationView));
+            Debug.LogWarning("CookingGamePanel has no preparation view. Assign a custom preparation UI instead of relying on a generated temporary view.", this);
         }
 
         private void AttachPreparationViewToOverlayRoot(GameObject view)
@@ -1359,18 +1385,19 @@ namespace Work.Cook.Code.Runtime
             if (preparation == null)
                 return;
 
-            preparation.Initialize(this, flowRunner);
+            preparation.Initialize(this, flowRunner, temporaryUiFontAsset);
         }
 
         private void EnsureResultView()
         {
+            resultView = ClearGeneratedTemporaryReference(resultView);
             if (resultView != null)
             {
                 InitializeResultView(resultView);
                 return;
             }
 
-            CookingResultView existingView = GetComponentInChildren<CookingResultView>(true);
+            CookingResultView existingView = FindExistingSceneView<CookingResultView>();
             if (existingView != null)
             {
                 resultView = existingView.gameObject;
@@ -1378,11 +1405,12 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            LogMissingViewReference(nameof(resultView), nameof(CookingResultView));
+            Debug.LogWarning("CookingGamePanel has no result view. Assign a custom result UI instead of relying on a generated temporary view.", this);
         }
 
         private void EnsureKnowledgeUpdateView()
         {
+            knowledgeUpdateView = ClearGeneratedTemporaryReference(knowledgeUpdateView);
             if (knowledgeUpdateView != null)
             {
                 AttachKnowledgeUpdateViewToOverlayRoot(knowledgeUpdateView);
@@ -1390,7 +1418,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            CookingKnowledgeUpdateView existingView = GetComponentInChildren<CookingKnowledgeUpdateView>(true);
+            CookingKnowledgeUpdateView existingView = FindExistingSceneView<CookingKnowledgeUpdateView>();
             if (existingView != null)
             {
                 knowledgeUpdateView = existingView.gameObject;
@@ -1399,7 +1427,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            LogMissingViewReference(nameof(knowledgeUpdateView), nameof(CookingKnowledgeUpdateView));
+            Debug.LogWarning("CookingGamePanel has no knowledge update view. Assign a custom encyclopedia update UI instead of relying on a generated temporary view.", this);
         }
 
         private void InitializeResultView(GameObject view)
@@ -1411,7 +1439,7 @@ namespace Work.Cook.Code.Runtime
             if (result == null)
                 return;
 
-            result.Initialize(this, flowRunner);
+            result.Initialize(this, flowRunner, temporaryUiFontAsset);
         }
 
         private void AttachKnowledgeUpdateViewToOverlayRoot(GameObject view)
@@ -1437,11 +1465,12 @@ namespace Work.Cook.Code.Runtime
             if (updateView == null)
                 return;
 
-            updateView.Initialize(this, knowledgeStore);
+            updateView.Initialize(this, knowledgeStore, temporaryUiFontAsset);
         }
 
         private void EnsureRewardView()
         {
+            rewardView = ClearGeneratedTemporaryReference(rewardView);
             if (rewardView != null)
             {
                 AttachRewardViewToOverlayRoot(rewardView);
@@ -1449,7 +1478,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            CookingRewardToastView existingView = GetComponentInChildren<CookingRewardToastView>(true);
+            CookingRewardToastView existingView = FindExistingSceneView<CookingRewardToastView>();
             if (existingView != null)
             {
                 rewardView = existingView.gameObject;
@@ -1458,7 +1487,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            LogMissingViewReference(nameof(rewardView), nameof(CookingRewardToastView));
+            Debug.LogWarning("CookingGamePanel has no reward view. Assign a custom reward UI instead of relying on a generated temporary view.", this);
         }
 
         private void AttachRewardViewToOverlayRoot(GameObject view)
@@ -1484,27 +1513,93 @@ namespace Work.Cook.Code.Runtime
             if (rewardToast == null)
                 return;
 
-            rewardToast.Initialize(this, rewardWallet);
+            rewardToast.Initialize(this, rewardWallet, temporaryUiFontAsset);
         }
 
         private void EnsureBusinessFlowController()
         {
+            if (businessFlowController != null
+                && IsGeneratedTemporaryObject(businessFlowController.gameObject))
+            {
+                businessFlowController.gameObject.SetActive(false);
+                businessFlowController = null;
+            }
+
             if (businessFlowController != null)
                 return;
 
-            businessFlowController = GetComponentInChildren<CookingBusinessFlowController>(true);
+            businessFlowController = FindExistingSceneView<CookingBusinessFlowController>();
             if (businessFlowController != null)
             {
-                businessFlowController.Initialize(this, null);
+                businessFlowController.Initialize(this, temporaryUiFontAsset);
                 return;
             }
 
-            LogMissingViewReference(nameof(businessFlowController), nameof(CookingBusinessFlowController));
+            Debug.LogWarning("CookingGamePanel has no business flow controller. Assign one in the scene if customer flow buttons are needed.", this);
         }
 
-        private void LogMissingViewReference(string fieldName, string componentName)
+        private T FindExistingSceneView<T>()
+            where T : Component
         {
-            Debug.LogError($"CookingGamePanel missing {fieldName}. Assign a prefab/scene object with {componentName} in the inspector.", this);
+            T[] views = GetComponentsInChildren<T>(true);
+            for (int i = 0; i < views.Length; i++)
+            {
+                T view = views[i];
+                if (view != null && IsGeneratedTemporaryObject(view.gameObject) == false)
+                    return view;
+            }
+
+            return null;
+        }
+
+        private static GameObject ClearGeneratedTemporaryReference(GameObject view)
+        {
+            if (IsGeneratedTemporaryObject(view) == false)
+                return view;
+
+            view.SetActive(false);
+            return null;
+        }
+
+        private static bool IsGeneratedTemporaryObject(GameObject target)
+        {
+            return target != null
+                   && target.name.StartsWith("Temporary", StringComparison.Ordinal);
+        }
+
+        private void ApplyTemporaryFontToViews()
+        {
+            ApplyFontToView(inventoryView);
+            ApplyFontToView(preparationView);
+            ApplyFontToView(resultView);
+            ApplyFontToView(knowledgeUpdateView);
+            ApplyFontToView(rewardView);
+        }
+
+        private void ApplyFontToView(GameObject view)
+        {
+            if (view == null || temporaryUiFontAsset == null)
+                return;
+
+            ICookingIngredientSelectionView ingredientSelection = GetViewContract<ICookingIngredientSelectionView>(view);
+            if (ingredientSelection != null)
+                ingredientSelection.SetFontAsset(temporaryUiFontAsset);
+
+            ICookingPreparationView preparation = GetViewContract<ICookingPreparationView>(view);
+            if (preparation != null)
+                preparation.SetFontAsset(temporaryUiFontAsset);
+
+            ICookingResultView result = GetViewContract<ICookingResultView>(view);
+            if (result != null)
+                result.SetFontAsset(temporaryUiFontAsset);
+
+            ICookingKnowledgeUpdateView knowledgeUpdate = GetViewContract<ICookingKnowledgeUpdateView>(view);
+            if (knowledgeUpdate != null)
+                knowledgeUpdate.SetFontAsset(temporaryUiFontAsset);
+
+            ICookingRewardView rewardToast = GetViewContract<ICookingRewardView>(view);
+            if (rewardToast != null)
+                rewardToast.SetFontAsset(temporaryUiFontAsset);
         }
 
         private static void RefreshRecipeSelectionView(GameObject view)
@@ -1571,7 +1666,7 @@ namespace Work.Cook.Code.Runtime
                 parentCanvas = FindFirstObjectByType<Canvas>();
 
             if (parentCanvas != null)
-                return ResolveOverlayRoot(parentCanvas.rootCanvas != null ? parentCanvas.rootCanvas : parentCanvas);
+                return FindOverlayRoot(parentCanvas.rootCanvas != null ? parentCanvas.rootCanvas : parentCanvas);
 
             return FindInventoryViewParent();
         }
@@ -1606,7 +1701,7 @@ namespace Work.Cook.Code.Runtime
             return view != null ? view.GetComponentInParent<Canvas>(true) : null;
         }
 
-        private static Transform ResolveOverlayRoot(Canvas canvas)
+        private static Transform FindOverlayRoot(Canvas canvas)
         {
             const string overlayRootName = "CookingRewardOverlayRoot";
 
@@ -1614,6 +1709,7 @@ namespace Work.Cook.Code.Runtime
             Transform existing = canvasTransform.Find(overlayRootName);
             if (existing != null)
             {
+                existing.SetAsLastSibling();
                 return existing;
             }
 

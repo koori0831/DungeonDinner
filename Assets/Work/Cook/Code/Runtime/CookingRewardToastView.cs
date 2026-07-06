@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Work.NPC.Code.Data;
 
 namespace Work.Cook.Code.Runtime
@@ -17,8 +18,10 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private TextMeshProUGUI rewardField;
         [SerializeField] private TextMeshProUGUI balanceField;
 
-        [Header("View Settings")]
+        [Header("Default Layout")]
+        [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
         [SerializeField] private TMP_FontAsset fontAsset;
+        [SerializeField] private Sprite panelSprite;
         [SerializeField] private Color positiveColor = new Color(0.92f, 0.78f, 0.35f, 1f);
         [SerializeField] private Color emptyColor = new Color(0.72f, 0.68f, 0.60f, 1f);
         [SerializeField, Min(0.1f)] private float visibleDuration = 3f;
@@ -88,6 +91,8 @@ namespace Work.Cook.Code.Runtime
 
             if (grant == null)
                 return;
+
+            transform.SetAsLastSibling();
 
             SetText(titleField, BuildTitleText(grant));
             SetText(rewardField, grant.Amount > 0 ? $"+{grant.Amount}" : noRewardText);
@@ -167,10 +172,12 @@ namespace Work.Cook.Code.Runtime
                 && rewardField != null
                 && balanceField != null)
             {
+                ApplyExistingUiAssetSprites();
                 return;
             }
 
-            Debug.LogError("CookingRewardToastView is missing canvasGroup/titleField/rewardField/balanceField references. Assign a prefab/inspector based toast.", this);
+            if (buildDefaultLayoutWhenMissing)
+                Debug.LogWarning("CookingRewardToastView is missing required UI references. Assign a custom reward UI instead of using generated layout.", this);
         }
 
         private void SubscribePanelEvents()
@@ -231,6 +238,31 @@ namespace Work.Cook.Code.Runtime
         {
             if (field != null)
                 field.text = text;
+        }
+
+        private void ApplyExistingUiAssetSprites()
+        {
+            Image background = GetComponent<Image>();
+            ApplyUiAssetSprite(background, panelSprite);
+            if (background != null && panelSprite != null)
+            {
+                background.color = Color.white;
+            }
+        }
+
+        private void ApplyUiAssetSprite(Image image, Sprite sprite)
+        {
+            if (image == null)
+            {
+                return;
+            }
+
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.type = Image.Type.Sliced;
+                image.preserveAspect = false;
+            }
         }
     }
 }

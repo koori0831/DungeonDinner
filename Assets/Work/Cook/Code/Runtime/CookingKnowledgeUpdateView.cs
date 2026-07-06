@@ -13,11 +13,11 @@ namespace Work.Cook.Code.Runtime
     {
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private CookingKnowledgeStore knowledgeStore;
-        [SerializeField] private RectTransform pageRoot;
         [SerializeField] private TextMeshProUGUI titleField;
         [SerializeField] private TextMeshProUGUI bodyField;
         [SerializeField] private Button nextButton;
         [SerializeField] private TMP_FontAsset fontAsset;
+        [SerializeField] private bool buildDefaultLayoutWhenMissing = true;
         [SerializeField] private float typewriterInterval = 0.018f;
 
         private readonly List<CookingKnowledgeUpdate> _updates = new List<CookingKnowledgeUpdate>();
@@ -291,10 +291,11 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureLayout()
         {
-            if (pageRoot != null && titleField != null && bodyField != null && nextButton != null)
+            if (titleField != null && bodyField != null && nextButton != null)
                 return;
 
-            Debug.LogError("CookingKnowledgeUpdateView is missing pageRoot/titleField/bodyField/nextButton references. Assign a prefab/inspector based panel.", this);
+            if (buildDefaultLayoutWhenMissing)
+                Debug.LogWarning("CookingKnowledgeUpdateView is missing required UI references. Assign a custom knowledge update UI instead of using generated layout.", this);
         }
 
         private void BindButton()

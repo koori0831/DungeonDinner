@@ -102,7 +102,7 @@ namespace Work.Cook.Code.Editor
                 "ICookingRecipeSelectionView",
                 HasContract<ICookingRecipeSelectionView>(GetReference<GameObject>(_recipeSelectionView)));
             DrawViewLine(
-                "가방",
+                "임시 가방",
                 GetReference<GameObject>(_inventoryView),
                 "ICookingIngredientSelectionView",
                 HasContract<ICookingIngredientSelectionView>(GetReference<GameObject>(_inventoryView)));
@@ -262,7 +262,7 @@ namespace Work.Cook.Code.Editor
 
             AppendViewReport(builder, "NPC 대화", views[0]);
             AppendViewReport(builder, "레시피", views[1]);
-            AppendViewReport(builder, "가방", views[2]);
+            AppendViewReport(builder, "임시 가방", views[2]);
             AppendViewReport(builder, "손질", views[3]);
             AppendViewReport(builder, "결과", views[4]);
             AppendViewReport(builder, "보상", rewardView);

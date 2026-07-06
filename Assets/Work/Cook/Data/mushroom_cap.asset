@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: "\uBC84\uC12F \uAC13"
   description: "\uADF8\uB987\uCC98\uB7FC \uC0DD\uAE34 \uBC84\uC12F\uC758 \uAC13 \uBD80\uBD84"
   category: {fileID: 11400000, guid: c09afd2ec0fc6144db663cb0e38a7b70, type: 2}
-  modelPrefab: {fileID: 1843261731331868922, guid: 27c217d1d0298794a97ed57400c4a6b4, type: 3}
+  modelPrefab: {fileID: 0}
   baseTags: []
   preparationOptions:
   - method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}

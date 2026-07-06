@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
   methodId: slicing
   displayName: "\uC370\uAE30"
-  iconSprite: {fileID: 21300000, guid: 52d18648d0583ba46bd7ca4f6e904e75, type: 3}
   description: "\uC370\uC5B4\uC11C \uC0AC\uC6A9\uD558\uB294 \uC7AC\uB8CC \uC190\uC9C8\uBC95\uC785\uB2C8\uB2E4."

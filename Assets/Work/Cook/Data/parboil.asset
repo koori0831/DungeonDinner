@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
   methodId: parboil
   displayName: "\uC0B6\uAE30"
-  iconSprite: {fileID: 21300000, guid: 80acae9bd87e1d14ea9e64d04f7931ca, type: 3}
   description: "\uC7AC\uB8CC\uB97C \uC0B6\uC544\uC11C \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC29\uBC95\uC785\uB2C8\uB2E4."

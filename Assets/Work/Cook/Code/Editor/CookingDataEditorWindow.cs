@@ -628,7 +628,6 @@ namespace Work.Cook.Code.Editor
             EditorGUILayout.LabelField("손질법 정보", EditorStyles.boldLabel);
             _methodDraft.MethodId = EditorGUILayout.TextField("손질법 ID", _methodDraft.MethodId);
             _methodDraft.DisplayName = EditorGUILayout.TextField("표시 이름", _methodDraft.DisplayName);
-            _methodDraft.IconSprite = (Sprite)EditorGUILayout.ObjectField("카드 아이콘", _methodDraft.IconSprite, typeof(Sprite), false);
             EditorGUILayout.LabelField("설명");
             _methodDraft.Description = EditorGUILayout.TextArea(_methodDraft.Description, GUILayout.MinHeight(80f));
             EditorGUILayout.HelpBox("손질법 자체는 선택지 이름입니다. 이 손질법이 태그를 추가하거나 괴식을 만드는 효과는 재료 탭의 '손질법별 효과'에서 설정합니다.", MessageType.None);
@@ -1065,7 +1064,6 @@ namespace Work.Cook.Code.Editor
         {
             SetString(serialized, "methodId", _methodDraft.MethodId);
             SetString(serialized, "displayName", _methodDraft.DisplayName);
-            SetObject(serialized, "iconSprite", _methodDraft.IconSprite);
             SetString(serialized, "description", _methodDraft.Description);
         }
 
@@ -2035,7 +2033,6 @@ namespace Work.Cook.Code.Editor
         {
             public string MethodId;
             public string DisplayName;
-            public Sprite IconSprite;
             public string Description;
 
             public static MethodDraft From(PreparationMethodSO method)
@@ -2045,7 +2042,6 @@ namespace Work.Cook.Code.Editor
                 {
                     MethodId = ReadString(serialized, "methodId"),
                     DisplayName = ReadString(serialized, "displayName"),
-                    IconSprite = ReadObject<Sprite>(serialized, "iconSprite"),
                     Description = ReadString(serialized, "description")
                 };
             }

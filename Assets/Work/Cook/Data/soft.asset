@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: soft
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodTagSO
   tagId: soft
-  displayName: "\uBD80\uB4DC\uB7EC\uC6C0"
-  description: "NPC \uC8FC\uBB38 \uD3C9\uAC00\uC5D0 \uC0AC\uC6A9\uB418\uB294 \uD0DC\uADF8
-    'soft'\uC785\uB2C8\uB2E4."
+  displayName: "\uBD80\uB4DC\uB7EC\uC6B4"
+  description: "\uC785\uC548\uC5D0\uC11C \uB179\uB294\uAC83 \uAC19\uC740 \uBD80\uB4DC\uB7EC\uC6B4
+    \uC74C\uC2DD\uB4E4\uC5D0 \uB2EC\uB9AC\uB294 \uD0DC\uADF8"

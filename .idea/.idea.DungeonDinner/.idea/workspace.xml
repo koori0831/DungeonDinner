@@ -6,12 +6,14 @@
   <component name="ChangeListManager">
     <list default="true" id="9572947c-97ba-46be-9cdd-73cd5f25d671" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/NPCData/DialogueLines.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/NPCData/DialogueLines.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/NPCData/VisitEvents.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/NPCData/VisitEvents.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingBusinessFlowController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingBusinessFlowController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/rock_salt.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/rock_salt.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/Ingredient/RockSalt.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/Ingredient/RockSalt.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/HitCaster.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Code/Runtime/HitCaster.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Combat/Scene/CombatTest.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Combat/Scene/CombatTest.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Enemy/Prefab/MushroomMan.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Enemy/Prefab/MushroomMan.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityAnimationModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Entities/Code/EntityAnimationModule.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerLootCollector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerLootCollector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerHittable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerHittable.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerTargetChangedEvent.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/PlayerTargetChangedEvent.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/SO/State/PlayerDead.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/SO/State/PlayerDead.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,7 +39,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Complete-Cook-Test&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;san232&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -51,14 +53,6 @@
       <option name="EXE_PATH" value="C:\Program Files\Unity\Hub\Editor\6000.3.13f1\Editor\Unity.exe" />
       <option name="PROGRAM_PARAMETERS" value="-runTests -batchmode -projectPath D:\devsan232\DungeonDinner -testResults Logs/results.xml -logFile Logs/Editor.log -testPlatform EditMode -debugCodeOptimization" />
       <option name="WORKING_DIRECTORY" value="D:\devsan232\DungeonDinner" />
-      <option name="PASS_PARENT_ENVS" value="1" />
-      <option name="USE_EXTERNAL_CONSOLE" value="0" />
-      <method v="2" />
-    </configuration>
-    <configuration name="독립실행형 플레이어" type="RunUnityExe" factoryName="Unity Executable">
-      <option name="EXE_PATH" value="$PROJECT_DIR$/../DDB\DungeonDinner.exe" />
-      <option name="PROGRAM_PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="D:\devsan232\DDB" />
       <option name="PASS_PARENT_ENVS" value="1" />
       <option name="USE_EXTERNAL_CONSOLE" value="0" />
       <method v="2" />
@@ -114,8 +108,6 @@
       <workItem from="1780964868171" duration="5012000" />
       <workItem from="1782033055519" duration="1472000" />
       <workItem from="1782045479835" duration="6908000" />
-      <workItem from="1782085703678" duration="47720000" />
-      <workItem from="1782167805341" duration="5516000" />
     </task>
     <servers />
   </component>

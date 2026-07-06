@@ -17,7 +17,7 @@ MonoBehaviour:
   description: "\uC2AC\uB77C\uC784\uC744 \uCC0C\uB974\uAE30 \uD0C0\uC785\uC73C\uB85C
     \uACF5\uACA9\uD558\uBA74 \uB4DC\uB78D\uD558\uB294 \uC7AC\uB8CC\uC785\uB2C8\uB2E4."
   category: {fileID: 0}
-  modelPrefab: {fileID: 493127121675259047, guid: afabd76f3990a864d975c8d3c9ca3254, type: 3}
+  modelPrefab: {fileID: 0}
   baseTags:
   - {fileID: 11400000, guid: 3b481dff6be21cf49bccc4590786d902, type: 2}
   - {fileID: 11400000, guid: dd7703eca9180d843943b69b0b1e7031, type: 2}

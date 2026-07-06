@@ -14,6 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
   methodId: boil_water
   displayName: "\uB053\uC774\uAE30"
-  iconSprite: {fileID: 21300000, guid: 80acae9bd87e1d14ea9e64d04f7931ca, type: 3}
   description: "\uAD6D\uBB3C\uC694\uB9AC\uB098 \uC18C\uC2A4\uAC19\uC740 \uAC83\uC744
     \uB9CC\uB4E4\uB54C \uC0AC\uC6A9\uD558\uB294 \uC7AC\uB8CC \uC190\uC9C8\uBC95\uC785\uB2C8\uB2E4."
