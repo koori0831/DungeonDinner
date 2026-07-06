@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB808\uC2DC\uD53C \uCD5C\uC885 \uD655\uC778"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
@@ -155,7 +155,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &115382860842048033
 RectTransform:
   m_ObjectHideFlags: 0
@@ -253,7 +253,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 8118385186738452982}
   m_OnClick:
     m_PersistentCalls:
@@ -443,7 +443,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text:
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
@@ -580,7 +580,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text:
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
@@ -717,7 +717,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text:
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
@@ -854,7 +854,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text:
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}

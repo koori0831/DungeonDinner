@@ -96,6 +96,21 @@ namespace Work.Cook.Code.Runtime
             return true;
         }
 
+        public bool OpenShopForNextDay(bool startFirstCustomer)
+        {
+            EnsureReferences();
+            _businessClosed = false;
+            _dishHandedToCurrentCustomer = false;
+            HideActions();
+            SetStatus(waitingText);
+            gamePanel?.CloseCookingViews();
+
+            if (startFirstCustomer == false)
+                return true;
+
+            return StartNextCustomer();
+        }
+
         public void CloseShop()
         {
             _businessClosed = true;
