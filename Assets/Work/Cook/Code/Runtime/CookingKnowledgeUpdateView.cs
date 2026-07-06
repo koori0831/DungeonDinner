@@ -13,6 +13,7 @@ namespace Work.Cook.Code.Runtime
     {
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private CookingKnowledgeStore knowledgeStore;
+        [SerializeField] private RectTransform pageRoot;
         [SerializeField] private TextMeshProUGUI titleField;
         [SerializeField] private TextMeshProUGUI bodyField;
         [SerializeField] private Button nextButton;
@@ -291,11 +292,49 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureLayout()
         {
+            if (buildDefaultLayoutWhenMissing == false)
+                return;
+
             if (titleField != null && bodyField != null && nextButton != null)
                 return;
 
-            if (buildDefaultLayoutWhenMissing)
-                Debug.LogWarning("CookingKnowledgeUpdateView is missing required UI references. Assign a custom knowledge update UI instead of using generated layout.", this);
+            RectTransform rect = EnsureRectTransform(gameObject);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            Image dim = GetOrAdd<Image>(gameObject);
+            dim.color = new Color(0f, 0f, 0f, 0.62f);
+            dim.raycastTarget = true;
+
+            pageRoot = CreateRect(transform, "KnowledgePage");
+            pageRoot.anchorMin = new Vector2(0.5f, 0.5f);
+            pageRoot.anchorMax = new Vector2(0.5f, 0.5f);
+            pageRoot.sizeDelta = new Vector2(600f, 470f);
+            pageRoot.anchoredPosition = new Vector2(0f, 26f);
+
+            Image pageImage = pageRoot.gameObject.AddComponent<Image>();
+            pageImage.color = new Color(0.93f, 0.86f, 0.72f, 0.98f);
+
+            VerticalLayoutGroup layout = pageRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(34, 34, 28, 26);
+            layout.spacing = 12f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            titleField = CreateText(pageRoot, "Title", 24f, TextAlignmentOptions.Center);
+            AddLayoutElement(titleField.gameObject, -1f, 44f);
+
+            bodyField = CreateText(pageRoot, "Body", 16f, TextAlignmentOptions.TopLeft);
+            bodyField.textWrappingMode = TextWrappingModes.Normal;
+            bodyField.overflowMode = TextOverflowModes.Ellipsis;
+            AddLayoutElement(bodyField.gameObject, -1f, 300f);
+
+            nextButton = CreateButton(pageRoot, "NextButton", "다음");
+            AddLayoutElement(nextButton.gameObject, -1f, 46f);
         }
 
         private void BindButton()
@@ -305,6 +344,70 @@ namespace Work.Cook.Code.Runtime
 
             nextButton.onClick.RemoveListener(ShowNext);
             nextButton.onClick.AddListener(ShowNext);
+        }
+
+        private TextMeshProUGUI CreateText(Transform parent, string objectName, float size, TextAlignmentOptions alignment)
+        {
+            GameObject textObject = new GameObject(objectName, typeof(RectTransform), typeof(TextMeshProUGUI));
+            textObject.transform.SetParent(parent, false);
+            TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
+            text.font = fontAsset;
+            text.fontSize = size;
+            text.alignment = alignment;
+            text.color = new Color(0.11f, 0.08f, 0.05f, 1f);
+            return text;
+        }
+
+        private Button CreateButton(Transform parent, string objectName, string label)
+        {
+            GameObject buttonObject = new GameObject(objectName, typeof(RectTransform), typeof(Image), typeof(Button));
+            buttonObject.transform.SetParent(parent, false);
+            Image image = buttonObject.GetComponent<Image>();
+            image.color = new Color(0.32f, 0.22f, 0.13f, 1f);
+
+            Button button = buttonObject.GetComponent<Button>();
+            TextMeshProUGUI text = CreateText(buttonObject.transform, "Label", 18f, TextAlignmentOptions.Center);
+            text.text = label;
+            text.color = Color.white;
+            text.rectTransform.anchorMin = Vector2.zero;
+            text.rectTransform.anchorMax = Vector2.one;
+            text.rectTransform.offsetMin = Vector2.zero;
+            text.rectTransform.offsetMax = Vector2.zero;
+            return button;
+        }
+
+        private static RectTransform CreateRect(Transform parent, string objectName)
+        {
+            GameObject rectObject = new GameObject(objectName, typeof(RectTransform));
+            RectTransform rect = rectObject.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            return rect;
+        }
+
+        private static RectTransform EnsureRectTransform(GameObject target)
+        {
+            RectTransform rect = target.transform as RectTransform;
+            if (rect != null)
+                return rect;
+
+            return target.AddComponent<RectTransform>();
+        }
+
+        private static T GetOrAdd<T>(GameObject target)
+            where T : Component
+        {
+            T component = target.GetComponent<T>();
+            return component != null ? component : target.AddComponent<T>();
+        }
+
+        private static void AddLayoutElement(GameObject target, float preferredWidth, float preferredHeight)
+        {
+            LayoutElement element = target.GetComponent<LayoutElement>();
+            if (element == null)
+                element = target.AddComponent<LayoutElement>();
+
+            element.preferredWidth = preferredWidth;
+            element.preferredHeight = preferredHeight;
         }
 
         private static void SetText(TextMeshProUGUI field, string text)
