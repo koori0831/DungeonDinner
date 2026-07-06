@@ -49,21 +49,15 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private bool keepRecipeSelectionVisibleBeforePreparation = true;
         [SerializeField] private bool keepRecipeSelectionVisibleDuringInventory = true;
         [SerializeField] private bool allowRecipeConfirmation;
-        [SerializeField] private bool autoCreateTemporaryInventoryView = true;
-        [SerializeField] private bool autoCreateTemporaryPreparationView = true;
-        [SerializeField] private bool autoCreateTemporaryResultView = true;
-        [SerializeField] private bool autoCreateTemporaryKnowledgeUpdateView = true;
         [SerializeField] private TMP_FontAsset temporaryUiFontAsset;
 
         [Header("Rewards")]
         [SerializeField] private CookingRewardWallet rewardWallet;
         [SerializeField] private CookingRewardCalculator rewardCalculator;
         [SerializeField] private bool autoCreateRewardSystems = true;
-        [SerializeField] private bool autoCreateTemporaryRewardView = true;
 
         [Header("Business Flow")]
         [SerializeField] private CookingBusinessFlowController businessFlowController;
-        [SerializeField] private bool autoCreateBusinessFlowController = true;
 
         [Header("Views")]
         [SerializeField] private GameObject npcConversationView;
@@ -1269,13 +1263,14 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureInventoryView()
         {
+            inventoryView = ClearGeneratedTemporaryReference(inventoryView);
             if (inventoryView != null)
             {
                 InitializeIngredientSelectionView(inventoryView);
                 return;
             }
 
-            CookingIngredientSelectionView existingView = GetComponentInChildren<CookingIngredientSelectionView>(true);
+            CookingIngredientSelectionView existingView = FindExistingSceneView<CookingIngredientSelectionView>();
             if (existingView != null)
             {
                 inventoryView = existingView.gameObject;
@@ -1283,27 +1278,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            if (autoCreateTemporaryInventoryView == false)
-                return;
-
-            Transform parent = FindInventoryViewParent();
-
-            GameObject generatedView = new GameObject(
-                "TemporaryIngredientSelectionView",
-                typeof(RectTransform),
-                typeof(CookingIngredientSelectionView));
-            Transform overlayParent = FindOverlayViewParent();
-            if (overlayParent != null)
-                parent = overlayParent;
-
-            generatedView.transform.SetParent(parent, false);
-            generatedView.transform.localRotation = Quaternion.identity;
-            generatedView.transform.localScale = Vector3.one;
-            inventoryView = generatedView;
-            CookingBagSafeAreaFitter safeAreaFitter = generatedView.AddComponent<CookingBagSafeAreaFitter>();
-            safeAreaFitter.SetAvoidanceViews(recipeSelectionView, npcConversationView);
-            InitializeIngredientSelectionView(inventoryView);
-            inventoryView.SetActive(false);
+            Debug.LogWarning("CookingGamePanel has no ingredient selection view. Assign a custom inventory UI instead of relying on a generated temporary view.", this);
         }
 
         private Transform FindInventoryViewParent()
@@ -1367,6 +1342,7 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsurePreparationView()
         {
+            preparationView = ClearGeneratedTemporaryReference(preparationView);
             if (preparationView != null)
             {
                 AttachPreparationViewToOverlayRoot(preparationView);
@@ -1374,7 +1350,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            CookingPreparationView existingView = GetComponentInChildren<CookingPreparationView>(true);
+            CookingPreparationView existingView = FindExistingSceneView<CookingPreparationView>();
             if (existingView != null)
             {
                 preparationView = existingView.gameObject;
@@ -1383,21 +1359,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            if (autoCreateTemporaryPreparationView == false)
-                return;
-
-            GameObject generatedView = new GameObject(
-                "TemporaryPreparationView",
-                typeof(RectTransform),
-                typeof(CookingPreparationView));
-            Transform parent = FindOverlayViewParent();
-            generatedView.transform.SetParent(parent != null ? parent : FindInventoryViewParent(), false);
-            generatedView.transform.localRotation = Quaternion.identity;
-            generatedView.transform.localScale = Vector3.one;
-            preparationView = generatedView;
-            AttachPreparationViewToOverlayRoot(preparationView);
-            InitializePreparationView(preparationView);
-            preparationView.SetActive(false);
+            Debug.LogWarning("CookingGamePanel has no preparation view. Assign a custom preparation UI instead of relying on a generated temporary view.", this);
         }
 
         private void AttachPreparationViewToOverlayRoot(GameObject view)
@@ -1428,13 +1390,14 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureResultView()
         {
+            resultView = ClearGeneratedTemporaryReference(resultView);
             if (resultView != null)
             {
                 InitializeResultView(resultView);
                 return;
             }
 
-            CookingResultView existingView = GetComponentInChildren<CookingResultView>(true);
+            CookingResultView existingView = FindExistingSceneView<CookingResultView>();
             if (existingView != null)
             {
                 resultView = existingView.gameObject;
@@ -1442,23 +1405,12 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            if (autoCreateTemporaryResultView == false)
-                return;
-
-            GameObject generatedView = new GameObject(
-                "TemporaryResultView",
-                typeof(RectTransform),
-                typeof(CookingResultView));
-            generatedView.transform.SetParent(FindInventoryViewParent(), false);
-            generatedView.transform.localRotation = Quaternion.identity;
-            generatedView.transform.localScale = Vector3.one;
-            resultView = generatedView;
-            InitializeResultView(resultView);
-            resultView.SetActive(false);
+            Debug.LogWarning("CookingGamePanel has no result view. Assign a custom result UI instead of relying on a generated temporary view.", this);
         }
 
         private void EnsureKnowledgeUpdateView()
         {
+            knowledgeUpdateView = ClearGeneratedTemporaryReference(knowledgeUpdateView);
             if (knowledgeUpdateView != null)
             {
                 AttachKnowledgeUpdateViewToOverlayRoot(knowledgeUpdateView);
@@ -1466,7 +1418,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            CookingKnowledgeUpdateView existingView = GetComponentInChildren<CookingKnowledgeUpdateView>(true);
+            CookingKnowledgeUpdateView existingView = FindExistingSceneView<CookingKnowledgeUpdateView>();
             if (existingView != null)
             {
                 knowledgeUpdateView = existingView.gameObject;
@@ -1475,19 +1427,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            if (autoCreateTemporaryKnowledgeUpdateView == false)
-                return;
-
-            GameObject generatedView = new GameObject(
-                "TemporaryKnowledgeUpdateView",
-                typeof(RectTransform),
-                typeof(CookingKnowledgeUpdateView));
-            generatedView.transform.SetParent(FindOverlayViewParent(), false);
-            generatedView.transform.localRotation = Quaternion.identity;
-            generatedView.transform.localScale = Vector3.one;
-            knowledgeUpdateView = generatedView;
-            InitializeKnowledgeUpdateView(knowledgeUpdateView);
-            knowledgeUpdateView.SetActive(false);
+            Debug.LogWarning("CookingGamePanel has no knowledge update view. Assign a custom encyclopedia update UI instead of relying on a generated temporary view.", this);
         }
 
         private void InitializeResultView(GameObject view)
@@ -1530,6 +1470,7 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureRewardView()
         {
+            rewardView = ClearGeneratedTemporaryReference(rewardView);
             if (rewardView != null)
             {
                 AttachRewardViewToOverlayRoot(rewardView);
@@ -1537,7 +1478,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            CookingRewardToastView existingView = GetComponentInChildren<CookingRewardToastView>(true);
+            CookingRewardToastView existingView = FindExistingSceneView<CookingRewardToastView>();
             if (existingView != null)
             {
                 rewardView = existingView.gameObject;
@@ -1546,19 +1487,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            if (autoCreateTemporaryRewardView == false)
-                return;
-
-            GameObject generatedView = new GameObject(
-                "TemporaryRewardToastView",
-                typeof(RectTransform),
-                typeof(CookingRewardToastView));
-            generatedView.transform.SetParent(FindOverlayViewParent(), false);
-            generatedView.transform.localRotation = Quaternion.identity;
-            generatedView.transform.localScale = Vector3.one;
-            rewardView = generatedView;
-            InitializeRewardView(rewardView);
-            rewardView.SetActive(true);
+            Debug.LogWarning("CookingGamePanel has no reward view. Assign a custom reward UI instead of relying on a generated temporary view.", this);
         }
 
         private void AttachRewardViewToOverlayRoot(GameObject view)
@@ -1589,29 +1518,53 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureBusinessFlowController()
         {
+            if (businessFlowController != null
+                && IsGeneratedTemporaryObject(businessFlowController.gameObject))
+            {
+                businessFlowController.gameObject.SetActive(false);
+                businessFlowController = null;
+            }
+
             if (businessFlowController != null)
                 return;
 
-            businessFlowController = GetComponentInChildren<CookingBusinessFlowController>(true);
+            businessFlowController = FindExistingSceneView<CookingBusinessFlowController>();
             if (businessFlowController != null)
             {
                 businessFlowController.Initialize(this, temporaryUiFontAsset);
                 return;
             }
 
-            if (autoCreateBusinessFlowController == false)
-                return;
+            Debug.LogWarning("CookingGamePanel has no business flow controller. Assign one in the scene if customer flow buttons are needed.", this);
+        }
 
-            Transform parent = FindOverlayViewParent();
-            GameObject controllerObject = new GameObject(
-                "TemporaryCookingBusinessFlowController",
-                typeof(RectTransform),
-                typeof(CookingBusinessFlowController));
-            controllerObject.transform.SetParent(parent != null ? parent : transform, false);
-            controllerObject.transform.localRotation = Quaternion.identity;
-            controllerObject.transform.localScale = Vector3.one;
-            businessFlowController = controllerObject.GetComponent<CookingBusinessFlowController>();
-            businessFlowController.Initialize(this, temporaryUiFontAsset);
+        private T FindExistingSceneView<T>()
+            where T : Component
+        {
+            T[] views = GetComponentsInChildren<T>(true);
+            for (int i = 0; i < views.Length; i++)
+            {
+                T view = views[i];
+                if (view != null && IsGeneratedTemporaryObject(view.gameObject) == false)
+                    return view;
+            }
+
+            return null;
+        }
+
+        private static GameObject ClearGeneratedTemporaryReference(GameObject view)
+        {
+            if (IsGeneratedTemporaryObject(view) == false)
+                return view;
+
+            view.SetActive(false);
+            return null;
+        }
+
+        private static bool IsGeneratedTemporaryObject(GameObject target)
+        {
+            return target != null
+                   && target.name.StartsWith("Temporary", StringComparison.Ordinal);
         }
 
         private void ApplyTemporaryFontToViews()
@@ -1713,7 +1666,7 @@ namespace Work.Cook.Code.Runtime
                 parentCanvas = FindFirstObjectByType<Canvas>();
 
             if (parentCanvas != null)
-                return GetOrCreateOverlayRoot(parentCanvas.rootCanvas != null ? parentCanvas.rootCanvas : parentCanvas);
+                return FindOverlayRoot(parentCanvas.rootCanvas != null ? parentCanvas.rootCanvas : parentCanvas);
 
             return FindInventoryViewParent();
         }
@@ -1748,7 +1701,7 @@ namespace Work.Cook.Code.Runtime
             return view != null ? view.GetComponentInParent<Canvas>(true) : null;
         }
 
-        private static Transform GetOrCreateOverlayRoot(Canvas canvas)
+        private static Transform FindOverlayRoot(Canvas canvas)
         {
             const string overlayRootName = "CookingRewardOverlayRoot";
 
@@ -1760,17 +1713,7 @@ namespace Work.Cook.Code.Runtime
                 return existing;
             }
 
-            GameObject rootObject = new GameObject(overlayRootName, typeof(RectTransform));
-            RectTransform rootRect = rootObject.GetComponent<RectTransform>();
-            rootRect.SetParent(canvasTransform, false);
-            rootRect.anchorMin = Vector2.zero;
-            rootRect.anchorMax = Vector2.one;
-            rootRect.offsetMin = Vector2.zero;
-            rootRect.offsetMax = Vector2.zero;
-            rootRect.localRotation = Quaternion.identity;
-            rootRect.localScale = Vector3.one;
-            rootRect.SetAsLastSibling();
-            return rootRect;
+            return canvasTransform;
         }
 
         private static bool IsBeforePreparation(CookingGameScreenState screen)

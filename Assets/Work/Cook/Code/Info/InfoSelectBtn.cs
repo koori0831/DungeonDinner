@@ -13,6 +13,8 @@ namespace Work.Cook.Code.Info
 
         [SerializeField] private TextMeshProUGUI nameField;
 
+        public InfoDictionaryEntryData EntryData => _entryData;
+
         public void InitializeBtn(InfoDictionaryEntryData entryData, Action<InfoDictionaryEntryData> action)
         {
             _entryData = entryData;
@@ -26,6 +28,7 @@ namespace Work.Cook.Code.Info
 
             BindName();
 
+            _button.onClick.RemoveAllListeners();
             _button.onClick.AddListener(() => action?.Invoke(_entryData));
         }
 

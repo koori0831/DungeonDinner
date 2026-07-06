@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Work.Cook.Code.Info
@@ -9,31 +8,26 @@ namespace Work.Cook.Code.Info
         private const ViewHaveInfoEnum DefaultDisplayViewType = ViewHaveInfoEnum.Name | ViewHaveInfoEnum.Image | ViewHaveInfoEnum.Description;
 
         [SerializeField] private bool buildOnAwake = true;
-        [SerializeField] private float y_Offset, default_X_Value;
-        [SerializeField] private Transform viewParent, bockmarkParent;
-        [SerializeField] private InfoBockmarkBtn bockmarkPrefab;
-        [SerializeField] private InfoDictionaryScrollViewField scrollViewPrefavb;
         [SerializeField] private List<InfoDictionaryCategoryData> initialCategoryDataList = new List<InfoDictionaryCategoryData>();
         [SerializeField] private List<InfoDisplayPanel> displayPrefabs = new List<InfoDisplayPanel>();
 
-        private readonly List<InfoDictionaryScrollViewField> _viewList = new List<InfoDictionaryScrollViewField>();
-        private readonly List<InfoBockmarkBtn> _bockmarkList = new List<InfoBockmarkBtn>();
-        private readonly Dictionary<ViewHaveInfoEnum, InfoDisplayPanel> displayDic = new Dictionary<ViewHaveInfoEnum, InfoDisplayPanel>();
-        private readonly Dictionary<string, InfoDictionaryScrollViewField> _scrollViewsByCategory =
-            new Dictionary<string, InfoDictionaryScrollViewField>();
-        private readonly Dictionary<string, InfoBockmarkBtn> _bockmarksByCategory =
-            new Dictionary<string, InfoBockmarkBtn>();
+        private readonly List<InfoDictionaryCategoryData> _categories = new List<InfoDictionaryCategoryData>();
+        private readonly Dictionary<ViewHaveInfoEnum, InfoDisplayPanel> _displayPanels =
+            new Dictionary<ViewHaveInfoEnum, InfoDisplayPanel>();
         private readonly Dictionary<InfoDictionaryEntryData, EntryNavigationContext> _navigationContexts =
             new Dictionary<InfoDictionaryEntryData, EntryNavigationContext>();
-        private InfoDictionaryScrollViewField _currentScrollView;
-        private InfoBockmarkBtn _currentBockmark;
+
         private string _currentCategoryDisplayName;
         private ViewHaveInfoEnum _currentDisplayViewType;
         private string _currentDisplayEntryName;
         private bool _isDisplayOpen;
 
+        public IReadOnlyList<InfoDictionaryCategoryData> CurrentCategories => _categories;
+
         public void Awake()
         {
+            BuildDisplayLookup();
+
             if (buildOnAwake)
                 Initialize(initialCategoryDataList);
         }
@@ -41,120 +35,63 @@ namespace Work.Cook.Code.Info
         public void Initialize(IReadOnlyList<InfoDictionaryCategoryData> categories)
         {
             DictionaryRestoreState restoreState = CaptureRestoreState();
-            ClearGeneratedViews();
-
-            if (categories == null)
-                return;
-
-            if (CanBuild() == false)
-                return;
-
-            BuildCategories(categories);
-            RestoreState(categories, restoreState);
-        }
-
-        private bool CanBuild()
-        {
-            bool canBuild = true;
-
-            if (viewParent == null)
-            {
-                Debug.LogWarning("InfoDictionaryPanel needs a view parent before it can build dictionary views.", this);
-                canBuild = false;
-            }
-
-            if (bockmarkParent == null)
-            {
-                Debug.LogWarning("InfoDictionaryPanel needs a bockmark parent before it can build category buttons.", this);
-                canBuild = false;
-            }
-
-            if (scrollViewPrefavb == null)
-            {
-                Debug.LogWarning("InfoDictionaryPanel needs a scroll view prefab before it can build dictionary views.", this);
-                canBuild = false;
-            }
-
-            if (bockmarkPrefab == null)
-            {
-                Debug.LogWarning("InfoDictionaryPanel needs a bockmark prefab before it can build category buttons.", this);
-                canBuild = false;
-            }
-
-            return canBuild;
-        }
-
-        private void BuildCategories(IReadOnlyList<InfoDictionaryCategoryData> categories)
-        {
-            for (int i = 0; i < categories.Count; ++i)
-            {
-                InfoDictionaryCategoryData categoryData = categories[i];
-                if (categoryData == null)
-                    continue;
-
-                InfoDisplayPanel displayPanel;
-
-                if (displayDic.ContainsKey(categoryData.ViewType))
-                    displayPanel = displayDic[categoryData.ViewType];
-                else
-                {
-                    InfoDisplayPanel displayPrefab = GetDisplayPrefab(categoryData.ViewType);
-                    if (displayPrefab == null)
-                    {
-                        Debug.LogWarning($"InfoDictionaryPanel could not find display prefab for view type '{categoryData.ViewType}'. Category '{categoryData.DisplayName}' was skipped.", this);
-                        continue;
-                    }
-
-                    displayPanel = Instantiate(displayPrefab, viewParent);
-                    displayPanel.InitializeDisplay(BackDisplay);
-                    displayPanel.Disable();
-                    displayDic.Add(categoryData.ViewType, displayPanel);
-                }
-
-                InfoDictionaryScrollViewField view = Instantiate(scrollViewPrefavb, viewParent);
-                InfoBockmarkBtn bockmark = Instantiate(bockmarkPrefab, bockmarkParent);
-                _viewList.Add(view);
-                _bockmarkList.Add(bockmark);
-                RegisterCategoryLookup(categoryData.DisplayName, view, bockmark);
-                RegisterNavigationContexts(categoryData);
-                view.InitializeField(categoryData.Entries, info => EnableDisplay(categoryData.ViewType, info));
-                view.Disable();
-                bockmark.Rect.anchoredPosition = new Vector2(default_X_Value, y_Offset * i);
-                string categoryDisplayName = categoryData.DisplayName;
-                bockmark.InitializeBtn(() => EnableScrollView(view, bockmark, categoryDisplayName), categoryData.DisplayName, categoryData.MarkIcon);
-            }
-        }
-
-        private void ClearGeneratedViews()
-        {
-            foreach (InfoDictionaryScrollViewField view in _viewList)
-                DestroyGeneratedObject(view);
-
-            foreach (InfoBockmarkBtn bockmark in _bockmarkList)
-                DestroyGeneratedObject(bockmark);
-
-            foreach (InfoDisplayPanel displayPanel in displayDic.Values)
-                DestroyGeneratedObject(displayPanel);
-
-            _viewList.Clear();
-            _bockmarkList.Clear();
-            displayDic.Clear();
-            _scrollViewsByCategory.Clear();
-            _bockmarksByCategory.Clear();
+            _categories.Clear();
             _navigationContexts.Clear();
-            _currentScrollView = null;
-            _currentBockmark = null;
+            BuildDisplayLookup();
+
+            if (categories != null)
+            {
+                for (int i = 0; i < categories.Count; i++)
+                {
+                    if (categories[i] == null)
+                        continue;
+
+                    _categories.Add(categories[i]);
+                    RegisterNavigationContexts(categories[i]);
+                }
+            }
+
+            RestoreState(restoreState);
         }
 
-        private void DestroyGeneratedObject(Component component)
+        public void OpenCategory(string categoryDisplayName)
         {
-            if (component == null)
+            _currentCategoryDisplayName = categoryDisplayName;
+            _isDisplayOpen = false;
+            _currentDisplayEntryName = null;
+            AllDisableDisplay();
+        }
+
+        public void ShowEntry(InfoDictionaryEntryData info)
+        {
+            if (info == null)
                 return;
 
-            if (Application.isPlaying)
-                Destroy(component.gameObject);
-            else
-                DestroyImmediate(component.gameObject);
+            if (_navigationContexts.TryGetValue(info, out EntryNavigationContext context))
+            {
+                EnableDisplay(context.ViewType, info);
+                return;
+            }
+
+            EnableDisplay(DefaultDisplayViewType, info);
+        }
+
+        public void EnableDisplay(ViewHaveInfoEnum key, InfoDictionaryEntryData info)
+        {
+            AllDisableDisplay();
+            _currentDisplayViewType = key;
+            _currentDisplayEntryName = info != null ? info.DisplayName : null;
+            _isDisplayOpen = info != null;
+
+            InfoDisplayPanel display = GetDisplay(key);
+            if (display == null)
+            {
+                Debug.LogWarning($"InfoDictionaryPanel could not find a display panel for view type '{key}'. Assign a scene display panel instead of a generated prefab.", this);
+                return;
+            }
+
+            ConfigureNavigation(display, info);
+            display.Enable(info);
         }
 
         public void EnableScrollView(InfoDictionaryScrollViewField view)
@@ -162,67 +99,54 @@ namespace Work.Cook.Code.Info
             if (view == null)
                 return;
 
-            _currentScrollView = view;
             _isDisplayOpen = false;
             _currentDisplayEntryName = null;
-
-            AllDisableScrollView();
             AllDisableDisplay();
-
             view.Enable();
         }
 
-        private void EnableScrollView(InfoDictionaryScrollViewField view, InfoBockmarkBtn bockmark, string categoryDisplayName)
+        public void AllDisableDisplay()
         {
-            if (view == null)
-                return;
-
-            _currentCategoryDisplayName = categoryDisplayName;
-            SelectBockmark(bockmark);
-            EnableScrollView(view);
-        }
-
-        private void SelectBockmark(InfoBockmarkBtn bockmark)
-        {
-            if (_currentBockmark == bockmark)
+            foreach (InfoDisplayPanel display in _displayPanels.Values)
             {
-                _currentBockmark?.SetSelected(true);
-                return;
+                if (display != null)
+                    display.Disable();
             }
-
-            if (_currentBockmark != null)
-                _currentBockmark.SetSelected(false);
-
-            _currentBockmark = bockmark;
-
-            if (_currentBockmark != null)
-                _currentBockmark.SetSelected(true);
         }
 
-        public void EnableDisplay(ViewHaveInfoEnum key, InfoDictionaryEntryData info)
+        public void AllDisableScrollView()
         {
-            AllDisableScrollView();
+        }
+
+        public void BackDisplay()
+        {
             AllDisableDisplay();
-            _currentDisplayViewType = key;
-            _currentDisplayEntryName = info != null ? info.DisplayName : null;
-            _isDisplayOpen = info != null;
+            _isDisplayOpen = false;
+            _currentDisplayEntryName = null;
+        }
 
-            if (displayDic.TryGetValue(key, out InfoDisplayPanel display))
+        public InfoDisplayPanel GetDisplayPrefab(ViewHaveInfoEnum viewEnum)
+        {
+            return GetDisplay(viewEnum);
+        }
+
+        private void BuildDisplayLookup()
+        {
+            _displayPanels.Clear();
+
+            for (int i = 0; i < displayPrefabs.Count; i++)
             {
-                ConfigureNavigation(display, info);
-                display.Enable(info);
-                return;
-            }
+                InfoDisplayPanel display = displayPrefabs[i];
+                if (display == null)
+                    continue;
 
-            InfoDisplayPanel fallbackDisplay = GetDisplay(key);
-            if (fallbackDisplay == null)
-            {
-                Debug.LogWarning($"InfoDictionaryPanel could not find active display panel for view type '{key}'.", this);
-                return;
+                if (_displayPanels.ContainsKey(display.ViewInfo) == false)
+                {
+                    display.InitializeDisplay(BackDisplay);
+                    display.Disable();
+                    _displayPanels.Add(display.ViewInfo, display);
+                }
             }
-
-            ConfigureNavigation(fallbackDisplay, info);
-            fallbackDisplay.Enable(info);
         }
 
         private void RegisterNavigationContexts(InfoDictionaryCategoryData categoryData)
@@ -261,29 +185,18 @@ namespace Work.Cook.Code.Info
                 next != null);
         }
 
-        public void AllDisableDisplay() => displayDic.Values.ToList().ForEach(item =>
+        private void RestoreState(DictionaryRestoreState state)
         {
-            if (item != null)
-                item.Disable();
-        });
-
-        public void AllDisableScrollView() => _viewList.ForEach(view =>
-        {
-            if (view != null)
-                view.Disable();
-        });
-
-        public void BackDisplay()
-        {
-            AllDisableScrollView();
-            AllDisableDisplay();
-
-            if (_currentScrollView == null)
+            if (state.IsDisplayOpen
+                && string.IsNullOrWhiteSpace(state.EntryDisplayName) == false
+                && TryFindEntry(_categories, state.ViewType, state.EntryDisplayName, out InfoDictionaryEntryData entry))
+            {
+                EnableDisplay(state.ViewType, entry);
                 return;
+            }
 
-            _isDisplayOpen = false;
-            _currentDisplayEntryName = null;
-            _currentScrollView.Enable();
+            if (string.IsNullOrWhiteSpace(state.CategoryDisplayName) == false)
+                OpenCategory(state.CategoryDisplayName);
         }
 
         private DictionaryRestoreState CaptureRestoreState()
@@ -295,36 +208,16 @@ namespace Work.Cook.Code.Info
                 _isDisplayOpen);
         }
 
-        private void RegisterCategoryLookup(
-            string categoryDisplayName,
-            InfoDictionaryScrollViewField view,
-            InfoBockmarkBtn bockmark)
+        private InfoDisplayPanel GetDisplay(ViewHaveInfoEnum viewEnum)
         {
-            if (string.IsNullOrWhiteSpace(categoryDisplayName))
-                return;
+            if (_displayPanels.TryGetValue(viewEnum, out InfoDisplayPanel display))
+                return display;
 
-            _scrollViewsByCategory[categoryDisplayName] = view;
-            _bockmarksByCategory[categoryDisplayName] = bockmark;
-        }
+            if (viewEnum == DefaultDisplayViewType)
+                return null;
 
-        private void RestoreState(
-            IReadOnlyList<InfoDictionaryCategoryData> categories,
-            DictionaryRestoreState state)
-        {
-            if (state.IsDisplayOpen
-                && string.IsNullOrWhiteSpace(state.EntryDisplayName) == false
-                && TryFindEntry(categories, state.ViewType, state.EntryDisplayName, out InfoDictionaryEntryData entry))
-            {
-                EnableDisplay(state.ViewType, entry);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(state.CategoryDisplayName) == false
-                && _scrollViewsByCategory.TryGetValue(state.CategoryDisplayName, out InfoDictionaryScrollViewField view))
-            {
-                _bockmarksByCategory.TryGetValue(state.CategoryDisplayName, out InfoBockmarkBtn bockmark);
-                EnableScrollView(view, bockmark, state.CategoryDisplayName);
-            }
+            _displayPanels.TryGetValue(DefaultDisplayViewType, out display);
+            return display;
         }
 
         private static bool TryFindEntry(
@@ -356,37 +249,6 @@ namespace Work.Cook.Code.Info
             }
 
             return false;
-        }
-
-        public InfoDisplayPanel GetDisplayPrefab(ViewHaveInfoEnum viewEnum)
-        {
-            for (int i = 0; i < displayPrefabs.Count; i++)
-            {
-                InfoDisplayPanel displayPrefab = displayPrefabs[i];
-                if (displayPrefab != null && displayPrefab.ViewInfo == viewEnum)
-                    return displayPrefab;
-            }
-
-            if (viewEnum == DefaultDisplayViewType)
-                return null;
-
-            for (int i = 0; i < displayPrefabs.Count; i++)
-            {
-                InfoDisplayPanel displayPrefab = displayPrefabs[i];
-                if (displayPrefab != null && displayPrefab.ViewInfo == DefaultDisplayViewType)
-                    return displayPrefab;
-            }
-
-            return null;
-        }
-
-        private InfoDisplayPanel GetDisplay(ViewHaveInfoEnum viewEnum)
-        {
-            if (displayDic.TryGetValue(viewEnum, out InfoDisplayPanel display))
-                return display;
-
-            displayDic.TryGetValue(DefaultDisplayViewType, out display);
-            return display;
         }
 
         private readonly struct EntryNavigationContext

@@ -166,8 +166,8 @@ namespace Work.Cook.Code.Editor
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("보상 Overlay Root 선택/생성"))
-                SelectOrCreateOverlayRoot(panel);
+            if (GUILayout.Button("기존 보상 Overlay Root 선택"))
+                SelectOverlayRoot(panel);
 
             if (GUILayout.Button("Reward View를 Overlay Root로 이동"))
                 MoveRewardViewToOverlayRoot(panel);
@@ -416,16 +416,22 @@ namespace Work.Cook.Code.Editor
             Debug.Log("CookingGamePanel과 손님에 저장된 정보가 모두 초기화되었습니다.", panel);
         }
 
-        private void SelectOrCreateOverlayRoot(CookingGamePanel panel)
+        private void SelectOverlayRoot(CookingGamePanel panel)
         {
             Canvas canvas = FindBestCanvas(panel, GetViewReferences());
             if (canvas == null)
             {
-                Debug.LogWarning("보상 Overlay Root를 만들 Canvas를 찾지 못했습니다.", panel);
+                Debug.LogWarning("보상 Overlay Root를 찾을 Canvas가 없습니다.", panel);
                 return;
             }
 
-            Transform overlayRoot = GetOrCreateOverlayRoot(canvas);
+            Transform overlayRoot = FindOverlayRoot(canvas);
+            if (overlayRoot == null)
+            {
+                Debug.LogWarning("기존 보상 Overlay Root가 없습니다. 새 UI에서 필요한 경우 직접 배치해 주세요.", panel);
+                return;
+            }
+
             Selection.activeGameObject = overlayRoot.gameObject;
             EditorGUIUtility.PingObject(overlayRoot.gameObject);
         }
@@ -446,7 +452,13 @@ namespace Work.Cook.Code.Editor
                 return;
             }
 
-            Transform overlayRoot = GetOrCreateOverlayRoot(canvas);
+            Transform overlayRoot = FindOverlayRoot(canvas);
+            if (overlayRoot == null)
+            {
+                Debug.LogWarning("기존 보상 Overlay Root가 없습니다. Reward View를 옮기려면 씬에 직접 배치해 주세요.", panel);
+                return;
+            }
+
             if (rewardView.transform.parent == overlayRoot)
             {
                 Selection.activeGameObject = rewardView;
@@ -562,34 +574,6 @@ namespace Work.Cook.Code.Editor
                 return null;
 
             return canvas.transform.Find(OverlayRootName);
-        }
-
-        private static Transform GetOrCreateOverlayRoot(Canvas canvas)
-        {
-            Canvas rootCanvas = canvas.rootCanvas != null ? canvas.rootCanvas : canvas;
-            Transform existing = rootCanvas.transform.Find(OverlayRootName);
-            if (existing != null)
-            {
-                existing.SetAsLastSibling();
-                return existing;
-            }
-
-            GameObject rootObject = new GameObject(OverlayRootName, typeof(RectTransform));
-            Undo.RegisterCreatedObjectUndo(rootObject, "Create Cooking Reward Overlay Root");
-
-            RectTransform rootRect = rootObject.GetComponent<RectTransform>();
-            rootRect.SetParent(rootCanvas.transform, false);
-            rootRect.anchorMin = Vector2.zero;
-            rootRect.anchorMax = Vector2.one;
-            rootRect.offsetMin = Vector2.zero;
-            rootRect.offsetMax = Vector2.zero;
-            rootRect.localRotation = Quaternion.identity;
-            rootRect.localScale = Vector3.one;
-            rootRect.SetAsLastSibling();
-
-            EditorUtility.SetDirty(rootCanvas);
-            MarkSceneDirty(rootCanvas.gameObject);
-            return rootRect;
         }
 
         private static void DrawReadonlyObject(string label, Object value)

@@ -16,14 +16,11 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private NpcConversationRunner npcRunner;
         [SerializeField] private TMP_FontAsset fontAsset;
         [SerializeField] private bool startFirstCustomerOnStart = true;
-        [SerializeField] private bool hideCookingTestPanelOnStart = true;
         [SerializeField] private bool autoCreateDefaultControls = true;
         [SerializeField] private RectTransform actionRoot;
         [SerializeField] private TextMeshProUGUI statusField;
         [SerializeField] private Button nextCustomerButton;
         [SerializeField] private Button closeShopButton;
-        [SerializeField] private string nextCustomerText = "\uB2E4\uC74C";
-        [SerializeField] private string closeShopText = "\uAC00\uAC8C \uC811\uAE30";
         [SerializeField] private string waitingText = "\uC190\uB2D8\uC744 \uAE30\uB2E4\uB9AC\uB294 \uC911\uC785\uB2C8\uB2E4.";
         [SerializeField] private string completedText = "\uC624\uB298 \uC7A5\uC0AC\uB97C \uB9C8\uCCE4\uC2B5\uB2C8\uB2E4.";
         [SerializeField] private UnityEvent businessClosed = new UnityEvent();
@@ -58,9 +55,6 @@ namespace Work.Cook.Code.Runtime
         {
             EnsureReferences();
             Subscribe();
-
-            if (hideCookingTestPanelOnStart)
-                HideCookingTestPanels();
         }
 
         private void Start()
@@ -112,6 +106,21 @@ namespace Work.Cook.Code.Runtime
             SetStatus(completedText);
             gamePanel?.CloseCookingViews();
             businessClosed.Invoke();
+        }
+
+        public bool OpenShopForNextDay(bool startFirstCustomer)
+        {
+            EnsureReferences();
+            _businessClosed = false;
+            _dishHandedToCurrentCustomer = false;
+            HideActions();
+            SetStatus(waitingText);
+            gamePanel?.CloseCookingViews();
+
+            if (startFirstCustomer == false)
+                return true;
+
+            return StartNextCustomer();
         }
 
         private void HandleDishHandedToNpc(DishResult result)
@@ -227,9 +236,6 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureControls()
         {
-            if (autoCreateDefaultControls == false)
-                return;
-
             EnsureFontAsset();
 
             if (actionRoot != null && statusField != null && nextCustomerButton != null && closeShopButton != null)
@@ -238,50 +244,8 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            RectTransform root = EnsureRectTransform(gameObject);
-            root.anchorMin = Vector2.zero;
-            root.anchorMax = Vector2.one;
-            root.offsetMin = Vector2.zero;
-            root.offsetMax = Vector2.zero;
-
-            if (actionRoot == null)
-            {
-                GameObject panelObject = new GameObject("BusinessActionPanel", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup));
-                actionRoot = panelObject.GetComponent<RectTransform>();
-                actionRoot.SetParent(transform, false);
-                actionRoot.anchorMin = new Vector2(0.5f, 0f);
-                actionRoot.anchorMax = new Vector2(0.5f, 0f);
-                actionRoot.pivot = new Vector2(0.5f, 0f);
-                actionRoot.anchoredPosition = new Vector2(0f, 28f);
-                actionRoot.sizeDelta = new Vector2(520f, 66f);
-
-                Image image = panelObject.GetComponent<Image>();
-                image.color = new Color(0.08f, 0.065f, 0.05f, 0.90f);
-
-                HorizontalLayoutGroup layout = panelObject.GetComponent<HorizontalLayoutGroup>();
-                layout.padding = new RectOffset(16, 16, 12, 12);
-                layout.spacing = 12f;
-                layout.childAlignment = TextAnchor.MiddleCenter;
-                layout.childControlWidth = true;
-                layout.childControlHeight = true;
-                layout.childForceExpandWidth = false;
-                layout.childForceExpandHeight = true;
-            }
-
-            if (statusField == null)
-            {
-                statusField = CreateText(actionRoot, "Status", waitingText, 17f, TextAlignmentOptions.MidlineLeft);
-                AddLayoutElement(statusField.gameObject, 260f, -1f, 1f);
-            }
-
-            if (nextCustomerButton == null)
-                nextCustomerButton = CreateButton(actionRoot, "NextCustomerButton", nextCustomerText, new Color(0.36f, 0.50f, 0.25f, 1f));
-
-            if (closeShopButton == null)
-                closeShopButton = CreateButton(actionRoot, "CloseShopButton", closeShopText, new Color(0.48f, 0.31f, 0.20f, 1f));
-
-            BindButtons();
-            ApplyFontAssetToTexts();
+            if (autoCreateDefaultControls)
+                Debug.LogWarning("CookingBusinessFlowController is missing action controls. Assign a custom actionRoot, statusField, nextCustomerButton, and closeShopButton instead of using generated controls.", this);
         }
 
         private void EnsureFontAsset()
@@ -308,73 +272,10 @@ namespace Work.Cook.Code.Runtime
                 labels[i].font = fontAsset;
         }
 
-        private TextMeshProUGUI CreateText(Transform parent, string objectName, string text, float size, TextAlignmentOptions alignment)
-        {
-            GameObject textObject = new GameObject(objectName, typeof(RectTransform), typeof(TextMeshProUGUI));
-            textObject.transform.SetParent(parent, false);
-            TextMeshProUGUI field = textObject.GetComponent<TextMeshProUGUI>();
-            if (fontAsset != null)
-                field.font = fontAsset;
-            field.fontSize = size;
-            field.alignment = alignment;
-            field.color = Color.white;
-            field.text = text;
-            return field;
-        }
-
-        private Button CreateButton(Transform parent, string objectName, string label, Color color)
-        {
-            GameObject buttonObject = new GameObject(objectName, typeof(RectTransform), typeof(Image), typeof(Button));
-            buttonObject.transform.SetParent(parent, false);
-
-            Image image = buttonObject.GetComponent<Image>();
-            image.color = color;
-
-            Button button = buttonObject.GetComponent<Button>();
-            button.targetGraphic = image;
-
-            TextMeshProUGUI labelField = CreateText(buttonObject.transform, "Label", label, 18f, TextAlignmentOptions.Center);
-            RectTransform labelRect = labelField.rectTransform;
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
-
-            AddLayoutElement(buttonObject, 116f, -1f, 0f);
-            return button;
-        }
-
-        private static void AddLayoutElement(GameObject target, float preferredWidth, float preferredHeight, float flexibleWidth)
-        {
-            LayoutElement element = target.GetComponent<LayoutElement>();
-            if (element == null)
-                element = target.AddComponent<LayoutElement>();
-
-            element.preferredWidth = preferredWidth;
-            element.preferredHeight = preferredHeight;
-            element.flexibleWidth = flexibleWidth;
-        }
-
-        private static RectTransform EnsureRectTransform(GameObject target)
-        {
-            RectTransform rect = target.transform as RectTransform;
-            return rect != null ? rect : target.AddComponent<RectTransform>();
-        }
-
         private static void SetActive(Component component, bool active)
         {
             if (component != null)
                 component.gameObject.SetActive(active);
-        }
-
-        private static void HideCookingTestPanels()
-        {
-            CookingTestPanel[] panels = Resources.FindObjectsOfTypeAll<CookingTestPanel>();
-            for (int i = 0; i < panels.Length; i++)
-            {
-                if (panels[i] != null && panels[i].gameObject.scene.IsValid())
-                    panels[i].gameObject.SetActive(false);
-            }
         }
     }
 }
