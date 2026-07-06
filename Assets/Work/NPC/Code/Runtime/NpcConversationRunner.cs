@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using Work.Chat.Code;
@@ -34,14 +33,12 @@ namespace Work.NPC.Code.Runtime
         [Header("Output")]
         [SerializeField] private ChatPanel chatPanel;
         [SerializeField] private NpcOrderSlipPanel orderSlipPanel;
-        [SerializeField] private Sprite orderSlipPanelSprite;
-        [SerializeField] private Sprite orderSlipLabelSprite;
-        [SerializeField] private TMP_FontAsset orderSlipFontAsset;
         [SerializeField] private bool playOnStart;
         [SerializeField] private bool showSpeakerName;
         [SerializeField] private bool useDirectChatPanelOutput = true;
         [SerializeField] private bool writeNpcBoldTextToOrderSlip = true;
-        [SerializeField] private bool autoCreateOrderSlipPanel = true;
+
+        [Header("Display")]
         [SerializeField] private string playerDisplayName = "플레이어";
         [SerializeField, Min(0f)] private float lineDelay = 0.15f;
 
@@ -69,6 +66,7 @@ namespace Work.NPC.Code.Runtime
         private bool _resultDialoguePlayed;
         private bool _conversationCompleted;
         private bool _cookingStepNotified;
+        private bool _loggedMissingOrderSlipPanel;
 
         public event Action<IReadOnlyList<QuestionCategoryData>> QuestionOptionsUpdated;
         public event Action<NpcOrderContext> OrderReady;
@@ -577,20 +575,24 @@ namespace Work.NPC.Code.Runtime
 
         private void ResolveOrderSlipPanel()
         {
-            if (orderSlipPanel == null && autoCreateOrderSlipPanel == true)
+            if (orderSlipPanel == null)
             {
-                orderSlipPanel = FindFirstObjectByType<NpcOrderSlipPanel>();
-                if (orderSlipPanel == null)
-                    orderSlipPanel = NpcOrderSlipPanel.GetOrCreateGeneratedPanel();
+                LogMissingOrderSlipPanelOnce();
+                return;
             }
 
-            if (orderSlipPanel == null)
+            _loggedMissingOrderSlipPanel = false;
+        }
+
+        private void LogMissingOrderSlipPanelOnce()
+        {
+            if (_loggedMissingOrderSlipPanel == true)
             {
                 return;
             }
 
-            orderSlipPanel.SetFontAsset(orderSlipFontAsset);
-            orderSlipPanel.SetVisualSprites(orderSlipPanelSprite, orderSlipLabelSprite);
+            _loggedMissingOrderSlipPanel = true;
+            Debug.LogError("NpcConversationRunner orderSlipPanel is missing. Assign an inspector/prefab based NpcOrderSlipPanel.", this);
         }
 
         private void NotifyQuestionOptionsOrReady()
@@ -642,11 +644,6 @@ namespace Work.NPC.Code.Runtime
 
         private void HideOrderSlipPanel()
         {
-            if (orderSlipPanel == null)
-            {
-                orderSlipPanel = FindFirstObjectByType<NpcOrderSlipPanel>();
-            }
-
             orderSlipPanel?.SetVisible(false);
         }
 

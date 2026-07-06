@@ -47,7 +47,9 @@ namespace Work.NPC.Code.Runtime
                 canvasGroup = GetComponent<CanvasGroup>();
 
             if (canvasGroup == null)
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            {
+                Debug.LogError("NpcConversationView CanvasGroup is missing. Assign it in the inspector or add it to the prefab.", this);
+            }
         }
 
         private void OnEnable()
