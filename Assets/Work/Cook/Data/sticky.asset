@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: sticky
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodTagSO
   tagId: sticky
-  displayName: "\uB048\uC801\uD568"
-  description: "\uB5A1\uACFC \uAC19\uC774 \uB048\uC801\uD55C \uC74C\uC2DD\uC5D0 \uB2EC\uB9AC\uB294
-    \uD0DC\uADF8"
+  displayName: sticky
+  description: "NPC \uC8FC\uBB38 \uD3C9\uAC00\uC5D0 \uC0AC\uC6A9\uB418\uB294 \uD0DC\uADF8
+    'sticky'\uC785\uB2C8\uB2E4."

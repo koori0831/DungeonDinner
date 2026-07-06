@@ -15,4 +15,5 @@ MonoBehaviour:
   categoryId: soup
   displayName: "\uC218\uD504"
   icon: {fileID: 0}
-  description: "\uBE75\uC744 \uC801\uC154\uBA39\uB294 \uAD6D\uBB3C\uC694\uB9AC"
+  description: "NPC \uC8FC\uBB38 \uD3C9\uAC00\uC5D0 \uC0AC\uC6A9\uB418\uB294 \uC74C\uC2DD
+    \uD0C0\uC785 'soup'\uC785\uB2C8\uB2E4."

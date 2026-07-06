@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: bleak
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodTagSO
   tagId: bleak
-  displayName: "\uCC28\uAC00\uC6C0"
-  description: "\uB0C9\uAD6D\uC774\uB098 \uC544\uC774\uC2A4\uD06C\uB9BC\uCC98\uB7FC
-    \uCC28\uAC00\uC6B4 \uC74C\uC2DD\uB4E4\uC5D0 \uB2EC\uB9AC\uB294 \uD0DC\uADF8"
+  displayName: bleak
+  description: "NPC \uC8FC\uBB38 \uD3C9\uAC00\uC5D0 \uC0AC\uC6A9\uB418\uB294 \uD0DC\uADF8
+    'bleak'\uC785\uB2C8\uB2E4."

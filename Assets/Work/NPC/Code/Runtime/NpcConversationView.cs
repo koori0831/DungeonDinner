@@ -15,14 +15,16 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private bool resolveReferencesOnEnable = true;
         [SerializeField] private bool disableRunnerDirectChatOutput = true;
         [SerializeField] private bool visibleOnEnable = true;
+        [SerializeField] private bool showWhenConversationStarted = true;
         [SerializeField] private bool showWhenDialogueLinePlayed = true;
         [SerializeField] private bool showWhenQuestionOptionsAvailable = true;
         [SerializeField] private bool showWhenOrderReady = true;
         [SerializeField] private bool hideWhenCookingStepReady;
         [SerializeField] private bool hideWhenConversationCompleted;
+        [SerializeField] private bool clearChatHistoryWhenConversationCompleted = true;
         [SerializeField] private bool showSpeakerNameInBubble = true;
         [SerializeField] private bool completeTypingOnSubmit = true;
-        [SerializeField] private string playerNameColor = "#9FD4FF";
+        [SerializeField] private string playerNameColor = "#000000";
         [SerializeField] private string npcNameColor = "#D6A85A";
 
         [Header("Events")]
@@ -45,7 +47,9 @@ namespace Work.NPC.Code.Runtime
                 canvasGroup = GetComponent<CanvasGroup>();
 
             if (canvasGroup == null)
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            {
+                Debug.LogError("NpcConversationView CanvasGroup is missing. Assign it in the inspector or add it to the prefab.", this);
+            }
         }
 
         private void OnEnable()
@@ -148,6 +152,7 @@ namespace Work.NPC.Code.Runtime
 
             if (subscribe)
             {
+                runner.ConversationStarted += HandleConversationStarted;
                 runner.DialogueLinePlayed += HandleDialogueLinePlayed;
                 runner.QuestionOptionsUpdated += HandleQuestionOptionsUpdated;
                 runner.OrderReady += HandleOrderReady;
@@ -156,11 +161,18 @@ namespace Work.NPC.Code.Runtime
                 return;
             }
 
+            runner.ConversationStarted -= HandleConversationStarted;
             runner.DialogueLinePlayed -= HandleDialogueLinePlayed;
             runner.QuestionOptionsUpdated -= HandleQuestionOptionsUpdated;
             runner.OrderReady -= HandleOrderReady;
             runner.CookingStepReady -= HandleCookingStepReady;
             runner.ConversationCompleted -= HandleConversationCompleted;
+        }
+
+        private void HandleConversationStarted()
+        {
+            if (showWhenConversationStarted == true)
+                SetVisible(true);
         }
 
         private void ApplyRunnerDirectOutputOverride()
@@ -217,6 +229,9 @@ namespace Work.NPC.Code.Runtime
         private void HandleConversationCompleted()
         {
             conversationCompleted.Invoke();
+
+            if (clearChatHistoryWhenConversationCompleted == true)
+                chatPanel?.ClearChats();
 
             if (hideWhenConversationCompleted)
                 SetVisible(false);

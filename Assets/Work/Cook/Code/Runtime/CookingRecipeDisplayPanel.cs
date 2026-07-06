@@ -33,6 +33,9 @@ namespace Work.Cook.Code.Runtime
         public override void InitializeDisplay(Action backAction)
         {
             base.InitializeDisplay(backAction);
+            SetText(requiredIngredientsField, string.Empty);
+            SetText(knownEffectiveTagsField, string.Empty);
+            SetConfirmButton(false, string.Empty);
 
             if (confirmButton == null)
             {

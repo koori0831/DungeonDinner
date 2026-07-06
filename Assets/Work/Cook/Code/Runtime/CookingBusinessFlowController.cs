@@ -3,9 +3,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Work.NPC.Code.Runtime;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Work.Cook.Code.Runtime
 {
@@ -14,15 +11,17 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private NpcEncounterDirector encounterDirector;
         [SerializeField] private NpcConversationRunner npcRunner;
-        [SerializeField] private TMP_FontAsset fontAsset;
         [SerializeField] private bool startFirstCustomerOnStart = true;
-        [SerializeField] private bool autoCreateDefaultControls = true;
+        [SerializeField] private bool hideCookingTestPanelOnStart = true;
+        [SerializeField] private bool advanceDayWhenShopCloses = true;
+        [SerializeField] private bool startNextCustomerAfterAdvancingDay = true;
         [SerializeField] private RectTransform actionRoot;
         [SerializeField] private TextMeshProUGUI statusField;
         [SerializeField] private Button nextCustomerButton;
         [SerializeField] private Button closeShopButton;
         [SerializeField] private string waitingText = "\uC190\uB2D8\uC744 \uAE30\uB2E4\uB9AC\uB294 \uC911\uC785\uB2C8\uB2E4.";
         [SerializeField] private string completedText = "\uC624\uB298 \uC7A5\uC0AC\uB97C \uB9C8\uCCE4\uC2B5\uB2C8\uB2E4.";
+        [SerializeField] private string nextDayText = "\uB2E4\uC74C\uB0A0 \uC601\uC5C5\uC744 \uC2DC\uC791\uD569\uB2C8\uB2E4.";
         [SerializeField] private UnityEvent businessClosed = new UnityEvent();
 
         private bool _dishHandedToCurrentCustomer;
@@ -34,18 +33,11 @@ namespace Work.Cook.Code.Runtime
         {
             if (owner != null)
                 gamePanel = owner;
-
-            if (fontAsset == null)
-                fontAsset = defaultFontAsset;
-
-            EnsureFontAsset();
-            ApplyFontAssetToTexts();
         }
 
         private void Awake()
         {
             EnsureReferences();
-            EnsureFontAsset();
             EnsureControls();
             BindButtons();
             HideActions();
@@ -55,6 +47,9 @@ namespace Work.Cook.Code.Runtime
         {
             EnsureReferences();
             Subscribe();
+
+            if (hideCookingTestPanelOnStart)
+                HideCookingTestPanels();
         }
 
         private void Start()
@@ -87,9 +82,12 @@ namespace Work.Cook.Code.Runtime
                 return false;
             }
 
+            gamePanel?.ReturnToNpcConversation();
+
             bool started = encounterDirector.StartEncounter();
             if (started == false)
             {
+                gamePanel?.CloseCookingViews();
                 ShowCloseShopOnly();
                 return false;
             }
@@ -106,21 +104,16 @@ namespace Work.Cook.Code.Runtime
             SetStatus(completedText);
             gamePanel?.CloseCookingViews();
             businessClosed.Invoke();
-        }
 
-        public bool OpenShopForNextDay(bool startFirstCustomer)
-        {
-            EnsureReferences();
+            if (advanceDayWhenShopCloses == false || encounterDirector == null)
+                return;
+
+            encounterDirector.AdvanceDay();
             _businessClosed = false;
-            _dishHandedToCurrentCustomer = false;
-            HideActions();
-            SetStatus(waitingText);
-            gamePanel?.CloseCookingViews();
+            SetStatus(nextDayText);
 
-            if (startFirstCustomer == false)
-                return true;
-
-            return StartNextCustomer();
+            if (startNextCustomerAfterAdvancingDay == true)
+                StartNextCustomer();
         }
 
         private void HandleDishHandedToNpc(DishResult result)
@@ -190,8 +183,6 @@ namespace Work.Cook.Code.Runtime
         {
             if (gamePanel == null)
                 gamePanel = FindFirstObjectByType<CookingGamePanel>();
-            if (fontAsset == null && gamePanel != null)
-                fontAsset = gamePanel.TemporaryUiFontAsset;
             if (encounterDirector == null)
                 encounterDirector = FindFirstObjectByType<NpcEncounterDirector>();
             if (npcRunner == null)
@@ -236,46 +227,28 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureControls()
         {
-            EnsureFontAsset();
-
             if (actionRoot != null && statusField != null && nextCustomerButton != null && closeShopButton != null)
             {
-                ApplyFontAssetToTexts();
                 return;
             }
 
-            if (autoCreateDefaultControls)
-                Debug.LogWarning("CookingBusinessFlowController is missing action controls. Assign a custom actionRoot, statusField, nextCustomerButton, and closeShopButton instead of using generated controls.", this);
-        }
-
-        private void EnsureFontAsset()
-        {
-            if (fontAsset != null)
-                return;
-
-            if (gamePanel != null)
-                fontAsset = gamePanel.TemporaryUiFontAsset;
-
-#if UNITY_EDITOR
-            if (fontAsset == null)
-                fontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/MangoDdobak-R(otf) SDF.asset");
-#endif
-        }
-
-        private void ApplyFontAssetToTexts()
-        {
-            if (fontAsset == null)
-                return;
-
-            TextMeshProUGUI[] labels = GetComponentsInChildren<TextMeshProUGUI>(true);
-            for (int i = 0; i < labels.Length; i++)
-                labels[i].font = fontAsset;
+            Debug.LogError("CookingBusinessFlowController is missing actionRoot/statusField/nextCustomerButton/closeShopButton references. Assign prefab or inspector references.", this);
         }
 
         private static void SetActive(Component component, bool active)
         {
             if (component != null)
                 component.gameObject.SetActive(active);
+        }
+
+        private static void HideCookingTestPanels()
+        {
+            CookingTestPanel[] panels = Resources.FindObjectsOfTypeAll<CookingTestPanel>();
+            for (int i = 0; i < panels.Length; i++)
+            {
+                if (panels[i] != null && panels[i].gameObject.scene.IsValid())
+                    panels[i].gameObject.SetActive(false);
+            }
         }
     }
 }
