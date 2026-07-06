@@ -7560,7 +7560,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 2072774137}
+  contentResizeTarget: {fileID: 543587088}
+  columnsPerRow: 3
 --- !u!114 &284555558
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11952,7 +11955,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 1482643032}
+  contentResizeTarget: {fileID: 1642283120}
+  columnsPerRow: 3
 --- !u!114 &499234546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12073,7 +12079,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 1798398092}
+  contentResizeTarget: {fileID: 1314073729}
+  columnsPerRow: 3
 --- !u!114 &512178930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17772,11 +17781,11 @@ MonoBehaviour:
   resultSummaryField: {fileID: 109060654}
   npcMatchField: {fileID: 858226153}
   preparationSection: {fileID: 1257595868}
-  preparationRoot: {fileID: 0}
+  preparationRoot: {fileID: 33856042}
   reasonsSection: {fileID: 328025312}
   reasonsField: {fileID: 836030855}
   handToNpcButton: {fileID: 1232598503}
-  preparedIngredientRowPrefab: {fileID: 0}
+  preparedIngredientRowPrefab: {fileID: 3813369205484582867, guid: 0a44ae6181ccd934abb324c51b39dadd, type: 3}
   fontAsset: {fileID: 11400000, guid: 54f94c96368179245b3374208b777d0a, type: 2}
   noResultText: "\uC644\uC131\uB41C \uC74C\uC2DD\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."
 --- !u!1 &817237886
@@ -17938,7 +17947,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 1387237214}
+  contentResizeTarget: {fileID: 2073938609}
+  columnsPerRow: 3
 --- !u!114 &833698233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22511,7 +22523,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 1412532553}
+  contentResizeTarget: {fileID: 468701549}
+  columnsPerRow: 3
 --- !u!114 &995143530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29667,12 +29682,12 @@ MonoBehaviour:
   gamePanel: {fileID: 1154906894}
   flowRunner: {fileID: 752288113}
   knowledgeStore: {fileID: 1154906897}
-  boardRoot: {fileID: 0}
+  boardRoot: {fileID: 43577914}
   ingredientNameField: {fileID: 1473015645}
   ingredientDescriptionField: {fileID: 178919403}
   progressField: {fileID: 1230785533}
-  cardRoot: {fileID: 0}
-  preparationOptionCardPrefab: {fileID: 0}
+  cardRoot: {fileID: 1738079359}
+  preparationOptionCardPrefab: {fileID: 4950125154201342508, guid: b49819a757740c24482407e321123ba8, type: 3}
   fontAsset: {fileID: 11400000, guid: 54f94c96368179245b3374208b777d0a, type: 2}
   noIngredientText: "\uC190\uC9C8\uD560 \uC7AC\uB8CC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."
   noOptionText: "\uC774 \uC7AC\uB8CC\uC5D0\uB294 \uB4F1\uB85D\uB41C \uC190\uC9C8\uBC95\uC774
@@ -30328,7 +30343,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 1442335004}
+  contentResizeTarget: {fileID: 558732966}
+  columnsPerRow: 3
 --- !u!114 &1283013929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31316,7 +31334,7 @@ MonoBehaviour:
   npcRiseEndEulerX: 0
   npcRiseDuration: 0.55
   npcRiseEase: 27
-  playNpcReturnAfterResultConversation: 1
+  playNpcReturnAfterResultConversation: 0
   npcReturnDuration: 0.45
   npcReturnEase: 26
   affinityChanged:
@@ -33034,7 +33052,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 150218919}
+  contentResizeTarget: {fileID: 137956154}
+  columnsPerRow: 3
 --- !u!114 &1406502419
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35304,8 +35325,8 @@ MonoBehaviour:
   ingredientSourceBehaviour: {fileID: 1154906899}
   searchIngredientSourceInParents: 1
   searchIngredientSourceInChildren: 1
-  availableIngredientRoot: {fileID: 0}
-  selectedIngredientRoot: {fileID: 0}
+  availableIngredientRoot: {fileID: 662147787}
+  selectedIngredientRoot: {fileID: 1031538901}
   searchInputField: {fileID: 1465382823}
   availableSummaryField: {fileID: 429732521}
   selectedSummaryField: {fileID: 2136962488}
@@ -35315,8 +35336,8 @@ MonoBehaviour:
   emptySelectedField: {fileID: 2025309513}
   confirmButton: {fileID: 602933021}
   clearButton: {fileID: 579046195}
-  availableIngredientButtonPrefab: {fileID: 0}
-  selectedIngredientButtonPrefab: {fileID: 0}
+  availableIngredientButtonPrefab: {fileID: 1005, guid: caaaaaaa111111111111111111111111, type: 3}
+  selectedIngredientButtonPrefab: {fileID: 1005, guid: caaaaaaa111111111111111111111111, type: 3}
   minSelectedIngredients: 1
   maxSelectedIngredients: 5
   showIngredientQuantities: 1
@@ -41257,7 +41278,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 1116660031}
+  contentResizeTarget: {fileID: 1101859032}
+  columnsPerRow: 3
 --- !u!114 &1730156641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42007,6 +42031,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryPanel
   buildOnAwake: 1
+  y_Offset: -40
+  default_X_Value: -100
+  viewParent: {fileID: 1767051155}
+  bockmarkParent: {fileID: 745710730}
+  bockmarkPrefab: {fileID: 3643260068710521077, guid: 63b9e110d035a9046bb10ce024a56dda, type: 3}
+  scrollViewPrefavb: {fileID: 3005767808159173009, guid: a08ee6cae3324a4428f13cfce67688cb, type: 3}
   initialCategoryDataList: []
   displayPrefabs:
   - {fileID: 4367276804907958827, guid: 3781ec9e269d89f43bc0de1fe56e8294, type: 3}
@@ -44105,7 +44135,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1886920502}
   - component: {fileID: 1886920501}
-  - component: {fileID: 1886920503}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -44179,50 +44208,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1886920503
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1886920500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
-  m_RenderShadows: 1
-  m_RequiresDepthTextureOption: 2
-  m_RequiresOpaqueTextureOption: 2
-  m_CameraType: 0
-  m_Cameras: []
-  m_RendererIndex: -1
-  m_VolumeLayerMask:
-    serializedVersion: 2
-    m_Bits: 1
-  m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
-  m_Antialiasing: 0
-  m_AntialiasingQuality: 2
-  m_StopNaN: 0
-  m_Dithering: 0
-  m_ClearDepth: 1
-  m_AllowXRRendering: 1
-  m_AllowHDROutput: 1
-  m_UseScreenCoordOverride: 0
-  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
-  m_RequiresDepthTexture: 0
-  m_RequiresColorTexture: 0
-  m_TaaSettings:
-    m_Quality: 3
-    m_FrameInfluence: 0.1
-    m_JitterScale: 1
-    m_MipBias: 0
-    m_VarianceClampScale: 0.9
-    m_ContrastAdaptiveSharpening: 0
-  m_Version: 2
 --- !u!1 &1898069063
 GameObject:
   m_ObjectHideFlags: 0
@@ -45574,7 +45559,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 1259004175}
+  contentResizeTarget: {fileID: 1532355082}
+  columnsPerRow: 3
 --- !u!114 &1977951441
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46156,6 +46144,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryPanel
   buildOnAwake: 0
+  y_Offset: -40
+  default_X_Value: -100
+  viewParent: {fileID: 2015541530}
+  bockmarkParent: {fileID: 1424283809}
+  bockmarkPrefab: {fileID: 3643260068710521077, guid: 63b9e110d035a9046bb10ce024a56dda, type: 3}
+  scrollViewPrefavb: {fileID: 3005767808159173009, guid: a08ee6cae3324a4428f13cfce67688cb, type: 3}
   initialCategoryDataList: []
   displayPrefabs:
   - {fileID: 8735833697643656404, guid: 27819787184324b44875c253f817ee9a, type: 3}
@@ -46270,7 +46264,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingKnowledgeUpdateView
   gamePanel: {fileID: 0}
   knowledgeStore: {fileID: 0}
-  pageRoot: {fileID: 0}
+  pageRoot: {fileID: 1095581338}
   titleField: {fileID: 1069021184}
   bodyField: {fileID: 1414687810}
   nextButton: {fileID: 280312824}
@@ -46881,7 +46875,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 560880891}
+  contentResizeTarget: {fileID: 971623936}
+  columnsPerRow: 3
 --- !u!114 &2052541787
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48710,7 +48707,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19cf4d2d85ed85340843ac623d1f7251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoDictionaryScrollViewField
-  selectButtons: []
+  selectBtnPrefab: {fileID: -1407408479249881754, guid: 26401bba13699f14c8d44ed99d452a30, type: 3}
+  content: {fileID: 261701924}
+  contentResizeTarget: {fileID: 860598366}
+  columnsPerRow: 3
 --- !u!114 &2135810899
 MonoBehaviour:
   m_ObjectHideFlags: 0
