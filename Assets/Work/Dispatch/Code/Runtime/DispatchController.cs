@@ -346,14 +346,36 @@ namespace Work.Dispatch.Code.Runtime
             }
 
             InventoryAddResult[] addResults = new InventoryAddResult[validRewardCount];
-            InventoryBatchAddResult result = inventoryModule.AddItems(itemStacks, 0, validRewardCount, addResults, 0);
+            InventoryBatchAddResult result = PlayerInventoryItemEvents.RequestAddItems(
+                inventoryModule,
+                itemStacks,
+                0,
+                validRewardCount,
+                addResults,
+                0,
+                out bool handled,
+                out string reason);
+            if (handled == false)
+            {
+                Debug.LogWarning($"Dispatch reward add request was not handled. reason={reason}", this);
+            }
+
             lastRewardAddedAmount = result.AddedAmount;
             lastRewardRemainingAmount = result.RemainingAmount;
 
             for (int i = 0; i < validRewardCount; i++)
             {
                 InventoryAddResult addResult = addResults[i];
-                int currentInventoryAmount = inventoryModule.GetItemAmount(addResult.Item);
+                int currentInventoryAmount = PlayerInventoryItemEvents.RequestItemAmount(
+                    inventoryModule,
+                    addResult.Item,
+                    out bool amountHandled,
+                    out _);
+                if (amountHandled == false)
+                {
+                    currentInventoryAmount = 0;
+                }
+
                 entries.Add(new DispatchRewardResultEntry(
                     addResult.Item,
                     addResult.RequestedAmount,
@@ -408,6 +430,11 @@ namespace Work.Dispatch.Code.Runtime
             if (inventoryModule == null)
             {
                 inventoryModule = FindFirstObjectByType<PlayerInventoryModule>();
+            }
+
+            if (inventoryModule != null)
+            {
+                PlayerInventoryEventBridge.EnsureBridge(inventoryModule);
             }
 
             if (npcRunner == null)

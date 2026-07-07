@@ -141,7 +141,17 @@ namespace Work.Players.Code.Inventory
                         continue;
                     }
 
-                    InventoryAddResult addResult = inventoryModule.AddItem(itemStack.Item, itemStack.Amount);
+                    InventoryAddResult addResult = PlayerInventoryItemEvents.RequestAddItem(
+                        inventoryModule,
+                        itemStack.Item,
+                        itemStack.Amount,
+                        out bool handled,
+                        out string reason);
+                    if (handled == false)
+                    {
+                        Debug.LogWarning($"Loot item add request was not handled. reason={reason}", this);
+                    }
+
                     lastCollectedAmount += addResult.AddedAmount;
                     lastRemainingAmount += addResult.RemainingAmount;
 
@@ -465,6 +475,8 @@ namespace Work.Players.Code.Inventory
             {
                 return;
             }
+
+            PlayerInventoryEventBridge.EnsureBridge(inventoryModule);
             inventoryModule.InventoryChanged += HandleInventoryChanged;
             _subscribedInventoryModule = inventoryModule;
         }

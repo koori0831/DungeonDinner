@@ -255,6 +255,7 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
+            PlayerInventoryEventBridge.EnsureBridge(inventoryModule);
             inventoryModule.InventoryChanged += HandleInventoryChanged;
             _subscribedInventoryModule = inventoryModule;
         }
@@ -413,7 +414,18 @@ namespace Work.Cook.Code.Runtime
                     continue;
                 }
 
-                int itemRemovedAmount = inventoryModule.RemoveItem(ingredientItem, remainingAmount);
+                int itemRemovedAmount = PlayerInventoryItemEvents.RequestRemoveItem(
+                    inventoryModule,
+                    ingredientItem,
+                    remainingAmount,
+                    out bool handled,
+                    out string reason);
+                if (handled == false)
+                {
+                    Debug.LogWarning($"Ingredient consume request was not handled. reason={reason}", this);
+                    return false;
+                }
+
                 if (itemRemovedAmount <= 0)
                 {
                     continue;

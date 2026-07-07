@@ -28,6 +28,7 @@ namespace Work.Cook.Code.Runtime
             DisgustingEvaluation disgusting = _disgustingRuleEvaluator.Evaluate(session, recipeMatch);
             RecipeSO recipe = recipeMatch.Recipe;
             List<PreparedIngredientState> preparedIngredients = CopyPreparedIngredients(session);
+            int qualityScore = CalculateQualityScore(session);
 
             if (disgusting.IsDisgusting)
             {
@@ -37,6 +38,7 @@ namespace Work.Cook.Code.Runtime
                     recipe != null ? recipe.Category : null,
                     BuildTags(recipe, session),
                     DishQuality.Disgusting,
+                    qualityScore,
                     true,
                     recipeMatch.IsMatched,
                     preparedIngredients,
@@ -44,7 +46,7 @@ namespace Work.Cook.Code.Runtime
             }
 
             List<FoodTagSO> tags = BuildTags(recipe, session);
-            DishQuality quality = DetermineQuality(recipe, session);
+            DishQuality quality = DetermineQuality(recipe, session, qualityScore);
             string displayName = _dishNameBuilder.BuildName(recipe, quality, preparedIngredients, false);
 
             return new DishResult(
@@ -53,6 +55,7 @@ namespace Work.Cook.Code.Runtime
                 recipe != null ? recipe.Category : null,
                 tags,
                 quality,
+                qualityScore,
                 false,
                 recipeMatch.IsMatched,
                 preparedIngredients,
@@ -93,7 +96,7 @@ namespace Work.Cook.Code.Runtime
                     if (prepared == null)
                         continue;
 
-                    AddTags(tags, prepared.AddTags);
+                    AddTags(tags, prepared.AddedTags);
                     RemoveTags(tags, prepared.RemoveTags);
                 }
             }
@@ -101,10 +104,29 @@ namespace Work.Cook.Code.Runtime
             return tags;
         }
 
-        private static DishQuality DetermineQuality(RecipeSO recipe, CookingSession session)
+        private static int CalculateQualityScore(CookingSession session)
+        {
+            if (session == null)
+                return 0;
+
+            int qualityScore = 0;
+            for (int i = 0; i < session.PreparedIngredients.Count; i++)
+            {
+                PreparedIngredientState prepared = session.PreparedIngredients[i];
+                if (prepared != null)
+                    qualityScore += prepared.QualityDelta;
+            }
+
+            return qualityScore;
+        }
+
+        private static DishQuality DetermineQuality(RecipeSO recipe, CookingSession session, int qualityScore)
         {
             if (recipe == null || session == null)
                 return DishQuality.Disgusting;
+
+            if (qualityScore >= 2)
+                return DishQuality.Perfect;
 
             bool hasAlteration = false;
             for (int i = 0; i < session.PreparedIngredients.Count; i++)
@@ -116,11 +138,11 @@ namespace Work.Cook.Code.Runtime
                 if (prepared.QualityDelta != 0 || string.IsNullOrWhiteSpace(prepared.ResultNameModifier) == false)
                     hasAlteration = true;
 
-                if (prepared.AddTags.Count > 0 || prepared.RemoveTags.Count > 0)
+                if (prepared.AddedTags.Count > 0 || prepared.RemoveTags.Count > 0)
                     hasAlteration = true;
             }
 
-            return hasAlteration ? DishQuality.Altered : DishQuality.Normal;
+            return hasAlteration == true || qualityScore != 0 ? DishQuality.Altered : DishQuality.Normal;
         }
 
         private static void AddTags(ICollection<FoodTagSO> target, IReadOnlyList<FoodTagSO> source)

@@ -17,3 +17,4 @@ MonoBehaviour:
   iconSprite: {fileID: 0}
   description: "\uD0C4\uB9DB\uC774 \uAC15\uD574\uC9C0\uACE0 \uAD34\uC2DD \uD310\uC815\uC744
     \uBC1B\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  miniGameType: 0

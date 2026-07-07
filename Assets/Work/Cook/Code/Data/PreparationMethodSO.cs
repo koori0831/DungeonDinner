@@ -9,10 +9,12 @@ namespace Work.Cook.Code.Data
         [SerializeField] private string displayName;
         [SerializeField] private Sprite iconSprite;
         [SerializeField, TextArea] private string description;
+        [SerializeField] private CookingMiniGameType miniGameType = CookingMiniGameType.None;
 
         public string MethodId => methodId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? methodId : displayName;
         public Sprite IconSprite => iconSprite;
         public string Description => description;
+        public CookingMiniGameType MiniGameType => miniGameType;
     }
 }

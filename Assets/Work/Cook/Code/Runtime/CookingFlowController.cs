@@ -158,13 +158,21 @@ namespace Work.Cook.Code.Runtime
 
         public bool SelectPreparation(IngredientSO ingredient, IngredientPreparationOption preparationOption)
         {
+            return SelectPreparation(ingredient, preparationOption, null);
+        }
+
+        public bool SelectPreparation(
+            IngredientSO ingredient,
+            IngredientPreparationOption preparationOption,
+            CookingMiniGameResult miniGameResult)
+        {
             if (_session == null || ingredient == null)
                 return false;
 
             if (IsSelectedIngredient(ingredient) == false)
                 return false;
 
-            _session.SelectPreparation(ingredient, preparationOption);
+            _session.SelectPreparation(ingredient, preparationOption, miniGameResult);
             LastResult = null;
             SetState(_session.IsEveryIngredientPrepared()
                 ? CookingFlowState.ReadyToComplete

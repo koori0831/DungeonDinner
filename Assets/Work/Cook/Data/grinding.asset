@@ -14,5 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
   methodId: grinding
   displayName: "\uBE7B\uAE30"
+  iconSprite: {fileID: 0}
   description: "\uC7AC\uB8CC\uB97C \uC808\uAD6C\uAC19\uC740\uAC83\uC5D0 \uBE7B\uC544\uC11C
     \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC95"
+  miniGameType: 0

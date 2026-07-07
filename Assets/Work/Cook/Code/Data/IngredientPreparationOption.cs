@@ -16,6 +16,8 @@ namespace Work.Cook.Code.Data
         [SerializeField] private bool causesDisgusting;
         [SerializeField] private bool addsPoison;
         [SerializeField] private string resultNameModifier;
+        [SerializeField] private List<CookingMiniGameFeedbackRule> miniGameFeedbackRules =
+            new List<CookingMiniGameFeedbackRule>();
 
         public PreparationMethodSO Method => method;
         public string DisplayName
@@ -36,9 +38,26 @@ namespace Work.Cook.Code.Data
         public bool CausesDisgusting => causesDisgusting;
         public bool AddsPoison => addsPoison;
         public string ResultNameModifier => resultNameModifier;
+        public CookingMiniGameType MiniGameType => method != null ? method.MiniGameType : CookingMiniGameType.None;
+        public IReadOnlyList<CookingMiniGameFeedbackRule> MiniGameFeedbackRules => miniGameFeedbackRules;
 
         public bool HasFlavorChange => addTags.Count > 0
                                        || removeTags.Count > 0
                                        || string.IsNullOrWhiteSpace(resultNameModifier) == false;
+
+        public CookingMiniGameFeedbackRule FindMiniGameFeedbackRule(CookingMiniGameGrade grade)
+        {
+            if (miniGameFeedbackRules == null)
+                return null;
+
+            for (int i = 0; i < miniGameFeedbackRules.Count; i++)
+            {
+                CookingMiniGameFeedbackRule rule = miniGameFeedbackRules[i];
+                if (rule != null && rule.Grade == grade)
+                    return rule;
+            }
+
+            return null;
+        }
     }
 }
