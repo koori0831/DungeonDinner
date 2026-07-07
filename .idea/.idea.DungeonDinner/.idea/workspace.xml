@@ -6,12 +6,15 @@
   <component name="ChangeListManager">
     <list default="true" id="9572947c-97ba-46be-9cdd-73cd5f25d671" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/NPCData/DialogueLines.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/NPCData/DialogueLines.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/NPCData/VisitEvents.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/NPCData/VisitEvents.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingBusinessFlowController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingBusinessFlowController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/rock_salt.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Data/rock_salt.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/Ingredient/RockSalt.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/Ingredient/RockSalt.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGamePanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGamePanel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/InventoryCookingIngredientSource.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/InventoryCookingIngredientSource.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Dispatch/Code/Runtime/DispatchController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Dispatch/Code/Runtime/DispatchController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryEventBridge.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryEventBridge.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryItemEvents.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryItemEvents.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryModule.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerLootCollector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerLootCollector.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,7 +40,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Complete-Cook-Test&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -116,6 +119,7 @@
       <workItem from="1782045479835" duration="6908000" />
       <workItem from="1782085703678" duration="47720000" />
       <workItem from="1782167805341" duration="5516000" />
+      <workItem from="1783434632747" duration="2017000" />
     </task>
     <servers />
   </component>

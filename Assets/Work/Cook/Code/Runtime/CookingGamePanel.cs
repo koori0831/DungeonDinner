@@ -1261,10 +1261,22 @@ namespace Work.Cook.Code.Runtime
             HideForPreparation(rewardView);
             HideDictionaryPanelsForPreparation();
 
+            bool showMiniGame = CurrentScreen == CookingGameScreenState.MiniGame;
             SetActive(preparationView, true);
-            SetActive(miniGameView, CurrentScreen == CookingGameScreenState.MiniGame);
+            SetActive(miniGameView, showMiniGame);
+
+            if (showMiniGame == true)
+                BringMiniGameViewToFront();
 
             _isPreparationViewIsolated = true;
+        }
+
+        private void BringMiniGameViewToFront()
+        {
+            if (miniGameView == null || miniGameView.transform.parent == null)
+                return;
+
+            miniGameView.transform.SetAsLastSibling();
         }
 
         private void HideDictionaryPanelsForPreparation()

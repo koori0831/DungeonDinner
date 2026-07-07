@@ -255,7 +255,6 @@ namespace Work.Cook.Code.Runtime
                 return;
             }
 
-            PlayerInventoryEventBridge.EnsureBridge(inventoryModule);
             inventoryModule.InventoryChanged += HandleInventoryChanged;
             _subscribedInventoryModule = inventoryModule;
         }
@@ -415,7 +414,6 @@ namespace Work.Cook.Code.Runtime
                 }
 
                 int itemRemovedAmount = PlayerInventoryItemEvents.RequestRemoveItem(
-                    inventoryModule,
                     ingredientItem,
                     remainingAmount,
                     out bool handled,

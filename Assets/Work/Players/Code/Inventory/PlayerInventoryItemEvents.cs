@@ -13,7 +13,6 @@ namespace Work.Players.Code.Inventory
         /// 아이템 단일 스택 추가 요청
         /// </summary>
         public readonly record struct InventoryItemAddRequestedEvent(
-            PlayerInventoryModule Target,
             ItemDataSO Item,
             int Amount,
             InventoryItemAddRequestResult Result
@@ -23,7 +22,6 @@ namespace Work.Players.Code.Inventory
         /// 아이템 스택 배열 추가 요청
         /// </summary>
         public readonly record struct InventoryItemsAddRequestedEvent(
-            PlayerInventoryModule Target,
             InventoryItemStack[] ItemStacks,
             int StartIndex,
             int Count,
@@ -36,7 +34,6 @@ namespace Work.Players.Code.Inventory
         /// 아이템 수량 제거 요청
         /// </summary>
         public readonly record struct InventoryItemRemoveRequestedEvent(
-            PlayerInventoryModule Target,
             ItemDataSO Item,
             int Amount,
             InventoryItemRemoveRequestResult Result
@@ -46,10 +43,14 @@ namespace Work.Players.Code.Inventory
         /// 아이템 보유 수량 조회 요청
         /// </summary>
         public readonly record struct InventoryItemAmountRequestedEvent(
-            PlayerInventoryModule Target,
             ItemDataSO Item,
             InventoryItemAmountRequestResult Result
         ) : IEvent;
+
+        /// <summary>
+        /// 플레이어 인벤토리 내용 변경 알림
+        /// </summary>
+        public readonly record struct InventoryChangedEvent : IEvent;
 
         /// <summary>
         /// 아이템 단일 스택 추가 요청 결과 수신자
@@ -145,22 +146,13 @@ namespace Work.Players.Code.Inventory
         /// 아이템 단일 스택 추가 요청 발행
         /// </summary>
         public static InventoryAddResult RequestAddItem(
-            PlayerInventoryModule target,
             ItemDataSO item,
             int amount,
             out bool handled,
             out string reason)
         {
             InventoryItemAddRequestResult result = new InventoryItemAddRequestResult(item, amount);
-            if (target == null)
-            {
-                handled = result.Handled;
-                reason = result.Reason;
-                return result.Result;
-            }
-
-            PlayerInventoryEventBridge.EnsureBridge(target);
-            Bus<InventoryItemAddRequestedEvent>.Raise(new InventoryItemAddRequestedEvent(target, item, amount, result));
+            Bus<InventoryItemAddRequestedEvent>.Raise(new InventoryItemAddRequestedEvent(item, amount, result));
             handled = result.Handled;
             reason = result.Reason;
             return result.Result;
@@ -170,7 +162,6 @@ namespace Work.Players.Code.Inventory
         /// 아이템 스택 배열 추가 요청 발행
         /// </summary>
         public static InventoryBatchAddResult RequestAddItems(
-            PlayerInventoryModule target,
             InventoryItemStack[] itemStacks,
             int startIndex,
             int count,
@@ -180,16 +171,7 @@ namespace Work.Players.Code.Inventory
             out string reason)
         {
             InventoryItemsAddRequestResult result = new InventoryItemsAddRequestResult();
-            if (target == null)
-            {
-                handled = result.Handled;
-                reason = result.Reason;
-                return result.Result;
-            }
-
-            PlayerInventoryEventBridge.EnsureBridge(target);
             Bus<InventoryItemsAddRequestedEvent>.Raise(new InventoryItemsAddRequestedEvent(
-                target,
                 itemStacks,
                 startIndex,
                 count,
@@ -205,22 +187,13 @@ namespace Work.Players.Code.Inventory
         /// 아이템 수량 제거 요청 발행
         /// </summary>
         public static int RequestRemoveItem(
-            PlayerInventoryModule target,
             ItemDataSO item,
             int amount,
             out bool handled,
             out string reason)
         {
             InventoryItemRemoveRequestResult result = new InventoryItemRemoveRequestResult();
-            if (target == null)
-            {
-                handled = result.Handled;
-                reason = result.Reason;
-                return result.RemovedAmount;
-            }
-
-            PlayerInventoryEventBridge.EnsureBridge(target);
-            Bus<InventoryItemRemoveRequestedEvent>.Raise(new InventoryItemRemoveRequestedEvent(target, item, amount, result));
+            Bus<InventoryItemRemoveRequestedEvent>.Raise(new InventoryItemRemoveRequestedEvent(item, amount, result));
             handled = result.Handled;
             reason = result.Reason;
             return result.RemovedAmount;
@@ -230,21 +203,12 @@ namespace Work.Players.Code.Inventory
         /// 아이템 보유 수량 조회 요청 발행
         /// </summary>
         public static int RequestItemAmount(
-            PlayerInventoryModule target,
             ItemDataSO item,
             out bool handled,
             out string reason)
         {
             InventoryItemAmountRequestResult result = new InventoryItemAmountRequestResult();
-            if (target == null)
-            {
-                handled = result.Handled;
-                reason = result.Reason;
-                return result.Amount;
-            }
-
-            PlayerInventoryEventBridge.EnsureBridge(target);
-            Bus<InventoryItemAmountRequestedEvent>.Raise(new InventoryItemAmountRequestedEvent(target, item, result));
+            Bus<InventoryItemAmountRequestedEvent>.Raise(new InventoryItemAmountRequestedEvent(item, result));
             handled = result.Handled;
             reason = result.Reason;
             return result.Amount;

@@ -20,7 +20,6 @@ namespace Work.Dispatch.Code.Runtime
     {
         [Header("Data")]
         [SerializeField] private DispatchMapSO dispatchMap;
-        [SerializeField] private PlayerInventoryModule inventoryModule;
         [SerializeField] private NpcConversationRunner npcRunner;
 
         [Header("UI")]
@@ -125,15 +124,6 @@ namespace Work.Dispatch.Code.Runtime
         }
 
         /// <summary>
-        /// 보상을 지급할 인벤토리 지정
-        /// </summary>
-        /// <param name="inventory">대상 인벤토리</param>
-        public void SetInventoryModule(PlayerInventoryModule inventory)
-        {
-            inventoryModule = inventory;
-        }
-
-        /// <summary>
         /// 파견 지도 UI 열기
         /// </summary>
         /// <returns>지도 열기 성공 여부</returns>
@@ -225,12 +215,6 @@ namespace Work.Dispatch.Code.Runtime
                 return false;
             }
 
-            if (inventoryModule == null)
-            {
-                Debug.LogWarning("DispatchController cannot grant dispatch rewards because PlayerInventoryModule is missing.", this);
-                return false;
-            }
-
             if (progressView == null)
             {
                 Debug.LogWarning("DispatchController needs a DispatchProgressView before starting dispatch.", this);
@@ -308,7 +292,7 @@ namespace Work.Dispatch.Code.Runtime
         {
             List<DispatchRewardResultEntry> entries = new List<DispatchRewardResultEntry>();
 
-            if (point == null || inventoryModule == null)
+            if (point == null)
             {
                 return new DispatchRewardResult(point, entries, 0, 0);
             }
@@ -347,7 +331,6 @@ namespace Work.Dispatch.Code.Runtime
 
             InventoryAddResult[] addResults = new InventoryAddResult[validRewardCount];
             InventoryBatchAddResult result = PlayerInventoryItemEvents.RequestAddItems(
-                inventoryModule,
                 itemStacks,
                 0,
                 validRewardCount,
@@ -367,7 +350,6 @@ namespace Work.Dispatch.Code.Runtime
             {
                 InventoryAddResult addResult = addResults[i];
                 int currentInventoryAmount = PlayerInventoryItemEvents.RequestItemAmount(
-                    inventoryModule,
                     addResult.Item,
                     out bool amountHandled,
                     out _);
@@ -417,26 +399,6 @@ namespace Work.Dispatch.Code.Runtime
 
         private void EnsureReferences()
         {
-            if (inventoryModule == null)
-            {
-                inventoryModule = GetComponentInParent<PlayerInventoryModule>();
-            }
-
-            if (inventoryModule == null)
-            {
-                inventoryModule = GetComponentInChildren<PlayerInventoryModule>(true);
-            }
-
-            if (inventoryModule == null)
-            {
-                inventoryModule = FindFirstObjectByType<PlayerInventoryModule>();
-            }
-
-            if (inventoryModule != null)
-            {
-                PlayerInventoryEventBridge.EnsureBridge(inventoryModule);
-            }
-
             if (npcRunner == null)
             {
                 npcRunner = GetComponentInParent<NpcConversationRunner>();

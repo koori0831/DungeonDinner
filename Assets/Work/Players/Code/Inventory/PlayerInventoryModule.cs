@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Work.Core.EventBus;
 using Work.Entities.Code;
 using Work.Items.Code;
 
@@ -27,6 +28,8 @@ namespace Work.Players.Code.Inventory
         [SerializeField]
         private int lastRemainingAmount;
 
+        private bool _isSubscribedToItemEvents;
+
         /// <summary>
         /// 인벤토리 내용이 변경될 때 발생하는 이벤트
         /// </summary>
@@ -50,6 +53,21 @@ namespace Work.Players.Code.Inventory
         private void Awake()
         {
             EnsureSlots();
+        }
+
+        private void OnEnable()
+        {
+            SubscribeItemEvents();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeItemEvents();
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeItemEvents();
         }
 
         /// <summary>
@@ -361,12 +379,85 @@ namespace Work.Players.Code.Inventory
         {
             Action<PlayerInventoryModule> handler = InventoryChanged;
 
-            if (handler == null)
+            if (handler != null)
+            {
+                handler.Invoke(this);
+            }
+
+            Bus<PlayerInventoryItemEvents.InventoryChangedEvent>.Raise(new PlayerInventoryItemEvents.InventoryChangedEvent());
+        }
+
+        private void SubscribeItemEvents()
+        {
+            if (_isSubscribedToItemEvents == true)
             {
                 return;
             }
 
-            handler.Invoke(this);
+            Bus<PlayerInventoryItemEvents.InventoryItemAddRequestedEvent>.Events += HandleAddRequested;
+            Bus<PlayerInventoryItemEvents.InventoryItemsAddRequestedEvent>.Events += HandleAddItemsRequested;
+            Bus<PlayerInventoryItemEvents.InventoryItemRemoveRequestedEvent>.Events += HandleRemoveRequested;
+            Bus<PlayerInventoryItemEvents.InventoryItemAmountRequestedEvent>.Events += HandleAmountRequested;
+            _isSubscribedToItemEvents = true;
+        }
+
+        private void UnsubscribeItemEvents()
+        {
+            if (_isSubscribedToItemEvents == false)
+            {
+                return;
+            }
+
+            Bus<PlayerInventoryItemEvents.InventoryItemAddRequestedEvent>.Events -= HandleAddRequested;
+            Bus<PlayerInventoryItemEvents.InventoryItemsAddRequestedEvent>.Events -= HandleAddItemsRequested;
+            Bus<PlayerInventoryItemEvents.InventoryItemRemoveRequestedEvent>.Events -= HandleRemoveRequested;
+            Bus<PlayerInventoryItemEvents.InventoryItemAmountRequestedEvent>.Events -= HandleAmountRequested;
+            _isSubscribedToItemEvents = false;
+        }
+
+        private void HandleAddRequested(PlayerInventoryItemEvents.InventoryItemAddRequestedEvent request)
+        {
+            if (request.Result == null || request.Result.Handled == true)
+            {
+                return;
+            }
+
+            request.Result.Complete(AddItem(request.Item, request.Amount));
+        }
+
+        private void HandleAddItemsRequested(PlayerInventoryItemEvents.InventoryItemsAddRequestedEvent request)
+        {
+            if (request.Result == null || request.Result.Handled == true)
+            {
+                return;
+            }
+
+            request.Result.Complete(AddItems(
+                request.ItemStacks,
+                request.StartIndex,
+                request.Count,
+                request.AddResults,
+                request.AddResultStartIndex));
+        }
+
+        private void HandleRemoveRequested(PlayerInventoryItemEvents.InventoryItemRemoveRequestedEvent request)
+        {
+            if (request.Result == null || request.Result.Handled == true)
+            {
+                return;
+            }
+
+            request.Result.Complete(RemoveItem(request.Item, request.Amount));
+        }
+
+        private void HandleAmountRequested(PlayerInventoryItemEvents.InventoryItemAmountRequestedEvent request)
+        {
+            if (request.Result == null || request.Result.Handled == true)
+            {
+                return;
+            }
+
+            request.Result.Complete(GetItemAmount(request.Item));
         }
 
         private void OnValidate()
