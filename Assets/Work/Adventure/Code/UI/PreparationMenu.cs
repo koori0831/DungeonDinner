@@ -2,6 +2,7 @@ using DG.Tweening;
 using System;
 using TMPro;
 using UnityEngine;
+using Work.Cook.Code.Runtime;
 using Work.Core.EventBus;
 using Work.UtillUI.Code.Fade;
 
@@ -104,6 +105,7 @@ namespace Work.Adventure.Code.UI
         {
             HideUI();
             _isAdventureAlreadyDone = false;
+            Bus<CookingBusinessAdvanceDayRequestedEvent>.Raise(new CookingBusinessAdvanceDayRequestedEvent());
         }
     }
 }

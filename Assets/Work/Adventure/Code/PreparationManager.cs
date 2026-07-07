@@ -40,6 +40,12 @@ namespace Work.Adventure.Code
             preparationMenuUI.ShowUI();
         }
 
+        public void StopAdventure()
+        {
+            preparationMenuUI.ShowUI();
+            mainUIroot.ShowUI();
+        }
+
         public void EndBusiness(CookingBusinessClosedEvent evt)
         {
             preparationMenuUI.ShowUI();

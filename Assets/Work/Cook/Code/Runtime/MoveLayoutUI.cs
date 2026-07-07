@@ -27,8 +27,7 @@ namespace Work.Cook.Code.Runtime
 
         public void ResetPos()
         { 
-            _myElement.ignoreLayout = false;
-            root.DOAnchorPos(_defaultPosition, time).SetEase(Ease.OutBack);
+            root.DOAnchorPos(_defaultPosition, time).SetEase(Ease.OutBack).OnComplete(() => _myElement.ignoreLayout = false);
         }
     }
 }

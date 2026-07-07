@@ -13155,7 +13155,6 @@ GameObject:
   - component: {fileID: 535735382}
   - component: {fileID: 535735384}
   - component: {fileID: 535735383}
-  - component: {fileID: 535735385}
   m_Layer: 5
   m_Name: TooltipPanel
   m_TagString: Untagged
@@ -13180,9 +13179,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1100, y: 651}
-  m_SizeDelta: {x: 70.1, y: 55.099976}
-  m_Pivot: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 480, y: 108}
+  m_SizeDelta: {x: 322.63, y: 55.1}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &535735383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13221,20 +13220,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 535735381}
   m_CullTransparentMesh: 1
---- !u!114 &535735385
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 535735381}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6814fd464e4db9c4d85927657e5a7807, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.TooltipUI
-  root: {fileID: 535735382}
-  text: {fileID: 1227947493}
 --- !u!1 &543587087
 GameObject:
   m_ObjectHideFlags: 0
@@ -19742,6 +19727,7 @@ MonoBehaviour:
   eventList:
   - {fileID: 11400000, guid: 4abbd978d55cea24c946882149864a03, type: 2}
   - {fileID: 11400000, guid: b56aa1fe3d21dcb4b8148331ff5351c4, type: 2}
+  - {fileID: 11400000, guid: 22bd12c99e278534cbbfe9038d9863f9, type: 2}
 --- !u!1 &860598365
 GameObject:
   m_ObjectHideFlags: 0
@@ -29008,7 +28994,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC548\uB155"
+  m_text: "\uC548\uB155\uD558\uC138\uC6A9 \uC800\uB294 \uACE0\uBBFC\uC218"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
@@ -29035,10 +29021,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20.83
-  m_fontSizeBase: 20.83
+  m_fontSize: 17.6
+  m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 3.59
   m_fontSizeMax: 17.6
   m_fontStyle: 1
@@ -42214,7 +42200,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1741439647
 RectTransform:
   m_ObjectHideFlags: 0
