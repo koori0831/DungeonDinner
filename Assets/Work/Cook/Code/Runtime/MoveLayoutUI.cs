@@ -22,13 +22,13 @@ namespace Work.Cook.Code.Runtime
         public void Move()
         {
             _myElement.ignoreLayout = true;
-            root.DOAnchorPos(offset, time);
+            root.DOAnchorPos(offset, time).SetEase(Ease.OutBack);
         }
 
         public void ResetPos()
         { 
             _myElement.ignoreLayout = false;
-            root.DOAnchorPos(_defaultPosition, time);
+            root.DOAnchorPos(_defaultPosition, time).SetEase(Ease.OutBack);
         }
     }
 }

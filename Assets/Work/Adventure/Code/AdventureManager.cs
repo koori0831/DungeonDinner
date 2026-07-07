@@ -1,24 +1,36 @@
-using Work.Adventure.Code.UI;
-using System;
+using DG.Tweening;
 using UnityEngine;
-using Work.Cook.Code.Runtime;
+using UnityEngine.UIElements;
+using Work.Adventure.Code.UI;
+using Work.Core.EventBus;
+using Work.UtillUI.Code.Fade;
 
 namespace Work.Adventure.Code
 {
     public class AdventureManager : MonoBehaviour
     {
-        [SerializeField] private PreparationMenu preparationMenuUI;
-        [SerializeField] private MainUI mainUIroot;
+        [SerializeField] private AdventureMapUI adventureMap;
+        [SerializeField] private AdventureBackground background;
 
-        public void Awake()
+        public void Init()
         {
-            preparationMenuUI.Init(() => mainUIroot.HideUI(), () => mainUIroot.ShowUI());
+            adventureMap.Init(StartAdventure);
         }
 
-        [ContextMenu("TestEndBusiness")]
-        public void EndBusiness()
+        public void OpenMap()
         {
-            preparationMenuUI.ShowUI();
+            adventureMap.OpenMap();
+        }
+
+        public void StartAdventure()
+        {
+            Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() =>
+            {
+                adventureMap.CloseMap();
+                background.Enable();
+                DOVirtual.DelayedCall(0.5f, () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent(() => background.Walking())));
+                //여기 워킹 안에 이벤트 뽑는거 연결 
+            }));
         }
     }
 }
