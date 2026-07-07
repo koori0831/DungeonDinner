@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
@@ -22,16 +23,30 @@ namespace Work.NPC.Code.Runtime
         [SerializeField, Min(0.001f)] private float characterDelay = 0.025f;
         [SerializeField, Min(1)] private int maxEntries = 12;
 
+        [Header("Enter Motion")]
+        [SerializeField] private bool playEnterAnimation = true;
+        [SerializeField, Min(0f)] private float enterDropDistance = 96f;
+        [SerializeField, Min(0f)] private float enterDuration = 0.35f;
+        [SerializeField, Min(0f)] private float enterFadeDuration = 0.14f;
+        [SerializeField] private Ease enterEase = Ease.OutBack;
+
         private readonly Queue<string> _queuedEntries = new Queue<string>();
         private readonly List<string> _completedEntries = new List<string>();
         private readonly StringBuilder _displayedText = new StringBuilder();
         private CancellationTokenSource _animationCancellationTokenSource;
+        private RectTransform _rectTransform;
+        private Sequence _enterSequence;
+        private Vector2 _defaultAnchoredPosition;
         private bool _isProcessingQueue;
         private bool _hasEntered;
+        private bool _hasDefaultAnchoredPosition;
+        private bool _isVisible;
         private int _entrySequence;
 
         private void Awake()
         {
+            _rectTransform = transform as RectTransform;
+
             if (canvasGroup == null)
                 canvasGroup = GetComponent<CanvasGroup>();
 
@@ -45,6 +60,7 @@ namespace Work.NPC.Code.Runtime
                 Debug.LogError("NpcOrderSlipPanel canvasGroup is missing. Assign it from a prefab or inspector reference.", this);
             }
 
+            CaptureDefaultAnchoredPosition();
             SetVisible(visibleOnStart);
             RefreshContentText();
         }
@@ -52,6 +68,7 @@ namespace Work.NPC.Code.Runtime
         private void OnDestroy()
         {
             CancelAnimation();
+            KillEnterSequence(false);
         }
 
         public void ResetForConversation(string eventId = "", string npcId = "")
@@ -106,9 +123,103 @@ namespace Work.NPC.Code.Runtime
             if (canvasGroup == null)
                 return;
 
-            canvasGroup.alpha = visible ? 1f : 0f;
-            canvasGroup.interactable = visible;
-            canvasGroup.blocksRaycasts = visible;
+            if (visible == true)
+            {
+                ShowVisible();
+                return;
+            }
+
+            HideVisible();
+        }
+
+        private void ShowVisible()
+        {
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+
+            if (_isVisible == true)
+            {
+                return;
+            }
+
+            _isVisible = true;
+            if (playEnterAnimation == false || enterDuration <= 0f || _rectTransform == null)
+            {
+                RestoreDefaultAnchoredPosition();
+                canvasGroup.alpha = 1f;
+                return;
+            }
+
+            PlayEnterAnimation();
+        }
+
+        private void HideVisible()
+        {
+            KillEnterSequence(false);
+            RestoreDefaultAnchoredPosition();
+            _isVisible = false;
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
+
+        private void PlayEnterAnimation()
+        {
+            CaptureDefaultAnchoredPosition();
+            KillEnterSequence(false);
+
+            _rectTransform.anchoredPosition = _defaultAnchoredPosition + Vector2.up * enterDropDistance;
+            canvasGroup.alpha = enterFadeDuration <= 0f ? 1f : 0f;
+
+            Sequence sequence = DOTween.Sequence();
+            sequence.SetTarget(this);
+            sequence.Join(_rectTransform.DOAnchorPos(_defaultAnchoredPosition, enterDuration).SetEase(enterEase));
+
+            if (enterFadeDuration > 0f)
+            {
+                sequence.Join(canvasGroup.DOFade(1f, enterFadeDuration).SetEase(Ease.OutQuad));
+            }
+
+            sequence.OnKill(() =>
+            {
+                if (_enterSequence == sequence)
+                {
+                    _enterSequence = null;
+                }
+            });
+            _enterSequence = sequence;
+        }
+
+        private void KillEnterSequence(bool complete)
+        {
+            if (_enterSequence == null)
+            {
+                return;
+            }
+
+            _enterSequence.Kill(complete);
+            _enterSequence = null;
+        }
+
+        private void CaptureDefaultAnchoredPosition()
+        {
+            if (_hasDefaultAnchoredPosition == true || _rectTransform == null)
+            {
+                return;
+            }
+
+            _defaultAnchoredPosition = _rectTransform.anchoredPosition;
+            _hasDefaultAnchoredPosition = true;
+        }
+
+        private void RestoreDefaultAnchoredPosition()
+        {
+            if (_hasDefaultAnchoredPosition == false || _rectTransform == null)
+            {
+                return;
+            }
+
+            _rectTransform.anchoredPosition = _defaultAnchoredPosition;
         }
 
         private void StartProcessingQueue()

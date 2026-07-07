@@ -274,6 +274,7 @@ namespace Work.Cook.Code.Runtime
                     GetIngredientIcon(ingredient),
                     () => ToggleIngredient(ingredient),
                     interactable,
+                    false,
                     selected);
                 if (button == null)
                 {
@@ -316,6 +317,7 @@ namespace Work.Cook.Code.Runtime
                     ingredient.DisplayName,
                     GetIngredientIcon(ingredient),
                     () => RemoveIngredient(ingredient),
+                    true,
                     true,
                     false);
                 if (button == null)
@@ -610,9 +612,10 @@ namespace Work.Cook.Code.Runtime
             Sprite icon,
             UnityEngine.Events.UnityAction action,
             bool interactable,
+            bool useSelectedPrefab,
             bool selected)
         {
-            CookingIngredientButtonView prefab = selected == true && selectedIngredientButtonPrefab != null
+            CookingIngredientButtonView prefab = useSelectedPrefab == true && selectedIngredientButtonPrefab != null
                 ? selectedIngredientButtonPrefab
                 : availableIngredientButtonPrefab;
 
@@ -844,7 +847,10 @@ namespace Work.Cook.Code.Runtime
             for (int i = root.childCount - 1; i >= 0; i--)
             {
                 Transform child = root.GetChild(i);
-                if (Application.isPlaying)
+                if (child != null)
+                    child.gameObject.SetActive(false);
+
+                if (Application.isPlaying == true)
                     Destroy(child.gameObject);
                 else
                     DestroyImmediate(child.gameObject);

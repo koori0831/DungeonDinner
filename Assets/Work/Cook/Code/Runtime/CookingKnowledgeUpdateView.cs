@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
@@ -18,14 +17,10 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private TextMeshProUGUI bodyField;
         [SerializeField] private Button nextButton;
         [SerializeField] private TMP_FontAsset fontAsset;
-        [SerializeField] private float typewriterInterval = 0.018f;
 
         private readonly List<CookingKnowledgeUpdate> _updates = new List<CookingKnowledgeUpdate>();
         private Action _completed;
         private int _index;
-        private Coroutine _typewriterRoutine;
-        private string _currentBody = string.Empty;
-        private bool _isTyping;
 
         public void Initialize(CookingGamePanel owner, CookingKnowledgeStore store, TMP_FontAsset defaultFontAsset = null)
         {
@@ -65,21 +60,31 @@ namespace Work.Cook.Code.Runtime
             if (_updates.Count == 0)
                 return false;
 
+            if (HasRequiredLayout() == false)
+            {
+                _updates.Clear();
+                return false;
+            }
+
             _completed = completed;
             _index = 0;
             gameObject.SetActive(true);
+
+            if (gameObject.activeInHierarchy == false)
+            {
+                Debug.LogWarning("CookingKnowledgeUpdateView is inactive in hierarchy. Pending knowledge update view skipped.", this);
+                _completed = null;
+                _updates.Clear();
+                gameObject.SetActive(false);
+                return false;
+            }
+
             BindCurrentUpdate();
             return true;
         }
 
         public void ShowNext()
         {
-            if (_isTyping)
-            {
-                CompleteTyping();
-                return;
-            }
-
             _index++;
             if (_index < _updates.Count)
             {
@@ -90,7 +95,6 @@ namespace Work.Cook.Code.Runtime
             Action completed = _completed;
             _completed = null;
             _updates.Clear();
-            StopTyping();
             gameObject.SetActive(false);
             completed?.Invoke();
         }
@@ -101,11 +105,6 @@ namespace Work.Cook.Code.Runtime
             EnsureLayout();
             BindButton();
             gameObject.SetActive(false);
-        }
-
-        private void OnDisable()
-        {
-            StopTyping();
         }
 
         private void BindCurrentUpdate()
@@ -119,7 +118,7 @@ namespace Work.Cook.Code.Runtime
             }
 
             SetText(titleField, BuildTitle(update));
-            StartTyping(BuildBody(update));
+            SetText(bodyField, BuildBody(update));
         }
 
         private static string BuildTitle(CookingKnowledgeUpdate update)
@@ -233,52 +232,6 @@ namespace Work.Cook.Code.Runtime
             return builder.ToString().Trim();
         }
 
-        private void StartTyping(string text)
-        {
-            StopTyping();
-            _currentBody = text ?? string.Empty;
-
-            if (bodyField == null)
-                return;
-
-            _typewriterRoutine = StartCoroutine(TypeBodyRoutine());
-        }
-
-        private IEnumerator TypeBodyRoutine()
-        {
-            _isTyping = true;
-            bodyField.text = string.Empty;
-
-            for (int i = 0; i < _currentBody.Length; i++)
-            {
-                bodyField.text = _currentBody.Substring(0, i + 1);
-                if (typewriterInterval > 0f)
-                    yield return new WaitForSecondsRealtime(typewriterInterval);
-                else
-                    yield return null;
-            }
-
-            _isTyping = false;
-            _typewriterRoutine = null;
-        }
-
-        private void CompleteTyping()
-        {
-            StopTyping();
-            SetText(bodyField, _currentBody);
-        }
-
-        private void StopTyping()
-        {
-            if (_typewriterRoutine != null)
-            {
-                StopCoroutine(_typewriterRoutine);
-                _typewriterRoutine = null;
-            }
-
-            _isTyping = false;
-        }
-
         private void EnsureReferences()
         {
             if (gamePanel == null)
@@ -291,10 +244,15 @@ namespace Work.Cook.Code.Runtime
 
         private void EnsureLayout()
         {
-            if (pageRoot != null && titleField != null && bodyField != null && nextButton != null)
+            if (HasRequiredLayout() == true)
                 return;
 
             Debug.LogError("CookingKnowledgeUpdateView is missing pageRoot/titleField/bodyField/nextButton references. Assign a prefab/inspector based panel.", this);
+        }
+
+        private bool HasRequiredLayout()
+        {
+            return pageRoot != null && titleField != null && bodyField != null && nextButton != null;
         }
 
         private void BindButton()
