@@ -42,9 +42,9 @@ namespace Work.Cook.Code.Runtime
         [SerializeField] private TextMeshProUGUI statusField;
         [SerializeField] private Button nextCustomerButton;
         [SerializeField] private Button closeShopButton;
-        [SerializeField] private string waitingText = "\uC190\uB2D8\uC744 \uAE30\uB2E4\uB9AC\uB294 \uC911\uC785\uB2C8\uB2E4.";
-        [SerializeField] private string completedText = "\uC624\uB298 \uC7A5\uC0AC\uB97C \uB9C8\uCCE4\uC2B5\uB2C8\uB2E4.";
-        [SerializeField] private string nextDayText = "\uB2E4\uC74C\uB0A0 \uC601\uC5C5\uC744 \uC2DC\uC791\uD569\uB2C8\uB2E4.";
+        [SerializeField] private string waitingText = "손님을 기다리는 중입니다.";
+        [SerializeField] private string completedText = "오늘 영업을 마감했습니다.";
+        [SerializeField] private string nextDayText = "내일 영업을 시작합니다.";
         [SerializeField] private UnityEvent businessClosed = new UnityEvent();
 
         private bool _dishHandedToCurrentCustomer;
@@ -94,7 +94,7 @@ namespace Work.Cook.Code.Runtime
 
             if (encounterDirector == null)
             {
-                SetStatus("\uC190\uB2D8 \uAD00\uB9AC\uC790\uB97C \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.");
+                SetStatus("Missing Encounter Director");
                 ShowCloseShopOnly();
                 return false;
             }
