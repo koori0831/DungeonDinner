@@ -162,10 +162,10 @@ namespace Work.Dispatch.Code.Runtime
             string itemName = entry.Item != null ? entry.Item.DisplayName : "Missing Item";
             if (entry.RemainingAmount > 0)
             {
-                return $"{itemName}  +{entry.AddedAmount} / 미획득 {entry.RemainingAmount}  보유 {entry.CurrentInventoryAmount}";
+                return $"{itemName}  +{entry.AddedAmount} / 미획득 {entry.RemainingAmount}";
             }
 
-            return $"{itemName}  +{entry.AddedAmount}  보유 {entry.CurrentInventoryAmount}";
+            return $"{itemName}  +{entry.AddedAmount}";
         }
 
         private void EnsureLayout()

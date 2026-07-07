@@ -2,35 +2,30 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Work.Cook.Code.Data;
+using Work.Core.EventBus;
 using Work.Items.Code;
 using Work.Players.Code.Inventory;
 
 namespace Work.Cook.Code.Runtime
 {
     /// <summary>
-    /// 플레이어 인벤토리의 재료 아이템을 조리 재료 선택 소스로 제공
+    /// 플레이어 인벤토리 스냅샷 이벤트를 조리 재료 선택 소스로 제공
     /// </summary>
     public sealed class InventoryCookingIngredientSource : MonoBehaviour, ICookingIngredientSource, ICookingIngredientQuantitySource,
         ICookingIngredientIconSource,
         ICookingIngredientConsumer
     {
         [SerializeField]
-        private PlayerInventoryModule inventoryModule;
-
-        [SerializeField]
         private string sourceName = "인벤토리 재료";
-
-        [SerializeField]
-        private bool searchInventoryInParents = true;
-
-        [SerializeField]
-        private bool searchInventoryInChildren = true;
 
         private readonly Dictionary<IngredientSO, int> INGREDIENT_AMOUNTS = new Dictionary<IngredientSO, int>();
         private readonly Dictionary<IngredientSO, Sprite> INGREDIENT_ICONS = new Dictionary<IngredientSO, Sprite>();
         private readonly Dictionary<IngredientSO, int> REQUIRED_INGREDIENT_AMOUNTS = new Dictionary<IngredientSO, int>();
+        private readonly Dictionary<IngredientItemDataSO, int> INGREDIENT_ITEM_AMOUNTS = new Dictionary<IngredientItemDataSO, int>();
         private readonly List<IngredientSO> AVAILABLE_INGREDIENTS = new List<IngredientSO>();
-        private PlayerInventoryModule _subscribedInventoryModule;
+        private readonly List<InventoryItemStack> CONSUME_REQUESTS = new List<InventoryItemStack>();
+
+        private bool _isSubscribedToInventoryEvents;
 
         /// <summary>
         /// 재료 목록이 변경될 때 발생하는 이벤트
@@ -44,31 +39,13 @@ namespace Work.Cook.Code.Runtime
 
         private void OnEnable()
         {
-            ResolveInventoryModule();
-            SubscribeInventory();
+            SubscribeInventoryEvents();
             RefreshCache(true);
         }
 
         private void OnDisable()
         {
-            UnsubscribeInventory();
-        }
-
-        /// <summary>
-        /// 사용할 인벤토리 모듈 지정
-        /// </summary>
-        /// <param name="newInventoryModule">조리 재료 소스로 사용할 인벤토리 모듈</param>
-        public void SetInventoryModule(PlayerInventoryModule newInventoryModule)
-        {
-            if (inventoryModule == newInventoryModule)
-            {
-                return;
-            }
-
-            UnsubscribeInventory();
-            inventoryModule = newInventoryModule;
-            SubscribeInventory();
-            RefreshCache(true);
+            UnsubscribeInventoryEvents();
         }
 
         /// <summary>
@@ -147,12 +124,6 @@ namespace Work.Cook.Code.Runtime
         {
             RefreshCache(false);
 
-            if (inventoryModule == null)
-            {
-                reason = "Player inventory is missing.";
-                return false;
-            }
-
             if (TryBuildRequiredIngredientAmounts(ingredients, REQUIRED_INGREDIENT_AMOUNTS, out reason) == false)
             {
                 return false;
@@ -218,75 +189,66 @@ namespace Work.Cook.Code.Runtime
             return true;
         }
 
-        private void ResolveInventoryModule()
+        private void SubscribeInventoryEvents()
         {
-            if (inventoryModule != null)
+            if (_isSubscribedToInventoryEvents == true)
             {
                 return;
             }
 
-            if (searchInventoryInParents == true)
-            {
-                inventoryModule = GetComponentInParent<PlayerInventoryModule>();
-
-                if (inventoryModule != null)
-                {
-                    return;
-                }
-            }
-
-            if (searchInventoryInChildren == true)
-            {
-                inventoryModule = GetComponentInChildren<PlayerInventoryModule>();
-            }
+            Bus<InventoryChangedEvent>.Events += HandleInventoryChanged;
+            Bus<InventorySnapshotPublishedEvent>.Events += HandleInventorySnapshotPublished;
+            _isSubscribedToInventoryEvents = true;
         }
 
-        private void SubscribeInventory()
+        private void UnsubscribeInventoryEvents()
         {
-            if (_subscribedInventoryModule == inventoryModule)
+            if (_isSubscribedToInventoryEvents == false)
             {
                 return;
             }
 
-            UnsubscribeInventory();
-
-            if (inventoryModule == null)
-            {
-                return;
-            }
-
-            inventoryModule.InventoryChanged += HandleInventoryChanged;
-            _subscribedInventoryModule = inventoryModule;
+            Bus<InventoryChangedEvent>.Events -= HandleInventoryChanged;
+            Bus<InventorySnapshotPublishedEvent>.Events -= HandleInventorySnapshotPublished;
+            _isSubscribedToInventoryEvents = false;
         }
 
-        private void UnsubscribeInventory()
+        private void HandleInventoryChanged(InventoryChangedEvent evt)
         {
-            if (_subscribedInventoryModule == null)
-            {
-                return;
-            }
-
-            _subscribedInventoryModule.InventoryChanged -= HandleInventoryChanged;
-            _subscribedInventoryModule = null;
-        }
-
-        private void HandleInventoryChanged(PlayerInventoryModule changedInventoryModule)
-        {
-            if (changedInventoryModule != inventoryModule)
-            {
-                return;
-            }
-
             RefreshCache(true);
+        }
+
+        private void HandleInventorySnapshotPublished(InventorySnapshotPublishedEvent evt)
+        {
+            if (evt.ItemStacks == null || evt.Count <= 0)
+            {
+                return;
+            }
+
+            int itemStackCount = Mathf.Min(evt.Count, evt.ItemStacks.Length);
+            for (int i = 0; i < itemStackCount; i++)
+            {
+                InventoryItemStack itemStack = evt.ItemStacks[i];
+                if (itemStack.IsValid == false)
+                {
+                    continue;
+                }
+
+                IngredientItemDataSO ingredientItem = itemStack.Item as IngredientItemDataSO;
+                if (ingredientItem == null || ingredientItem.IsValidIngredientItem == false)
+                {
+                    continue;
+                }
+
+                AddIngredientItem(ingredientItem, itemStack.Amount);
+            }
         }
 
         private void RefreshCache(bool notifyChanged)
         {
-            ResolveInventoryModule();
-            SubscribeInventory();
-            InventoryIngredientQuery.FillIngredientAmounts(inventoryModule, INGREDIENT_AMOUNTS);
-            FillIngredientIcons();
-            AVAILABLE_INGREDIENTS.Clear();
+            SubscribeInventoryEvents();
+            ClearCache();
+            Bus<InventorySnapshotRequestedEvent>.Raise(new InventorySnapshotRequestedEvent());
 
             foreach (KeyValuePair<IngredientSO, int> kvp in INGREDIENT_AMOUNTS)
             {
@@ -304,36 +266,47 @@ namespace Work.Cook.Code.Runtime
             }
         }
 
-        private void FillIngredientIcons()
+        private void ClearCache()
         {
+            INGREDIENT_AMOUNTS.Clear();
             INGREDIENT_ICONS.Clear();
+            INGREDIENT_ITEM_AMOUNTS.Clear();
+            AVAILABLE_INGREDIENTS.Clear();
+        }
 
-            if (inventoryModule == null)
+        private void AddIngredientItem(IngredientItemDataSO ingredientItem, int amount)
+        {
+            if (ingredientItem == null || amount <= 0 || ingredientItem.IsValidIngredientItem == false)
             {
                 return;
             }
 
-            int slotCapacity = inventoryModule.SlotCapacity;
-            for (int i = 0; i < slotCapacity; i++)
+            IngredientSO ingredient = ingredientItem.Ingredient;
+            if (ingredient == null)
             {
-                InventorySlot slot = inventoryModule.GetSlot(i);
-                if (slot == null || slot.IsEmpty == true)
-                {
-                    continue;
-                }
+                return;
+            }
 
-                IngredientItemDataSO ingredientItem = slot.Item as IngredientItemDataSO;
-                if (ingredientItem == null || ingredientItem.IsValidIngredientItem == false)
-                {
-                    continue;
-                }
+            if (INGREDIENT_AMOUNTS.TryGetValue(ingredient, out int ingredientAmount) == true)
+            {
+                INGREDIENT_AMOUNTS[ingredient] = ingredientAmount + amount;
+            }
+            else
+            {
+                INGREDIENT_AMOUNTS.Add(ingredient, amount);
+            }
 
-                IngredientSO ingredient = ingredientItem.Ingredient;
-                if (ingredient == null || INGREDIENT_ICONS.ContainsKey(ingredient) == true)
-                {
-                    continue;
-                }
+            if (INGREDIENT_ITEM_AMOUNTS.TryGetValue(ingredientItem, out int itemAmount) == true)
+            {
+                INGREDIENT_ITEM_AMOUNTS[ingredientItem] = itemAmount + amount;
+            }
+            else
+            {
+                INGREDIENT_ITEM_AMOUNTS.Add(ingredientItem, amount);
+            }
 
+            if (INGREDIENT_ICONS.ContainsKey(ingredient) == false)
+            {
                 Sprite icon = ItemIconUtility.ResolveIcon(ingredientItem);
                 INGREDIENT_ICONS.Add(ingredient, icon != null ? icon : CookingTempVisualUtility.ResolveIngredientIcon(ingredient));
             }
@@ -388,24 +361,17 @@ namespace Work.Cook.Code.Runtime
         private bool TryConsumeIngredientAmount(IngredientSO ingredient, int amount, out int removedAmount)
         {
             removedAmount = 0;
+            CONSUME_REQUESTS.Clear();
 
-            if (inventoryModule == null || ingredient == null || amount <= 0)
+            if (ingredient == null || amount <= 0)
             {
                 return false;
             }
 
             int remainingAmount = amount;
-            int slotCapacity = inventoryModule.SlotCapacity;
-
-            for (int i = 0; i < slotCapacity; i++)
+            foreach (KeyValuePair<IngredientItemDataSO, int> kvp in INGREDIENT_ITEM_AMOUNTS)
             {
-                InventorySlot slot = inventoryModule.GetSlot(i);
-                if (slot == null || slot.IsEmpty == true)
-                {
-                    continue;
-                }
-
-                IngredientItemDataSO ingredientItem = slot.Item as IngredientItemDataSO;
+                IngredientItemDataSO ingredientItem = kvp.Key;
                 if (ingredientItem == null
                     || ingredientItem.IsValidIngredientItem == false
                     || ingredientItem.Ingredient != ingredient)
@@ -413,32 +379,36 @@ namespace Work.Cook.Code.Runtime
                     continue;
                 }
 
-                int itemRemovedAmount = PlayerInventoryItemEvents.RequestRemoveItem(
-                    ingredientItem,
-                    remainingAmount,
-                    out bool handled,
-                    out string reason);
-                if (handled == false)
-                {
-                    Debug.LogWarning($"Ingredient consume request was not handled. reason={reason}", this);
-                    return false;
-                }
-
+                int itemRemovedAmount = Mathf.Min(remainingAmount, kvp.Value);
                 if (itemRemovedAmount <= 0)
                 {
                     continue;
                 }
 
+                CONSUME_REQUESTS.Add(new InventoryItemStack(ingredientItem, itemRemovedAmount));
                 removedAmount += itemRemovedAmount;
                 remainingAmount -= itemRemovedAmount;
 
                 if (remainingAmount <= 0)
                 {
-                    return true;
+                    break;
                 }
             }
 
-            return removedAmount >= amount;
+            if (removedAmount < amount)
+            {
+                CONSUME_REQUESTS.Clear();
+                return false;
+            }
+
+            for (int i = 0; i < CONSUME_REQUESTS.Count; i++)
+            {
+                InventoryItemStack itemStack = CONSUME_REQUESTS[i];
+                Bus<InventoryItemRemoveRequestedEvent>.Raise(new InventoryItemRemoveRequestedEvent(itemStack.Item, itemStack.Amount));
+            }
+
+            CONSUME_REQUESTS.Clear();
+            return true;
         }
 
         private static string GetIngredientName(IngredientSO ingredient)

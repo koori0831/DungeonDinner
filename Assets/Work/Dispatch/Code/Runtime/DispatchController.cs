@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Work.Core.EventBus;
 using Work.Dispatch.Code.Data;
 using Work.Items.Code;
 using Work.NPC.Code.Runtime;
@@ -329,51 +330,26 @@ namespace Work.Dispatch.Code.Runtime
                 return new DispatchRewardResult(point, entries, 0, 0);
             }
 
-            InventoryAddResult[] addResults = new InventoryAddResult[validRewardCount];
-            InventoryBatchAddResult result = PlayerInventoryItemEvents.RequestAddItems(
-                itemStacks,
-                0,
-                validRewardCount,
-                addResults,
-                0,
-                out bool handled,
-                out string reason);
-            if (handled == false)
-            {
-                Debug.LogWarning($"Dispatch reward add request was not handled. reason={reason}", this);
-            }
+            Bus<InventoryItemsAddRequestedEvent>.Raise(new InventoryItemsAddRequestedEvent(itemStacks, 0, validRewardCount));
 
-            lastRewardAddedAmount = result.AddedAmount;
-            lastRewardRemainingAmount = result.RemainingAmount;
+            int addedAmount = 0;
 
             for (int i = 0; i < validRewardCount; i++)
             {
-                InventoryAddResult addResult = addResults[i];
-                int currentInventoryAmount = PlayerInventoryItemEvents.RequestItemAmount(
-                    addResult.Item,
-                    out bool amountHandled,
-                    out _);
-                if (amountHandled == false)
-                {
-                    currentInventoryAmount = 0;
-                }
+                InventoryItemStack itemStack = itemStacks[i];
+                addedAmount += itemStack.Amount;
 
                 entries.Add(new DispatchRewardResultEntry(
-                    addResult.Item,
-                    addResult.RequestedAmount,
-                    addResult.AddedAmount,
-                    addResult.RemainingAmount,
-                    currentInventoryAmount));
+                    itemStack.Item,
+                    itemStack.Amount,
+                    itemStack.Amount,
+                    0,
+                    0));
             }
 
-            if (result.IsFullyAdded == false)
-            {
-                Debug.LogWarning(
-                    $"Dispatch rewards were only partially added. added={result.AddedAmount}, remaining={result.RemainingAmount}",
-                    this);
-            }
-
-            return new DispatchRewardResult(point, entries, result.AddedAmount, result.RemainingAmount);
+            lastRewardAddedAmount = addedAmount;
+            lastRewardRemainingAmount = 0;
+            return new DispatchRewardResult(point, entries, addedAmount, 0);
         }
 
         private void ShowResultOrComplete(DispatchRewardResult result)

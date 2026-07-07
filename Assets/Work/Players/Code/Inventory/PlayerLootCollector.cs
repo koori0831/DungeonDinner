@@ -130,23 +130,9 @@ namespace Work.Players.Code.Inventory
                         continue;
                     }
 
-                    InventoryAddResult addResult = PlayerInventoryItemEvents.RequestAddItem(
-                        itemStack.Item,
-                        itemStack.Amount,
-                        out bool handled,
-                        out string reason);
-                    if (handled == false)
-                    {
-                        Debug.LogWarning($"Loot item add request was not handled. reason={reason}", this);
-                    }
-
-                    lastCollectedAmount += addResult.AddedAmount;
-                    lastRemainingAmount += addResult.RemainingAmount;
-
-                    if (addResult.AddedAmount > 0)
-                    {
-                        lootItem.ConsumeAmount(addResult.AddedAmount);
-                    }
+                    Bus<InventoryItemAddRequestedEvent>.Raise(new InventoryItemAddRequestedEvent(itemStack.Item, itemStack.Amount));
+                    lastCollectedAmount += itemStack.Amount;
+                    lootItem.ConsumeAmount(itemStack.Amount);
 
                     if (lootItem == null || lootItem.IsLootable == false)
                     {
@@ -208,7 +194,7 @@ namespace Work.Players.Code.Inventory
             RemoveLootItem(evt.LootItem);
         }
 
-        private void HandleInventoryChanged(PlayerInventoryItemEvents.InventoryChangedEvent evt)
+        private void HandleInventoryChanged(InventoryChangedEvent evt)
         {
             if (_isCollecting == true)
             {
@@ -423,7 +409,7 @@ namespace Work.Players.Code.Inventory
                 return;
             }
 
-            Bus<PlayerInventoryItemEvents.InventoryChangedEvent>.Events += HandleInventoryChanged;
+            Bus<InventoryChangedEvent>.Events += HandleInventoryChanged;
             _isSubscribedToInventoryEvents = true;
         }
 
@@ -434,7 +420,7 @@ namespace Work.Players.Code.Inventory
                 return;
             }
 
-            Bus<PlayerInventoryItemEvents.InventoryChangedEvent>.Events -= HandleInventoryChanged;
+            Bus<InventoryChangedEvent>.Events -= HandleInventoryChanged;
             _isSubscribedToInventoryEvents = false;
         }
 

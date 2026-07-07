@@ -29,6 +29,7 @@ namespace Work.Players.Code.Inventory
         private int lastRemainingAmount;
 
         private bool _isSubscribedToItemEvents;
+        private InventoryItemStack[] _snapshotItemStacks = new InventoryItemStack[DEFAULT_SLOT_CAPACITY];
 
         /// <summary>
         /// 인벤토리 내용이 변경될 때 발생하는 이벤트
@@ -384,7 +385,7 @@ namespace Work.Players.Code.Inventory
                 handler.Invoke(this);
             }
 
-            Bus<PlayerInventoryItemEvents.InventoryChangedEvent>.Raise(new PlayerInventoryItemEvents.InventoryChangedEvent());
+            Bus<InventoryChangedEvent>.Raise(new InventoryChangedEvent());
         }
 
         private void SubscribeItemEvents()
@@ -394,10 +395,10 @@ namespace Work.Players.Code.Inventory
                 return;
             }
 
-            Bus<PlayerInventoryItemEvents.InventoryItemAddRequestedEvent>.Events += HandleAddRequested;
-            Bus<PlayerInventoryItemEvents.InventoryItemsAddRequestedEvent>.Events += HandleAddItemsRequested;
-            Bus<PlayerInventoryItemEvents.InventoryItemRemoveRequestedEvent>.Events += HandleRemoveRequested;
-            Bus<PlayerInventoryItemEvents.InventoryItemAmountRequestedEvent>.Events += HandleAmountRequested;
+            Bus<InventoryItemAddRequestedEvent>.Events += HandleAddRequested;
+            Bus<InventoryItemsAddRequestedEvent>.Events += HandleAddItemsRequested;
+            Bus<InventoryItemRemoveRequestedEvent>.Events += HandleRemoveRequested;
+            Bus<InventorySnapshotRequestedEvent>.Events += HandleSnapshotRequested;
             _isSubscribedToItemEvents = true;
         }
 
@@ -408,56 +409,60 @@ namespace Work.Players.Code.Inventory
                 return;
             }
 
-            Bus<PlayerInventoryItemEvents.InventoryItemAddRequestedEvent>.Events -= HandleAddRequested;
-            Bus<PlayerInventoryItemEvents.InventoryItemsAddRequestedEvent>.Events -= HandleAddItemsRequested;
-            Bus<PlayerInventoryItemEvents.InventoryItemRemoveRequestedEvent>.Events -= HandleRemoveRequested;
-            Bus<PlayerInventoryItemEvents.InventoryItemAmountRequestedEvent>.Events -= HandleAmountRequested;
+            Bus<InventoryItemAddRequestedEvent>.Events -= HandleAddRequested;
+            Bus<InventoryItemsAddRequestedEvent>.Events -= HandleAddItemsRequested;
+            Bus<InventoryItemRemoveRequestedEvent>.Events -= HandleRemoveRequested;
+            Bus<InventorySnapshotRequestedEvent>.Events -= HandleSnapshotRequested;
             _isSubscribedToItemEvents = false;
         }
 
-        private void HandleAddRequested(PlayerInventoryItemEvents.InventoryItemAddRequestedEvent request)
+        private void HandleAddRequested(InventoryItemAddRequestedEvent request)
         {
-            if (request.Result == null || request.Result.Handled == true)
-            {
-                return;
-            }
-
-            request.Result.Complete(AddItem(request.Item, request.Amount));
+            AddItem(request.Item, request.Amount);
         }
 
-        private void HandleAddItemsRequested(PlayerInventoryItemEvents.InventoryItemsAddRequestedEvent request)
+        private void HandleAddItemsRequested(InventoryItemsAddRequestedEvent request)
         {
-            if (request.Result == null || request.Result.Handled == true)
-            {
-                return;
-            }
-
-            request.Result.Complete(AddItems(
+            AddItems(
                 request.ItemStacks,
                 request.StartIndex,
-                request.Count,
-                request.AddResults,
-                request.AddResultStartIndex));
+                request.Count);
         }
 
-        private void HandleRemoveRequested(PlayerInventoryItemEvents.InventoryItemRemoveRequestedEvent request)
+        private void HandleRemoveRequested(InventoryItemRemoveRequestedEvent request)
         {
-            if (request.Result == null || request.Result.Handled == true)
+            RemoveItem(request.Item, request.Amount);
+        }
+
+        private void HandleSnapshotRequested(InventorySnapshotRequestedEvent request)
+        {
+            EnsureSlots();
+            EnsureSnapshotBuffer();
+
+            int stackCount = 0;
+            for (int i = 0; i < slots.Length; i++)
+            {
+                InventorySlot slot = slots[i];
+                if (slot == null || slot.IsEmpty == true)
+                {
+                    continue;
+                }
+
+                _snapshotItemStacks[stackCount] = new InventoryItemStack(slot.Item, slot.Amount);
+                stackCount++;
+            }
+
+            Bus<InventorySnapshotPublishedEvent>.Raise(new InventorySnapshotPublishedEvent(_snapshotItemStacks, stackCount));
+        }
+
+        private void EnsureSnapshotBuffer()
+        {
+            if (_snapshotItemStacks != null && _snapshotItemStacks.Length >= slots.Length)
             {
                 return;
             }
 
-            request.Result.Complete(RemoveItem(request.Item, request.Amount));
-        }
-
-        private void HandleAmountRequested(PlayerInventoryItemEvents.InventoryItemAmountRequestedEvent request)
-        {
-            if (request.Result == null || request.Result.Handled == true)
-            {
-                return;
-            }
-
-            request.Result.Complete(GetItemAmount(request.Item));
+            _snapshotItemStacks = new InventoryItemStack[slots.Length];
         }
 
         private void OnValidate()
