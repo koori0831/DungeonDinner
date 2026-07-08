@@ -16,6 +16,7 @@ namespace Work.Adventure.Code.UI
     {
         [SerializeField] private RectTransform root;
         [SerializeField] private TextMeshProUGUI text;
+        [SerializeField] private float offset = 30f;
 
         public void Awake()
         {
@@ -90,9 +91,9 @@ namespace Work.Adventure.Code.UI
             text.ForceMeshUpdate();
 
             Vector2 textSize = text.GetRenderedValues(false);
-
+            Debug.Log(textSize);
             Vector2 size = root.sizeDelta;
-            size.x = textSize.x + 20f; // 좌우 여백
+            size.x = textSize.x + offset; // 좌우 여백
             root.sizeDelta = size;
         }
     }

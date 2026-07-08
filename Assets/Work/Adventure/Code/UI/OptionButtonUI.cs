@@ -36,12 +36,13 @@ namespace Work.Adventure.Code.UI
                 button.onClick.AddListener(() => resultDialog?.Invoke(optionInfo));
         }
 
-        private void OnMouseEnter()
+        public void MouseEnter()
         {
+            Debug.Log("Mouse Enter");
             Bus<OnEnableTooltipEvent>.Raise(new OnEnableTooltipEvent(_currentOption.OptionTooltip));
         }
 
-        private void OnMouseExit()
+        public void MouseExit()
         {
             Bus<OnDisableTooltipEvent>.Raise(new OnDisableTooltipEvent());
         }
@@ -49,6 +50,7 @@ namespace Work.Adventure.Code.UI
         private void OnDestroy()
         {
             button.onClick.RemoveAllListeners();
+            Bus<OnDisableTooltipEvent>.Raise(new OnDisableTooltipEvent());
         }
     }
 }

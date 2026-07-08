@@ -81,7 +81,8 @@ MonoBehaviour:
           method: []
         - <Context>k__BackingField: "\uCE7C\uC744 \uC9D1\uC5B4\uC11C \uAE38\uC5D0\uC11C
             \uBA40\uB9AC \uB5A8\uC5B4\uC9C4\uACF3\uC5D0 \uB450\uC5C8\uC2B5\uB2C8\uB2E4."
-          method: []
+          method:
+          - rid: 3674030379573706828
     - rid: 3674030371714105432
       type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
       data: 
@@ -92,3 +93,6 @@ MonoBehaviour:
       type: {class: AdventureItemReward, ns: Work.Adventure.Code.Rewards, asm: Assembly-CSharp}
       data:
         itemSO: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
+    - rid: 3674030379573706828
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data: 
