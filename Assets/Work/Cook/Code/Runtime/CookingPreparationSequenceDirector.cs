@@ -34,7 +34,7 @@ namespace Work.Cook.Code.Runtime
             EnsureReferences();
             CaptureDefaultsIfNeeded();
 
-            if (gamePanel == null || gamePanel.CurrentScreen != CookingGameScreenState.Preparation)
+            if (gamePanel == null || IsPreparationStageState(gamePanel.CurrentScreen) == false)
             {
                 MoveBoardToHiddenPositionInstantly();
             }
@@ -48,7 +48,7 @@ namespace Work.Cook.Code.Runtime
             if (gamePanel != null)
             {
                 gamePanel.ScreenChanged += HandleScreenChanged;
-                _isPreparationActive = gamePanel.CurrentScreen == CookingGameScreenState.Preparation;
+                _isPreparationActive = IsPreparationStageState(gamePanel.CurrentScreen);
             }
 
             if (_isPreparationActive == false)
@@ -74,9 +74,11 @@ namespace Work.Cook.Code.Runtime
 
         private void HandleScreenChanged(CookingGameScreenState state)
         {
-            if (state == CookingGameScreenState.Preparation)
+            if (IsPreparationStageState(state) == true)
             {
-                PlayPreparationEnterSequence();
+                if (_isPreparationActive == false)
+                    PlayPreparationEnterSequence();
+
                 return;
             }
 
@@ -211,6 +213,12 @@ namespace Work.Cook.Code.Runtime
 
             _activeSequence.Kill();
             _activeSequence = null;
+        }
+
+        private static bool IsPreparationStageState(CookingGameScreenState state)
+        {
+            return state == CookingGameScreenState.Preparation
+                   || state == CookingGameScreenState.MiniGame;
         }
     }
 }

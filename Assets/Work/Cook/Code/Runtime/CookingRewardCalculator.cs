@@ -17,6 +17,8 @@ namespace Work.Cook.Code.Runtime
         [SerializeField, Min(0)] private int perfectDishBonus = 5;
         [SerializeField, Min(0)] private int alteredDishBonus;
         [SerializeField, Min(0)] private int normalDishBonus;
+        [SerializeField, Min(0)] private int qualityScoreBonusPerPoint = 2;
+        [SerializeField, Min(0)] private int qualityScorePenaltyPerPoint = 2;
 
         public int CalculateAmount(NpcDishMatchReport matchReport, DishResult dishResult)
         {
@@ -25,6 +27,7 @@ namespace Work.Cook.Code.Runtime
 
             int amount = GetBaseReward(matchReport.Evaluation?.Result ?? NpcConversationResult.Wrong);
             amount += GetDishQualityBonus(dishResult);
+            amount += GetQualityScoreRewardDelta(dishResult);
             return Mathf.Max(0, amount);
         }
 
@@ -62,6 +65,17 @@ namespace Work.Cook.Code.Runtime
                 default:
                     return 0;
             }
+        }
+
+        private int GetQualityScoreRewardDelta(DishResult dishResult)
+        {
+            if (dishResult == null || dishResult.QualityScore == 0)
+                return 0;
+
+            if (dishResult.QualityScore > 0)
+                return dishResult.QualityScore * qualityScoreBonusPerPoint;
+
+            return dishResult.QualityScore * qualityScorePenaltyPerPoint;
         }
     }
 

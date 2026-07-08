@@ -11,6 +11,7 @@ namespace Work.Cook.Code.Runtime
         public FoodCategorySO Category { get; }
         public IReadOnlyList<FoodTagSO> Tags { get; }
         public DishQuality Quality { get; }
+        public int QualityScore { get; }
         public bool IsDisgusting { get; }
         public bool IsRecipeMatched { get; }
         public IReadOnlyList<PreparedIngredientState> PreparedIngredients { get; }
@@ -25,6 +26,7 @@ namespace Work.Cook.Code.Runtime
             FoodCategorySO category,
             IReadOnlyList<FoodTagSO> tags,
             DishQuality quality,
+            int qualityScore,
             bool isDisgusting,
             bool isRecipeMatched,
             IReadOnlyList<PreparedIngredientState> preparedIngredients,
@@ -35,6 +37,7 @@ namespace Work.Cook.Code.Runtime
             Category = category;
             Tags = tags ?? new List<FoodTagSO>();
             Quality = quality;
+            QualityScore = qualityScore;
             IsDisgusting = isDisgusting;
             IsRecipeMatched = isRecipeMatched;
             PreparedIngredients = preparedIngredients ?? new List<PreparedIngredientState>();
@@ -62,7 +65,7 @@ namespace Work.Cook.Code.Runtime
         public string BuildDebugSummary()
         {
             return $"DishResult name={DisplayName}, recipe={RecipeId}, category={CategoryId}, " +
-                   $"quality={Quality}, disgusting={IsDisgusting}, tags={BuildTagText()}";
+                   $"quality={Quality}, qualityScore={QualityScore}, disgusting={IsDisgusting}, tags={BuildTagText()}";
         }
     }
 }

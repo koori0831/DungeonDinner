@@ -29,6 +29,7 @@ MonoBehaviour:
     causesDisgusting: 0
     addsPoison: 0
     resultNameModifier: 
+    miniGameFeedbackRules: []
   - method: {fileID: 11400000, guid: 04676038e45c8fe4ab12e5097dce2760, type: 2}
     displayNameOverride: "\uD55C\uC785 \uD06C\uAE30\uB85C \uC370\uAE30"
     description: "\uD55C\uC785\uC5D0 \uB4E4\uC5B4\uAC00\uB294 \uD06C\uAE30\uB85C
@@ -39,6 +40,35 @@ MonoBehaviour:
     causesDisgusting: 0
     addsPoison: 0
     resultNameModifier: 
+    miniGameFeedbackRules:
+    - grade: 0
+      qualityDelta: -1
+      addTags:
+      - {fileID: 11400000, guid: c99f4992c1b88714f89a62950433eacf, type: 2}
+      removeTags: []
+      resultNameModifier: "\uAC70\uCE60\uAC8C"
+      feedbackText: "\uCE7C\uC9C8\uC774 \uAC70\uCE60\uC5B4 \uC2DD\uAC10\uC774 \uD22C\uBC15\uD574\uC84C\uC2B5\uB2C8\uB2E4."
+    - grade: 1
+      qualityDelta: 0
+      addTags: []
+      removeTags: []
+      resultNameModifier:
+      feedbackText: "\uBB34\uB09C\uD558\uAC8C \uC190\uC9C8\uD588\uC2B5\uB2C8\uB2E4."
+    - grade: 2
+      qualityDelta: 1
+      addTags: []
+      removeTags: []
+      resultNameModifier: "\uAE54\uB054\uD558\uAC8C"
+      feedbackText: "\uCE7C\uC9C8\uC774 \uC77C\uC815\uD574 \uC644\uC131\uB3C4\uAC00
+        \uC62C\uB790\uC2B5\uB2C8\uB2E4."
+    - grade: 3
+      qualityDelta: 2
+      addTags:
+      - {fileID: 11400000, guid: f73414f9cae048d47bcb30ad6215c784, type: 2}
+      removeTags: []
+      resultNameModifier: "\uC815\uAD50\uD558\uAC8C"
+      feedbackText: "\uC7AC\uB8CC \uACB0\uC744 \uC644\uBCBD\uD558\uAC8C \uC0B4\uB824
+        \uBD80\uB4DC\uB7EC\uC6B4 \uC2DD\uAC10\uC774 \uB354\uD574\uC84C\uC2B5\uB2C8\uB2E4."
   - method: {fileID: 11400000, guid: 9a9ab2bc5e82e934cb3c1c1b1246b55d, type: 2}
     displayNameOverride: "\uC798\uAC8C \uB2E4\uC9C0\uAE30"
     description: "\uC544\uC8FC \uC791\uAC8C \uB2E4\uC838\uC11C \uC0AC\uC6A9\uD558\uB294
@@ -50,3 +80,32 @@ MonoBehaviour:
     causesDisgusting: 0
     addsPoison: 0
     resultNameModifier: 
+    miniGameFeedbackRules:
+    - grade: 0
+      qualityDelta: -1
+      addTags:
+      - {fileID: 11400000, guid: c99f4992c1b88714f89a62950433eacf, type: 2}
+      removeTags: []
+      resultNameModifier: "\uAC70\uCE60\uAC8C"
+      feedbackText: "\uCE7C\uC9C8\uC774 \uAC70\uCE60\uC5B4 \uC2DD\uAC10\uC774 \uD22C\uBC15\uD574\uC84C\uC2B5\uB2C8\uB2E4."
+    - grade: 1
+      qualityDelta: 0
+      addTags: []
+      removeTags: []
+      resultNameModifier:
+      feedbackText: "\uBB34\uB09C\uD558\uAC8C \uC190\uC9C8\uD588\uC2B5\uB2C8\uB2E4."
+    - grade: 2
+      qualityDelta: 1
+      addTags: []
+      removeTags: []
+      resultNameModifier: "\uAE54\uB054\uD558\uAC8C"
+      feedbackText: "\uCE7C\uC9C8\uC774 \uC77C\uC815\uD574 \uC644\uC131\uB3C4\uAC00
+        \uC62C\uB790\uC2B5\uB2C8\uB2E4."
+    - grade: 3
+      qualityDelta: 2
+      addTags:
+      - {fileID: 11400000, guid: f73414f9cae048d47bcb30ad6215c784, type: 2}
+      removeTags: []
+      resultNameModifier: "\uC815\uAD50\uD558\uAC8C"
+      feedbackText: "\uC7AC\uB8CC \uACB0\uC744 \uC644\uBCBD\uD558\uAC8C \uC0B4\uB824
+        \uBD80\uB4DC\uB7EC\uC6B4 \uC2DD\uAC10\uC774 \uB354\uD574\uC84C\uC2B5\uB2C8\uB2E4."

@@ -796,8 +796,8 @@ namespace Work.Cook.Code.Runtime
             List<string> facts = new List<string>();
             if (prepared.QualityDelta != 0)
                 facts.Add($"품질 {prepared.QualityDelta:+#;-#;0}");
-            if (prepared.AddTags.Count > 0)
-                facts.Add($"추가 {BuildTagDisplayText(prepared.AddTags)}");
+            if (prepared.AddedTags.Count > 0)
+                facts.Add($"추가 {BuildTagDisplayText(prepared.AddedTags)}");
             if (prepared.RemoveTags.Count > 0)
                 facts.Add($"제거 {BuildTagDisplayText(prepared.RemoveTags)}");
             if (string.IsNullOrWhiteSpace(prepared.ResultNameModifier) == false)

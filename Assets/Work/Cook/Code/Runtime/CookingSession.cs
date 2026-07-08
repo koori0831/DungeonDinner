@@ -88,6 +88,14 @@ namespace Work.Cook.Code.Runtime
 
         public void SelectPreparation(IngredientSO ingredient, IngredientPreparationOption preparationOption)
         {
+            SelectPreparation(ingredient, preparationOption, null);
+        }
+
+        public void SelectPreparation(
+            IngredientSO ingredient,
+            IngredientPreparationOption preparationOption,
+            CookingMiniGameResult miniGameResult)
+        {
             if (ingredient == null)
                 return;
 
@@ -97,7 +105,7 @@ namespace Work.Cook.Code.Runtime
                     _preparedIngredients.RemoveAt(i);
             }
 
-            _preparedIngredients.Add(new PreparedIngredientState(ingredient, preparationOption));
+            _preparedIngredients.Add(new PreparedIngredientState(ingredient, preparationOption, miniGameResult));
         }
 
         public void ClearPreparations()

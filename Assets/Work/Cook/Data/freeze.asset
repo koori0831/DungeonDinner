@@ -14,4 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
   methodId: freeze
   displayName: "\uC5BC\uB9AC\uAE30"
+  iconSprite: {fileID: 0}
   description: "\uC0B4\uC9DD \uC5BC\uB824 \uC0AC\uC6A9\uD558\uB294 \uC870\uB9AC\uBC95"
+  miniGameType: 0

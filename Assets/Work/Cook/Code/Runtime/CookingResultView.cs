@@ -225,6 +225,7 @@ namespace Work.Cook.Code.Runtime
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($"품질: {BuildQualityText(result.Quality)}");
+            builder.Append($"  |  완성도: {result.QualityScore:+#;-#;0}");
             builder.Append($"  |  기준: {BuildRecipeText(result)}");
             builder.Append($"  |  카테고리: {BuildCategoryText(result.Category)}");
             builder.AppendLine();
@@ -323,6 +324,13 @@ namespace Work.Cook.Code.Runtime
             string methodName = prepared.Method != null ? prepared.Method.DisplayName : "손질 없음";
             builder.AppendLine($"{index + 1}. {ingredientName}");
             builder.AppendLine($"손질: {methodName}");
+            if (prepared.HasMiniGameResult == true)
+            {
+                builder.AppendLine($"미니게임: {BuildMiniGameGradeText(prepared.MiniGameResult.Grade)}");
+                if (string.IsNullOrWhiteSpace(prepared.MiniGameFeedbackText) == false)
+                    builder.AppendLine($"피드백: {prepared.MiniGameFeedbackText}");
+            }
+
             builder.Append($"효과: {BuildPreparedEffectText(prepared)}");
             return builder.ToString();
         }
@@ -334,7 +342,7 @@ namespace Work.Cook.Code.Runtime
             if (prepared.QualityDelta != 0)
                 parts.Add($"품질 {prepared.QualityDelta:+#;-#;0}");
 
-            AddTagPart(parts, "추가 태그", prepared.AddTags);
+            AddTagPart(parts, "추가 태그", prepared.AddedTags);
             AddTagPart(parts, "제거 태그", prepared.RemoveTags);
 
             if (string.IsNullOrWhiteSpace(prepared.ResultNameModifier) == false)
@@ -347,6 +355,22 @@ namespace Work.Cook.Code.Runtime
                 parts.Add("독성 추가");
 
             return parts.Count > 0 ? string.Join(" / ", parts) : "변화 없음";
+        }
+
+        private static string BuildMiniGameGradeText(CookingMiniGameGrade grade)
+        {
+            switch (grade)
+            {
+                case CookingMiniGameGrade.Perfect:
+                    return "완벽";
+                case CookingMiniGameGrade.Good:
+                    return "좋음";
+                case CookingMiniGameGrade.Normal:
+                    return "보통";
+                case CookingMiniGameGrade.Bad:
+                default:
+                    return "아쉬움";
+            }
         }
 
         private static void AddTagPart(List<string> parts, string title, IReadOnlyList<FoodTagSO> tags)

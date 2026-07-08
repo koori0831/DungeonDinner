@@ -97,7 +97,15 @@ namespace Work.Cook.Code.Runtime
 
         public bool SelectPreparation(IngredientSO ingredient, IngredientPreparationOption preparationOption)
         {
-            return Controller.SelectPreparation(ingredient, preparationOption);
+            return SelectPreparation(ingredient, preparationOption, null);
+        }
+
+        public bool SelectPreparation(
+            IngredientSO ingredient,
+            IngredientPreparationOption preparationOption,
+            CookingMiniGameResult miniGameResult)
+        {
+            return Controller.SelectPreparation(ingredient, preparationOption, miniGameResult);
         }
 
         public bool SelectPreparationByMethod(IngredientSO ingredient, PreparationMethodSO method)

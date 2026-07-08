@@ -68,7 +68,7 @@ namespace Work.Cook.Code.Runtime
 
         private Transform ResolvePose(CookingGameScreenState state)
         {
-            if (state == CookingGameScreenState.Preparation)
+            if (state == CookingGameScreenState.Preparation || state == CookingGameScreenState.MiniGame)
                 return cuttingBoardPose != null ? cuttingBoardPose : conversationPose;
 
             return conversationPose;

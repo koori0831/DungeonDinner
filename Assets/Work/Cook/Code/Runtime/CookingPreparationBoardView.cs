@@ -109,8 +109,12 @@ namespace Work.Cook.Code.Runtime
 
         private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
         {
-            if (snapshot == null || snapshot.Screen == CookingGameScreenState.Preparation)
+            if (snapshot == null
+                || snapshot.Screen == CookingGameScreenState.Preparation
+                || snapshot.Screen == CookingGameScreenState.MiniGame)
+            {
                 Refresh();
+            }
         }
 
         private void ClearSpawnedModel()

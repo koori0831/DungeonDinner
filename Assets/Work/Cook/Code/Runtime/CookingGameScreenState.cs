@@ -7,6 +7,7 @@ namespace Work.Cook.Code.Runtime
         RecipeSelection,
         Inventory,
         Preparation,
-        Result
+        Result,
+        MiniGame
     }
 }

@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Work.Core.EventBus;
 using Work.Dispatch.Code.Data;
 using Work.Items.Code;
 using Work.NPC.Code.Runtime;
@@ -20,7 +21,6 @@ namespace Work.Dispatch.Code.Runtime
     {
         [Header("Data")]
         [SerializeField] private DispatchMapSO dispatchMap;
-        [SerializeField] private PlayerInventoryModule inventoryModule;
         [SerializeField] private NpcConversationRunner npcRunner;
 
         [Header("UI")]
@@ -125,15 +125,6 @@ namespace Work.Dispatch.Code.Runtime
         }
 
         /// <summary>
-        /// 보상을 지급할 인벤토리 지정
-        /// </summary>
-        /// <param name="inventory">대상 인벤토리</param>
-        public void SetInventoryModule(PlayerInventoryModule inventory)
-        {
-            inventoryModule = inventory;
-        }
-
-        /// <summary>
         /// 파견 지도 UI 열기
         /// </summary>
         /// <returns>지도 열기 성공 여부</returns>
@@ -225,12 +216,6 @@ namespace Work.Dispatch.Code.Runtime
                 return false;
             }
 
-            if (inventoryModule == null)
-            {
-                Debug.LogWarning("DispatchController cannot grant dispatch rewards because PlayerInventoryModule is missing.", this);
-                return false;
-            }
-
             if (progressView == null)
             {
                 Debug.LogWarning("DispatchController needs a DispatchProgressView before starting dispatch.", this);
@@ -308,7 +293,7 @@ namespace Work.Dispatch.Code.Runtime
         {
             List<DispatchRewardResultEntry> entries = new List<DispatchRewardResultEntry>();
 
-            if (point == null || inventoryModule == null)
+            if (point == null)
             {
                 return new DispatchRewardResult(point, entries, 0, 0);
             }
@@ -345,31 +330,26 @@ namespace Work.Dispatch.Code.Runtime
                 return new DispatchRewardResult(point, entries, 0, 0);
             }
 
-            InventoryAddResult[] addResults = new InventoryAddResult[validRewardCount];
-            InventoryBatchAddResult result = inventoryModule.AddItems(itemStacks, 0, validRewardCount, addResults, 0);
-            lastRewardAddedAmount = result.AddedAmount;
-            lastRewardRemainingAmount = result.RemainingAmount;
+            Bus<InventoryItemsAddRequestedEvent>.Raise(new InventoryItemsAddRequestedEvent(itemStacks, 0, validRewardCount));
+
+            int addedAmount = 0;
 
             for (int i = 0; i < validRewardCount; i++)
             {
-                InventoryAddResult addResult = addResults[i];
-                int currentInventoryAmount = inventoryModule.GetItemAmount(addResult.Item);
+                InventoryItemStack itemStack = itemStacks[i];
+                addedAmount += itemStack.Amount;
+
                 entries.Add(new DispatchRewardResultEntry(
-                    addResult.Item,
-                    addResult.RequestedAmount,
-                    addResult.AddedAmount,
-                    addResult.RemainingAmount,
-                    currentInventoryAmount));
+                    itemStack.Item,
+                    itemStack.Amount,
+                    itemStack.Amount,
+                    0,
+                    0));
             }
 
-            if (result.IsFullyAdded == false)
-            {
-                Debug.LogWarning(
-                    $"Dispatch rewards were only partially added. added={result.AddedAmount}, remaining={result.RemainingAmount}",
-                    this);
-            }
-
-            return new DispatchRewardResult(point, entries, result.AddedAmount, result.RemainingAmount);
+            lastRewardAddedAmount = addedAmount;
+            lastRewardRemainingAmount = 0;
+            return new DispatchRewardResult(point, entries, addedAmount, 0);
         }
 
         private void ShowResultOrComplete(DispatchRewardResult result)
@@ -395,21 +375,6 @@ namespace Work.Dispatch.Code.Runtime
 
         private void EnsureReferences()
         {
-            if (inventoryModule == null)
-            {
-                inventoryModule = GetComponentInParent<PlayerInventoryModule>();
-            }
-
-            if (inventoryModule == null)
-            {
-                inventoryModule = GetComponentInChildren<PlayerInventoryModule>(true);
-            }
-
-            if (inventoryModule == null)
-            {
-                inventoryModule = FindFirstObjectByType<PlayerInventoryModule>();
-            }
-
             if (npcRunner == null)
             {
                 npcRunner = GetComponentInParent<NpcConversationRunner>();
