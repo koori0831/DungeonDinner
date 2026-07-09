@@ -13,6 +13,12 @@ namespace Work.Cook.Code.Editor
     public sealed class CookingDataEditorWindow : EditorWindow
     {
         private const string DefaultAssetFolder = "Assets/Work/Cook/Data";
+        private const string RecipeAssetFolder = DefaultAssetFolder + "/Recipes";
+        private const string CategoryAssetFolder = DefaultAssetFolder + "/FoodCategories";
+        private const string IngredientCategoryAssetFolder = DefaultAssetFolder + "/IngredientCategories";
+        private const string TagAssetFolder = DefaultAssetFolder + "/Tags";
+        private const string MethodAssetFolder = DefaultAssetFolder + "/PreparationMethods";
+        private const string IngredientAssetFolder = DefaultAssetFolder + "/Ingredients";
         private const string StylePath = "Assets/Work/Cook/Code/Editor/CookingDataEditorWindow.uss";
 
         [SerializeField] private string assetFolder = DefaultAssetFolder;
@@ -1125,7 +1131,7 @@ namespace Work.Cook.Code.Editor
             if (TryHandleUnsavedChanges() == false)
                 return;
 
-            string folder = NormalizeFolder(assetFolder);
+            string folder = ResolveCreateFolder(currentMode, assetFolder);
             EnsureFolder(folder);
 
             UnityEngine.Object asset = CreateInstance(GetAssetType(currentMode));
@@ -1893,6 +1899,36 @@ namespace Work.Cook.Code.Editor
                 return DefaultAssetFolder;
 
             return folder.Replace('\\', '/').TrimEnd('/');
+        }
+
+        private static string ResolveCreateFolder(DataMode mode, string folder)
+        {
+            string normalized = NormalizeFolder(folder);
+            if (string.Equals(normalized, DefaultAssetFolder, StringComparison.OrdinalIgnoreCase) == true)
+                return GetDefaultAssetFolder(mode);
+
+            return normalized;
+        }
+
+        private static string GetDefaultAssetFolder(DataMode mode)
+        {
+            switch (mode)
+            {
+                case DataMode.Recipe:
+                    return RecipeAssetFolder;
+                case DataMode.Category:
+                    return CategoryAssetFolder;
+                case DataMode.IngredientCategory:
+                    return IngredientCategoryAssetFolder;
+                case DataMode.Tag:
+                    return TagAssetFolder;
+                case DataMode.PreparationMethod:
+                    return MethodAssetFolder;
+                case DataMode.Ingredient:
+                    return IngredientAssetFolder;
+                default:
+                    return DefaultAssetFolder;
+            }
         }
 
         private sealed class RecipeDraft

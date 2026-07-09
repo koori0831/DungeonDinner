@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Work.Cook.Code.Runtime;
+using Work.Cook.Code.Runtime.Core;
 
 namespace Work.Cook.Code.Data
 {
