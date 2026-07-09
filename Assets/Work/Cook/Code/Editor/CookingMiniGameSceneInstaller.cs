@@ -4,7 +4,10 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
-using Work.Cook.Code.Runtime;
+using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Integration;
+using Work.Cook.Code.Runtime.Systems;
+using Work.Cook.Code.Runtime.UI;
 
 namespace Work.Cook.Code.Editor
 {
@@ -14,7 +17,8 @@ namespace Work.Cook.Code.Editor
     public static class CookingMiniGameSceneInstaller
     {
         private const string MENU_PATH = "Tools/Dungeon Dinner/Install Cooking Mini Game UI In CookTestScene";
-        private const string PREFAB_FOLDER_PATH = "Assets/Work/Cook/Prefabs";
+        private const string PREFAB_PARENT_FOLDER_PATH = "Assets/Work/Cook/Prefabs";
+        private const string PREFAB_FOLDER_PATH = PREFAB_PARENT_FOLDER_PATH + "/UI";
         private const string PREFAB_PATH = PREFAB_FOLDER_PATH + "/CookingTimingMiniGameView.prefab";
         private const string SCENE_PATH = "Assets/Work/Cook/Scene/CookTestScene.unity";
         private const string DEFAULT_FONT_PATH = "Assets/Font/MangoDdobak-B(otf) SDF.asset";
@@ -46,13 +50,13 @@ namespace Work.Cook.Code.Editor
             if (AssetDatabase.IsValidFolder(PREFAB_FOLDER_PATH) == true)
                 return;
 
-            if (AssetDatabase.IsValidFolder("Assets/Work/Cook") == false)
+            if (AssetDatabase.IsValidFolder(PREFAB_PARENT_FOLDER_PATH) == false)
             {
-                Debug.LogError("Cannot create cooking mini game prefab folder because Assets/Work/Cook is missing.");
+                Debug.LogError("Cannot create cooking mini game prefab folder because Assets/Work/Cook/Prefabs is missing.");
                 return;
             }
 
-            AssetDatabase.CreateFolder("Assets/Work/Cook", "Prefabs");
+            AssetDatabase.CreateFolder(PREFAB_PARENT_FOLDER_PATH, "UI");
         }
 
         private static GameObject CreateOrUpdatePrefab()

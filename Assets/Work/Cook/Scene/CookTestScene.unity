@@ -472,7 +472,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 195865704}
   nameField: {fileID: 525547055}
@@ -1266,10 +1266,10 @@ RectTransform:
   - {fileID: 1031538901}
   m_Father: {fileID: 964956910}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 166.6875, y: -229.30864}
+  m_SizeDelta: {x: 309.375, y: 362.61728}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &60343883
 MonoBehaviour:
@@ -3303,7 +3303,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 1898069065}
   nameField: {fileID: 497722906}
@@ -6939,7 +6939,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cfc5db71ad5b49fa850722b8b34fbde3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRewardToastView
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRewardToastView
   gamePanel: {fileID: 1154906894}
   rewardWallet: {fileID: 1154906896}
   canvasGroup: {fileID: 294261484}
@@ -7034,7 +7034,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 1765997551}
   nameField: {fileID: 1056491246}
@@ -8054,10 +8054,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 855528474}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 362.3125, y: -407.4074}
+  m_SizeDelta: {x: 700.625, y: 71.111115}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &393428980
 MonoBehaviour:
@@ -9105,10 +9105,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 855528474}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 362.3125, y: -352}
+  m_SizeDelta: {x: 700.625, y: 23.703705}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &429732519
 MonoBehaviour:
@@ -10017,7 +10017,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 1577789240}
   nameField: {fileID: 31084671}
@@ -11642,10 +11642,10 @@ RectTransform:
   - {fileID: 23633113}
   m_Father: {fileID: 624631832}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 265.5, y: -24.691359}
+  m_SizeDelta: {x: 531, y: 49.382717}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &579046195
 MonoBehaviour:
@@ -11974,10 +11974,10 @@ RectTransform:
   - {fileID: 1841674204}
   m_Father: {fileID: 624631832}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 804.5, y: -24.691359}
+  m_SizeDelta: {x: 531, y: 49.382717}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &602933021
 MonoBehaviour:
@@ -12582,10 +12582,10 @@ RectTransform:
   - {fileID: 602933020}
   m_Father: {fileID: 1478277789}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 600, y: -595.30865}
+  m_SizeDelta: {x: 1070, y: 49.382717}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &624631833
 MonoBehaviour:
@@ -13082,10 +13082,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 964956910}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 166.6875, y: -466.61728}
+  m_SizeDelta: {x: 309.375, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &657457145
 MonoBehaviour:
@@ -13241,10 +13241,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1164697344}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 2, y: -322.14813}
+  m_SizeDelta: {x: 696.625, y: 278.39508}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &662147789
 MonoBehaviour:
@@ -13370,10 +13370,10 @@ RectTransform:
   - {fileID: 964956910}
   m_Father: {fileID: 1478277789}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 600, y: -314.30865}
+  m_SizeDelta: {x: 1070, y: 488.61728}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &688157008
 MonoBehaviour:
@@ -14690,7 +14690,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b426f43bf9d77144f904f3456cdf44ee, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingFlowRunner
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.Systems.CookingFlowRunner
   catalog: {fileID: 11400000, guid: 4ec4ea9cc8f39c342a0f95dcb38f25da, type: 2}
 --- !u!1 &781925132
 GameObject:
@@ -14841,7 +14841,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 1052078006}
   nameField: {fileID: 845789950}
@@ -15296,7 +15296,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c4f2c43a67d44bf0998f29b214ac0c34, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingResultView
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingResultView
   gamePanel: {fileID: 1154906894}
   flowRunner: {fileID: 752288113}
   dishIconImage: {fileID: 1072330610}
@@ -16270,10 +16270,10 @@ RectTransform:
   - {fileID: 1063413618}
   m_Father: {fileID: 688157007}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 362.3125, y: -244.30864}
+  m_SizeDelta: {x: 724.625, y: 488.61728}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &855528475
 MonoBehaviour:
@@ -16576,7 +16576,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 1686047716}
   nameField: {fileID: 2109633175}
@@ -18495,10 +18495,10 @@ RectTransform:
   - {fileID: 657457144}
   m_Father: {fileID: 688157007}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 903.3125, y: -244.30864}
+  m_SizeDelta: {x: 333.375, y: 488.61728}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &964956911
 MonoBehaviour:
@@ -19980,7 +19980,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 16}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1031538902
 MonoBehaviour:
@@ -20378,7 +20378,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 1959314772}
   nameField: {fileID: 1266109270}
@@ -20782,7 +20782,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 1657388371}
   nameField: {fileID: 1584707121}
@@ -20872,10 +20872,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 855528474}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 362.3125, y: -464.79013}
+  m_SizeDelta: {x: 700.625, y: 27.654322}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1063413619
 MonoBehaviour:
@@ -23146,7 +23146,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d03d0e4545e0495994b9cda38daacfaf, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingGamePanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingGamePanel
   flowRunner: {fileID: 752288113}
   npcRunner: {fileID: 1054664832}
   knowledgeStore: {fileID: 1154906897}
@@ -23203,7 +23203,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0eb71062c39c4998a5b15a8b679a167d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRewardCalculator
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.Systems.CookingRewardCalculator
   disgustingReward: 0
   wrongReward: 0
   similarReward: 8
@@ -23225,7 +23225,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5cb7e2bb39d242ac8255c5a53cef71bc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRewardWallet
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.Systems.CookingRewardWallet
   startingBalance: 0
   loadFromPlayerPrefsOnAwake: 0
   saveToPlayerPrefs: 0
@@ -23244,7 +23244,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 79d3e4d64cb5446b8aa1e776fc0599db, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingKnowledgeStore
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.Systems.CookingKnowledgeStore
   catalog: {fileID: 11400000, guid: 4ec4ea9cc8f39c342a0f95dcb38f25da, type: 2}
   initialDiscoveredRecipes: []
   initialKnownRecipeTags: []
@@ -23327,7 +23327,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e0b36d8f517c4a98b6d21e3f4059c7ab, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.InventoryCookingIngredientSource
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.Integration.InventoryCookingIngredientSource
   sourceName: "\uAC00\uBC29 \uC7AC\uB8CC"
 --- !u!1 &1155512922
 GameObject:
@@ -23613,10 +23613,10 @@ RectTransform:
   - {fileID: 662147787}
   m_Father: {fileID: 855528474}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 362.3125, y: -171.07408}
+  m_SizeDelta: {x: 700.625, y: 322.14816}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1164697347
 MonoBehaviour:
@@ -25284,7 +25284,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 1065007706}
   nameField: {fileID: 281270613}
@@ -25457,7 +25457,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 89506e7db24b45d3a73dbcc77dcbaf56, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingPreparationView
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingPreparationView
   gamePanel: {fileID: 1154906894}
   flowRunner: {fileID: 752288113}
   knowledgeStore: {fileID: 1154906897}
@@ -30479,7 +30479,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1478277789
 RectTransform:
   m_ObjectHideFlags: 0
@@ -30576,7 +30576,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2f5b2fd0a9e04f44a8d84cc4a3b2d5d7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingIngredientSelectionView
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingIngredientSelectionView
   gamePanel: {fileID: 1154906894}
   flowRunner: {fileID: 752288113}
   ingredientSourceBehaviour: {fileID: 1154906899}
@@ -37668,7 +37668,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f7d46e78ef646cbb1f2e1b88e6c2b90, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingBusinessFlowController
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.Systems.CookingBusinessFlowController
   gamePanel: {fileID: 0}
   encounterDirector: {fileID: 0}
   npcRunner: {fileID: 0}
@@ -37855,10 +37855,10 @@ RectTransform:
   - {fileID: 1409828150}
   m_Father: {fileID: 1164697344}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 2, y: -41.75309}
+  m_SizeDelta: {x: 696.625, y: 39.75309}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1871991025
 MonoBehaviour:
@@ -39652,7 +39652,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c56932309a69bc743bb2c90cde73f716, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingKnowledgeUpdateView
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingKnowledgeUpdateView
   gamePanel: {fileID: 0}
   knowledgeStore: {fileID: 0}
   pageRoot: {fileID: 1095581338}
@@ -39731,10 +39731,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 964956910}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 166.6875, y: -432.61728}
+  m_SizeDelta: {x: 309.375, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2025309512
 MonoBehaviour:
@@ -40056,7 +40056,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6e9401b01a65447b83f86552a0986487, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeSelectionView
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeSelectionView
   gamePanel: {fileID: 1154906894}
   dictionaryPanel: {fileID: 2015541531}
   fallbackCatalog: {fileID: 11400000, guid: 4ec4ea9cc8f39c342a0f95dcb38f25da, type: 2}
@@ -42041,7 +42041,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f73e75b5484fd3af48754881b3cc36, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRecipeDisplayPanel
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRecipeDisplayPanel
   viewInfo: 7
   iconImage: {fileID: 710862321}
   nameField: {fileID: 1860350530}
@@ -42255,10 +42255,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 964956910}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 166.6875, y: -25}
+  m_SizeDelta: {x: 309.375, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2136962487
 MonoBehaviour:
