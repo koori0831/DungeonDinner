@@ -5,16 +5,211 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9572947c-97ba-46be-9cdd-73cd5f25d671" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DungeonDinner/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGamePanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGamePanel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/InventoryCookingIngredientSource.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/InventoryCookingIngredientSource.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Data/CookingDataCatalogSO.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Data/CookingDataCatalogSO.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Data/RecipeIngredientRequirement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Data/RecipeIngredientRequirement.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Data/RecipeSO.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Data/RecipeSO.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingDataEditorWindow.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingDataEditorWindow.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingGamePanelEditor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingGamePanelEditor.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingMiniGameSceneInstaller.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingMiniGameSceneInstaller.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingTestPanelInstaller.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/CookingTestPanelInstaller.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/RecipeSOEditor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Code/Editor/RecipeSOEditor.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingBagSafeAreaFitter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingBagSafeAreaFitter.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingBusinessFlowController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingBusinessFlowController.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingCameraStateMover.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingCameraStateMover.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingCatalogIngredientSource.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingCatalogIngredientSource.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingDataProvider.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingDataProvider.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingFlowController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingFlowController.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingFlowRunner.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingFlowRunner.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingFlowState.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingFlowState.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameButtonBinder.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameButtonBinder.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameObjectStateBinder.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameObjectStateBinder.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGamePanel.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGamePanel.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameScreenState.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameScreenState.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameSnapshot.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameSnapshot.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameSnapshotTextBinder.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameSnapshotTextBinder.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameSnapshotView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameSnapshotView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameViewContracts.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingGameViewContracts.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientButtonView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientButtonView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientSearchInputBinder.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientSearchInputBinder.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientSelectionView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingIngredientSelectionView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingKnowledgeStore.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingKnowledgeStore.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingKnowledgeUpdate.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingKnowledgeUpdate.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingKnowledgeUpdateView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingKnowledgeUpdateView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingMiniGameResult.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingMiniGameResult.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingMode.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingMode.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingNpcDishAdapter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingNpcDishAdapter.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationBoardView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationBoardView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationOptionCardBinder.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationOptionCardBinder.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationOptionCardView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationOptionCardView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationSequenceDirector.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationSequenceDirector.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationVisualDirector.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparationVisualDirector.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparedIngredientRowView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingPreparedIngredientRowView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeDisplayPanel.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeDisplayPanel.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeEntryData.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeEntryData.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeIngredientChoiceSource.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeIngredientChoiceSource.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeSelectionView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRecipeSelectionView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingResultView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingResultView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRewardCalculator.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRewardCalculator.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRewardToastView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRewardToastView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRewardWallet.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingRewardWallet.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingServiceFactory.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingServiceFactory.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingServiceInterfaces.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingServiceInterfaces.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingSession.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingSession.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingTempVisualUtility.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingTempVisualUtility.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingTestPanel.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingTestPanel.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingTimingMiniGameView.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/CookingTimingMiniGameView.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DisgustingEvaluation.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DisgustingEvaluation.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DisgustingRuleEvaluator.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DisgustingRuleEvaluator.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DishNameBuilder.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DishNameBuilder.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DishQuality.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DishQuality.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DishResult.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DishResult.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DishResultBuilder.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/DishResultBuilder.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/InventoryCookingIngredientSource.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/InventoryCookingIngredientSource.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/InventoryIngredientQuery.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/InventoryIngredientQuery.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/PreparedIngredientState.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/PreparedIngredientState.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/RecipeMatchResult.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/RecipeMatchResult.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/RecipeMatcher.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Code/Runtime/RecipeMatcher.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/Moist.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/Moist.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/NewRecipe.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/NewRecipe.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/bleak.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/bleak.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/boil_water.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/boil_water.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/burning_taste.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/burning_taste.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/chopping.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/chopping.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/condiment.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/condiment.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/dessert.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/dessert.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/flat_mushroom.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/flat_mushroom.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/freeze.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/freeze.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/fungi.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/fungi.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/grinding.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/grinding.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/just.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/just.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/light.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/light.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/meat.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/meat.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/mushroom_cap.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/mushroom_cap.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/parboil.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/parboil.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/roast.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/roast.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/rock_salt.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/rock_salt.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/savory.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/savory.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slicing.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slicing.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_mucus.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_mucus.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_nucleus.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_nucleus.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_nucleus_dango.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/slime_nucleus_dango.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/soft.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/soft.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/soup.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/soup.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/spices.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/spices.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/sticky.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/sticky.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/sweet.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/sweet.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/vegetable.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/vegetable.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/warm.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/warm.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/washing_water.asset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Data/washing_water.asset.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/ChapterButton.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/ChapterButton.prefab.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/CookingIngredientButton.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/CookingIngredientButton.prefab.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/CookingPreparationOptionCard.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/CookingPreparationOptionCard.prefab.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/CookingPreparedIngredientRow.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/CookingPreparedIngredientRow.prefab.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/CookingTimingMiniGameView.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/CookingTimingMiniGameView.prefab.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/FoodSelectIcon.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/FoodSelectIcon.prefab.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/InfoDisplayPanel.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/InfoDisplayPanel.prefab.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/RecipeInfoDisplayPanel.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/RecipeInfoDisplayPanel.prefab.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/Scroll View.prefab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Prefabs/Scroll View.prefab.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Cook/Scene/CookTestScene.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Dispatch/Code/Runtime/DispatchController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Dispatch/Code/Runtime/DispatchController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryEventBridge.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryEventBridge.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryItemEvents.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryItemEvents.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryModule.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerInventoryModule.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerLootCollector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Work/Players/Code/Inventory/PlayerLootCollector.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,19 +231,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "new__san232",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Unity 에디터에 연결.Unity 에디터에 연결">
     <configuration name="유닛 테스트(배치 모드)" type="RunUnityExe" factoryName="Unity Executable">
       <option name="EXE_PATH" value="C:\Program Files\Unity\Hub\Editor\6000.3.13f1\Editor\Unity.exe" />
@@ -120,6 +315,7 @@
       <workItem from="1782085703678" duration="47720000" />
       <workItem from="1782167805341" duration="5516000" />
       <workItem from="1783434632747" duration="2017000" />
+      <workItem from="1783467268559" duration="13094000" />
     </task>
     <servers />
   </component>
