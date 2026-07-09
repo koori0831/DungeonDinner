@@ -36,8 +36,6 @@ namespace Work.Cook.Code.Runtime.UI
 
     public sealed class CookingGamePanel : MonoBehaviour
     {
-        private const string DEFAULT_MINI_GAME_VIEW_NAME = "CookingTimingMiniGameView";
-
         [Header("Flow")]
         [SerializeField] private CookingFlowRunner flowRunner;
         [SerializeField] private NpcConversationRunner npcRunner;
@@ -658,6 +656,40 @@ namespace Work.Cook.Code.Runtime.UI
                 return true;
 
             return ApplyPreparationResult(ingredient, option, null);
+        }
+
+        /// <summary>
+        /// 조리 뷰의 카드 확정 후 직접 상호작용 결과를 손질 결과로 반영
+        /// </summary>
+        /// <param name="ingredient">손질 대상 재료</param>
+        /// <param name="option">적용할 손질 옵션</param>
+        /// <param name="miniGameResult">선택적으로 함께 저장할 미니게임 결과</param>
+        /// <returns>손질 결과 반영 성공 여부</returns>
+        public bool CompletePreparationInteraction(
+            IngredientSO ingredient,
+            IngredientPreparationOption option,
+            CookingMiniGameResult miniGameResult)
+        {
+            EnsureReferences();
+
+            if (_isCompletingPreparationVisualSequence == true)
+            {
+                return false;
+            }
+
+            if (flowRunner == null)
+            {
+                Debug.LogWarning("CookingGamePanel needs a CookingFlowRunner before it can complete a preparation interaction.", this);
+                return false;
+            }
+
+            if (ingredient == null)
+            {
+                Debug.LogWarning("CookingGamePanel could not complete a preparation interaction because the ingredient is missing.", this);
+                return false;
+            }
+
+            return ApplyPreparationResult(ingredient, option, miniGameResult);
         }
 
         private bool TryStartMiniGame(IngredientSO ingredient, IngredientPreparationOption option)
@@ -1417,6 +1449,15 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
+            CookingView existingCookingView = GetComponentInChildren<CookingView>(true);
+            if (existingCookingView != null)
+            {
+                preparationView = existingCookingView.gameObject;
+                AttachPreparationViewToOverlayRoot(preparationView);
+                InitializePreparationView(preparationView);
+                return;
+            }
+
             CookingPreparationView existingView = GetComponentInChildren<CookingPreparationView>(true);
             if (existingView != null)
             {
@@ -1452,7 +1493,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (preparation == null)
                 return;
 
-            preparation.Initialize(this, flowRunner);
+            preparation.Initialize(this, flowRunner, temporaryUiFontAsset);
         }
 
         private void EnsureMiniGameView()
@@ -1464,60 +1505,8 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
-            CookingTimingMiniGameView existingView = GetComponentInChildren<CookingTimingMiniGameView>(true);
-            if (existingView != null)
-            {
-                miniGameView = existingView.gameObject;
-                AttachMiniGameViewToOverlayRoot(miniGameView);
-                InitializeMiniGameView(miniGameView);
-                return;
-            }
-
-            if (useMiniGames == true)
-            {
-                miniGameView = CreateDefaultMiniGameView();
-                InitializeMiniGameView(miniGameView);
-                return;
-            }
-
             if (useMiniGames == true && continueWithoutMiniGameView == false)
                 LogMissingViewReference(nameof(miniGameView), nameof(ICookingMiniGameView));
-        }
-
-        private GameObject CreateDefaultMiniGameView()
-        {
-            Transform overlayParent = FindOverlayViewParent();
-            GameObject viewObject = new GameObject(
-                DEFAULT_MINI_GAME_VIEW_NAME,
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Image),
-                typeof(CanvasGroup));
-            viewObject.SetActive(false);
-
-            if (overlayParent != null)
-                viewObject.transform.SetParent(overlayParent, false);
-
-            RectTransform rectTransform = viewObject.transform as RectTransform;
-            SetStretchRect(rectTransform);
-
-            Image image = viewObject.GetComponent<Image>();
-            if (image != null)
-            {
-                image.color = new Color(0f, 0f, 0f, 0.55f);
-                image.raycastTarget = true;
-            }
-
-            CanvasGroup canvasGroup = viewObject.GetComponent<CanvasGroup>();
-            if (canvasGroup != null)
-            {
-                canvasGroup.alpha = 0f;
-                canvasGroup.interactable = false;
-                canvasGroup.blocksRaycasts = false;
-            }
-
-            viewObject.AddComponent<CookingTimingMiniGameView>();
-            return viewObject;
         }
 
         private void AttachMiniGameViewToOverlayRoot(GameObject view)
@@ -1832,16 +1821,5 @@ namespace Work.Cook.Code.Runtime.UI
                 target.SetActive(active);
         }
 
-        private static void SetStretchRect(RectTransform rectTransform)
-        {
-            if (rectTransform == null)
-                return;
-
-            rectTransform.anchorMin = Vector2.zero;
-            rectTransform.anchorMax = Vector2.one;
-            rectTransform.offsetMin = Vector2.zero;
-            rectTransform.offsetMax = Vector2.zero;
-            rectTransform.pivot = new Vector2(0.5f, 0.5f);
-        }
     }
 }
