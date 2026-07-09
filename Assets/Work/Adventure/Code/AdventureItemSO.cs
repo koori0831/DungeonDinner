@@ -6,5 +6,6 @@ namespace Work.Adventure.Code
     public class AdventureItemSO : ScriptableObject
     {
         [field:SerializeField] public string ItemName { get; private set; } = "Item";
+        [field:SerializeField] public Sprite ItemIcon { get; private set; }
     }
 }

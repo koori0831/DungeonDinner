@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c017245360f0bc546a567e1840070efd, type: 3}
-  m_Name: AdventureEventSO 1
+  m_Name: Find_Knife
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
   - <Context>k__BackingField: "\uAE38\uC744 \uAC00\uB358\uC911\uC5D0 \uBC84\uB824\uC9C4
       \uCE7C\uC744 \uBC1C\uACAC\uD588\uB2E4."
     method:
-    - rid: 3674030357021720935
+    - rid: 3674030402256765101
   - <Context>k__BackingField: "\uC774\uB7F0\uACF3\uC5D0 \uBC84\uB824\uC9C4\uAC70
       \uCE58\uACE0\uB294 \uC0C1\uD0DC\uAC00 \uC88B\uB2E4."
     method: []
@@ -27,16 +27,11 @@ MonoBehaviour:
     method: []
   options:
   - rid: 3674030371714105429
-  - rid: 3674030371714105430
+  - rid: 3674030402256765035
   - rid: 3674030371714105431
   references:
     version: 2
     RefIds:
-    - rid: 3674030357021720935
-      type: {class: CreateImageEvent, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
-      data:
-        imagePrefab: {fileID: 81474867245666639, guid: d800a443f1fd86e45905b81ee95c1a3d, type: 3}
-        position: {x: 0, y: 50}
     - rid: 3674030371714105429
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
@@ -50,23 +45,7 @@ MonoBehaviour:
           method: []
         - <Context>k__BackingField: "\uADF8\uB807\uAC8C \uC790\uB9AC\uB97C \uB5A0\uB0AC\uB2E4."
           method:
-          - rid: 3674030371714105432
-    - rid: 3674030371714105430
-      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
-      data:
-        <OptionName>k__BackingField: "\uAC00\uC838\uAC04\uB2E4."
-        <OptionTooltip>k__BackingField: "\uCE7C\uC744 \uAC00\uC838\uAC04\uB2E4."
-        <RewardDescription>k__BackingField: "\uCE7C \uD68D\uB4DD"
-        rewardMethod:
-        - rid: 3674030371714105439
-        <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"\uBB34\uC2A8\uC77C\uC774 \uC788\uC744\uC9C0
-            \uBAA8\uB974\uB2C8 \uC77C\uB2E8 \uCC59\uAE30\uC790.\""
-          method: []
-        - <Context>k__BackingField: "\uCE7C\uC744 \uC8FC\uC6CC\uC11C \uC8FC\uBA38\uB2C8\uC5D0
-            \uB123\uC5C8\uC2B5\uB2C8\uB2E4."
-          method:
-          - rid: 3674030371714105434
+          - rid: 3674030402256765102
     - rid: 3674030371714105431
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
@@ -82,17 +61,41 @@ MonoBehaviour:
         - <Context>k__BackingField: "\uCE7C\uC744 \uC9D1\uC5B4\uC11C \uAE38\uC5D0\uC11C
             \uBA40\uB9AC \uB5A8\uC5B4\uC9C4\uACF3\uC5D0 \uB450\uC5C8\uC2B5\uB2C8\uB2E4."
           method:
-          - rid: 3674030379573706828
-    - rid: 3674030371714105432
-      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
-      data: 
-    - rid: 3674030371714105434
-      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
-      data: 
-    - rid: 3674030371714105439
-      type: {class: AdventureItemReward, ns: Work.Adventure.Code.Rewards, asm: Assembly-CSharp}
+          - rid: 3674030402256765104
+    - rid: 3674030402256765035
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        itemSO: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
-    - rid: 3674030379573706828
-      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+        <OptionName>k__BackingField: "\uAC00\uC838\uAC04\uB2E4."
+        <OptionTooltip>k__BackingField: 
+        <RewardDescription>k__BackingField: 
+        rewardMethod: []
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "\"\uD639\uC2DC \uBAA8\uB974\uB2C8\uAE4C \uCC59\uACA8\uAC00\uC790.\""
+          method:
+          - rid: 3674030402256765217
+        - <Context>k__BackingField: "\uCE7C\uC744 \uCC59\uAE41\uB2C8\uB2E4."
+          method:
+          - rid: 3674030402256765103
+        <LockTooltip>k__BackingField: "\uC774\uBBF8 \uCE7C\uC744 \uAC00\uC9C0\uACE0\uC788\uB2E4."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
+        <IsUnLockOption>k__BackingField: 1
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 0
+    - rid: 3674030402256765101
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: d800a443f1fd86e45905b81ee95c1a3d, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 3674030402256765102
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
       data: 
+    - rid: 3674030402256765103
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 3674030402256765104
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 3674030402256765217
+      type: {class: AddAdventureItem, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        itemSo: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}

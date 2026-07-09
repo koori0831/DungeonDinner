@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Work.Adventure.Code.AdventureEvents
+namespace Work.Adventure.Code.DialogMethod
 {
     [Serializable]
     public class CreateImageEvent : AdventrueDialogEvent

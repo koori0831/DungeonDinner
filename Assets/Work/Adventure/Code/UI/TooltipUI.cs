@@ -40,36 +40,8 @@ namespace Work.Adventure.Code.UI
 
             Vector2 mouse = Mouse.current.position.ReadValue();
 
-            // Screen -> Canvas Local 좌표 (중심 기준)
-            Vector2 pos = mouse - new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-
-            // 마우스에서 약간 띄우기
+            Vector2 pos = mouse;
             pos += new Vector2(20f, -20f);
-
-            Vector2 size = root.sizeDelta;
-
-            float halfW = Screen.width * 0.5f;
-            float halfH = Screen.height * 0.5f;
-
-            // Pivot = (1,1)이므로
-            // pos가 우상단 기준 위치가 된다.
-
-            // 왼쪽
-            if (pos.x < -halfW + size.x)
-                pos.x = -halfW + size.x;
-
-            // 오른쪽
-            if (pos.x > halfW)
-                pos.x = halfW;
-
-            // 아래
-            if (pos.y < -halfH + size.y)
-                pos.y = -halfH + size.y;
-
-            // 위
-            if (pos.y > halfH)
-                pos.y = halfH;
-
             root.anchoredPosition = pos;
         }
 
@@ -91,7 +63,6 @@ namespace Work.Adventure.Code.UI
             text.ForceMeshUpdate();
 
             Vector2 textSize = text.GetRenderedValues(false);
-            Debug.Log(textSize);
             Vector2 size = root.sizeDelta;
             size.x = textSize.x + offset; // 좌우 여백
             root.sizeDelta = size;
