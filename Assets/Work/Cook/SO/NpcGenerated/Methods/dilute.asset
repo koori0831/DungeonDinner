@@ -17,4 +17,4 @@ MonoBehaviour:
   iconSprite: {fileID: 0}
   description: "\uC694\uB9AC\uAC00 \uBB3D\uC5B4\uC838 \uC77C\uBD80 NPC\uAC00 \uD53C\uD558\uB294
     \uACB0\uACFC\uAC00 \uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-  miniGameType: 0
+  miniGameType: 10

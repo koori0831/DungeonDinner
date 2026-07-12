@@ -16,4 +16,4 @@ MonoBehaviour:
   displayName: "\uB2E4\uC9C0\uAE30"
   iconSprite: {fileID: 21300000, guid: 52d18648d0583ba46bd7ca4f6e904e75, type: 3}
   description: "\uB2E4\uC838\uC11C \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC95\uC785\uB2C8\uB2E4."
-  miniGameType: 0
+  miniGameType: 4

@@ -51,7 +51,18 @@ namespace Work.Cook.Code.Runtime.UI
 
             string optionName = option != null ? option.DisplayName : "그대로 사용";
             SetText(titleField, optionName);
-            SetText(descriptionField, "선택한 카드가 작업 슬롯에 놓였습니다. 중앙 재료를 눌러 손질을 확정하세요.");
+            SetText(descriptionField, "선택한 카드가 작업 슬롯에 놓였습니다. 중앙 재료를 눌러 조리를 시작하세요.");
+        }
+
+        /// <summary>
+        /// 선택한 손질 카드의 조리 진행 상태 표시
+        /// </summary>
+        /// <param name="option">진행 중인 손질 옵션</param>
+        public void BindInProgress(IngredientPreparationOption option)
+        {
+            string optionName = option != null ? option.DisplayName : "그대로 사용";
+            SetText(titleField, $"{optionName} 진행 중");
+            SetText(descriptionField, "조리 미니게임을 진행하고 결과를 저장합니다.");
         }
 
         public void BindResult(IngredientPreparationOption option)

@@ -18,6 +18,7 @@ namespace Work.Cook.Code.Editor
         private const string DEFAULT_FONT_PATH = "Assets/Font/MangoDdobak-B(otf) SDF.asset";
         private const string CARD_PREFAB_PATH = "Assets/Work/Cook/Prefabs/UI/CookingPreparationOptionCard.prefab";
         private const string VIEW_ROOT_NAME = "CookingViewRoot";
+        private const string MINI_GAME_ROOT_NAME = "CookingMiniGameRoot";
 
         [MenuItem(MENU_PATH)]
         public static void InstallInCookTestScene()
@@ -33,7 +34,8 @@ namespace Work.Cook.Code.Editor
             TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(DEFAULT_FONT_PATH);
             CookingPreparationOptionCardView cardPrefab = AssetDatabase.LoadAssetAtPath<CookingPreparationOptionCardView>(CARD_PREFAB_PATH);
             GameObject viewRoot = CreateOrUpdateCookingView(panel, font, cardPrefab);
-            ConfigureCookingGamePanel(panel, viewRoot);
+            GameObject miniGameRoot = CreateOrUpdateMiniGameView(panel, font);
+            ConfigureCookingGamePanel(panel, viewRoot, miniGameRoot);
             DisableLegacyPreparationViews(viewRoot);
 
             EditorUtility.SetDirty(viewRoot);
@@ -131,6 +133,101 @@ namespace Work.Cook.Code.Editor
                 progressField,
                 font);
 
+            return root;
+        }
+
+        private static GameObject CreateOrUpdateMiniGameView(CookingGamePanel panel, TMP_FontAsset font)
+        {
+            Transform parent = FindViewParent(panel);
+            GameObject root = FindChildByName(parent, MINI_GAME_ROOT_NAME);
+            if (root == null)
+            {
+                root = new GameObject(
+                    MINI_GAME_ROOT_NAME,
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image),
+                    typeof(CanvasGroup),
+                    typeof(CookingMiniGameRouterView));
+                root.transform.SetParent(parent, false);
+            }
+            else
+            {
+                EnsureComponent<Image>(root);
+                EnsureComponent<CanvasGroup>(root);
+                EnsureComponent<CookingMiniGameRouterView>(root);
+                ClearChildren(root.transform);
+            }
+
+            root.SetActive(false);
+            RectTransform rootRect = root.GetComponent<RectTransform>();
+            SetStretch(rootRect, Vector2.zero, Vector2.zero);
+
+            Image rootImage = root.GetComponent<Image>();
+            rootImage.color = new Color(0f, 0f, 0f, 0.58f);
+            rootImage.raycastTarget = true;
+
+            CanvasGroup rootGroup = root.GetComponent<CanvasGroup>();
+            rootGroup.alpha = 1f;
+            rootGroup.interactable = true;
+            rootGroup.blocksRaycasts = true;
+
+            GameObject simplePanel = CreateImage("SimpleMiniGamePanel", root.transform, new Color(0.12f, 0.075f, 0.045f, 0.98f));
+            SetCenter(simplePanel.GetComponent<RectTransform>(), new Vector2(760f, 470f), Vector2.zero);
+            CookingSimpleMiniGameView simpleView = simplePanel.AddComponent<CookingSimpleMiniGameView>();
+
+            TextMeshProUGUI title = CreateText(
+                "Title",
+                simplePanel.transform,
+                "조리 미니게임",
+                font,
+                36f,
+                FontStyles.Bold,
+                TextAlignmentOptions.Center,
+                new Color(1f, 0.86f, 0.5f, 1f));
+            SetTop(title.rectTransform, new Vector2(640f, 58f), new Vector2(0f, -36f));
+
+            TextMeshProUGUI instruction = CreateText(
+                "Instruction",
+                simplePanel.transform,
+                string.Empty,
+                font,
+                23f,
+                FontStyles.Normal,
+                TextAlignmentOptions.Center,
+                new Color(0.94f, 0.86f, 0.72f, 1f));
+            SetTop(instruction.rectTransform, new Vector2(620f, 120f), new Vector2(0f, -114f));
+
+            TextMeshProUGUI result = CreateText(
+                "Result",
+                simplePanel.transform,
+                string.Empty,
+                font,
+                22f,
+                FontStyles.Bold,
+                TextAlignmentOptions.Center,
+                new Color(0.9f, 0.95f, 0.78f, 1f));
+            SetBottom(result.rectTransform, new Vector2(620f, 56f), new Vector2(0f, 132f));
+
+            GameObject buttonRow = new GameObject("GradeButtons", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            buttonRow.transform.SetParent(simplePanel.transform, false);
+            SetBottom(buttonRow.GetComponent<RectTransform>(), new Vector2(660f, 86f), new Vector2(0f, 38f));
+            HorizontalLayoutGroup layoutGroup = buttonRow.GetComponent<HorizontalLayoutGroup>();
+            layoutGroup.childAlignment = TextAnchor.MiddleCenter;
+            layoutGroup.spacing = 16f;
+            layoutGroup.childControlWidth = false;
+            layoutGroup.childControlHeight = false;
+            layoutGroup.childForceExpandWidth = false;
+            layoutGroup.childForceExpandHeight = false;
+
+            Button perfectButton = CreateMiniGameGradeButton("PerfectButton", buttonRow.transform, "Perfect", font, new Color(0.86f, 0.62f, 0.2f, 1f));
+            Button goodButton = CreateMiniGameGradeButton("GoodButton", buttonRow.transform, "Good", font, new Color(0.45f, 0.67f, 0.28f, 1f));
+            Button normalButton = CreateMiniGameGradeButton("NormalButton", buttonRow.transform, "Normal", font, new Color(0.34f, 0.44f, 0.58f, 1f));
+            Button badButton = CreateMiniGameGradeButton("BadButton", buttonRow.transform, "Bad", font, new Color(0.62f, 0.26f, 0.2f, 1f));
+
+            ConfigureSimpleMiniGameView(simpleView, title, instruction, result, perfectButton, goodButton, normalButton, badButton);
+            ConfigureMiniGameRouterView(root.GetComponent<CookingMiniGameRouterView>(), simplePanel);
+            simplePanel.SetActive(false);
             return root;
         }
 
@@ -336,10 +433,44 @@ namespace Work.Cook.Code.Editor
             serializedView.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void ConfigureCookingGamePanel(CookingGamePanel panel, GameObject preparationView)
+        private static void ConfigureSimpleMiniGameView(
+            CookingSimpleMiniGameView view,
+            TextMeshProUGUI title,
+            TextMeshProUGUI instruction,
+            TextMeshProUGUI result,
+            Button perfectButton,
+            Button goodButton,
+            Button normalButton,
+            Button badButton)
+        {
+            SerializedObject serializedView = new SerializedObject(view);
+            SetBool(serializedView, "playAnyMiniGameType", true);
+            SetObjectReference(serializedView, "titleField", title);
+            SetObjectReference(serializedView, "instructionField", instruction);
+            SetObjectReference(serializedView, "resultField", result);
+            SetObjectReference(serializedView, "perfectButton", perfectButton);
+            SetObjectReference(serializedView, "goodButton", goodButton);
+            SetObjectReference(serializedView, "normalButton", normalButton);
+            SetObjectReference(serializedView, "badButton", badButton);
+            serializedView.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void ConfigureMiniGameRouterView(CookingMiniGameRouterView view, GameObject simplePanel)
+        {
+            SerializedObject serializedView = new SerializedObject(view);
+            SetObjectReferenceArray(serializedView, "miniGameViewObjects", new UnityEngine.Object[] { simplePanel });
+            SetBool(serializedView, "autoCollectChildViews", true);
+            serializedView.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void ConfigureCookingGamePanel(
+            CookingGamePanel panel,
+            GameObject preparationView,
+            GameObject miniGameView)
         {
             SerializedObject serializedPanel = new SerializedObject(panel);
             SetObjectReference(serializedPanel, "preparationView", preparationView);
+            SetObjectReference(serializedPanel, "miniGameView", miniGameView);
             serializedPanel.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -452,6 +583,30 @@ namespace Work.Cook.Code.Editor
             return button;
         }
 
+        private static Button CreateMiniGameGradeButton(
+            string name,
+            Transform parent,
+            string label,
+            TMP_FontAsset font,
+            Color color)
+        {
+            Button button = CreateButton(name, parent, color);
+            RectTransform buttonRect = button.GetComponent<RectTransform>();
+            buttonRect.sizeDelta = new Vector2(150f, 72f);
+
+            TextMeshProUGUI labelField = CreateText(
+                "Label",
+                button.transform,
+                label,
+                font,
+                24f,
+                FontStyles.Bold,
+                TextAlignmentOptions.Center,
+                Color.white);
+            SetStretch(labelField.rectTransform, new Vector2(8f, 8f), new Vector2(-8f, -8f));
+            return button;
+        }
+
         private static TextMeshProUGUI CreateText(
             string name,
             Transform parent,
@@ -480,6 +635,30 @@ namespace Work.Cook.Code.Editor
             SerializedProperty property = serializedObject.FindProperty(propertyName);
             if (property != null)
                 property.objectReferenceValue = value;
+        }
+
+        private static void SetObjectReferenceArray(
+            SerializedObject serializedObject,
+            string propertyName,
+            UnityEngine.Object[] values)
+        {
+            SerializedProperty property = serializedObject.FindProperty(propertyName);
+            if (property == null)
+                return;
+
+            property.arraySize = values != null ? values.Length : 0;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                SerializedProperty element = property.GetArrayElementAtIndex(i);
+                element.objectReferenceValue = values[i];
+            }
+        }
+
+        private static void SetBool(SerializedObject serializedObject, string propertyName, bool value)
+        {
+            SerializedProperty property = serializedObject.FindProperty(propertyName);
+            if (property != null)
+                property.boolValue = value;
         }
 
         private static void SetFloat(SerializedObject serializedObject, string propertyName, float value)

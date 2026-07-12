@@ -175,10 +175,10 @@ namespace Work.Cook.Code.Runtime.UI
             IngredientSO ingredient = _currentIngredient;
             IngredientPreparationOption option = _committedOption;
             _isInteractionPending = false;
-            State = CookingViewState.InteractionResult;
+            State = CookingViewState.IngredientInteraction;
 
-            workbenchView?.ShowInteractionResult(ingredient, option);
-            activeSlotView?.BindResult(option);
+            workbenchView?.ShowInteractionStarted(ingredient, option);
+            activeSlotView?.BindInProgress(option);
 
             if (gamePanel != null)
             {

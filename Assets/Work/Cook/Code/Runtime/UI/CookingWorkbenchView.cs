@@ -72,7 +72,26 @@ namespace Work.Cook.Code.Runtime.UI
 
             string optionName = option != null ? option.DisplayName : "그대로 사용";
             SetText(ingredientNameField, ingredient != null ? ingredient.DisplayName : "조리할 재료 없음");
-            SetText(instructionField, $"[{optionName}] 카드가 작업 슬롯에 놓였습니다. 도마 위 재료를 눌러 손질을 확정하세요.");
+            SetText(instructionField, $"[{optionName}] 카드가 작업 슬롯에 놓였습니다. 도마 위 재료를 눌러 조리를 시작하세요.");
+        }
+
+        /// <summary>
+        /// 선택한 손질법의 조리 실행 시작 상태 표시
+        /// </summary>
+        /// <param name="ingredient">조리 대상 재료</param>
+        /// <param name="option">선택한 손질 옵션</param>
+        public void ShowInteractionStarted(IngredientSO ingredient, IngredientPreparationOption option)
+        {
+            EnsureReferences();
+            SetBoardCommitted(true);
+            SetIngredientAction(null);
+
+            if (ingredientImage != null)
+                ingredientImage.color = ingredientCommittedColor;
+
+            string ingredientName = ingredient != null ? ingredient.DisplayName : "재료";
+            string optionName = option != null ? option.DisplayName : "그대로 사용";
+            SetText(instructionField, $"{ingredientName}에 [{optionName}] 조리를 진행 중입니다.");
         }
 
         public void ShowInteractionResult(IngredientSO ingredient, IngredientPreparationOption option)
@@ -109,6 +128,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (action == null)
                 return;
 
+            SetIngredientAction(null);
             action.Invoke();
         }
 

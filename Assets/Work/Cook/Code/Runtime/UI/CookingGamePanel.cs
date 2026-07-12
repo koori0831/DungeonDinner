@@ -553,7 +553,7 @@ namespace Work.Cook.Code.Runtime.UI
         }
 
         /// <summary>
-        /// 조리 뷰의 카드 확정 후 직접 상호작용 결과를 손질 결과로 반영
+        /// 조리 뷰의 직접 상호작용 완료 후 미니게임 또는 손질 결과 반영 진행
         /// </summary>
         /// <param name="ingredient">손질 대상 재료</param>
         /// <param name="option">적용할 손질 옵션</param>
@@ -582,6 +582,9 @@ namespace Work.Cook.Code.Runtime.UI
                 Debug.LogWarning("CookingGamePanel could not complete a preparation interaction because the ingredient is missing.", this);
                 return false;
             }
+
+            if (miniGameResult == null && TryStartMiniGame(ingredient, option) == true)
+                return true;
 
             return ApplyPreparationResult(ingredient, option, miniGameResult);
         }
@@ -817,6 +820,9 @@ namespace Work.Cook.Code.Runtime.UI
                 Debug.LogWarning("CookingGamePanel could not apply the selected preparation.", this);
                 return false;
             }
+
+            if (CurrentScreen == CookingGameScreenState.MiniGame)
+                SetScreen(CookingGameScreenState.Preparation);
 
             if (flowRunner.GetNextUnpreparedIngredient() == null)
             {
