@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: MossCave
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Work.Adventure.Code.MapInfoSO
   <MapName>k__BackingField: "\uC774\uB07C\uB3D9\uAD74"
-  <Description>k__BackingField: "\uB4F1\uC7A5 \uBAAC\uC2A4\uD130 : 000 , 000\\n\uB4F1\uC7A5
-    \uCC44\uC9D1\uBB3C : 0000 , 000"
+  <Description>k__BackingField: "\uB4F1\uC7A5 \uBAAC\uC2A4\uD130 : \uC2AC\uB77C\uC784
+    , \uBA38\uC26C\uB8F8\uB9E8\\n\uB4F1\uC7A5 \uCC44\uC9D1\uBB3C : \uC554\uC5FC ,
+    \uCF58\uCE58\uC988 , \uBC84\uC12F , "

@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Work/Adventure/Scene/AdventureTestScene.unity
+    guid: 32edfc98794c2fd49adbc97d718de5bb
+  - enabled: 1
     path: Assets/Work/Cook/Scene/CookTestScene.unity
     guid: b92ed22d7e2089948aa73b9c26979e3a
   m_configObjects:

@@ -1,7 +1,9 @@
+using Alchemy.Inspector;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Work.Adventure.Code.UI;
 
 namespace Work.Adventure.Code
 {
@@ -24,6 +26,7 @@ namespace Work.Adventure.Code
     {
         [field:SerializeField] public string OptionName {  get; protected set; }
         [field:SerializeField] public string OptionTooltip {  get; protected set; }
+        
         [field:SerializeField] public string RewardDescription { get; protected set; }
         [SerializeReference] public List<AdventureReward> rewardMethod = new List<AdventureReward>();
         [field: SerializeField] public List<AdventrueDialogData> ResultdialogDatas { get; private set; } = new List<AdventrueDialogData>();
@@ -31,7 +34,11 @@ namespace Work.Adventure.Code
     [Serializable]
     public class LockedOption : Options
     {
+        [field: SerializeField] public string LockTooltip { get; protected set; }
         [field:SerializeField] public AdventureItemSO KeyItem { get; protected set; } // 해당 아이템을 가지고 있으면 선택지 해금
+        [field: SerializeField] public bool IsUnLockOption { get; protected set; }
+        [field: SerializeField] public bool IsUseItemOption { get; protected set; }
+        [ShowIf(nameof(IsUseItemOption))] public ItemLogStatusEnum LogStatus;
     } 
 
     [Serializable] 

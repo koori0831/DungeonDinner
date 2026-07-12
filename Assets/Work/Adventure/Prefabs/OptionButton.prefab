@@ -151,8 +151,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 763935abea979a44eae76dd95ae1dd67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.OptionButtonUI
+  root: {fileID: 3968957481060490583}
   nameField: {fileID: 3123422974872924651}
   button: {fileID: 1266994151139917456}
+  time: 0.24
+  widthOffset: 40
 --- !u!114 &2793721208306816360
 MonoBehaviour:
   m_ObjectHideFlags: 0

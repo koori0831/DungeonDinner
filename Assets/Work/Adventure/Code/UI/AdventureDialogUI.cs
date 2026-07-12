@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEditor.Rendering.MaterialUpgrader;
 
 namespace Work.Adventure.Code.UI
 {
@@ -13,6 +12,7 @@ namespace Work.Adventure.Code.UI
         [SerializeField] private GoAndStopSelectUI selectUI;
         [SerializeField] private RectTransform root;
         [SerializeField] private RectTransform dialogPanel;
+        [SerializeField] private RectTransform nextObject;
         [SerializeField] private TextMeshProUGUI dialogText;
         [SerializeField] private float panelMovePosY = 300;
         [SerializeField] private float time = 0.5f;
@@ -75,6 +75,7 @@ namespace Work.Adventure.Code.UI
         public void CloseDialogPanel()
         {
             dialogText.text = " ";
+            nextObject.gameObject.SetActive(false);
             dialogPanel.DOSizeDelta(new Vector2(dialogPanel.sizeDelta.x, 0), time).OnComplete(() => _isCanWriteText = false);
         }
 
@@ -116,6 +117,7 @@ namespace Work.Adventure.Code.UI
         public void PlayTyping(string message)
         {
             _isCanWriteText = false;
+            nextObject.gameObject.SetActive(false);
             _typingTween?.Kill();
 
             dialogText.text = message;
@@ -130,7 +132,11 @@ namespace Work.Adventure.Code.UI
                 count,
                 count * characterInterval)
                 .SetEase(Ease.Linear)
-                .OnComplete(() => _isCanWriteText = true);
+                .OnComplete(() =>
+                {
+                    _isCanWriteText = true;
+                    nextObject.gameObject.SetActive(true);
+                });
         }
     }
 }

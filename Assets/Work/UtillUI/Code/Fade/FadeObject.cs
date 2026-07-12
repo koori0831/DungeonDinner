@@ -59,7 +59,6 @@ namespace Work.UtillUI.Code.Fade
 
         public void Fill(OnFadeInEvent evt)
         {
-            Debug.Log(_currentState);
             if (_currentState == FadeState.FillFromRight || _currentState == FadeState.FillFromLeft)
                 return;
 
@@ -73,7 +72,6 @@ namespace Work.UtillUI.Code.Fade
 
         public void Clear(OnFadeOutEvent evt)
         {
-            Debug.Log(_currentState);
             if (_currentState == FadeState.Right || _currentState == FadeState.Left)
                 return;
 
