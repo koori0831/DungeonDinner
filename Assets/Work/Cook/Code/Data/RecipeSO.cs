@@ -42,7 +42,7 @@ namespace Work.Cook.Code.Data
 
         public string GetKnowledgeDescription(bool discovered, bool hasAttempted)
         {
-            if (discovered)
+            if (discovered == true)
             {
                 if (string.IsNullOrWhiteSpace(discoveredDescription) == false)
                     return discoveredDescription;

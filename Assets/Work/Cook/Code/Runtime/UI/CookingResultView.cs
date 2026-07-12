@@ -7,9 +7,11 @@ using Work.Cook.Code.Data;
 using Work.NPC.Code.Data;
 using Work.NPC.Code.Runtime;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -73,7 +75,7 @@ namespace Work.Cook.Code.Runtime.UI
             EnsureLayout();
             BindButton();
 
-            if (isActiveAndEnabled)
+            if (isActiveAndEnabled == true)
             {
                 SubscribePanelEvents();
                 Refresh();
@@ -178,7 +180,8 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void HandToNpc()
         {
-            gamePanel?.AdvanceFromResult();
+            if (gamePanel != null)
+                Bus<CookingResultAdvanceRequestedEvent>.Raise(new CookingResultAdvanceRequestedEvent(gamePanel));
         }
 
         private void BindDishIcon(DishResult result)
@@ -497,8 +500,8 @@ namespace Work.Cook.Code.Runtime.UI
             if (gamePanel == null)
                 return;
 
-            gamePanel.ResultReady += HandleResultReady;
-            gamePanel.SnapshotChanged += HandleSnapshotChanged;
+            Bus<CookingDishResultReadyEvent>.Events += HandleResultReady;
+            Bus<CookingGameSnapshotChangedEvent>.Events += HandleSnapshotChanged;
             _subscribedPanel = gamePanel;
         }
 
@@ -507,18 +510,24 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            _subscribedPanel.ResultReady -= HandleResultReady;
-            _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
+            Bus<CookingDishResultReadyEvent>.Events -= HandleResultReady;
+            Bus<CookingGameSnapshotChangedEvent>.Events -= HandleSnapshotChanged;
             _subscribedPanel = null;
         }
 
-        private void HandleResultReady(DishResult result)
+        private void HandleResultReady(CookingDishResultReadyEvent gameEvent)
         {
+            if (gameEvent.Source != gamePanel)
+                return;
+
             Refresh();
         }
 
-        private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
+        private void HandleSnapshotChanged(CookingGameSnapshotChangedEvent gameEvent)
         {
+            if (gameEvent.Source != gamePanel)
+                return;
+
             Refresh();
         }
 

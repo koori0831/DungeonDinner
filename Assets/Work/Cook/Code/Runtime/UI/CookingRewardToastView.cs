@@ -1,11 +1,15 @@
-using System.Collections;
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using Work.NPC.Code.Data;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -34,7 +38,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private string balancePrefix = "소지금";
 
         private CookingGamePanel _subscribedPanel;
-        private Coroutine _hideRoutine;
+        private CancellationTokenSource _hideCancellationTokenSource;
 
         private void Awake()
         {
@@ -53,6 +57,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void OnDisable()
         {
+            CancelHideRoutine();
             UnsubscribePanelEvents();
         }
 
@@ -69,7 +74,7 @@ namespace Work.Cook.Code.Runtime.UI
 
             EnsureLayout();
 
-            if (isActiveAndEnabled)
+            if (isActiveAndEnabled == true)
             {
                 SubscribePanelEvents();
                 BindCurrentBalance();
@@ -100,28 +105,56 @@ namespace Work.Cook.Code.Runtime.UI
             if (rewardField != null)
                 rewardField.color = grant.Amount > 0 ? positiveColor : emptyColor;
 
-            if (_hideRoutine != null)
-                StopCoroutine(_hideRoutine);
+            CancelHideRoutine();
 
-            _hideRoutine = StartCoroutine(ShowRoutine());
+            _hideCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
+            ShowRoutineAsync(_hideCancellationTokenSource).Forget();
         }
 
-        private IEnumerator ShowRoutine()
+        private async UniTask ShowRoutineAsync(CancellationTokenSource cancellationTokenSource)
         {
-            SetAlpha(1f);
-            yield return new WaitForSeconds(visibleDuration);
+            CancellationToken cancellationToken = cancellationTokenSource.Token;
 
-            float elapsed = 0f;
-            while (elapsed < fadeDuration)
+            try
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / fadeDuration);
-                SetAlpha(1f - t);
-                yield return null;
-            }
+                SetAlpha(1f);
+                await UniTask.Delay(TimeSpan.FromSeconds(visibleDuration), cancellationToken: cancellationToken);
 
-            HideImmediate();
-            _hideRoutine = null;
+                float elapsed = 0f;
+                while (elapsed < fadeDuration)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    elapsed += Time.deltaTime;
+                    float t = Mathf.Clamp01(elapsed / fadeDuration);
+                    SetAlpha(1f - t);
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+
+                HideImmediate();
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            finally
+            {
+                if (_hideCancellationTokenSource == cancellationTokenSource)
+                {
+                    _hideCancellationTokenSource.Dispose();
+                    _hideCancellationTokenSource = null;
+                }
+            }
+        }
+
+        private void CancelHideRoutine()
+        {
+            if (_hideCancellationTokenSource == null)
+                return;
+
+            _hideCancellationTokenSource.Cancel();
+            _hideCancellationTokenSource.Dispose();
+            _hideCancellationTokenSource = null;
         }
 
         private void BindCurrentBalance()
@@ -187,7 +220,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (gamePanel == null)
                 return;
 
-            gamePanel.RewardGranted += HandleRewardGranted;
+            Bus<CookingRewardGrantedEvent>.Events += HandleRewardGranted;
             _subscribedPanel = gamePanel;
         }
 
@@ -196,13 +229,16 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            _subscribedPanel.RewardGranted -= HandleRewardGranted;
+            Bus<CookingRewardGrantedEvent>.Events -= HandleRewardGranted;
             _subscribedPanel = null;
         }
 
-        private void HandleRewardGranted(CookingRewardGrant grant)
+        private void HandleRewardGranted(CookingRewardGrantedEvent gameEvent)
         {
-            Show(grant);
+            if (gameEvent.Source != gamePanel)
+                return;
+
+            Show(gameEvent.Grant);
         }
 
         private void HideImmediate()

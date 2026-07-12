@@ -1,9 +1,6 @@
-using DG.Tweening;
-using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
-namespace Work.Cook.Code.Runtime
+namespace Work.Cook.Code.Runtime.UI
 {
     public class MainUI : MonoBehaviour
     {

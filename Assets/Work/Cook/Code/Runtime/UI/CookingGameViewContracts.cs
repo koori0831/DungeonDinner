@@ -12,7 +12,6 @@ namespace Work.Cook.Code.Runtime.UI
 {
     public interface ICookingIngredientSource
     {
-        event Action IngredientsChanged;
         string SourceName { get; }
         IReadOnlyList<IngredientSO> GetAvailableIngredients(CookingGamePanel owner, CookingFlowRunner runner);
     }

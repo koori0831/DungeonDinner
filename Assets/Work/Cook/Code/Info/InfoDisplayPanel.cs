@@ -1,5 +1,6 @@
 using System;
-using System.Collections;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,7 +23,7 @@ namespace Work.Cook.Code.Info
 
         private Action _previousAction;
         private Action _nextAction;
-        private Coroutine _transitionRoutine;
+        private CancellationTokenSource _transitionCancellationTokenSource;
         private RectTransform _transitionRoot;
         private Vector2 _transitionBasePosition;
         private int _transitionDirection;
@@ -38,7 +39,6 @@ namespace Work.Cook.Code.Info
             else
                 backBtn.onClick.AddListener(() => backAction?.Invoke());
 
-            EnsureNavigationButtons();
             BindNavigationButtons();
         }
 
@@ -47,7 +47,6 @@ namespace Work.Cook.Code.Info
             _previousAction = previousAction;
             _nextAction = nextAction;
 
-            EnsureNavigationButtons();
             BindNavigationButtons();
 
             SetButtonVisible(previousBtn, hasPrevious);
@@ -78,7 +77,13 @@ namespace Work.Cook.Code.Info
 
         public virtual void Disable()
         {
+            CancelPageTransition();
             gameObject.SetActive(false);
+        }
+
+        private void OnDisable()
+        {
+            CancelPageTransition();
         }
 
         private void ClearDisplayText()
@@ -117,29 +122,10 @@ namespace Work.Cook.Code.Info
             _nextAction?.Invoke();
         }
 
-        private void EnsureNavigationButtons()
-        {
-            if (previousBtn != null && nextBtn != null)
-                return;
-
-            RectTransform root = transform as RectTransform;
-            if (root == null)
-                return;
-
-            if (previousBtn == null)
-                previousBtn = CreateNavigationButton(root, "PreviousEntryButton", "<", new Vector2(0f, 0.5f), new Vector2(18f, 0f));
-
-            if (nextBtn == null)
-                nextBtn = CreateNavigationButton(root, "NextEntryButton", ">", new Vector2(1f, 0.5f), new Vector2(-18f, 0f));
-        }
-
         private void EnsureTransitionReferences()
         {
             if (transitionCanvasGroup == null)
                 transitionCanvasGroup = GetComponent<CanvasGroup>();
-
-            if (transitionCanvasGroup == null)
-                transitionCanvasGroup = gameObject.AddComponent<CanvasGroup>();
 
             if (_transitionRoot == null)
             {
@@ -160,68 +146,61 @@ namespace Work.Cook.Code.Info
             if (transitionCanvasGroup == null || _transitionRoot == null || pageTransitionDuration <= 0f)
                 return;
 
-            if (_transitionRoutine != null)
-                StopCoroutine(_transitionRoutine);
+            CancelPageTransition();
 
-            _transitionRoutine = StartCoroutine(PageTransitionRoutine(direction));
+            _transitionCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
+            PageTransitionAsync(direction, _transitionCancellationTokenSource).Forget();
         }
 
-        private IEnumerator PageTransitionRoutine(int direction)
+        private async UniTask PageTransitionAsync(int direction, CancellationTokenSource cancellationTokenSource)
         {
+            CancellationToken cancellationToken = cancellationTokenSource.Token;
             direction = direction == 0 ? 1 : Math.Sign(direction);
             float elapsed = 0f;
             Vector2 from = _transitionBasePosition + new Vector2(pageTransitionSlideDistance * direction, 0f);
 
-            transitionCanvasGroup.alpha = 0.72f;
-            _transitionRoot.anchoredPosition = from;
-
-            while (elapsed < pageTransitionDuration)
+            try
             {
-                elapsed += Time.unscaledDeltaTime;
-                float t = Mathf.Clamp01(elapsed / pageTransitionDuration);
-                float eased = 1f - Mathf.Pow(1f - t, 2f);
-                transitionCanvasGroup.alpha = Mathf.Lerp(0.72f, 1f, eased);
-                _transitionRoot.anchoredPosition = Vector2.Lerp(from, _transitionBasePosition, eased);
-                yield return null;
-            }
+                transitionCanvasGroup.alpha = 0.72f;
+                _transitionRoot.anchoredPosition = from;
 
-            transitionCanvasGroup.alpha = 1f;
-            _transitionRoot.anchoredPosition = _transitionBasePosition;
-            _transitionRoutine = null;
+                while (elapsed < pageTransitionDuration)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    elapsed += Time.unscaledDeltaTime;
+                    float t = Mathf.Clamp01(elapsed / pageTransitionDuration);
+                    float eased = 1f - Mathf.Pow(1f - t, 2f);
+                    transitionCanvasGroup.alpha = Mathf.Lerp(0.72f, 1f, eased);
+                    _transitionRoot.anchoredPosition = Vector2.Lerp(from, _transitionBasePosition, eased);
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+
+                transitionCanvasGroup.alpha = 1f;
+                _transitionRoot.anchoredPosition = _transitionBasePosition;
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            finally
+            {
+                if (_transitionCancellationTokenSource == cancellationTokenSource)
+                {
+                    _transitionCancellationTokenSource.Dispose();
+                    _transitionCancellationTokenSource = null;
+                }
+            }
         }
 
-        private Button CreateNavigationButton(RectTransform parent, string objectName, string label, Vector2 anchor, Vector2 anchoredPosition)
+        private void CancelPageTransition()
         {
-            GameObject buttonObject = new GameObject(objectName, typeof(RectTransform), typeof(Image), typeof(Button));
-            RectTransform rect = buttonObject.GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.anchorMin = anchor;
-            rect.anchorMax = anchor;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = new Vector2(42f, 74f);
-            rect.anchoredPosition = anchoredPosition;
+            if (_transitionCancellationTokenSource == null)
+                return;
 
-            Image image = buttonObject.GetComponent<Image>();
-            image.color = new Color(0.05f, 0.04f, 0.035f, 0.82f);
-
-            Button button = buttonObject.GetComponent<Button>();
-
-            GameObject textObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            RectTransform textRect = textObject.GetComponent<RectTransform>();
-            textRect.SetParent(rect, false);
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = Vector2.zero;
-            textRect.offsetMax = Vector2.zero;
-
-            TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
-            text.text = label;
-            text.fontSize = 32f;
-            text.alignment = TextAlignmentOptions.Center;
-            text.color = Color.white;
-
-            rect.SetAsLastSibling();
-            return button;
+            _transitionCancellationTokenSource.Cancel();
+            _transitionCancellationTokenSource.Dispose();
+            _transitionCancellationTokenSource = null;
         }
 
         private static void SetButtonVisible(Button button, bool visible)

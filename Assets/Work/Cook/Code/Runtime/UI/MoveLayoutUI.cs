@@ -1,10 +1,8 @@
 using DG.Tweening;
-using System;
-using System.Xml;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Work.Cook.Code.Runtime
+namespace Work.Cook.Code.Runtime.UI
 {
     public class MoveLayoutUI : MonoBehaviour
     {

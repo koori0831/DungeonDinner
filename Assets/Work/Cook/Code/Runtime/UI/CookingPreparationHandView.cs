@@ -210,7 +210,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (cardGroup == null)
                 cardGroup = GetComponent<CanvasGroup>();
             if (cardGroup == null)
-                cardGroup = gameObject.AddComponent<CanvasGroup>();
+                Debug.LogError("CookingPreparationHandView needs a CanvasGroup assigned or attached to the same GameObject.", this);
         }
 
         private void ApplyFontToExistingTexts()

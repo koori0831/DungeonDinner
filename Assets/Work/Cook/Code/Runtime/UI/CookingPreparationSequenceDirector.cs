@@ -1,9 +1,11 @@
 using DG.Tweening;
 using UnityEngine;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -51,7 +53,7 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (gamePanel != null)
             {
-                gamePanel.ScreenChanged += HandleScreenChanged;
+                Bus<CookingGameScreenChangedEvent>.Events += HandleScreenChanged;
                 _isPreparationActive = IsPreparationStageState(gamePanel.CurrentScreen);
             }
 
@@ -65,7 +67,7 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (gamePanel != null)
             {
-                gamePanel.ScreenChanged -= HandleScreenChanged;
+                Bus<CookingGameScreenChangedEvent>.Events -= HandleScreenChanged;
             }
 
             KillActiveSequence();
@@ -76,9 +78,12 @@ namespace Work.Cook.Code.Runtime.UI
             KillActiveSequence();
         }
 
-        private void HandleScreenChanged(CookingGameScreenState state)
+        private void HandleScreenChanged(CookingGameScreenChangedEvent gameEvent)
         {
-            if (IsPreparationStageState(state) == true)
+            if (gameEvent.Source != gamePanel)
+                return;
+
+            if (IsPreparationStageState(gameEvent.Screen) == true)
             {
                 if (_isPreparationActive == false)
                     PlayPreparationEnterSequence();

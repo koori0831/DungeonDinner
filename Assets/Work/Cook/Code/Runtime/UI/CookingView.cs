@@ -3,7 +3,9 @@ using TMPro;
 using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Systems;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -29,7 +31,6 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private TMP_FontAsset fontAsset;
 
         private CookingGamePanel _subscribedPanel;
-        private CookingFlowRunner _subscribedFlowRunner;
         private IngredientSO _currentIngredient;
         private IngredientSO _boundIngredient;
         private IngredientPreparationOption _committedOption;
@@ -181,7 +182,8 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (gamePanel != null)
             {
-                gamePanel.CompletePreparationInteraction(ingredient, option, null);
+                Bus<CookingPreparationInteractionCompleteRequestedEvent>.Raise(
+                    new CookingPreparationInteractionCompleteRequestedEvent(gamePanel, ingredient, option, null));
                 return;
             }
 
@@ -196,7 +198,8 @@ namespace Work.Cook.Code.Runtime.UI
 
             _isCompletingCooking = true;
             State = CookingViewState.CompleteCooking;
-            gamePanel?.CompleteCooking();
+            if (gamePanel != null)
+                Bus<CookingCompleteRequestedEvent>.Raise(new CookingCompleteRequestedEvent(gamePanel));
             _isCompletingCooking = false;
         }
 
@@ -238,45 +241,42 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel != gamePanel)
             {
                 if (_subscribedPanel != null)
-                    _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
+                    Bus<CookingGameSnapshotChangedEvent>.Events -= HandleSnapshotChanged;
 
                 _subscribedPanel = gamePanel;
                 if (_subscribedPanel != null)
-                    _subscribedPanel.SnapshotChanged += HandleSnapshotChanged;
+                    Bus<CookingGameSnapshotChangedEvent>.Events += HandleSnapshotChanged;
             }
 
-            if (_subscribedFlowRunner != flowRunner)
-            {
-                if (_subscribedFlowRunner != null)
-                    _subscribedFlowRunner.StateChanged -= HandleFlowStateChanged;
-
-                _subscribedFlowRunner = flowRunner;
-                if (_subscribedFlowRunner != null)
-                    _subscribedFlowRunner.StateChanged += HandleFlowStateChanged;
-            }
+            Bus<CookingFlowStateChangedEvent>.Events -= HandleFlowStateChanged;
+            Bus<CookingFlowStateChangedEvent>.Events += HandleFlowStateChanged;
         }
 
         private void UnsubscribeSources()
         {
             if (_subscribedPanel != null)
-                _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
-            if (_subscribedFlowRunner != null)
-                _subscribedFlowRunner.StateChanged -= HandleFlowStateChanged;
+                Bus<CookingGameSnapshotChangedEvent>.Events -= HandleSnapshotChanged;
+            Bus<CookingFlowStateChangedEvent>.Events -= HandleFlowStateChanged;
 
             _subscribedPanel = null;
-            _subscribedFlowRunner = null;
         }
 
-        private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
+        private void HandleSnapshotChanged(CookingGameSnapshotChangedEvent gameEvent)
         {
+            if (gameEvent.Source != gamePanel)
+                return;
+
             if (isActiveAndEnabled == false)
                 return;
 
             orderNoteView?.Refresh(gamePanel);
         }
 
-        private void HandleFlowStateChanged(CookingFlowState state)
+        private void HandleFlowStateChanged(CookingFlowStateChangedEvent gameEvent)
         {
+            if (gameEvent.Source != flowRunner)
+                return;
+
             if (isActiveAndEnabled == true)
                 Refresh();
         }
