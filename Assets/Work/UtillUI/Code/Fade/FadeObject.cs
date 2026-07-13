@@ -29,12 +29,15 @@ namespace Work.UtillUI.Code.Fade
         [SerializeField] private FadeObjectPosInfo fillInfo;
         [SerializeField] private FadeObjectPosInfo leftInfo, rightInfo;
         [SerializeField] private float fadeTime = 0.5f;
-        private FadeState _currentState = FadeState.Left;
+        [SerializeField] private FadeState startFadeState = FadeState.FillFromLeft;
+        private FadeState _currentState = FadeState.FillFromLeft;
 
         private void Awake()
         {
             Bus<OnFadeOutEvent>.Events += Clear;
             Bus<OnFadeInEvent>.Events += Fill;
+            _currentState = startFadeState;
+            Clear(new OnFadeOutEvent());
         }
 
         private void OnDestroy()
@@ -42,20 +45,6 @@ namespace Work.UtillUI.Code.Fade
             Bus<OnFadeOutEvent>.Events -= Clear;
             Bus<OnFadeInEvent>.Events -= Fill;
         }
-
-        private void Update()
-        {
-            if(Keyboard.current.iKey.wasPressedThisFrame)
-            {
-                Fill(new OnFadeInEvent());
-            }
-
-            if (Keyboard.current.oKey.wasPressedThisFrame)
-            {
-                Clear(new OnFadeOutEvent());
-            }
-        }
-
 
         public void Fill(OnFadeInEvent evt)
         {

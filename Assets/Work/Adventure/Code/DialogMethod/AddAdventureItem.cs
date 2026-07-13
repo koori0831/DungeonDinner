@@ -20,7 +20,7 @@ namespace Work.Adventure.Code.DialogMethod
 
         public override void RaiseEvent()
         {
-            Bus<OnAddAdventureItem>.Raise(new OnAddAdventureItem(itemSo));
+            Bus<OnAddAdventureItemEvent>.Raise(new OnAddAdventureItemEvent(itemSo));
             Bus<OnPlusLogCreateEvent>.Raise(new OnPlusLogCreateEvent(new ItemLogData(itemSo.ItemName, ItemLogStatusEnum.Add, itemSo.ItemIcon)));
         }
     }
