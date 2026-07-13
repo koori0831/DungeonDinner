@@ -87,7 +87,7 @@ namespace Work.Cook.Code.Runtime.UI
         void Initialize(CookingGamePanel owner, CookingFlowRunner runner, TMP_FontAsset defaultFontAsset = null);
         void SetFontAsset(TMP_FontAsset value);
         bool CanPlay(CookingMiniGameType miniGameType);
-        void StartMiniGame(
+        bool StartMiniGame(
             IngredientSO ingredient,
             IngredientPreparationOption option,
             Action<CookingMiniGameResult> completed);

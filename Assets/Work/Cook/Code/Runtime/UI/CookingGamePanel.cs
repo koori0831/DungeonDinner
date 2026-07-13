@@ -47,8 +47,6 @@ namespace Work.Cook.Code.Runtime.UI
 
         [Header("Mini Game")]
         [SerializeField] private GameObject miniGameView;
-        [SerializeField] private bool useMiniGames = true;
-        [SerializeField] private bool continueWithoutMiniGameView = true;
 
         [Header("Views")]
         [SerializeField] private GameObject npcConversationView;
@@ -71,6 +69,13 @@ namespace Work.Cook.Code.Runtime.UI
         private bool _isMiniGameActive;
         private IngredientSO _pendingMiniGameIngredient;
         private IngredientPreparationOption _pendingMiniGameOption;
+
+        private enum MiniGameStartStatus
+        {
+            NotRequired,
+            Started,
+            Unavailable
+        }
 
         public CookingFlowRunner FlowRunner => flowRunner;
         public NpcConversationRunner NpcRunner => npcRunner;
@@ -546,8 +551,14 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
             }
 
-            if (TryStartMiniGame(ingredient, option) == true)
+            MiniGameStartStatus miniGameStatus = TryStartMiniGame(ingredient, option);
+            if (miniGameStatus == MiniGameStartStatus.Started)
                 return true;
+            if (miniGameStatus == MiniGameStartStatus.Unavailable)
+            {
+                RecoverFromUnavailableMiniGame();
+                return false;
+            }
 
             return ApplyPreparationResult(ingredient, option, null);
         }
@@ -583,8 +594,17 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
             }
 
-            if (miniGameResult == null && TryStartMiniGame(ingredient, option) == true)
-                return true;
+            if (miniGameResult == null)
+            {
+                MiniGameStartStatus miniGameStatus = TryStartMiniGame(ingredient, option);
+                if (miniGameStatus == MiniGameStartStatus.Started)
+                    return true;
+                if (miniGameStatus == MiniGameStartStatus.Unavailable)
+                {
+                    RecoverFromUnavailableMiniGame();
+                    return false;
+                }
+            }
 
             return ApplyPreparationResult(ingredient, option, miniGameResult);
         }
@@ -762,34 +782,32 @@ namespace Work.Cook.Code.Runtime.UI
             return true;
         }
 
-        private bool TryStartMiniGame(IngredientSO ingredient, IngredientPreparationOption option)
+        private MiniGameStartStatus TryStartMiniGame(IngredientSO ingredient, IngredientPreparationOption option)
         {
-            if (useMiniGames == false || option == null || option.MiniGameType == CookingMiniGameType.None)
-                return false;
+            if (option == null || option.MiniGameType == CookingMiniGameType.None)
+                return MiniGameStartStatus.NotRequired;
 
             ICookingMiniGameView miniGame = GetMiniGameView();
             if (miniGame == null || miniGame.CanPlay(option.MiniGameType) == false)
             {
-                if (continueWithoutMiniGameView == false)
-                {
-                    Debug.LogWarning(
-                        $"CookingGamePanel could not start mini game, so it will continue with normal preparation. type={option.MiniGameType}, viewMissing={miniGame == null}",
-                        this);
-                    return false;
-                }
-
-                Debug.LogWarning(
-                    $"CookingGamePanel skipped mini game because no compatible mini game view was found. type={option.MiniGameType}",
+                Debug.LogError(
+                    $"CookingGamePanel requires a compatible mini game view. type={option.MiniGameType}, viewMissing={miniGame == null}",
                     this);
-                return false;
+                return MiniGameStartStatus.Unavailable;
             }
 
             _pendingMiniGameIngredient = ingredient;
             _pendingMiniGameOption = option;
             _isMiniGameActive = true;
+            if (miniGame.StartMiniGame(ingredient, option, HandleMiniGameCompleted) == false)
+            {
+                ClearPendingMiniGame();
+                Debug.LogError($"CookingGamePanel failed to start mini game. type={option.MiniGameType}", this);
+                return MiniGameStartStatus.Unavailable;
+            }
+
             SetScreen(CookingGameScreenState.MiniGame);
-            miniGame.StartMiniGame(ingredient, option, HandleMiniGameCompleted);
-            return true;
+            return MiniGameStartStatus.Started;
         }
 
         private void HandleMiniGameCompleted(CookingMiniGameResult result)
@@ -800,11 +818,47 @@ namespace Work.Cook.Code.Runtime.UI
             IngredientSO ingredient = _pendingMiniGameIngredient;
             IngredientPreparationOption option = _pendingMiniGameOption;
 
+            ClearPendingMiniGame();
+
+            if (result == null || option == null || result.MiniGameType != option.MiniGameType)
+            {
+                Debug.LogError("CookingGamePanel rejected an invalid mini game result.", this);
+                SetScreen(CookingGameScreenState.Preparation);
+                RefreshPreparationView(preparationView);
+                return;
+            }
+
+            ApplyPreparationResult(ingredient, option, result);
+        }
+
+        /// <summary>
+        /// 진행 중인 미니게임을 취소하고 현재 재료 손질 선택으로 복귀
+        /// </summary>
+        public void CancelActiveMiniGame()
+        {
+            if (_isMiniGameActive == false)
+                return;
+
+            GetMiniGameView()?.CancelMiniGame();
+            ClearPendingMiniGame();
+            SetScreen(CookingGameScreenState.Preparation);
+            RefreshPreparationView(preparationView);
+        }
+
+        private void ClearPendingMiniGame()
+        {
             _pendingMiniGameIngredient = null;
             _pendingMiniGameOption = null;
             _isMiniGameActive = false;
+        }
 
-            ApplyPreparationResult(ingredient, option, result);
+        private void RecoverFromUnavailableMiniGame()
+        {
+            if (CurrentScreen != CookingGameScreenState.Preparation)
+                SetScreen(CookingGameScreenState.Preparation);
+
+            RefreshPreparationView(preparationView);
+            PublishSnapshotChanged();
         }
 
         private bool ApplyPreparationResult(
@@ -1285,8 +1339,7 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
-            if (useMiniGames == true && continueWithoutMiniGameView == false)
-                LogMissingViewReference(nameof(miniGameView), nameof(ICookingMiniGameView));
+            LogMissingViewReference(nameof(miniGameView), nameof(ICookingMiniGameView));
         }
 
         private void AttachMiniGameViewToOverlayRoot(GameObject view)

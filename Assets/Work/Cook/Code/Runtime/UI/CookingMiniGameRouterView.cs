@@ -73,29 +73,34 @@ namespace Work.Cook.Code.Runtime.UI
         /// <param name="ingredient">손질 대상 재료</param>
         /// <param name="option">선택한 손질 옵션</param>
         /// <param name="completed">미니게임 완료 콜백</param>
-        public void StartMiniGame(
+        public bool StartMiniGame(
             IngredientSO ingredient,
             IngredientPreparationOption option,
             Action<CookingMiniGameResult> completed)
         {
+            if (ingredient == null || option == null || completed == null)
+                return false;
+
             CookingMiniGameType miniGameType = option != null ? option.MiniGameType : CookingMiniGameType.None;
             ICookingMiniGameView miniGame = FindMiniGameView(miniGameType);
             if (miniGame == null)
             {
-                completed?.Invoke(new CookingMiniGameResult(
-                    miniGameType,
-                    CookingMiniGameGrade.Normal,
-                    0.5f,
-                    0,
-                    "미니게임 뷰가 없어 보통 결과로 처리"));
-                return;
+                Debug.LogError($"CookingMiniGameRouterView has no view for type {miniGameType}.", this);
+                return false;
             }
 
             _completed = completed;
             _activeMiniGame = miniGame;
             SetAllMiniGamesActive(false);
             SetMiniGameActive(miniGame, true);
-            miniGame.StartMiniGame(ingredient, option, HandleMiniGameCompleted);
+            if (miniGame.StartMiniGame(ingredient, option, HandleMiniGameCompleted) == true)
+                return true;
+
+            SetMiniGameActive(miniGame, false);
+            _activeMiniGame = null;
+            _completed = null;
+            Debug.LogError($"CookingMiniGameRouterView failed to start type {miniGameType}.", this);
+            return false;
         }
 
         /// <summary>
@@ -126,14 +131,23 @@ namespace Work.Cook.Code.Runtime.UI
                 return null;
 
             CollectMiniGameViews();
+            ICookingMiniGameView selectedMiniGame = null;
             for (int i = 0; i < _miniGameViews.Count; i++)
             {
                 ICookingMiniGameView miniGame = _miniGameViews[i];
-                if (miniGame != null && miniGame.CanPlay(miniGameType) == true)
-                    return miniGame;
+                if (miniGame == null || miniGame.CanPlay(miniGameType) == false)
+                    continue;
+
+                if (selectedMiniGame != null)
+                {
+                    Debug.LogError($"CookingMiniGameRouterView has multiple views for type {miniGameType}.", this);
+                    return null;
+                }
+
+                selectedMiniGame = miniGame;
             }
 
-            return null;
+            return selectedMiniGame;
         }
 
         private void CollectMiniGameViews()

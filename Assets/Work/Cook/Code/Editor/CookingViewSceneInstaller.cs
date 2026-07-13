@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
 
@@ -136,6 +137,297 @@ namespace Work.Cook.Code.Editor
             return root;
         }
 
+        private static GameObject CreateChoppingMiniGamePanel(Transform parent, TMP_FontAsset font)
+        {
+            GameObject panel = CreateMiniGamePanelFrame(
+                "ChoppingMiniGamePanel",
+                parent,
+                font,
+                "다지기 미니게임",
+                out TextMeshProUGUI title,
+                out TextMeshProUGUI instruction,
+                out TextMeshProUGUI progress,
+                out Button cancelButton);
+            CookingChoppingMiniGameView view = panel.AddComponent<CookingChoppingMiniGameView>();
+
+            GameObject targetArea = CreateImage("TargetArea", panel.transform, new Color(0.36f, 0.2f, 0.09f, 1f));
+            SetCenter(targetArea.GetComponent<RectTransform>(), new Vector2(680f, 420f), new Vector2(0f, -8f));
+            Vector2[] positions =
+            {
+                new Vector2(-210f, 90f),
+                new Vector2(0f, 120f),
+                new Vector2(210f, 80f),
+                new Vector2(-120f, -100f),
+                new Vector2(120f, -110f)
+            };
+            Button[] targets = new Button[positions.Length];
+            for (int i = 0; i < positions.Length; i++)
+            {
+                Button target = CreateButton($"Target{i + 1}", targetArea.transform, new Color(0.45f, 0.3f, 0.16f, 1f));
+                SetCenter(target.GetComponent<RectTransform>(), new Vector2(86f, 86f), positions[i]);
+                targets[i] = target;
+            }
+
+            SerializedObject serializedView = new SerializedObject(view);
+            SetObjectReferenceArray(serializedView, "targetButtons", targets);
+            SetObjectReference(serializedView, "titleField", title);
+            SetObjectReference(serializedView, "instructionField", instruction);
+            SetObjectReference(serializedView, "progressField", progress);
+            SetObjectReference(serializedView, "cancelButton", cancelButton);
+            serializedView.ApplyModifiedPropertiesWithoutUndo();
+            panel.SetActive(false);
+            return panel;
+        }
+
+        private static GameObject CreateCleansingMiniGamePanel(Transform parent, TMP_FontAsset font)
+        {
+            GameObject panel = CreateMiniGamePanelFrame(
+                "CleansingMiniGamePanel",
+                parent,
+                font,
+                "씻기 미니게임",
+                out TextMeshProUGUI title,
+                out TextMeshProUGUI instruction,
+                out TextMeshProUGUI progress,
+                out Button cancelButton);
+            CookingCleansingMiniGameView view = panel.AddComponent<CookingCleansingMiniGameView>();
+
+            GameObject interactionObject = CreateImage("CleansingInteractionArea", panel.transform, new Color(0.18f, 0.34f, 0.42f, 1f));
+            RectTransform interactionArea = interactionObject.GetComponent<RectTransform>();
+            SetCenter(interactionArea, new Vector2(680f, 420f), new Vector2(0f, -8f));
+            Image ingredientImage = CreateImage("Ingredient", interactionObject.transform, new Color(0.72f, 0.78f, 0.62f, 1f)).GetComponent<Image>();
+            SetCenter(ingredientImage.rectTransform, new Vector2(500f, 300f), Vector2.zero);
+            ingredientImage.raycastTarget = false;
+            ingredientImage.preserveAspect = true;
+
+            Vector2[] stainPositions =
+            {
+                new Vector2(-170f, 80f),
+                new Vector2(40f, 105f),
+                new Vector2(180f, -20f),
+                new Vector2(-65f, -105f)
+            };
+            Image[] stains = new Image[stainPositions.Length];
+            for (int i = 0; i < stains.Length; i++)
+            {
+                Image stain = CreateImage("Stain" + (i + 1), interactionObject.transform, new Color(0.24f, 0.14f, 0.08f, 1f)).GetComponent<Image>();
+                SetCenter(stain.rectTransform, new Vector2(105f, 82f), stainPositions[i]);
+                stain.raycastTarget = false;
+                stains[i] = stain;
+            }
+
+            Image brush = CreateImage("Brush", interactionObject.transform, new Color(0.75f, 0.92f, 1f, 0.9f)).GetComponent<Image>();
+            SetCenter(brush.rectTransform, new Vector2(70f, 70f), Vector2.zero);
+            brush.raycastTarget = false;
+            brush.gameObject.SetActive(false);
+
+            SerializedObject serializedView = new SerializedObject(view);
+            SetObjectReference(serializedView, "interactionArea", interactionArea);
+            SetObjectReference(serializedView, "ingredientImage", ingredientImage);
+            SetObjectReference(serializedView, "brushImage", brush);
+            SetObjectReferenceArray(serializedView, "stainImages", stains);
+            SetObjectReference(serializedView, "titleField", title);
+            SetObjectReference(serializedView, "instructionField", instruction);
+            SetObjectReference(serializedView, "progressField", progress);
+            SetObjectReference(serializedView, "cancelButton", cancelButton);
+            serializedView.ApplyModifiedPropertiesWithoutUndo();
+            panel.SetActive(false);
+            return panel;
+        }
+
+        private static GameObject CreateGaugeMiniGamePanel(
+            Transform parent,
+            TMP_FontAsset font,
+            string panelName,
+            CookingMiniGameType miniGameType,
+            string actionName,
+            string instructionText,
+            float duration,
+            float targetMin,
+            float targetMax)
+        {
+            GameObject panel = CreateMiniGamePanelFrame(
+                panelName,
+                parent,
+                font,
+                actionName + " 미니게임",
+                out TextMeshProUGUI title,
+                out TextMeshProUGUI instruction,
+                out TextMeshProUGUI progress,
+                out Button cancelButton);
+            CookingGaugeMiniGameView view = panel.AddComponent<CookingGaugeMiniGameView>();
+
+            Slider slider = CreateProgressSlider("CookingGauge", panel.transform, new Vector2(600f, 72f), new Vector2(0f, -10f));
+            GameObject targetObject = CreateImage("TargetZone", slider.transform, new Color(0.3f, 0.8f, 0.32f, 0.52f));
+            RectTransform targetZone = targetObject.GetComponent<RectTransform>();
+            targetObject.GetComponent<Image>().raycastTarget = false;
+
+            Button stopButton = CreateLabeledButton(
+                "StopButton",
+                panel.transform,
+                "멈추기",
+                font,
+                new Color(0.72f, 0.4f, 0.14f, 1f),
+                new Vector2(220f, 80f),
+                new Vector2(0f, -155f));
+
+            SerializedObject serializedView = new SerializedObject(view);
+            SetInteger(serializedView, "miniGameType", (int)miniGameType);
+            SetObjectReference(serializedView, "progressSlider", slider);
+            SetObjectReference(serializedView, "targetZone", targetZone);
+            SetObjectReference(serializedView, "titleField", title);
+            SetObjectReference(serializedView, "instructionField", instruction);
+            SetObjectReference(serializedView, "progressField", progress);
+            SetObjectReference(serializedView, "stopButton", stopButton);
+            SetObjectReference(serializedView, "cancelButton", cancelButton);
+            SetString(serializedView, "actionName", actionName);
+            SetString(serializedView, "instructionText", instructionText);
+            SetFloat(serializedView, "duration", duration);
+            SetFloat(serializedView, "targetMin", targetMin);
+            SetFloat(serializedView, "targetMax", targetMax);
+            serializedView.ApplyModifiedPropertiesWithoutUndo();
+            panel.SetActive(false);
+            return panel;
+        }
+
+        private static GameObject CreateGrindingMiniGamePanel(Transform parent, TMP_FontAsset font)
+        {
+            GameObject panel = CreateMiniGamePanelFrame(
+                "GrindingMiniGamePanel",
+                parent,
+                font,
+                "빻기 미니게임",
+                out TextMeshProUGUI title,
+                out TextMeshProUGUI instruction,
+                out TextMeshProUGUI progress,
+                out Button cancelButton);
+            CookingGrindingMiniGameView view = panel.AddComponent<CookingGrindingMiniGameView>();
+            Slider slider = CreateProgressSlider("ParticleGauge", panel.transform, new Vector2(560f, 62f), new Vector2(0f, 55f));
+            Button strikeButton = CreateLabeledButton(
+                "StrikeButton",
+                panel.transform,
+                "막자 내려치기",
+                font,
+                new Color(0.56f, 0.34f, 0.18f, 1f),
+                new Vector2(280f, 110f),
+                new Vector2(0f, -95f));
+
+            SerializedObject serializedView = new SerializedObject(view);
+            SetObjectReference(serializedView, "strikeButton", strikeButton);
+            SetObjectReference(serializedView, "cancelButton", cancelButton);
+            SetObjectReference(serializedView, "particleSlider", slider);
+            SetObjectReference(serializedView, "titleField", title);
+            SetObjectReference(serializedView, "instructionField", instruction);
+            SetObjectReference(serializedView, "progressField", progress);
+            serializedView.ApplyModifiedPropertiesWithoutUndo();
+            panel.SetActive(false);
+            return panel;
+        }
+
+        private static GameObject CreateStewingMiniGamePanel(Transform parent, TMP_FontAsset font)
+        {
+            GameObject panel = CreateMiniGamePanelFrame(
+                "StewingMiniGamePanel",
+                parent,
+                font,
+                "끓이기 미니게임",
+                out TextMeshProUGUI title,
+                out TextMeshProUGUI instruction,
+                out TextMeshProUGUI progress,
+                out Button cancelButton);
+            CookingStewingMiniGameView view = panel.AddComponent<CookingStewingMiniGameView>();
+
+            Button heatButton = CreateLabeledButton(
+                "HeatButton",
+                panel.transform,
+                "불 조절",
+                font,
+                new Color(0.75f, 0.3f, 0.12f, 1f),
+                new Vector2(180f, 100f),
+                new Vector2(-210f, -40f));
+            Button stirButton = CreateLabeledButton(
+                "StirButton",
+                panel.transform,
+                "젓기",
+                font,
+                new Color(0.34f, 0.48f, 0.72f, 1f),
+                new Vector2(180f, 100f),
+                new Vector2(0f, -40f));
+            Button skimButton = CreateLabeledButton(
+                "SkimButton",
+                panel.transform,
+                "거품 걷기",
+                font,
+                new Color(0.35f, 0.65f, 0.42f, 1f),
+                new Vector2(180f, 100f),
+                new Vector2(210f, -40f));
+
+            SerializedObject serializedView = new SerializedObject(view);
+            SetObjectReference(serializedView, "heatButton", heatButton);
+            SetObjectReference(serializedView, "stirButton", stirButton);
+            SetObjectReference(serializedView, "skimButton", skimButton);
+            SetObjectReference(serializedView, "cancelButton", cancelButton);
+            SetObjectReference(serializedView, "titleField", title);
+            SetObjectReference(serializedView, "instructionField", instruction);
+            SetObjectReference(serializedView, "progressField", progress);
+            serializedView.ApplyModifiedPropertiesWithoutUndo();
+            panel.SetActive(false);
+            return panel;
+        }
+
+        private static GameObject CreateMiniGamePanelFrame(
+            string name,
+            Transform parent,
+            TMP_FontAsset font,
+            string titleText,
+            out TextMeshProUGUI title,
+            out TextMeshProUGUI instruction,
+            out TextMeshProUGUI progress,
+            out Button cancelButton)
+        {
+            GameObject panel = CreateImage(name, parent, new Color(0.12f, 0.075f, 0.045f, 0.98f));
+            SetCenter(panel.GetComponent<RectTransform>(), new Vector2(820f, 680f), Vector2.zero);
+            title = CreateText(
+                "Title",
+                panel.transform,
+                titleText,
+                font,
+                36f,
+                FontStyles.Bold,
+                TextAlignmentOptions.Center,
+                new Color(1f, 0.86f, 0.5f, 1f));
+            SetTop(title.rectTransform, new Vector2(640f, 58f), new Vector2(0f, -36f));
+            instruction = CreateText(
+                "Instruction",
+                panel.transform,
+                string.Empty,
+                font,
+                23f,
+                FontStyles.Normal,
+                TextAlignmentOptions.Center,
+                new Color(0.94f, 0.86f, 0.72f, 1f));
+            SetTop(instruction.rectTransform, new Vector2(680f, 76f), new Vector2(0f, -94f));
+            progress = CreateText(
+                "Progress",
+                panel.transform,
+                string.Empty,
+                font,
+                22f,
+                FontStyles.Bold,
+                TextAlignmentOptions.Center,
+                new Color(0.9f, 0.95f, 0.78f, 1f));
+            SetBottom(progress.rectTransform, new Vector2(680f, 52f), new Vector2(0f, 28f));
+            cancelButton = CreateLabeledButton(
+                "CancelButton",
+                panel.transform,
+                "취소",
+                font,
+                new Color(0.48f, 0.2f, 0.16f, 1f),
+                new Vector2(120f, 52f),
+                new Vector2(332f, 290f));
+            return panel;
+        }
+
         private static GameObject CreateOrUpdateMiniGameView(CookingGamePanel panel, TMP_FontAsset font)
         {
             Transform parent = FindViewParent(panel);
@@ -172,14 +464,14 @@ namespace Work.Cook.Code.Editor
             rootGroup.interactable = true;
             rootGroup.blocksRaycasts = true;
 
-            GameObject simplePanel = CreateImage("SimpleMiniGamePanel", root.transform, new Color(0.12f, 0.075f, 0.045f, 0.98f));
-            SetCenter(simplePanel.GetComponent<RectTransform>(), new Vector2(760f, 470f), Vector2.zero);
-            CookingSimpleMiniGameView simpleView = simplePanel.AddComponent<CookingSimpleMiniGameView>();
+            GameObject slicingPanel = CreateImage("SlicingMiniGamePanel", root.transform, new Color(0.12f, 0.075f, 0.045f, 0.98f));
+            SetCenter(slicingPanel.GetComponent<RectTransform>(), new Vector2(820f, 680f), Vector2.zero);
+            CookingSlicingMiniGameView slicingView = slicingPanel.AddComponent<CookingSlicingMiniGameView>();
 
             TextMeshProUGUI title = CreateText(
                 "Title",
-                simplePanel.transform,
-                "조리 미니게임",
+                slicingPanel.transform,
+                "썰기 미니게임",
                 font,
                 36f,
                 FontStyles.Bold,
@@ -189,45 +481,157 @@ namespace Work.Cook.Code.Editor
 
             TextMeshProUGUI instruction = CreateText(
                 "Instruction",
-                simplePanel.transform,
+                slicingPanel.transform,
                 string.Empty,
                 font,
                 23f,
                 FontStyles.Normal,
                 TextAlignmentOptions.Center,
                 new Color(0.94f, 0.86f, 0.72f, 1f));
-            SetTop(instruction.rectTransform, new Vector2(620f, 120f), new Vector2(0f, -114f));
+            SetTop(instruction.rectTransform, new Vector2(680f, 76f), new Vector2(0f, -94f));
 
-            TextMeshProUGUI result = CreateText(
-                "Result",
-                simplePanel.transform,
+            TextMeshProUGUI progress = CreateText(
+                "Progress",
+                slicingPanel.transform,
                 string.Empty,
                 font,
                 22f,
                 FontStyles.Bold,
                 TextAlignmentOptions.Center,
                 new Color(0.9f, 0.95f, 0.78f, 1f));
-            SetBottom(result.rectTransform, new Vector2(620f, 56f), new Vector2(0f, 132f));
+            SetBottom(progress.rectTransform, new Vector2(680f, 52f), new Vector2(0f, 28f));
 
-            GameObject buttonRow = new GameObject("GradeButtons", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-            buttonRow.transform.SetParent(simplePanel.transform, false);
-            SetBottom(buttonRow.GetComponent<RectTransform>(), new Vector2(660f, 86f), new Vector2(0f, 38f));
-            HorizontalLayoutGroup layoutGroup = buttonRow.GetComponent<HorizontalLayoutGroup>();
-            layoutGroup.childAlignment = TextAnchor.MiddleCenter;
-            layoutGroup.spacing = 16f;
-            layoutGroup.childControlWidth = false;
-            layoutGroup.childControlHeight = false;
-            layoutGroup.childForceExpandWidth = false;
-            layoutGroup.childForceExpandHeight = false;
+            Button cancelButton = CreateButton("CancelButton", slicingPanel.transform, new Color(0.48f, 0.2f, 0.16f, 1f));
+            SetTop(cancelButton.GetComponent<RectTransform>(), new Vector2(120f, 52f), new Vector2(332f, -24f));
+            TextMeshProUGUI cancelLabel = CreateText(
+                "Label",
+                cancelButton.transform,
+                "취소",
+                font,
+                22f,
+                FontStyles.Bold,
+                TextAlignmentOptions.Center,
+                Color.white);
+            SetStretch(cancelLabel.rectTransform, new Vector2(8f, 6f), new Vector2(-8f, -6f));
 
-            Button perfectButton = CreateMiniGameGradeButton("PerfectButton", buttonRow.transform, "Perfect", font, new Color(0.86f, 0.62f, 0.2f, 1f));
-            Button goodButton = CreateMiniGameGradeButton("GoodButton", buttonRow.transform, "Good", font, new Color(0.45f, 0.67f, 0.28f, 1f));
-            Button normalButton = CreateMiniGameGradeButton("NormalButton", buttonRow.transform, "Normal", font, new Color(0.34f, 0.44f, 0.58f, 1f));
-            Button badButton = CreateMiniGameGradeButton("BadButton", buttonRow.transform, "Bad", font, new Color(0.62f, 0.26f, 0.2f, 1f));
+            GameObject interactionObject = CreateImage(
+                "SlicingInteractionArea",
+                slicingPanel.transform,
+                new Color(0.36f, 0.2f, 0.09f, 1f));
+            RectTransform interactionArea = interactionObject.GetComponent<RectTransform>();
+            SetCenter(interactionArea, new Vector2(680f, 440f), new Vector2(0f, -4f));
 
-            ConfigureSimpleMiniGameView(simpleView, title, instruction, result, perfectButton, goodButton, normalButton, badButton);
-            ConfigureMiniGameRouterView(root.GetComponent<CookingMiniGameRouterView>(), simplePanel);
-            simplePanel.SetActive(false);
+            Image ingredientImage = CreateImage(
+                "Ingredient",
+                interactionObject.transform,
+                new Color(0.84f, 0.68f, 0.42f, 1f)).GetComponent<Image>();
+            SetCenter(ingredientImage.rectTransform, new Vector2(500f, 300f), Vector2.zero);
+            ingredientImage.preserveAspect = true;
+            ingredientImage.raycastTarget = false;
+
+            Image[] cutLines = new Image[3];
+            float[] linePositions = { -150f, 0f, 150f };
+            for (int i = 0; i < cutLines.Length; i++)
+            {
+                Image cutLine = CreateImage(
+                    $"CutLine{i + 1}",
+                    interactionObject.transform,
+                    new Color(1f, 0.88f, 0.45f, 0.9f)).GetComponent<Image>();
+                SetCenter(cutLine.rectTransform, new Vector2(12f, 280f), new Vector2(linePositions[i], 0f));
+                cutLine.raycastTarget = false;
+                cutLines[i] = cutLine;
+            }
+
+            Image knifeImage = CreateImage(
+                "Knife",
+                interactionObject.transform,
+                new Color(0.88f, 0.9f, 0.94f, 1f)).GetComponent<Image>();
+            SetCenter(knifeImage.rectTransform, new Vector2(30f, 96f), Vector2.zero);
+            knifeImage.raycastTarget = false;
+            knifeImage.gameObject.SetActive(false);
+
+            ConfigureSlicingMiniGameView(
+                slicingView,
+                interactionArea,
+                ingredientImage,
+                knifeImage,
+                cutLines,
+                title,
+                instruction,
+                progress,
+                cancelButton);
+            slicingPanel.SetActive(false);
+
+            GameObject choppingPanel = CreateChoppingMiniGamePanel(root.transform, font);
+            GameObject cleansingPanel = CreateCleansingMiniGamePanel(root.transform, font);
+            GameObject roastingPanel = CreateGaugeMiniGamePanel(
+                root.transform,
+                font,
+                "RoastingMiniGamePanel",
+                CookingMiniGameType.Roasting,
+                "굽기",
+                "재료가 노릇해지는 목표 구간에서 꺼내세요.",
+                6f,
+                0.58f,
+                0.76f);
+            GameObject burningPanel = CreateGaugeMiniGamePanel(
+                root.transform,
+                font,
+                "BurningMiniGamePanel",
+                CookingMiniGameType.Burning,
+                "태우기",
+                "재가 되기 직전의 위험 구간에서 꺼내세요.",
+                5f,
+                0.78f,
+                0.92f);
+            GameObject boilingPanel = CreateGaugeMiniGamePanel(
+                root.transform,
+                font,
+                "BoilingMiniGamePanel",
+                CookingMiniGameType.Boiling,
+                "삶기",
+                "재료가 부드럽게 익은 구간에서 건져내세요.",
+                6f,
+                0.52f,
+                0.7f);
+            GameObject freezingPanel = CreateGaugeMiniGamePanel(
+                root.transform,
+                font,
+                "FreezingMiniGamePanel",
+                CookingMiniGameType.Freezing,
+                "얼리기",
+                "얼음 결정이 적절히 퍼졌을 때 냉기를 멈추세요.",
+                5.5f,
+                0.6f,
+                0.78f);
+            GameObject dilutingPanel = CreateGaugeMiniGamePanel(
+                root.transform,
+                font,
+                "DilutingMiniGamePanel",
+                CookingMiniGameType.Diluting,
+                "묽게 만들기",
+                "목표 농도 구간에서 액체 붓기를 멈추세요.",
+                5f,
+                0.48f,
+                0.66f);
+            GameObject stewingPanel = CreateStewingMiniGamePanel(root.transform, font);
+            GameObject grindingPanel = CreateGrindingMiniGamePanel(root.transform, font);
+
+            ConfigureMiniGameRouterView(
+                root.GetComponent<CookingMiniGameRouterView>(),
+                new UnityEngine.Object[]
+                {
+                    slicingPanel,
+                    choppingPanel,
+                    cleansingPanel,
+                    roastingPanel,
+                    burningPanel,
+                    boilingPanel,
+                    stewingPanel,
+                    freezingPanel,
+                    grindingPanel,
+                    dilutingPanel
+                });
             return root;
         }
 
@@ -433,32 +837,35 @@ namespace Work.Cook.Code.Editor
             serializedView.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void ConfigureSimpleMiniGameView(
-            CookingSimpleMiniGameView view,
+        private static void ConfigureSlicingMiniGameView(
+            CookingSlicingMiniGameView view,
+            RectTransform interactionArea,
+            Image ingredientImage,
+            Image knifeImage,
+            Image[] cutLines,
             TextMeshProUGUI title,
             TextMeshProUGUI instruction,
-            TextMeshProUGUI result,
-            Button perfectButton,
-            Button goodButton,
-            Button normalButton,
-            Button badButton)
+            TextMeshProUGUI progress,
+            Button cancelButton)
         {
             SerializedObject serializedView = new SerializedObject(view);
-            SetBool(serializedView, "playAnyMiniGameType", true);
+            SetObjectReference(serializedView, "interactionArea", interactionArea);
+            SetObjectReference(serializedView, "ingredientImage", ingredientImage);
+            SetObjectReference(serializedView, "knifeImage", knifeImage);
+            SetObjectReferenceArray(serializedView, "cutLineImages", cutLines);
             SetObjectReference(serializedView, "titleField", title);
             SetObjectReference(serializedView, "instructionField", instruction);
-            SetObjectReference(serializedView, "resultField", result);
-            SetObjectReference(serializedView, "perfectButton", perfectButton);
-            SetObjectReference(serializedView, "goodButton", goodButton);
-            SetObjectReference(serializedView, "normalButton", normalButton);
-            SetObjectReference(serializedView, "badButton", badButton);
+            SetObjectReference(serializedView, "progressField", progress);
+            SetObjectReference(serializedView, "cancelButton", cancelButton);
             serializedView.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void ConfigureMiniGameRouterView(CookingMiniGameRouterView view, GameObject simplePanel)
+        private static void ConfigureMiniGameRouterView(
+            CookingMiniGameRouterView view,
+            UnityEngine.Object[] miniGamePanels)
         {
             SerializedObject serializedView = new SerializedObject(view);
-            SetObjectReferenceArray(serializedView, "miniGameViewObjects", new UnityEngine.Object[] { simplePanel });
+            SetObjectReferenceArray(serializedView, "miniGameViewObjects", miniGamePanels);
             SetBool(serializedView, "autoCollectChildViews", true);
             serializedView.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -583,28 +990,61 @@ namespace Work.Cook.Code.Editor
             return button;
         }
 
-        private static Button CreateMiniGameGradeButton(
+        private static Button CreateLabeledButton(
             string name,
             Transform parent,
             string label,
             TMP_FontAsset font,
-            Color color)
+            Color color,
+            Vector2 size,
+            Vector2 position)
         {
             Button button = CreateButton(name, parent, color);
-            RectTransform buttonRect = button.GetComponent<RectTransform>();
-            buttonRect.sizeDelta = new Vector2(150f, 72f);
-
+            SetCenter(button.GetComponent<RectTransform>(), size, position);
             TextMeshProUGUI labelField = CreateText(
                 "Label",
                 button.transform,
                 label,
                 font,
-                24f,
+                22f,
                 FontStyles.Bold,
                 TextAlignmentOptions.Center,
                 Color.white);
-            SetStretch(labelField.rectTransform, new Vector2(8f, 8f), new Vector2(-8f, -8f));
+            SetStretch(labelField.rectTransform, new Vector2(8f, 6f), new Vector2(-8f, -6f));
             return button;
+        }
+
+        private static Slider CreateProgressSlider(
+            string name,
+            Transform parent,
+            Vector2 size,
+            Vector2 position)
+        {
+            GameObject sliderObject = new GameObject(name, typeof(RectTransform), typeof(Slider));
+            sliderObject.transform.SetParent(parent, false);
+            SetCenter(sliderObject.GetComponent<RectTransform>(), size, position);
+
+            Image background = CreateImage("Background", sliderObject.transform, new Color(0.2f, 0.14f, 0.1f, 1f)).GetComponent<Image>();
+            SetStretch(background.rectTransform, Vector2.zero, Vector2.zero);
+            background.raycastTarget = false;
+
+            GameObject fillAreaObject = new GameObject("FillArea", typeof(RectTransform));
+            fillAreaObject.transform.SetParent(sliderObject.transform, false);
+            RectTransform fillArea = fillAreaObject.GetComponent<RectTransform>();
+            SetStretch(fillArea, new Vector2(6f, 6f), new Vector2(-6f, -6f));
+            Image fill = CreateImage("Fill", fillArea, new Color(0.9f, 0.56f, 0.16f, 1f)).GetComponent<Image>();
+            SetStretch(fill.rectTransform, Vector2.zero, Vector2.zero);
+            fill.raycastTarget = false;
+
+            Slider slider = sliderObject.GetComponent<Slider>();
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = 0f;
+            slider.direction = Slider.Direction.LeftToRight;
+            slider.fillRect = fill.rectTransform;
+            slider.targetGraphic = fill;
+            slider.interactable = false;
+            return slider;
         }
 
         private static TextMeshProUGUI CreateText(
@@ -659,6 +1099,20 @@ namespace Work.Cook.Code.Editor
             SerializedProperty property = serializedObject.FindProperty(propertyName);
             if (property != null)
                 property.boolValue = value;
+        }
+
+        private static void SetInteger(SerializedObject serializedObject, string propertyName, int value)
+        {
+            SerializedProperty property = serializedObject.FindProperty(propertyName);
+            if (property != null)
+                property.intValue = value;
+        }
+
+        private static void SetString(SerializedObject serializedObject, string propertyName, string value)
+        {
+            SerializedProperty property = serializedObject.FindProperty(propertyName);
+            if (property != null)
+                property.stringValue = value ?? string.Empty;
         }
 
         private static void SetFloat(SerializedObject serializedObject, string propertyName, float value)
