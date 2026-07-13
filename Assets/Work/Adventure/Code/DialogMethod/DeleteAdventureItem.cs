@@ -21,7 +21,7 @@ namespace Work.Adventure.Code.DialogMethod
 
         public override void RaiseEvent()
         {
-            Bus<OnUseAdventureItem>.Raise(new OnUseAdventureItem(itemSo));
+            Bus<OnRemoveAdventureItemEvent>.Raise(new OnRemoveAdventureItemEvent(itemSo));
             Bus<OnMinusLogCreateEvent>.Raise(new OnMinusLogCreateEvent(new ItemLogData(itemSo.ItemName, status, itemSo.ItemIcon)));
         }
     }

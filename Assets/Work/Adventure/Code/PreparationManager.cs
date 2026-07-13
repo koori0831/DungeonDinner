@@ -25,7 +25,7 @@ namespace Work.Adventure.Code
         {
             if (evt.preparationType == PreparationEnum.Adventure)
                 SelectAdventure();
-            else if (evt.preparationType == PreparationEnum.Adventure)
+            else if (evt.preparationType == PreparationEnum.Dispatch)
                 SelectDispatch();
         }
 

@@ -12,7 +12,7 @@ namespace Work.Adventure.Code.Rewards
 
         public override void GetReward()
         {
-            Bus<OnAddAdventureItem>.Raise(new OnAddAdventureItem(itemSO));
+            Bus<OnAddAdventureItemEvent>.Raise(new OnAddAdventureItemEvent(itemSO));
             Bus<OnPlusLogCreateEvent>.Raise(new OnPlusLogCreateEvent(new ItemLogData(itemSO.ItemName, ItemLogStatusEnum.Add, itemSO.ItemIcon)));
         }
     }
