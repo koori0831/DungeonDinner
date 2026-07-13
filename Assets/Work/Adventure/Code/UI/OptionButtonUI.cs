@@ -40,7 +40,7 @@ namespace Work.Adventure.Code.UI
                     resultDialog?.Invoke(optionInfo);
                     if (lockedOption.IsUseItemOption)
                     {
-                        Bus<OnUseAdventureItem>.Raise(new OnUseAdventureItem(lockedOption.KeyItem));
+                        Bus<OnRemoveAdventureItemEvent>.Raise(new OnRemoveAdventureItemEvent(lockedOption.KeyItem));
                         Bus<OnMinusLogCreateEvent>.Raise(new OnMinusLogCreateEvent(new ItemLogData(lockedOption.KeyItem.ItemName, lockedOption.LogStatus, lockedOption.KeyItem.ItemIcon)));
 
                     }

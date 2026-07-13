@@ -8,8 +8,10 @@ using Work.UtillUI.Code.Fade;
 
 namespace Work.Adventure.Code
 {
-    public readonly record struct OnAddAdventureItem(AdventureItemSO itemSO) : IEvent;
-    public readonly record struct OnUseAdventureItem(AdventureItemSO itemSO) : IEvent;
+    public readonly record struct OnAddAdventureItemEvent(AdventureItemSO itemSO) : IEvent;
+    public readonly record struct OnRemoveAdventureItemEvent(AdventureItemSO itemSO) : IEvent;
+    public readonly record struct OnAddAdventureItemAfterEvent(AdventureItemSO itemSO, int count) : IEvent;
+    public readonly record struct OnRemoveAdventureItemAfterEvent(AdventureItemSO itemSO, int count) : IEvent;
 
     public class AdventureManager : MonoBehaviour
     {
@@ -17,6 +19,7 @@ namespace Work.Adventure.Code
         [SerializeField] private AdventureMapUI adventureMap;
         [SerializeField] private AdventureBackground background;
         [SerializeField] private AdventureDialogUI dialog;
+        [SerializeField] private AdventureItemUI itemUI;
 
         [SerializeField] private List<AdventureEventSO> eventList = new List<AdventureEventSO>();
 
@@ -27,28 +30,34 @@ namespace Work.Adventure.Code
         {
             adventureMap.Init(StartAdventure);
             Bus<OnHaveItemEvent, BoolenReturnValue>.Events += HandleHaveItemCheckEvent;
-            Bus<OnAddAdventureItem>.Events += HandleAddAdventureItemEvent;
-            Bus<OnUseAdventureItem>.Events += HandleUseAdventureItemEvent;
+            Bus<OnAddAdventureItemEvent>.Events += HandleAddAdventureItemEvent;
+            Bus<OnRemoveAdventureItemEvent>.Events += HandleUseAdventureItemEvent;
         }
 
         private void OnDestroy()
         {
-            Bus<OnAddAdventureItem>.Events -= HandleAddAdventureItemEvent;
-            Bus<OnUseAdventureItem>.Events -= HandleUseAdventureItemEvent;
+            Bus<OnAddAdventureItemEvent>.Events -= HandleAddAdventureItemEvent;
+            Bus<OnRemoveAdventureItemEvent>.Events -= HandleUseAdventureItemEvent;
             Bus<OnHaveItemEvent, BoolenReturnValue>.Events -= HandleHaveItemCheckEvent;
         }
 
-        private void HandleUseAdventureItemEvent(OnUseAdventureItem item)
+        private void HandleUseAdventureItemEvent(OnRemoveAdventureItemEvent item)
         {
-            _adventureItemDic[item.itemSO.ItemName] -= 1;
+            if (_adventureItemDic.ContainsKey(item.itemSO.ItemName))
+            {
+                _adventureItemDic[item.itemSO.ItemName] -= 1;
+                Bus<OnRemoveAdventureItemAfterEvent>.Raise(new OnRemoveAdventureItemAfterEvent(item.itemSO, _adventureItemDic[item.itemSO.ItemName]));
+            }
         }
 
-        private void HandleAddAdventureItemEvent(OnAddAdventureItem item)
+        private void HandleAddAdventureItemEvent(OnAddAdventureItemEvent item)
         {
             if (_adventureItemDic.ContainsKey(item.itemSO.ItemName))
                 _adventureItemDic[item.itemSO.ItemName] += 1;
             else
-                _adventureItemDic.Add(item.itemSO.ItemName,1);
+                _adventureItemDic.Add(item.itemSO.ItemName, 1);
+
+            Bus<OnAddAdventureItemAfterEvent>.Raise(new OnAddAdventureItemAfterEvent(item.itemSO, _adventureItemDic[item.itemSO.ItemName]));
         }
 
         private BoolenReturnValue HandleHaveItemCheckEvent(OnHaveItemEvent evt)
@@ -73,10 +82,10 @@ namespace Work.Adventure.Code
         {
             Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() =>
             {
+                itemUI.Enable();
                 adventureMap.CloseMap();
                 background.Enable();
                 DOVirtual.DelayedCall(0.5f, () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent(ProgressAdventure)));
-                //여기 워킹 안에 이벤트 뽑는거 연결 
             }));
         }
 
@@ -93,11 +102,11 @@ namespace Work.Adventure.Code
         {
             Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() =>
             {
+                itemUI.Disable();
                 adventureMap.CloseMap();
                 background.Disable();
                 preparationManager.StopAdventure();
                 DOVirtual.DelayedCall(0.5f, () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent()));
-                //여기 워킹 안에 이벤트 뽑는거 연결 
             }));
         }
     }
