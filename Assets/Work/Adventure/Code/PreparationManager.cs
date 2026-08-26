@@ -23,10 +23,17 @@ namespace Work.Adventure.Code
 
         private void HandleSelectPreparationEvent(OnSelectPreparationEvent evt)
         {
+            Debug.Log("HandleSelectPreparationEvent");
             if (evt.preparationType == PreparationEnum.Adventure)
+            {
+                Debug.Log("HandleSelectPreparationEvent: Adventure");
                 SelectAdventure();
+            }
             else if (evt.preparationType == PreparationEnum.Adventure)
+            {
+                Debug.Log("HandleSelectPreparationEvent: Dispatch");
                 SelectDispatch();
+            }
         }
 
         private void OnDestroy()
