@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: sticky
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodTagSO
   tagId: sticky
-  displayName: "끈적함"
-  description: "입안에 달라붙는 듯한 끈적한 식감입니다."
+  displayName: sticky
+  description: "NPC \uC8FC\uBB38 \uD3C9\uAC00\uC5D0 \uC0AC\uC6A9\uB418\uB294 \uD0DC\uADF8
+    'sticky'\uC785\uB2C8\uB2E4."

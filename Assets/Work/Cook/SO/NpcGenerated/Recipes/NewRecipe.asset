@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
   recipeId: NewRecipe
   displayName: "\uC624\uB518 - New Recipe"
-  iconSprite: {fileID: 21300000, guid: c0d325eeeff8100459b5768e49a3d8be, type: 3}
   description: "NPC \uC774\uBCA4\uD2B8 'Odin_FirstVisit_SinceEvent'\uC5D0\uC11C \uC694\uAD6C\uD558\uB294
     \uC790\uB3D9 \uC0DD\uC131 \uB808\uC2DC\uD53C\uC785\uB2C8\uB2E4.\n\uD5C8\uC6A9
     \uC74C\uC2DD \uD0C0\uC785: soup\n\uD544\uC218 \uD0DC\uADF8: warm\n\uC120\uD638

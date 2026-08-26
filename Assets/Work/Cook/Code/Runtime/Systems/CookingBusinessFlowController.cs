@@ -1,11 +1,10 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using Work.Core.EventBus;
-using Work.NPC.Code.Data;
 using Work.NPC.Code.Runtime;
 using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
@@ -50,9 +49,12 @@ namespace Work.Cook.Code.Runtime.Systems
         [SerializeField] private string waitingText = "손님을 기다리는 중입니다.";
         [SerializeField] private string completedText = "오늘 영업을 마감했습니다.";
         [SerializeField] private string nextDayText = "내일 영업을 시작합니다.";
+        [SerializeField] private UnityEvent businessClosed = new UnityEvent();
+
         private bool _dishHandedToCurrentCustomer;
         private bool _businessClosed;
-        private CookingRewardGrant _lastRewardGrant;
+
+        public UnityEvent BusinessClosed => businessClosed;
 
         public void Initialize(CookingGamePanel owner, TMP_FontAsset defaultFontAsset)
         {
@@ -93,7 +95,6 @@ namespace Work.Cook.Code.Runtime.Systems
             EnsureReferences();
             HideActions();
             _dishHandedToCurrentCustomer = false;
-            _lastRewardGrant = null;
 
             if (encounterDirector == null)
             {
@@ -108,14 +109,12 @@ namespace Work.Cook.Code.Runtime.Systems
                 return false;
             }
 
-            if (gamePanel != null)
-                Bus<CookingNpcConversationReturnRequestedEvent>.Raise(new CookingNpcConversationReturnRequestedEvent(gamePanel));
+            gamePanel?.ReturnToNpcConversation();
 
             bool started = encounterDirector.StartEncounter();
             if (started == false)
             {
-                if (gamePanel != null)
-                    Bus<CookingViewsCloseRequestedEvent>.Raise(new CookingViewsCloseRequestedEvent(gamePanel));
+                gamePanel?.CloseCookingViews();
                 ShowCloseShopOnly();
                 return false;
             }
@@ -128,11 +127,10 @@ namespace Work.Cook.Code.Runtime.Systems
         {
             _businessClosed = true;
             _dishHandedToCurrentCustomer = false;
-            _lastRewardGrant = null;
             HideActions();
             SetStatus(completedText);
-            if (gamePanel != null)
-                Bus<CookingViewsCloseRequestedEvent>.Raise(new CookingViewsCloseRequestedEvent(gamePanel));
+            gamePanel?.CloseCookingViews();
+            businessClosed.Invoke();
             RaiseBusinessClosed();
         }
 
@@ -175,11 +173,8 @@ namespace Work.Cook.Code.Runtime.Systems
                     maxEncountersPerDay));
         }
 
-        private void HandleDishHandedToNpc(CookingDishHandedToNpcEvent gameEvent)
+        private void HandleDishHandedToNpc(DishResult result)
         {
-            if (gameEvent.Source != gamePanel)
-                return;
-
             _dishHandedToCurrentCustomer = true;
             HideActions();
         }
@@ -191,16 +186,6 @@ namespace Work.Cook.Code.Runtime.Systems
 
             _dishHandedToCurrentCustomer = false;
             ShowPostCustomerAction();
-        }
-
-        private void HandleRewardGranted(CookingRewardGrantedEvent gameEvent)
-        {
-            if (gameEvent.Source != gamePanel)
-                return;
-
-            _lastRewardGrant = gameEvent.Grant;
-            if (actionRoot != null && actionRoot.gameObject.activeSelf == true)
-                SetStatus(BuildProgressText());
         }
 
         private void ShowPostCustomerAction()
@@ -235,42 +220,7 @@ namespace Work.Cook.Code.Runtime.Systems
             if (encounterDirector == null)
                 return completedText;
 
-            return BuildPostCustomerStatus(
-                _lastRewardGrant,
-                encounterDirector.EncountersStartedToday,
-                encounterDirector.MaxEncountersPerDay);
-        }
-
-        private static string BuildPostCustomerStatus(
-            CookingRewardGrant grant,
-            int encountersStartedToday,
-            int maxEncountersPerDay)
-        {
-            string progress = $"{encountersStartedToday}/{maxEncountersPerDay} 손님 접대";
-            if (grant == null)
-                return progress;
-
-            string reward = grant.Amount > 0
-                ? $"+{grant.Amount}"
-                : "보상 없음";
-            return $"{BuildResultLabel(grant.Result)} · {reward} · {progress}";
-        }
-
-        private static string BuildResultLabel(NpcConversationResult result)
-        {
-            switch (result)
-            {
-                case NpcConversationResult.Perfect:
-                    return "완벽한 접대";
-                case NpcConversationResult.Correct:
-                    return "주문 만족";
-                case NpcConversationResult.Similar:
-                    return "흥미로운 반응";
-                case NpcConversationResult.Disgusting:
-                    return "요리 거부";
-                default:
-                    return "아쉬운 반응";
-            }
+            return $"{encounterDirector.EncountersStartedToday}/{encounterDirector.MaxEncountersPerDay} \uC190\uB2D8 \uC811\uB300";
         }
 
         private void HideActions()
@@ -299,10 +249,7 @@ namespace Work.Cook.Code.Runtime.Systems
         private void Subscribe()
         {
             if (gamePanel != null)
-            {
-                Bus<CookingDishHandedToNpcEvent>.Events += HandleDishHandedToNpc;
-                Bus<CookingRewardGrantedEvent>.Events += HandleRewardGranted;
-            }
+                gamePanel.DishHandedToNpc += HandleDishHandedToNpc;
             if (npcRunner != null)
                 npcRunner.ConversationCompleted += HandleConversationCompleted;
             Bus<CookingBusinessAdvanceDayRequestedEvent>.Events += HandleBusinessAdvanceDayRequested;
@@ -311,10 +258,7 @@ namespace Work.Cook.Code.Runtime.Systems
         private void Unsubscribe()
         {
             if (gamePanel != null)
-            {
-                Bus<CookingDishHandedToNpcEvent>.Events -= HandleDishHandedToNpc;
-                Bus<CookingRewardGrantedEvent>.Events -= HandleRewardGranted;
-            }
+                gamePanel.DishHandedToNpc -= HandleDishHandedToNpc;
             if (npcRunner != null)
                 npcRunner.ConversationCompleted -= HandleConversationCompleted;
             Bus<CookingBusinessAdvanceDayRequestedEvent>.Events -= HandleBusinessAdvanceDayRequested;

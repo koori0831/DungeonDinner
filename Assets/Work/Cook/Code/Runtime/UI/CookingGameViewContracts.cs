@@ -12,6 +12,7 @@ namespace Work.Cook.Code.Runtime.UI
 {
     public interface ICookingIngredientSource
     {
+        event Action IngredientsChanged;
         string SourceName { get; }
         IReadOnlyList<IngredientSO> GetAvailableIngredients(CookingGamePanel owner, CookingFlowRunner runner);
     }
@@ -87,7 +88,7 @@ namespace Work.Cook.Code.Runtime.UI
         void Initialize(CookingGamePanel owner, CookingFlowRunner runner, TMP_FontAsset defaultFontAsset = null);
         void SetFontAsset(TMP_FontAsset value);
         bool CanPlay(CookingMiniGameType miniGameType);
-        bool StartMiniGame(
+        void StartMiniGame(
             IngredientSO ingredient,
             IngredientPreparationOption option,
             Action<CookingMiniGameResult> completed);

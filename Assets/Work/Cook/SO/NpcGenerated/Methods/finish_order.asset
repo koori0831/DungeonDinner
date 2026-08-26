@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
   methodId: finish_order
   displayName: "\uC815\uC11D\uC73C\uB85C \uB9C8\uBB34\uB9AC"
-  iconSprite: {fileID: 21300000, guid: 1fdb5d629a7e5f64aa27d54e4220322e, type: 3}
+  iconSprite: {fileID: 0}
   description: "NPC \uC8FC\uBB38 \uC870\uAC74\uC744 \uB9CC\uC871\uD558\uB3C4\uB85D
     \uC870\uB9AC \uB9C8\uBB34\uB9AC\uB97C \uB9DE\uCDA5\uB2C8\uB2E4."
   miniGameType: 0

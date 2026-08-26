@@ -1,12 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
-using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.Systems
 {
@@ -15,6 +14,9 @@ namespace Work.Cook.Code.Runtime.Systems
         [SerializeField] private CookingDataCatalogSO catalog;
 
         private CookingFlowController _controller;
+
+        public event Action<CookingFlowState> StateChanged;
+        public event Action<DishResult> CookingCompleted;
 
         public CookingFlowController Controller
         {
@@ -123,7 +125,7 @@ namespace Work.Cook.Code.Runtime.Systems
             if (Controller.TryCompleteCooking(out result) == false)
                 return false;
 
-            Bus<CookingFlowCompletedEvent>.Raise(new CookingFlowCompletedEvent(this, result));
+            CookingCompleted?.Invoke(result);
             return true;
         }
 
@@ -157,7 +159,7 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private void HandleStateChanged()
         {
-            Bus<CookingFlowStateChangedEvent>.Raise(new CookingFlowStateChangedEvent(this, _controller.State));
+            StateChanged?.Invoke(_controller.State);
         }
     }
 }
