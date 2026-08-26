@@ -13,12 +13,6 @@ namespace Work.Cook.Code.Info
         [SerializeField] private int columnsPerRow = 3;
 
         private readonly List<InfoSelectBtn> _selectButtons = new List<InfoSelectBtn>();
-        private ScrollRect _scrollRect;
-
-        private void Awake()
-        {
-            _scrollRect = GetComponent<ScrollRect>();
-        }
 
         public void InitializeField(IReadOnlyList<InfoDictionaryEntryData> entries, Action<InfoDictionaryEntryData> action)
         {
@@ -64,60 +58,19 @@ namespace Work.Cook.Code.Info
 
         private void ClearButtons()
         {
-            HashSet<GameObject> destroyedObjects = new HashSet<GameObject>();
-
             foreach (InfoSelectBtn button in _selectButtons)
             {
                 if (button == null)
                     continue;
 
-                DestroyGeneratedButton(button, destroyedObjects);
+                if (Application.isPlaying)
+                    Destroy(button.gameObject);
+                else
+                    DestroyImmediate(button.gameObject);
             }
-
-            ClearGeneratedButtonChildren(destroyedObjects);
 
             _selectButtons.Clear();
             ResizeContentHeight(0);
-        }
-
-        private void ClearGeneratedButtonChildren(HashSet<GameObject> destroyedObjects)
-        {
-            GridLayoutGroup gridLayout = ResolveGridLayout();
-            if (gridLayout == null)
-                return;
-
-            InfoSelectBtn[] buttons = gridLayout.GetComponentsInChildren<InfoSelectBtn>(true);
-            for (int i = 0; i < buttons.Length; i++)
-            {
-                InfoSelectBtn button = buttons[i];
-                if (button == null)
-                    continue;
-
-                DestroyGeneratedButton(button, destroyedObjects);
-            }
-        }
-
-        private void DestroyGeneratedButton(InfoSelectBtn button, HashSet<GameObject> destroyedObjects)
-        {
-            if (button == null)
-                return;
-
-            GameObject target = button.gameObject;
-            if (target == null)
-                return;
-
-            if (destroyedObjects != null && destroyedObjects.Add(target) == false)
-                return;
-
-            if (Application.isPlaying == true)
-            {
-                target.SetActive(false);
-                Destroy(target);
-            }
-            else
-            {
-                DestroyImmediate(target);
-            }
         }
 
         private void ResizeContentHeight(int buttonCount)
@@ -151,25 +104,6 @@ namespace Work.Cook.Code.Info
                 + spacingHeight;
 
             resizeTarget.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentHeight);
-            RefreshLayout(gridLayout, resizeTarget);
-        }
-
-        private void RefreshLayout(GridLayoutGroup gridLayout, RectTransform resizeTarget)
-        {
-            RectTransform gridRect = gridLayout.transform as RectTransform;
-            if (gridRect != null)
-                LayoutRebuilder.ForceRebuildLayoutImmediate(gridRect);
-
-            LayoutRebuilder.ForceRebuildLayoutImmediate(resizeTarget);
-            Canvas.ForceUpdateCanvases();
-
-            ScrollRect scrollRect = ResolveScrollRect();
-            if (scrollRect == null)
-                return;
-
-            scrollRect.StopMovement();
-            scrollRect.verticalNormalizedPosition = 1f;
-            scrollRect.horizontalNormalizedPosition = 0f;
         }
 
         private GridLayoutGroup ResolveGridLayout()
@@ -189,7 +123,7 @@ namespace Work.Cook.Code.Info
             if (contentResizeTarget != null)
                 return contentResizeTarget;
 
-            ScrollRect scrollRect = ResolveScrollRect();
+            ScrollRect scrollRect = GetComponent<ScrollRect>();
             if (scrollRect != null && scrollRect.content != null)
                 return scrollRect.content;
 
@@ -197,15 +131,6 @@ namespace Work.Cook.Code.Info
                 return parentRect;
 
             return content as RectTransform;
-        }
-
-        private ScrollRect ResolveScrollRect()
-        {
-            if (_scrollRect != null)
-                return _scrollRect;
-
-            _scrollRect = GetComponent<ScrollRect>();
-            return _scrollRect;
         }
 
         public void Enable()

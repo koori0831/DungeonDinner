@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Work.Cook.Code.Info
 {
@@ -34,7 +34,7 @@ namespace Work.Cook.Code.Info
 
         public void Awake()
         {
-            if (buildOnAwake == true)
+            if (buildOnAwake)
                 Initialize(initialCategoryDataList);
         }
 
@@ -50,7 +50,6 @@ namespace Work.Cook.Code.Info
                 return;
 
             BuildCategories(categories);
-            RefreshBockmarkContentHeight();
             RestoreState(categories, restoreState);
         }
 
@@ -95,7 +94,7 @@ namespace Work.Cook.Code.Info
 
                 InfoDisplayPanel displayPanel;
 
-                if (displayDic.ContainsKey(categoryData.ViewType) == true)
+                if (displayDic.ContainsKey(categoryData.ViewType))
                     displayPanel = displayDic[categoryData.ViewType];
                 else
                 {
@@ -126,55 +125,16 @@ namespace Work.Cook.Code.Info
             }
         }
 
-        private void RefreshBockmarkContentHeight()
-        {
-            RectTransform contentRect = bockmarkParent as RectTransform;
-            if (contentRect == null || _bockmarkList.Count == 0)
-                return;
-
-            float requiredHeight = 0f;
-            for (int i = 0; i < _bockmarkList.Count; i++)
-            {
-                InfoBockmarkBtn bockmark = _bockmarkList[i];
-                RectTransform rect = bockmark != null ? bockmark.Rect : null;
-                if (rect == null)
-                    continue;
-
-                float height = rect.rect.height;
-                if (height <= 0f)
-                    height = Mathf.Abs(rect.sizeDelta.y);
-                if (height <= 0f)
-                    height = 56f;
-
-                requiredHeight = Mathf.Max(requiredHeight, Mathf.Abs(rect.anchoredPosition.y) + height);
-            }
-
-            float padding = Mathf.Max(Mathf.Abs(y_Offset), 12f);
-            contentRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, requiredHeight + padding);
-            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
-
-            ScrollRect scrollRect = contentRect.GetComponentInParent<ScrollRect>();
-            if (scrollRect == null)
-                return;
-
-            scrollRect.StopMovement();
-            scrollRect.verticalNormalizedPosition = 1f;
-        }
-
         private void ClearGeneratedViews()
         {
-            HashSet<GameObject> destroyedObjects = new HashSet<GameObject>();
-
             foreach (InfoDictionaryScrollViewField view in _viewList)
-                DestroyGeneratedObject(view, destroyedObjects);
+                DestroyGeneratedObject(view);
 
             foreach (InfoBockmarkBtn bockmark in _bockmarkList)
-                DestroyGeneratedObject(bockmark, destroyedObjects);
+                DestroyGeneratedObject(bockmark);
 
             foreach (InfoDisplayPanel displayPanel in displayDic.Values)
-                DestroyGeneratedObject(displayPanel, destroyedObjects);
-
-            ClearGeneratedChildren(destroyedObjects);
+                DestroyGeneratedObject(displayPanel);
 
             _viewList.Clear();
             _bockmarkList.Clear();
@@ -186,52 +146,15 @@ namespace Work.Cook.Code.Info
             _currentBockmark = null;
         }
 
-        private void ClearGeneratedChildren(HashSet<GameObject> destroyedObjects)
-        {
-            DestroyGeneratedComponentsInChildren<InfoDictionaryScrollViewField>(viewParent, destroyedObjects);
-            DestroyGeneratedComponentsInChildren<InfoDisplayPanel>(viewParent, destroyedObjects);
-            DestroyGeneratedComponentsInChildren<InfoBockmarkBtn>(bockmarkParent, destroyedObjects);
-        }
-
-        private void DestroyGeneratedComponentsInChildren<T>(
-            Transform parent,
-            HashSet<GameObject> destroyedObjects) where T : Component
-        {
-            if (parent == null)
-                return;
-
-            T[] components = parent.GetComponentsInChildren<T>(true);
-            for (int i = 0; i < components.Length; i++)
-            {
-                T component = components[i];
-                if (component == null || component.transform == parent)
-                    continue;
-
-                DestroyGeneratedObject(component, destroyedObjects);
-            }
-        }
-
-        private void DestroyGeneratedObject(Component component, HashSet<GameObject> destroyedObjects)
+        private void DestroyGeneratedObject(Component component)
         {
             if (component == null)
                 return;
 
-            GameObject target = component.gameObject;
-            if (target == null)
-                return;
-
-            if (destroyedObjects != null && destroyedObjects.Add(target) == false)
-                return;
-
-            if (Application.isPlaying == true)
-            {
-                target.SetActive(false);
-                Destroy(target);
-            }
+            if (Application.isPlaying)
+                Destroy(component.gameObject);
             else
-            {
-                DestroyImmediate(target);
-            }
+                DestroyImmediate(component.gameObject);
         }
 
         public void EnableScrollView(InfoDictionaryScrollViewField view)
@@ -284,7 +207,7 @@ namespace Work.Cook.Code.Info
             _currentDisplayEntryName = info != null ? info.DisplayName : null;
             _isDisplayOpen = info != null;
 
-            if (displayDic.TryGetValue(key, out InfoDisplayPanel display) == true)
+            if (displayDic.TryGetValue(key, out InfoDisplayPanel display))
             {
                 ConfigureNavigation(display, info);
                 display.Enable(info);
@@ -338,24 +261,17 @@ namespace Work.Cook.Code.Info
                 next != null);
         }
 
-        public void AllDisableDisplay()
+        public void AllDisableDisplay() => displayDic.Values.ToList().ForEach(item =>
         {
-            foreach (InfoDisplayPanel item in displayDic.Values)
-            {
-                if (item != null)
-                    item.Disable();
-            }
-        }
+            if (item != null)
+                item.Disable();
+        });
 
-        public void AllDisableScrollView()
+        public void AllDisableScrollView() => _viewList.ForEach(view =>
         {
-            for (int i = 0; i < _viewList.Count; i++)
-            {
-                InfoDictionaryScrollViewField view = _viewList[i];
-                if (view != null)
-                    view.Disable();
-            }
-        }
+            if (view != null)
+                view.Disable();
+        });
 
         public void BackDisplay()
         {
@@ -384,7 +300,7 @@ namespace Work.Cook.Code.Info
             InfoDictionaryScrollViewField view,
             InfoBockmarkBtn bockmark)
         {
-            if (string.IsNullOrWhiteSpace(categoryDisplayName) == true)
+            if (string.IsNullOrWhiteSpace(categoryDisplayName))
                 return;
 
             _scrollViewsByCategory[categoryDisplayName] = view;
@@ -395,16 +311,16 @@ namespace Work.Cook.Code.Info
             IReadOnlyList<InfoDictionaryCategoryData> categories,
             DictionaryRestoreState state)
         {
-            if (state.IsDisplayOpen == true
+            if (state.IsDisplayOpen
                 && string.IsNullOrWhiteSpace(state.EntryDisplayName) == false
-                && TryFindEntry(categories, state.ViewType, state.EntryDisplayName, out InfoDictionaryEntryData entry) == true)
+                && TryFindEntry(categories, state.ViewType, state.EntryDisplayName, out InfoDictionaryEntryData entry))
             {
                 EnableDisplay(state.ViewType, entry);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(state.CategoryDisplayName) == false
-                && _scrollViewsByCategory.TryGetValue(state.CategoryDisplayName, out InfoDictionaryScrollViewField view) == true)
+                && _scrollViewsByCategory.TryGetValue(state.CategoryDisplayName, out InfoDictionaryScrollViewField view))
             {
                 _bockmarksByCategory.TryGetValue(state.CategoryDisplayName, out InfoBockmarkBtn bockmark);
                 EnableScrollView(view, bockmark, state.CategoryDisplayName);
@@ -419,7 +335,7 @@ namespace Work.Cook.Code.Info
         {
             entry = null;
 
-            if (categories == null || string.IsNullOrWhiteSpace(entryDisplayName) == true)
+            if (categories == null || string.IsNullOrWhiteSpace(entryDisplayName))
                 return false;
 
             for (int i = 0; i < categories.Count; i++)
@@ -466,7 +382,7 @@ namespace Work.Cook.Code.Info
 
         private InfoDisplayPanel GetDisplay(ViewHaveInfoEnum viewEnum)
         {
-            if (displayDic.TryGetValue(viewEnum, out InfoDisplayPanel display) == true)
+            if (displayDic.TryGetValue(viewEnum, out InfoDisplayPanel display))
                 return display;
 
             displayDic.TryGetValue(DefaultDisplayViewType, out display);

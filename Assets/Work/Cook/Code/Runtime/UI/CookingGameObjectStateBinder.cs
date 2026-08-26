@@ -1,11 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
-using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -66,7 +64,7 @@ namespace Work.Cook.Code.Runtime.UI
             UnsubscribePanel();
             gamePanel = value;
 
-            if (isActiveAndEnabled == true)
+            if (isActiveAndEnabled)
                 SubscribePanel();
 
             Refresh();
@@ -80,7 +78,7 @@ namespace Work.Cook.Code.Runtime.UI
         public void ApplySnapshot(CookingGameSnapshot snapshot)
         {
             bool passed = Evaluate(snapshot);
-            if (invert == true)
+            if (invert)
                 passed = !passed;
 
             if (controlActive && target != null && target.activeSelf != passed)
@@ -155,7 +153,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (gamePanel == null)
                 return;
 
-            Bus<CookingGameSnapshotChangedEvent>.Events += HandleSnapshotChanged;
+            gamePanel.SnapshotChanged += HandleSnapshotChanged;
             _subscribedPanel = gamePanel;
         }
 
@@ -164,16 +162,13 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            Bus<CookingGameSnapshotChangedEvent>.Events -= HandleSnapshotChanged;
+            _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
             _subscribedPanel = null;
         }
 
-        private void HandleSnapshotChanged(CookingGameSnapshotChangedEvent gameEvent)
+        private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
         {
-            if (gameEvent.Source != gamePanel)
-                return;
-
-            ApplySnapshot(gameEvent.Snapshot);
+            ApplySnapshot(snapshot);
         }
     }
 

@@ -1,22 +1,31 @@
+using System;
 using UnityEngine;
+using UnityEngine.Events;
 using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
-using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.Systems
 {
+    [Serializable]
+    public sealed class CookingRewardBalanceChangedEvent : UnityEvent<int>
+    {
+    }
+
     public sealed class CookingRewardWallet : MonoBehaviour
     {
         [SerializeField, Min(0)] private int startingBalance;
         [SerializeField] private bool loadFromPlayerPrefsOnAwake = true;
         [SerializeField] private bool saveToPlayerPrefs = true;
         [SerializeField] private string playerPrefsKey = "DungeonDinner.CookingRewardBalance";
+        [SerializeField] private CookingRewardBalanceChangedEvent balanceChanged =
+            new CookingRewardBalanceChangedEvent();
+
         private bool _initialized;
         private int _balance;
 
+        public event Action<int> BalanceChanged;
         public int StartingBalance => Mathf.Max(0, startingBalance);
         public string PlayerPrefsKey => playerPrefsKey;
         public bool HasSavedPlayerPrefs => string.IsNullOrWhiteSpace(playerPrefsKey) == false
@@ -37,12 +46,12 @@ namespace Work.Cook.Code.Runtime.Systems
 
         public void Initialize()
         {
-            if (_initialized == true)
+            if (_initialized)
                 return;
 
             _balance = Mathf.Max(0, startingBalance);
 
-            if (loadFromPlayerPrefsOnAwake == true && string.IsNullOrWhiteSpace(playerPrefsKey) == false)
+            if (loadFromPlayerPrefsOnAwake && string.IsNullOrWhiteSpace(playerPrefsKey) == false)
                 _balance = Mathf.Max(0, PlayerPrefs.GetInt(playerPrefsKey, _balance));
 
             _initialized = true;
@@ -78,7 +87,7 @@ namespace Work.Cook.Code.Runtime.Systems
 
             _balance = Mathf.Max(0, startingBalance);
 
-            if (saveToPlayerPrefs == true && string.IsNullOrWhiteSpace(playerPrefsKey) == false)
+            if (saveToPlayerPrefs && string.IsNullOrWhiteSpace(playerPrefsKey) == false)
             {
                 PlayerPrefs.DeleteKey(playerPrefsKey);
                 PlayerPrefs.Save();
@@ -112,7 +121,8 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private void NotifyBalanceChanged()
         {
-            Bus<CookingRewardBalanceChangedEvent>.Raise(new CookingRewardBalanceChangedEvent(this, _balance));
+            BalanceChanged?.Invoke(_balance);
+            balanceChanged.Invoke(_balance);
         }
     }
 }

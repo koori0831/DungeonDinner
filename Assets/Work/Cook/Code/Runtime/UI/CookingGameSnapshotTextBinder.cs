@@ -6,11 +6,9 @@ using Work.Cook.Code.Data;
 using Work.NPC.Code.Data;
 using Work.NPC.Code.Runtime;
 using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
-using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -57,7 +55,7 @@ namespace Work.Cook.Code.Runtime.UI
             UnsubscribePanel();
             gamePanel = value;
 
-            if (isActiveAndEnabled == true)
+            if (isActiveAndEnabled)
                 SubscribePanel();
 
             Refresh();
@@ -226,7 +224,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (gamePanel == null)
                 return;
 
-            Bus<CookingGameSnapshotChangedEvent>.Events += HandleSnapshotChanged;
+            gamePanel.SnapshotChanged += HandleSnapshotChanged;
             _subscribedPanel = gamePanel;
         }
 
@@ -235,16 +233,13 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            Bus<CookingGameSnapshotChangedEvent>.Events -= HandleSnapshotChanged;
+            _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
             _subscribedPanel = null;
         }
 
-        private void HandleSnapshotChanged(CookingGameSnapshotChangedEvent gameEvent)
+        private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
         {
-            if (gameEvent.Source != gamePanel)
-                return;
-
-            ApplySnapshot(gameEvent.Snapshot);
+            ApplySnapshot(snapshot);
         }
     }
 

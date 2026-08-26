@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
   recipeId: slime_nucleus_dango
   displayName: "\uC624\uB518 - slime nucleus dango"
-  iconSprite: {fileID: 21300000, guid: 3fd978d9940047444ae02dc2fc07f4bc, type: 3}
   description: "NPC \uC774\uBCA4\uD2B8 'Odin_FirstVisit'\uC5D0\uC11C \uC694\uAD6C\uD558\uB294
     \uC790\uB3D9 \uC0DD\uC131 \uB808\uC2DC\uD53C\uC785\uB2C8\uB2E4.\n\uD5C8\uC6A9
     \uC74C\uC2DD \uD0C0\uC785: dessert\n\uD544\uC218 \uD0DC\uADF8: warm\n\uC120\uD638

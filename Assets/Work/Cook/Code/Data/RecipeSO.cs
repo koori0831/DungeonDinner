@@ -9,7 +9,6 @@ namespace Work.Cook.Code.Data
     {
         [SerializeField] private string recipeId;
         [SerializeField] private string displayName;
-        [SerializeField] private Sprite iconSprite;
         [SerializeField, TextArea] private string description;
         [SerializeField] private bool revealNameByDefault = true;
         [SerializeField] private string hiddenDisplayName = "???";
@@ -24,7 +23,6 @@ namespace Work.Cook.Code.Data
 
         public string RecipeId => recipeId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? recipeId : displayName;
-        public Sprite IconSprite => iconSprite;
         public string Description => description;
         public bool RevealNameByDefault => revealNameByDefault;
         public string HiddenDisplayName => string.IsNullOrWhiteSpace(hiddenDisplayName) ? "???" : hiddenDisplayName;
@@ -44,7 +42,7 @@ namespace Work.Cook.Code.Data
 
         public string GetKnowledgeDescription(bool discovered, bool hasAttempted)
         {
-            if (discovered == true)
+            if (discovered)
             {
                 if (string.IsNullOrWhiteSpace(discoveredDescription) == false)
                     return discoveredDescription;
