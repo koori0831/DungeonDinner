@@ -20,6 +20,14 @@
 /[Uu]ser[Ss]ettings/
 *.log
 
+# Local IDE and Codex-generated artifacts
+.idea/
+/output/
+/tmp/
+
+# Unity crash/recovery scenes must not be versioned
+/Assets/_Recovery/
+
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be committed to version control.
 *.blend1
 *.blend1.meta
