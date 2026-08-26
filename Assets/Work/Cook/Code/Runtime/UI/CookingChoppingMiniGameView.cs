@@ -1,269 +1,124 @@
 using System;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Systems;
 
 namespace Work.Cook.Code.Runtime.UI
 {
-    /// <summary>
-    /// 순서대로 강조되는 절단 지점을 빠르게 클릭하는 다지기 미니게임
-    /// </summary>
-    public sealed class CookingChoppingMiniGameView : MonoBehaviour, ICookingMiniGameView
+    public sealed class CookingChoppingMiniGameView : CookingOverlayMiniGameController,
+        IPointerDownHandler, IPointerUpHandler
     {
-        [SerializeField] private Button[] targetButtons;
-        [SerializeField] private TextMeshProUGUI titleField;
-        [SerializeField] private TextMeshProUGUI instructionField;
-        [SerializeField] private TextMeshProUGUI progressField;
-        [SerializeField] private Button cancelButton;
-        [SerializeField] private Color pendingColor = new Color(0.45f, 0.3f, 0.16f, 1f);
-        [SerializeField] private Color activeColor = new Color(1f, 0.72f, 0.2f, 1f);
-        [SerializeField] private Color completedColor = new Color(0.35f, 0.75f, 0.32f, 1f);
-        [SerializeField] private float perfectDuration = 3f;
-        [SerializeField] private float normalDuration = 8f;
+        [SerializeField] private Image[] targetImages;
+        [SerializeField] private Color pendingColor = new Color(1f, 1f, 1f, 0.18f);
+        [SerializeField] private Color activeColor = new Color(1f, 0.86f, 0.35f, 0.95f);
+        [SerializeField] private Color completedColor = new Color(0.38f, 0.9f, 0.45f, 0.55f);
 
-        private Action<CookingMiniGameResult> _completed;
-        private UnityAction[] _targetActions;
-        private int[] _targetOrder;
-        private int _currentOrderIndex;
-        private int _mistakeCount;
+        private int[] _order;
+        private int _orderIndex;
+        private int _mistakes;
+        private float _accuracySum;
         private float _startedTime;
-        private CookingGamePanel _owner;
-        private bool _isInitialized;
 
-        public void Initialize(CookingGamePanel owner, CookingFlowRunner runner, TMP_FontAsset defaultFontAsset = null)
-        {
-            _owner = owner;
-            if (defaultFontAsset != null)
-                SetFontAsset(defaultFontAsset);
-
-            BindButtons();
-        }
-
-        private void OnDestroy()
-        {
-            UnbindButtons();
-        }
-
-        public void SetFontAsset(TMP_FontAsset value)
-        {
-            if (value == null)
-                return;
-
-            if (titleField != null)
-                titleField.font = value;
-            if (instructionField != null)
-                instructionField.font = value;
-            if (progressField != null)
-                progressField.font = value;
-        }
-
-        public bool CanPlay(CookingMiniGameType miniGameType)
+        public override bool CanPlay(CookingMiniGameType miniGameType)
         {
             return miniGameType == CookingMiniGameType.Chopping;
         }
 
-        public bool StartMiniGame(
+        public override bool StartMiniGame(
             IngredientSO ingredient,
             IngredientPreparationOption option,
             Action<CookingMiniGameResult> completed)
         {
-            if (ingredient == null
-                || option == null
-                || option.MiniGameType != CookingMiniGameType.Chopping
-                || completed == null
-                || targetButtons == null
-                || targetButtons.Length == 0)
+            if (Begin(ingredient, option, CookingMiniGameType.Chopping, completed) == false
+                || targetImages == null
+                || targetImages.Length == 0)
             {
                 return false;
             }
 
-            BindButtons();
-            _completed = completed;
-            _targetOrder = new int[targetButtons.Length];
-            for (int i = 0; i < _targetOrder.Length; i++)
-                _targetOrder[i] = i;
+            _order = new int[targetImages.Length];
+            for (int i = 0; i < _order.Length; i++)
+                _order[i] = i;
+            for (int i = _order.Length - 1; i > 0; i--)
+            {
+                int swap = UnityEngine.Random.Range(0, i + 1);
+                (_order[i], _order[swap]) = (_order[swap], _order[i]);
+            }
 
-            ShuffleTargetOrder();
-            _currentOrderIndex = 0;
-            _mistakeCount = 0;
+            _orderIndex = 0;
+            _mistakes = 0;
+            _accuracySum = 0f;
             _startedTime = Time.unscaledTime;
-            SetText(titleField, $"{option.DisplayName} 미니게임");
-            SetText(instructionField, "빛나는 절단 지점을 순서대로 빠르게 누르세요.");
+            Host.SetInstruction("빛나는 타격점을 순서대로 빠르게 누르세요.");
             RefreshTargets();
             return true;
         }
 
-        public void CancelMiniGame()
+        public void OnPointerDown(PointerEventData eventData)
         {
-            _completed = null;
-            SetTargetsInteractable(false);
+            if (Completion != null)
+                TryCapturePointer(eventData);
         }
 
-        private void BindButtons()
+        public void OnPointerUp(PointerEventData eventData)
         {
-            if (_isInitialized == true || targetButtons == null)
+            if (Completion == null || IsActivePointer(eventData) == false)
+                return;
+            ReleasePointer();
+            if (TryGetLocalPosition(eventData, out Vector2 point) == false)
                 return;
 
-            _targetActions = new UnityAction[targetButtons.Length];
-            for (int i = 0; i < targetButtons.Length; i++)
+            int targetIndex = _order[_orderIndex];
+            Image target = targetImages[targetIndex];
+            float radius = target != null ? Mathf.Max(target.rectTransform.rect.width, target.rectTransform.rect.height) * 0.75f : 1f;
+            float distance = target != null ? Vector2.Distance(point, target.rectTransform.anchoredPosition) : float.MaxValue;
+            if (distance > radius)
             {
-                int targetIndex = i;
-                UnityAction action = () => HandleTargetClicked(targetIndex);
-                _targetActions[i] = action;
-                if (targetButtons[i] != null)
-                    targetButtons[i].onClick.AddListener(action);
-            }
-
-            if (cancelButton != null)
-                cancelButton.onClick.AddListener(HandleCancelClicked);
-
-            _isInitialized = true;
-        }
-
-        private void UnbindButtons()
-        {
-            if (_isInitialized == false)
-                return;
-
-            if (targetButtons != null && _targetActions != null)
-            {
-                int count = Mathf.Min(targetButtons.Length, _targetActions.Length);
-                for (int i = 0; i < count; i++)
-                {
-                    if (targetButtons[i] != null && _targetActions[i] != null)
-                        targetButtons[i].onClick.RemoveListener(_targetActions[i]);
-                }
-            }
-
-            if (cancelButton != null)
-                cancelButton.onClick.RemoveListener(HandleCancelClicked);
-
-            _isInitialized = false;
-        }
-
-        private void HandleTargetClicked(int targetIndex)
-        {
-            if (_completed == null || _targetOrder == null || _currentOrderIndex >= _targetOrder.Length)
-                return;
-
-            if (_targetOrder[_currentOrderIndex] != targetIndex)
-            {
-                _mistakeCount++;
-                RefreshProgressText();
+                _mistakes++;
+                RegisterMistake("빛나는 지점을 정확히 눌러주세요.");
                 return;
             }
 
-            _currentOrderIndex++;
-            if (_currentOrderIndex >= _targetOrder.Length)
+            _accuracySum += Mathf.Clamp01(1f - distance / Mathf.Max(1f, radius));
+            _orderIndex++;
+            MarkProgress();
+            if (_orderIndex >= _order.Length)
             {
-                CompleteMiniGame();
+                float elapsed = Time.unscaledTime - _startedTime;
+                CookingMiniGameOverlayProfile profile = GetProfile(CookingMiniGameType.Chopping);
+                float speedScore = 1f - Mathf.InverseLerp(profile.Duration * 0.45f, profile.Duration, elapsed);
+                float accuracyScore = Mathf.Clamp01(_accuracySum / _order.Length - _mistakes * 0.12f);
+                Finish(CookingMiniGameType.Chopping, speedScore * 0.4f + accuracyScore * 0.6f,
+                    "타격점을 빠르고 고르게 다졌습니다.");
                 return;
             }
 
             RefreshTargets();
         }
 
-        private void CompleteMiniGame()
-        {
-            Action<CookingMiniGameResult> completed = _completed;
-            if (completed == null)
-                return;
-
-            float duration = Time.unscaledTime - _startedTime;
-            float speedScore = 1f - Mathf.InverseLerp(perfectDuration, normalDuration, duration);
-            float accuracyScore = Mathf.Clamp01(1f - _mistakeCount * 0.15f);
-            float score = Mathf.Clamp01(speedScore * 0.4f + accuracyScore * 0.6f);
-            CookingMiniGameGrade grade = CookingMiniGameUtility.ResolveGrade(score);
-            _completed = null;
-            SetTargetsInteractable(false);
-            completed.Invoke(CookingMiniGameUtility.CreateResult(
-                CookingMiniGameType.Chopping,
-                grade,
-                score,
-                "절단 지점을 일정하게 다졌습니다."));
-        }
-
-        private void ShuffleTargetOrder()
-        {
-            for (int i = _targetOrder.Length - 1; i > 0; i--)
-            {
-                int swapIndex = UnityEngine.Random.Range(0, i + 1);
-                int value = _targetOrder[i];
-                _targetOrder[i] = _targetOrder[swapIndex];
-                _targetOrder[swapIndex] = value;
-            }
-        }
-
         private void RefreshTargets()
         {
-            if (targetButtons == null)
-                return;
-
-            int activeTarget = _targetOrder != null && _currentOrderIndex < _targetOrder.Length
-                ? _targetOrder[_currentOrderIndex]
-                : -1;
-            for (int i = 0; i < targetButtons.Length; i++)
+            int active = _order != null && _orderIndex < _order.Length ? _order[_orderIndex] : -1;
+            for (int i = 0; i < targetImages.Length; i++)
             {
-                Button button = targetButtons[i];
-                if (button == null)
+                if (targetImages[i] == null)
                     continue;
-
-                bool isCompleted = IsTargetCompleted(i);
-                button.interactable = isCompleted == false;
-                Color color = isCompleted == true ? completedColor : i == activeTarget ? activeColor : pendingColor;
-                if (button.targetGraphic != null)
-                    button.targetGraphic.color = color;
+                bool done = IsCompleted(i);
+                targetImages[i].color = done ? completedColor : i == active ? activeColor : pendingColor;
             }
-
-            RefreshProgressText();
+            Host.SetStatus($"타격 {_orderIndex + 1}/{targetImages.Length}");
         }
 
-        private bool IsTargetCompleted(int targetIndex)
+        private bool IsCompleted(int targetIndex)
         {
-            if (_targetOrder == null)
-                return false;
-
-            for (int i = 0; i < _currentOrderIndex; i++)
+            for (int i = 0; i < _orderIndex; i++)
             {
-                if (_targetOrder[i] == targetIndex)
+                if (_order[i] == targetIndex)
                     return true;
             }
-
             return false;
-        }
-
-        private void SetTargetsInteractable(bool interactable)
-        {
-            if (targetButtons == null)
-                return;
-
-            for (int i = 0; i < targetButtons.Length; i++)
-            {
-                if (targetButtons[i] != null)
-                    targetButtons[i].interactable = interactable;
-            }
-        }
-
-        private void RefreshProgressText()
-        {
-            int totalCount = _targetOrder != null ? _targetOrder.Length : 0;
-            SetText(progressField, $"다지기 {_currentOrderIndex} / {totalCount}   실수 {_mistakeCount}");
-        }
-
-        private void HandleCancelClicked()
-        {
-            if (_owner != null)
-                _owner.CancelActiveMiniGame();
-        }
-
-        private static void SetText(TextMeshProUGUI field, string value)
-        {
-            if (field != null)
-                field.text = value ?? string.Empty;
         }
     }
 }

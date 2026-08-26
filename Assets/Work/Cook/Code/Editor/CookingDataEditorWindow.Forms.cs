@@ -20,6 +20,7 @@ namespace Work.Cook.Code.Editor
             EditorGUILayout.LabelField("기본 정보", EditorStyles.boldLabel);
             _recipeDraft.RecipeId = EditorGUILayout.TextField("레시피 ID", _recipeDraft.RecipeId);
             _recipeDraft.DisplayName = EditorGUILayout.TextField("표시 이름", _recipeDraft.DisplayName);
+            _recipeDraft.IconSprite = (Sprite)EditorGUILayout.ObjectField("완성 요리 아이콘", _recipeDraft.IconSprite, typeof(Sprite), false);
             _recipeDraft.Category = (FoodCategorySO)EditorGUILayout.ObjectField("카테고리", _recipeDraft.Category, typeof(FoodCategorySO), false);
 
             EditorGUILayout.LabelField("설명");
@@ -102,6 +103,7 @@ namespace Work.Cook.Code.Editor
             EditorGUILayout.LabelField("재료 정보", EditorStyles.boldLabel);
             _ingredientDraft.IngredientId = EditorGUILayout.TextField("재료 ID", _ingredientDraft.IngredientId);
             _ingredientDraft.DisplayName = EditorGUILayout.TextField("표시 이름", _ingredientDraft.DisplayName);
+            _ingredientDraft.IconSprite = (Sprite)EditorGUILayout.ObjectField("재료 아이콘", _ingredientDraft.IconSprite, typeof(Sprite), false);
             _ingredientDraft.ModelPrefab = (GameObject)EditorGUILayout.ObjectField("3D 모델 프리팹", _ingredientDraft.ModelPrefab, typeof(GameObject), false);
             EditorGUILayout.LabelField("설명");
             _ingredientDraft.Description = EditorGUILayout.TextArea(_ingredientDraft.Description, GUILayout.MinHeight(64f));

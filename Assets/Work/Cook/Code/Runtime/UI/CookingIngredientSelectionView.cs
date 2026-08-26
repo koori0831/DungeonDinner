@@ -25,6 +25,8 @@ namespace Work.Cook.Code.Runtime.UI
         [Header("Layout References")]
         [SerializeField] private RectTransform availableIngredientRoot;
         [SerializeField] private RectTransform selectedIngredientRoot;
+        [SerializeField] private ScrollRect availableIngredientScrollRect;
+        [SerializeField] private ScrollRect selectedIngredientScrollRect;
         [SerializeField] private TMP_InputField searchInputField;
         [SerializeField] private TextMeshProUGUI availableSummaryField;
         [SerializeField] private TextMeshProUGUI selectedSummaryField;
@@ -84,7 +86,7 @@ namespace Work.Cook.Code.Runtime.UI
             BindSearchField();
             SubscribeFlowEvents();
             SubscribeIngredientSourceEvents();
-            Refresh();
+            Refresh(true);
         }
 
         private void OnDisable()
@@ -108,7 +110,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (isActiveAndEnabled == true)
             {
                 SubscribeFlowEvents();
-                Refresh();
+                Refresh(true);
             }
         }
 
@@ -123,7 +125,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (isActiveAndEnabled == true)
                 SubscribeIngredientSourceEvents();
 
-            Refresh();
+            Refresh(true);
         }
 
         public void SetSelectionLimits(int minCount, int maxCount = 0)
@@ -134,7 +136,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (maxSelectedIngredients > 0 && maxSelectedIngredients < minSelectedIngredients)
                 maxSelectedIngredients = minSelectedIngredients;
 
-            Refresh();
+            Refresh(true);
         }
 
         public void SetSearchQuery(string query)
@@ -147,7 +149,7 @@ namespace Work.Cook.Code.Runtime.UI
                 searchInputField.SetTextWithoutNotify(_searchQuery);
 
             BindSearchField();
-            Refresh();
+            Refresh(true);
         }
 
         public ICookingIngredientSource GetCurrentIngredientSource()
@@ -166,6 +168,11 @@ namespace Work.Cook.Code.Runtime.UI
 
         public void Refresh()
         {
+            Refresh(false);
+        }
+
+        private void Refresh(bool resetScroll)
+        {
             EnsureReferences();
             EnsureLayout();
 
@@ -181,8 +188,8 @@ namespace Work.Cook.Code.Runtime.UI
 
             IReadOnlyList<IngredientSO> selectedIngredients = flowRunner.SelectedIngredients;
             IReadOnlyList<IngredientSO> availableIngredients = GetAvailableIngredients();
-            RebuildAvailableIngredients(availableIngredients, selectedIngredients);
-            RebuildSelectedIngredients(selectedIngredients);
+            RebuildAvailableIngredients(availableIngredients, selectedIngredients, resetScroll);
+            RebuildSelectedIngredients(selectedIngredients, resetScroll);
             BindAvailableSummary(availableIngredients);
             SetConfirmInteractable(IsSelectionCountValid(selectedIngredients));
             BindFocusedIngredientDetail();
@@ -206,7 +213,7 @@ namespace Work.Cook.Code.Runtime.UI
                     flowRunner.AddDirectIngredient(ingredient);
             }
 
-            Refresh();
+            Refresh(false);
         }
 
         public void RemoveIngredient(IngredientSO ingredient)
@@ -215,7 +222,7 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
 
             flowRunner.RemoveDirectIngredient(ingredient);
-            Refresh();
+            Refresh(false);
         }
 
         public void ClearSelection()
@@ -227,14 +234,14 @@ namespace Work.Cook.Code.Runtime.UI
             for (int i = 0; i < selected.Count; i++)
                 flowRunner.RemoveDirectIngredient(selected[i]);
 
-            Refresh();
+            Refresh(true);
         }
 
         public void ConfirmSelection()
         {
             if (IsSelectionCountValid(flowRunner?.SelectedIngredients) == false)
             {
-                Refresh();
+                Refresh(false);
                 return;
             }
 
@@ -249,7 +256,8 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void RebuildAvailableIngredients(
             IReadOnlyList<IngredientSO> ingredients,
-            IReadOnlyList<IngredientSO> selectedIngredients)
+            IReadOnlyList<IngredientSO> selectedIngredients,
+            bool resetScroll)
         {
             ClearChildren(availableIngredientRoot);
 
@@ -286,6 +294,8 @@ namespace Work.Cook.Code.Runtime.UI
                     continue;
                 }
             }
+
+            RefreshListLayout(availableIngredientRoot, availableIngredientScrollRect, resetScroll);
         }
 
         private void BindAvailableSummary(IReadOnlyList<IngredientSO> ingredients)
@@ -298,7 +308,7 @@ namespace Work.Cook.Code.Runtime.UI
             SetText(emptyAvailableField, count == 0 ? BuildEmptyAvailableText() : string.Empty);
         }
 
-        private void RebuildSelectedIngredients(IReadOnlyList<IngredientSO> selectedIngredients)
+        private void RebuildSelectedIngredients(IReadOnlyList<IngredientSO> selectedIngredients, bool resetScroll)
         {
             ClearChildren(selectedIngredientRoot);
 
@@ -330,6 +340,8 @@ namespace Work.Cook.Code.Runtime.UI
                     continue;
                 }
             }
+
+            RefreshListLayout(selectedIngredientRoot, selectedIngredientScrollRect, resetScroll);
         }
 
         private void EnsureReferences()
@@ -339,6 +351,15 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (flowRunner == null)
                 flowRunner = gamePanel != null ? gamePanel.FlowRunner : GetComponentInParent<CookingFlowRunner>();
+
+            if (availableIngredientScrollRect == null && availableIngredientRoot != null)
+                availableIngredientScrollRect = availableIngredientRoot.GetComponentInParent<ScrollRect>();
+
+            if (selectedIngredientScrollRect == null && selectedIngredientRoot != null)
+                selectedIngredientScrollRect = selectedIngredientRoot.GetComponentInParent<ScrollRect>();
+
+            ConfigureScrollRect(availableIngredientScrollRect, availableIngredientRoot);
+            ConfigureScrollRect(selectedIngredientScrollRect, selectedIngredientRoot);
         }
 
         private IReadOnlyList<IngredientSO> GetAvailableIngredients()
@@ -434,7 +455,7 @@ namespace Work.Cook.Code.Runtime.UI
         private void HandleSearchChanged(string value)
         {
             _searchQuery = value ?? string.Empty;
-            Refresh();
+            Refresh(true);
         }
 
         private bool MatchesSearch(IngredientSO ingredient)
@@ -616,7 +637,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (gameEvent.Source != flowRunner)
                 return;
 
-            Refresh();
+            Refresh(false);
         }
 
         private void HandleIngredientSourceChanged(CookingIngredientSourceChangedEvent gameEvent)
@@ -624,7 +645,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (gameEvent.Source != _subscribedIngredientSource)
                 return;
 
-            Refresh();
+            Refresh(true);
         }
 
         private void ApplyFontToExistingTexts()
@@ -685,6 +706,54 @@ namespace Work.Cook.Code.Runtime.UI
                 else
                     DestroyImmediate(child.gameObject);
             }
+        }
+
+        private static void RefreshListLayout(
+            RectTransform contentRoot,
+            ScrollRect scrollRect,
+            bool resetScroll)
+        {
+            if (contentRoot == null)
+                return;
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRoot);
+            float preferredHeight = LayoutUtility.GetPreferredHeight(contentRoot);
+            if (preferredHeight >= 0f)
+                contentRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
+
+            Canvas.ForceUpdateCanvases();
+            if (scrollRect == null)
+                return;
+
+            ConfigureScrollRect(scrollRect, contentRoot);
+            RectTransform viewport = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.transform as RectTransform;
+            if (viewport != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(viewport);
+
+            scrollRect.StopMovement();
+            if (resetScroll == true)
+            {
+                scrollRect.verticalNormalizedPosition = 1f;
+                scrollRect.horizontalNormalizedPosition = 0f;
+            }
+        }
+
+        private static void ConfigureScrollRect(ScrollRect scrollRect, RectTransform contentRoot)
+        {
+            if (scrollRect == null || contentRoot == null)
+                return;
+
+            scrollRect.content = contentRoot;
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+
+            if (scrollRect.viewport == null)
+                scrollRect.viewport = scrollRect.transform as RectTransform;
+
+            contentRoot.anchorMin = new Vector2(0f, 1f);
+            contentRoot.anchorMax = new Vector2(1f, 1f);
+            contentRoot.pivot = new Vector2(0.5f, 1f);
         }
 
         private static void SetText(TextMeshProUGUI field, string text)

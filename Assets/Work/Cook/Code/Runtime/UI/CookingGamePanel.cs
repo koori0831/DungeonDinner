@@ -31,6 +31,8 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private bool keepNpcConversationVisibleDuringCooking = true;
         [SerializeField] private bool keepRecipeSelectionVisibleBeforePreparation = true;
         [SerializeField] private bool keepRecipeSelectionVisibleDuringInventory = true;
+        [Tooltip("Enable only for legacy layouts that intentionally stack the conversation, recipe, and inventory views.")]
+        [SerializeField] private bool allowLayeredPrimaryViews;
         [SerializeField] private bool allowRecipeConfirmation;
         [SerializeField] private TMP_FontAsset temporaryUiFontAsset;
 
@@ -69,6 +71,10 @@ namespace Work.Cook.Code.Runtime.UI
         private bool _isMiniGameActive;
         private IngredientSO _pendingMiniGameIngredient;
         private IngredientPreparationOption _pendingMiniGameOption;
+        private DishResult _pendingRewardResult;
+        private NpcDishMatchReport _pendingRewardMatchReport;
+        private bool _isSubmittingPendingReward;
+        private bool _pendingRewardConversationCompleted;
 
         private enum MiniGameStartStatus
         {
@@ -108,6 +114,7 @@ namespace Work.Cook.Code.Runtime.UI
         public DishResult CurrentResult => _currentResult;
         public CookingGameSnapshot CurrentSnapshot => BuildSnapshot();
         public bool AllowRecipeConfirmation => allowRecipeConfirmation;
+        public bool HasPendingRewardSettlement => _pendingRewardResult != null && _pendingRewardMatchReport != null;
 
         private void Awake()
         {
@@ -148,6 +155,7 @@ namespace Work.Cook.Code.Runtime.UI
         public void SetNpcRunner(NpcConversationRunner value)
         {
             npcRunner = value;
+            SubscribeStateSources();
             PublishSnapshotChanged();
         }
 
@@ -274,16 +282,9 @@ namespace Work.Cook.Code.Runtime.UI
             int knownPreparationEffectCount = knowledgeStore != null ? knowledgeStore.KnownPreparationEffectCount : 0;
             int rewardBalance = rewardWallet != null ? rewardWallet.Balance : 0;
             DishResult currentResult = _currentResult ?? flowRunner?.LastResult;
-            NpcDishMatchReport matchReport = null;
-            int previewRewardAmount = 0;
-
-            if (currentResult != null
-                && npcRunner != null
-                && CookingNpcDishAdapter.TryBuildMatchReport(npcRunner, currentResult, out matchReport)
-                && rewardCalculator != null)
-            {
-                previewRewardAmount = rewardCalculator.CalculateAmount(matchReport, currentResult);
-            }
+            bool canHandToNpc = _isResultHandBlockedByPreparationVisual == false
+                                && HasPendingRewardSettlement == false
+                                && CookingNpcDishAdapter.CanSubmitToNpc(npcRunner, currentResult, out _);
 
             return new CookingGameSnapshot(
                 CurrentScreen,
@@ -297,9 +298,9 @@ namespace Work.Cook.Code.Runtime.UI
                 knownRecipeCount,
                 knownPreparationEffectCount,
                 rewardBalance,
-                previewRewardAmount,
-                matchReport,
-                currentResult != null && npcRunner != null);
+                0,
+                null,
+                canHandToNpc);
         }
 
         public void ClearStoredInfoForDebug()
@@ -329,6 +330,7 @@ namespace Work.Cook.Code.Runtime.UI
             rewardWallet?.ClearForDebug();
             encounterDirector?.ClearEncounterHistory();
             _currentResult = null;
+            ClearPendingRewardSettlement();
             ResetConsumedIngredientSession();
 
             CookingGameScreenState resetScreen = applyInitialScreenOnAwake == true
@@ -347,6 +349,7 @@ namespace Work.Cook.Code.Runtime.UI
                 flowRunner.ResetFlow();
 
             _currentResult = null;
+            ClearPendingRewardSettlement();
             ResetConsumedIngredientSession();
             SetScreen(CookingGameScreenState.RecipeSelection);
         }
@@ -400,6 +403,7 @@ namespace Work.Cook.Code.Runtime.UI
             SetIngredientSelectionSource(null);
             SetIngredientSelectionLimits(1, 0);
             _currentResult = null;
+            ClearPendingRewardSettlement();
             SetScreen(CookingGameScreenState.Inventory);
             return true;
         }
@@ -660,9 +664,10 @@ namespace Work.Cook.Code.Runtime.UI
 
         public bool CanHandCurrentResultToNpc()
         {
-            return GetCurrentDishResult() != null
-                   && NpcRunner != null
-                   && _isResultHandBlockedByPreparationVisual == false;
+            DishResult result = GetCurrentDishResult();
+            return _isResultHandBlockedByPreparationVisual == false
+                   && HasPendingRewardSettlement == false
+                   && CookingNpcDishAdapter.CanSubmitToNpc(NpcRunner, result, out _);
         }
 
         public bool TryBuildNpcMatchReport(DishResult result, out NpcDishMatchReport matchReport)
@@ -700,13 +705,24 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
             }
 
-            TryBuildNpcMatchReport(result, out NpcDishMatchReport matchReport);
+            if (TryBuildNpcMatchReport(result, out NpcDishMatchReport matchReport) == false)
+            {
+                Debug.LogWarning("CookingGamePanel could not evaluate the dish before submission.", this);
+                return false;
+            }
+
+            QueuePendingRewardSettlement(result, matchReport);
 
             ReturnToNpcConversation();
             Canvas.ForceUpdateCanvases();
 
-            if (CookingNpcDishAdapter.SubmitToNpc(npcRunner, result, out string submitBlockReason) == false)
+            _isSubmittingPendingReward = true;
+            bool submitted = CookingNpcDishAdapter.SubmitToNpc(npcRunner, result, out string submitBlockReason);
+            _isSubmittingPendingReward = false;
+
+            if (submitted == false)
             {
+                ClearPendingRewardSettlement();
                 Debug.LogWarning(
                     $"CookingGamePanel could not submit the dish. reason={submitBlockReason}",
                     this);
@@ -716,10 +732,12 @@ namespace Work.Cook.Code.Runtime.UI
 
             Bus<CookingDishHandedToNpcEvent>.Raise(new CookingDishHandedToNpcEvent(this, result));
             preparationVisualDirector?.PlayDishDismissSequence();
-            GrantReward(result, matchReport);
 
             if (resetFlowAfterHandingDish == true && flowRunner != null)
                 flowRunner.ResetFlow();
+
+            if (_pendingRewardConversationCompleted == true)
+                SettlePendingReward();
 
             return true;
         }
@@ -1040,6 +1058,43 @@ namespace Work.Cook.Code.Runtime.UI
             return grant;
         }
 
+        private void QueuePendingRewardSettlement(DishResult result, NpcDishMatchReport matchReport)
+        {
+            _pendingRewardResult = result;
+            _pendingRewardMatchReport = matchReport;
+            _pendingRewardConversationCompleted = false;
+        }
+
+        private void ClearPendingRewardSettlement()
+        {
+            _pendingRewardResult = null;
+            _pendingRewardMatchReport = null;
+            _isSubmittingPendingReward = false;
+            _pendingRewardConversationCompleted = false;
+        }
+
+        private void HandleNpcConversationCompleted()
+        {
+            if (HasPendingRewardSettlement == false)
+                return;
+
+            if (_isSubmittingPendingReward == true)
+            {
+                _pendingRewardConversationCompleted = true;
+                return;
+            }
+
+            SettlePendingReward();
+        }
+
+        private void SettlePendingReward()
+        {
+            DishResult result = _pendingRewardResult;
+            NpcDishMatchReport matchReport = _pendingRewardMatchReport;
+            ClearPendingRewardSettlement();
+            GrantReward(result, matchReport);
+        }
+
         private bool TryConsumeSelectedIngredientsForCompletion(CookingSession session)
         {
             if (session == null)
@@ -1099,17 +1154,23 @@ namespace Work.Cook.Code.Runtime.UI
 
             RestorePreparationHiddenViews();
 
-            bool beforePreparation = IsBeforePreparation(CurrentScreen);
-            bool duringIngredientSelection = CurrentScreen == CookingGameScreenState.Inventory;
-            bool showNpcConversation = CurrentScreen == CookingGameScreenState.NpcConversation
-                                        || keepNpcConversationVisibleBeforePreparation == true && beforePreparation == true
-                                        || keepNpcConversationVisibleDuringCooking == true && duringIngredientSelection == true;
-            bool showRecipeSelection = CurrentScreen == CookingGameScreenState.RecipeSelection
-                                        || CurrentScreen == CookingGameScreenState.Inventory
-                                        || keepRecipeSelectionVisibleBeforePreparation == true
-                                        && beforePreparation == true
-                                        && (CurrentScreen != CookingGameScreenState.Inventory
-                                            || keepRecipeSelectionVisibleDuringInventory == true);
+            bool showNpcConversation = CurrentScreen == CookingGameScreenState.NpcConversation;
+            bool showRecipeSelection = CurrentScreen == CookingGameScreenState.RecipeSelection;
+
+            if (allowLayeredPrimaryViews == true)
+            {
+                bool beforePreparation = IsBeforePreparation(CurrentScreen);
+                bool duringIngredientSelection = CurrentScreen == CookingGameScreenState.Inventory;
+                showNpcConversation = showNpcConversation
+                                      || keepNpcConversationVisibleBeforePreparation == true && beforePreparation == true
+                                      || keepNpcConversationVisibleDuringCooking == true && duringIngredientSelection == true;
+                showRecipeSelection = showRecipeSelection
+                                      || CurrentScreen == CookingGameScreenState.Inventory
+                                      || keepRecipeSelectionVisibleBeforePreparation == true
+                                      && beforePreparation == true
+                                      && (CurrentScreen != CookingGameScreenState.Inventory
+                                          || keepRecipeSelectionVisibleDuringInventory == true);
+            }
 
             SetActive(npcConversationView, showNpcConversation);
             SetActive(recipeSelectionView, showRecipeSelection);
@@ -1852,13 +1913,17 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedNpcRunner != npcRunner)
             {
                 if (_subscribedNpcRunner != null)
+                {
                     _subscribedNpcRunner.CookingStepReady -= HandleNpcCookingStepReady;
+                    _subscribedNpcRunner.ConversationCompleted -= HandleNpcConversationCompleted;
+                }
 
                 _subscribedNpcRunner = npcRunner;
 
                 if (_subscribedNpcRunner != null)
                 {
                     _subscribedNpcRunner.CookingStepReady += HandleNpcCookingStepReady;
+                    _subscribedNpcRunner.ConversationCompleted += HandleNpcConversationCompleted;
                     if (_subscribedNpcRunner.IsReadyForCooking == true)
                         HandleNpcCookingStepReady();
                 }
@@ -1890,7 +1955,10 @@ namespace Work.Cook.Code.Runtime.UI
         private void UnsubscribeStateSources()
         {
             if (_subscribedNpcRunner != null)
+            {
                 _subscribedNpcRunner.CookingStepReady -= HandleNpcCookingStepReady;
+                _subscribedNpcRunner.ConversationCompleted -= HandleNpcConversationCompleted;
+            }
 
             if (_subscribedKnowledgeStore != null)
                 Bus<CookingKnowledgeChangedEvent>.Events -= HandleKnowledgeChanged;

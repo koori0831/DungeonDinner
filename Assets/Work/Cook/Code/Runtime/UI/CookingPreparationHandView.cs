@@ -15,9 +15,12 @@ namespace Work.Cook.Code.Runtime.UI
     public sealed class CookingPreparationHandView : MonoBehaviour
     {
         [SerializeField] private RectTransform cardRoot;
+        [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private CookingPreparationOptionCardView preparationOptionCardPrefab;
         [SerializeField] private CanvasGroup cardGroup;
         [SerializeField] private TMP_FontAsset fontAsset;
+        [SerializeField] private CookingUiPresentationSettingsSO presentationSettings;
+        [SerializeField] private CookingPreparationTooltipView tooltipView;
         [SerializeField] private string noOptionText = "이 재료에는 등록된 손질법이 없습니다.";
         [SerializeField] private string noOptionButtonText = "그대로 진행";
         [SerializeField] private string unknownEffectText = "아직 결과를 모릅니다.";
@@ -25,9 +28,15 @@ namespace Work.Cook.Code.Runtime.UI
 
         private CookingKnowledgeStore _knowledgeStore;
 
-        public void Initialize(CookingGamePanel owner, CookingKnowledgeStore knowledge, TMP_FontAsset defaultFontAsset)
+        public void Initialize(
+            CookingGamePanel owner,
+            CookingKnowledgeStore knowledge,
+            TMP_FontAsset defaultFontAsset,
+            CookingUiPresentationSettingsSO defaultPresentationSettings = null)
         {
             _knowledgeStore = knowledge;
+            if (defaultPresentationSettings != null)
+                presentationSettings = defaultPresentationSettings;
             if (defaultFontAsset != null)
                 SetFontAsset(defaultFontAsset);
             EnsureReferences();
@@ -48,6 +57,7 @@ namespace Work.Cook.Code.Runtime.UI
             Action<IngredientSO, IngredientPreparationOption> selected)
         {
             EnsureReferences();
+            tooltipView?.Hide(null);
             ClearChildren(cardRoot);
             SetInteractable(true);
 
@@ -57,6 +67,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (options == null || options.Count == 0)
             {
                 CreateNoOptionCard(ingredient, selected);
+                RefreshCardLayout(true);
                 return;
             }
 
@@ -68,6 +79,8 @@ namespace Work.Cook.Code.Runtime.UI
 
                 CreatePreparationCard(ingredient, option, i, selected);
             }
+
+            RefreshCardLayout(true);
         }
 
         public void SetInteractable(bool interactable)
@@ -101,6 +114,7 @@ namespace Work.Cook.Code.Runtime.UI
                 "선택",
                 false,
                 () => selected?.Invoke(ingredient, null));
+            view.SetPresentation(presentationSettings, tooltipView);
             ApplyFont(view.gameObject);
         }
 
@@ -127,6 +141,7 @@ namespace Work.Cook.Code.Runtime.UI
                 "선택",
                 true,
                 () => selected?.Invoke(ingredient, option));
+            view.SetPresentation(presentationSettings, tooltipView);
             ApplyFont(view.gameObject);
         }
 
@@ -207,10 +222,37 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (cardRoot == null)
                 cardRoot = transform as RectTransform;
+            if (scrollRect == null && cardRoot != null)
+                scrollRect = cardRoot.GetComponentInParent<ScrollRect>();
+            if (scrollRect == null)
+                scrollRect = GetComponentInChildren<ScrollRect>(true);
             if (cardGroup == null)
                 cardGroup = GetComponent<CanvasGroup>();
             if (cardGroup == null)
                 Debug.LogError("CookingPreparationHandView needs a CanvasGroup assigned or attached to the same GameObject.", this);
+        }
+
+        private void RefreshCardLayout(bool resetScroll)
+        {
+            if (cardRoot == null)
+                return;
+
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(cardRoot);
+
+            if (scrollRect == null)
+                return;
+
+            RectTransform viewport = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.transform as RectTransform;
+            if (viewport != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(viewport);
+
+            if (resetScroll == true)
+            {
+                scrollRect.StopMovement();
+                scrollRect.horizontalNormalizedPosition = 0f;
+                scrollRect.verticalNormalizedPosition = 1f;
+            }
         }
 
         private void ApplyFontToExistingTexts()

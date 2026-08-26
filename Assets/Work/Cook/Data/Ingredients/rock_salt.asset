@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
   ingredientId: rock_salt
   displayName: "\uC554\uC5FC"
+  iconSprite: {fileID: 21300000, guid: 9330f664a288b40449c47c5a2f721a46, type: 3}
   description: "\uAE38\uAC00\uB098 \uC18C\uAE08 \uACE8\uB818\uAC19\uC740 \uBAAC\uC2A4\uD130\uC5D0\uAC8C\uC11C
     \uC5BB\uC744 \uC218 \uC788\uB294 \uC7AC\uB8CC\uC785\uB2C8\uB2E4. "
   category: {fileID: 11400000, guid: 249342fcec40afd49865c30f96f8117b, type: 2}
@@ -31,6 +32,7 @@ MonoBehaviour:
     causesDisgusting: 0
     addsPoison: 0
     resultNameModifier: 
+    miniGameFeedbackRules: []
   - method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
     displayNameOverride: "\uADF8\uB0E5 \uC0AC\uC6A9\uD558\uAE30"
     description: "\uC7AC\uB8CC\uC758 \uBCF8\uC5F0\uC758 \uB9DB\uC744 \uAC00\uC7A5
@@ -41,6 +43,7 @@ MonoBehaviour:
     causesDisgusting: 0
     addsPoison: 0
     resultNameModifier: 
+    miniGameFeedbackRules: []
   - method: {fileID: 11400000, guid: c6848ab63966aba45adc0b852c90d455, type: 2}
     displayNameOverride: "\uACF1\uAC8C \uAC08\uC544\uC11C \uC0AC\uC6A9\uD558\uAE30"
     description: "\uAD75\uC740 \uC18C\uAE08\uAC19\uC740 \uC554\uC5FC\uC744 \uC544\uC8FC
@@ -52,3 +55,4 @@ MonoBehaviour:
     causesDisgusting: 0
     addsPoison: 0
     resultNameModifier: 
+    miniGameFeedbackRules: []

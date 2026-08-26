@@ -14,6 +14,7 @@ namespace Work.Cook.Code.Editor
         {
             public string RecipeId;
             public string DisplayName;
+            public Sprite IconSprite;
             public string Description;
             public FoodCategorySO Category;
             public int Priority;
@@ -28,6 +29,7 @@ namespace Work.Cook.Code.Editor
                 {
                     RecipeId = ReadString(serialized, "recipeId"),
                     DisplayName = ReadString(serialized, "displayName"),
+                    IconSprite = ReadObject<Sprite>(serialized, "iconSprite"),
                     Description = ReadString(serialized, "description"),
                     Category = ReadObject<FoodCategorySO>(serialized, "category"),
                     Priority = ReadInt(serialized, "priority"),
@@ -170,6 +172,7 @@ namespace Work.Cook.Code.Editor
         {
             public string IngredientId;
             public string DisplayName;
+            public Sprite IconSprite;
             public string Description;
             public IngredientCategorySO Category;
             public GameObject ModelPrefab;
@@ -183,6 +186,7 @@ namespace Work.Cook.Code.Editor
                 {
                     IngredientId = ReadString(serialized, "ingredientId"),
                     DisplayName = ReadString(serialized, "displayName"),
+                    IconSprite = ReadObject<Sprite>(serialized, "iconSprite"),
                     Description = ReadString(serialized, "description"),
                     Category = ReadObject<IngredientCategorySO>(serialized, "category"),
                     ModelPrefab = ReadObject<GameObject>(serialized, "modelPrefab"),

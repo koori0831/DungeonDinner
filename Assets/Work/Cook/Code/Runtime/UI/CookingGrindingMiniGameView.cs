@@ -1,178 +1,139 @@
 using System;
-using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Systems;
 
 namespace Work.Cook.Code.Runtime.UI
 {
-    /// <summary>
-    /// 일정한 간격으로 막자를 내려쳐 목표 입자 크기를 만드는 빻기 미니게임
-    /// </summary>
-    public sealed class CookingGrindingMiniGameView : MonoBehaviour, ICookingMiniGameView
+    public sealed class CookingGrindingMiniGameView : CookingOverlayMiniGameController,
+        IBeginDragHandler, IDragHandler, IEndDragHandler
     {
-        [SerializeField] private Button strikeButton;
-        [SerializeField] private Button cancelButton;
-        [SerializeField] private Slider particleSlider;
-        [SerializeField] private TextMeshProUGUI titleField;
-        [SerializeField] private TextMeshProUGUI instructionField;
-        [SerializeField] private TextMeshProUGUI progressField;
-        [SerializeField] private int requiredStrikeCount = 10;
-        [SerializeField] private float targetInterval = 0.45f;
-        [SerializeField] private float intervalTolerance = 0.35f;
+        [SerializeField] private Image pestleImage;
+        [SerializeField] private Image[] particleImages;
+        [SerializeField] private float innerRadiusRatio = 0.18f;
+        [SerializeField] private float outerRadiusRatio = 0.48f;
 
-        private Action<CookingMiniGameResult> _completed;
-        private CookingGamePanel _owner;
-        private int _strikeCount;
-        private float _lastStrikeTime;
-        private float _rhythmScoreSum;
-        private int _rhythmSampleCount;
-        private bool _buttonsBound;
+        private Vector2 _lastDirection;
+        private float _accumulatedAngle;
+        private float _continuitySum;
+        private int _continuitySamples;
+        private int _insideSamples;
+        private int _totalSamples;
 
-        public void Initialize(CookingGamePanel owner, CookingFlowRunner runner, TMP_FontAsset defaultFontAsset = null)
-        {
-            _owner = owner;
-            if (defaultFontAsset != null)
-                SetFontAsset(defaultFontAsset);
-            BindButtons();
-        }
-
-        private void OnDestroy()
-        {
-            UnbindButtons();
-        }
-
-        public void SetFontAsset(TMP_FontAsset value)
-        {
-            if (value == null)
-                return;
-            if (titleField != null)
-                titleField.font = value;
-            if (instructionField != null)
-                instructionField.font = value;
-            if (progressField != null)
-                progressField.font = value;
-        }
-
-        public bool CanPlay(CookingMiniGameType miniGameType)
+        public override bool CanPlay(CookingMiniGameType miniGameType)
         {
             return miniGameType == CookingMiniGameType.Grinding;
-        }
-
-        public bool StartMiniGame(
+}
+        public override bool StartMiniGame(
             IngredientSO ingredient,
             IngredientPreparationOption option,
             Action<CookingMiniGameResult> completed)
         {
-            if (ingredient == null
-                || option == null
-                || option.MiniGameType != CookingMiniGameType.Grinding
-                || completed == null
-                || strikeButton == null
-                || requiredStrikeCount <= 0)
-            {
+            if (Begin(ingredient, option, CookingMiniGameType.Grinding, completed) == false)
                 return false;
-            }
 
-            _completed = completed;
-            _strikeCount = 0;
-            _lastStrikeTime = 0f;
-            _rhythmScoreSum = 0f;
-            _rhythmSampleCount = 0;
-            strikeButton.interactable = true;
-            SetText(titleField, $"{option.DisplayName} 미니게임");
-            SetText(instructionField, "일정한 박자로 막자를 내려치세요.");
-            RefreshProgress();
+            _accumulatedAngle = 0f;
+            _continuitySum = 0f;
+            _continuitySamples = 0;
+            _insideSamples = 0;
+            _totalSamples = 0;
+            if (pestleImage != null)
+                pestleImage.gameObject.SetActive(false);
+            SetParticleScale(1f);
+            Host.SetInstruction("절구 안에서 막자를 원형으로 네 바퀴 돌리세요.");
+            Host.SetStatus("원 가장자리를 따라 돌리기");
             return true;
         }
 
-        public void CancelMiniGame()
+        public override void CancelMiniGame()
         {
-            _completed = null;
-            if (strikeButton != null)
-                strikeButton.interactable = false;
+            base.CancelMiniGame();
+            if (pestleImage != null)
+                pestleImage.gameObject.SetActive(false);
         }
 
-        private void HandleStrikeClicked()
+        public void OnBeginDrag(PointerEventData eventData)
         {
-            if (_completed == null)
-                return;
-
-            float currentTime = Time.unscaledTime;
-            if (_strikeCount > 0)
+            if (Completion == null || TryCapturePointer(eventData) == false
+                || TryGetLocalPosition(eventData, out Vector2 point) == false)
             {
-                float interval = currentTime - _lastStrikeTime;
-                float rhythmScore = 1f - Mathf.Abs(interval - targetInterval) / Mathf.Max(0.01f, intervalTolerance);
-                _rhythmScoreSum += Mathf.Clamp01(rhythmScore);
-                _rhythmSampleCount++;
+                ReleasePointer();
+                return;
             }
 
-            _lastStrikeTime = currentTime;
-            _strikeCount++;
-            RefreshProgress();
-            if (_strikeCount >= requiredStrikeCount)
-                CompleteMiniGame();
+            _lastDirection = point.normalized;
+            MovePestle(point);
         }
 
-        private void CompleteMiniGame()
+        public void OnDrag(PointerEventData eventData)
         {
-            Action<CookingMiniGameResult> completed = _completed;
-            if (completed == null)
+            if (IsActivePointer(eventData) == false || TryGetLocalPosition(eventData, out Vector2 point) == false)
                 return;
 
-            float score = _rhythmSampleCount > 0 ? _rhythmScoreSum / _rhythmSampleCount : 0f;
-            CookingMiniGameGrade grade = CookingMiniGameUtility.ResolveGrade(score);
-            _completed = null;
-            strikeButton.interactable = false;
-            completed.Invoke(CookingMiniGameUtility.CreateResult(
-                CookingMiniGameType.Grinding,
-                grade,
-                score,
-                "재료를 일정한 입자로 빻았습니다."));
+            Rect rect = ((RectTransform)transform).rect;
+            float radius = Mathf.Min(rect.width, rect.height) * 0.5f;
+            float normalizedRadius = point.magnitude / Mathf.Max(1f, radius);
+            bool insideRing = normalizedRadius >= innerRadiusRatio && normalizedRadius <= outerRadiusRatio;
+            _totalSamples++;
+            if (insideRing)
+                _insideSamples++;
+
+            Vector2 direction = point.normalized;
+            float delta = Vector2.SignedAngle(_lastDirection, direction);
+            if (Mathf.Abs(delta) <= 45f && insideRing)
+            {
+                _accumulatedAngle += Mathf.Abs(delta);
+                _continuitySum += 1f - Mathf.Abs(Mathf.Abs(delta) - 10f) / 35f;
+                _continuitySamples++;
+                MarkProgress();
+            }
+            else if (Mathf.Abs(delta) > 60f)
+            {
+                RegisterMistake();
+            }
+
+            _lastDirection = direction;
+            MovePestle(point);
+            float rotations = _accumulatedAngle / 360f;
+            SetParticleScale(Mathf.Lerp(1f, 0.35f, Mathf.Clamp01(rotations / 4f)));
+            Host.SetStatus($"회전 {Mathf.Min(4, Mathf.FloorToInt(rotations) + 1)}/4");
+            if (rotations >= 4f)
+            {
+                float rhythm = _continuitySamples > 0 ? Mathf.Clamp01(_continuitySum / _continuitySamples) : 0f;
+                float inside = (float)_insideSamples / Mathf.Max(1, _totalSamples);
+                Finish(CookingMiniGameType.Grinding, rhythm * 0.6f + inside * 0.4f,
+                    "막자를 일정하게 돌려 재료를 곱게 빻았습니다.");
+            }
         }
 
-        private void RefreshProgress()
+        public void OnEndDrag(PointerEventData eventData)
         {
-            float ratio = requiredStrikeCount > 0 ? (float)_strikeCount / requiredStrikeCount : 0f;
-            if (particleSlider != null)
-                particleSlider.value = ratio;
-            SetText(progressField, $"빻기 {_strikeCount} / {requiredStrikeCount}");
-        }
-
-        private void BindButtons()
-        {
-            if (_buttonsBound == true)
+            if (IsActivePointer(eventData) == false)
                 return;
-            if (strikeButton != null)
-                strikeButton.onClick.AddListener(HandleStrikeClicked);
-            if (cancelButton != null)
-                cancelButton.onClick.AddListener(HandleCancelClicked);
-            _buttonsBound = true;
+            ReleasePointer();
+            if (pestleImage != null)
+                pestleImage.gameObject.SetActive(false);
         }
 
-        private void UnbindButtons()
+        private void MovePestle(Vector2 point)
         {
-            if (_buttonsBound == false)
+            if (pestleImage == null)
                 return;
-            if (strikeButton != null)
-                strikeButton.onClick.RemoveListener(HandleStrikeClicked);
-            if (cancelButton != null)
-                cancelButton.onClick.RemoveListener(HandleCancelClicked);
-            _buttonsBound = false;
+            pestleImage.gameObject.SetActive(true);
+            pestleImage.rectTransform.anchoredPosition = point;
         }
 
-        private void HandleCancelClicked()
+        private void SetParticleScale(float scale)
         {
-            if (_owner != null)
-                _owner.CancelActiveMiniGame();
-        }
-
-        private static void SetText(TextMeshProUGUI field, string value)
-        {
-            if (field != null)
-                field.text = value ?? string.Empty;
+            if (particleImages == null)
+                return;
+            for (int i = 0; i < particleImages.Length; i++)
+            {
+                if (particleImages[i] != null)
+                    particleImages[i].rectTransform.localScale = Vector3.one * scale;
+            }
         }
     }
 }

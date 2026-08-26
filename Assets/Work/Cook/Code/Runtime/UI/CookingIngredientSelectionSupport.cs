@@ -130,7 +130,6 @@ namespace Work.Cook.Code.Runtime.UI
                 FoodTagSO tag = tags[i];
                 if (tag != null
                     && (ContainsSearchText(tag.DisplayName, query) == true
-                        || ContainsSearchText(tag.TagId, query) == true
                         || ContainsSearchText(tag.Description, query) == true))
                 {
                     return true;
@@ -155,7 +154,6 @@ namespace Work.Cook.Code.Runtime.UI
                     && (ContainsSearchText(option.DisplayName, query) == true
                         || ContainsSearchText(option.Description, query) == true
                         || ContainsSearchText(method != null ? method.DisplayName : string.Empty, query) == true
-                        || ContainsSearchText(method != null ? method.MethodId : string.Empty, query) == true
                         || ContainsSearchText(method != null ? method.Description : string.Empty, query) == true))
                 {
                     return true;

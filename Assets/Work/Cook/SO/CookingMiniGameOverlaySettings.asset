@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2895a821d93699846a68447ef2de1f64, type: 3}
+  m_Name: CookingMiniGameOverlaySettings
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.CookingMiniGameOverlaySettingsSO
+  profiles:
+  - miniGameType: 1
+    duration: 10
+    maximumDuration: 0
+    targetMin: 0
+    targetMax: 1
+    requiredCount: 3
+    primaryTolerance: 0.12
+    secondaryTolerance: 0.08
+  - miniGameType: 2
+    duration: 6
+    maximumDuration: 6
+    targetMin: 0.58
+    targetMax: 0.76
+    requiredCount: 1
+    primaryTolerance: 0.12
+    secondaryTolerance: 0.08
+  - miniGameType: 3
+    duration: 10
+    maximumDuration: 0
+    targetMin: 0
+    targetMax: 1
+    requiredCount: 4
+    primaryTolerance: 0.18
+    secondaryTolerance: 0.08
+  - miniGameType: 4
+    duration: 8
+    maximumDuration: 0
+    targetMin: 0
+    targetMax: 1
+    requiredCount: 5
+    primaryTolerance: 0.16
+    secondaryTolerance: 0.08
+  - miniGameType: 5
+    duration: 5
+    maximumDuration: 5
+    targetMin: 0.78
+    targetMax: 0.92
+    requiredCount: 1
+    primaryTolerance: 0.1
+    secondaryTolerance: 0.06
+  - miniGameType: 6
+    duration: 6
+    maximumDuration: 6
+    targetMin: 0.52
+    targetMax: 0.7
+    requiredCount: 1
+    primaryTolerance: 0.16
+    secondaryTolerance: 0.1
+  - miniGameType: 7
+    duration: 9
+    maximumDuration: 0
+    targetMin: 0
+    targetMax: 1
+    requiredCount: 3
+    primaryTolerance: 0.18
+    secondaryTolerance: 0.1
+  - miniGameType: 8
+    duration: 5.5
+    maximumDuration: 15
+    targetMin: 0.6
+    targetMax: 0.78
+    requiredCount: 9
+    primaryTolerance: 0.18
+    secondaryTolerance: 0.12
+  - miniGameType: 9
+    duration: 10
+    maximumDuration: 0
+    targetMin: 0
+    targetMax: 1
+    requiredCount: 4
+    primaryTolerance: 0.18
+    secondaryTolerance: 0.1
+  - miniGameType: 10
+    duration: 5
+    maximumDuration: 12
+    targetMin: 0.48
+    targetMax: 0.66
+    requiredCount: 1
+    primaryTolerance: 0.18
+    secondaryTolerance: 0.1
+  resultDisplayDuration: 0.6
+  focusDimColor: {r: 0, g: 0, b: 0, a: 0.18}
+  guideColor: {r: 1, g: 0.86, b: 0.35, a: 0.62}
+  successColor: {r: 0.38, g: 0.9, b: 0.45, a: 0.95}
+  mistakeColor: {r: 1, g: 0.3, b: 0.2, a: 0.95}
+  knifeSprite: {fileID: 0}
+  brushSprite: {fileID: 0}
+  panSprite: {fileID: 0}
+  plateSprite: {fileID: 0}
+  pestleSprite: {fileID: 0}
+  pitcherSprite: {fileID: 0}
+  actionClip: {fileID: 0}
+  successClip: {fileID: 0}
+  mistakeClip: {fileID: 0}
+  enableHaptics: 0

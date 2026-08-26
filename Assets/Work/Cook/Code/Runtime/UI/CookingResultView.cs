@@ -1,85 +1,147 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
-using Work.NPC.Code.Data;
-using Work.NPC.Code.Runtime;
 using Work.Cook.Code.Runtime.Core;
 using Work.Cook.Code.Runtime.Events;
-using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
-using Work.Cook.Code.Runtime.UI;
 using Work.Core.EventBus;
+using Work.NPC.Code.Runtime;
 
 namespace Work.Cook.Code.Runtime.UI
 {
-    public sealed class CookingResultView : MonoBehaviour, ICookingResultView
+    /// <summary>
+    /// 완성 요리를 단계적으로 공개하고 요약/상세 판정을 표시한다.
+    /// </summary>
+    public sealed class CookingResultView : MonoBehaviour, ICookingResultView, IPointerDownHandler
     {
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private CookingFlowRunner flowRunner;
 
-        [Header("Layout References")]
+        [Header("Presentation")]
+        [SerializeField] private CookingUiPresentationSettingsSO presentationSettings;
+        [SerializeField] private TMP_FontAsset fontAsset;
+        [SerializeField] private AudioSource audioSource;
+        [SerializeField] private CanvasGroup backdropGroup;
+        [SerializeField] private Image revealInputBlocker;
+
+        [Header("Dish Hero")]
+        [SerializeField] private RectTransform dishVisualRoot;
         [SerializeField] private Image dishIconImage;
         [SerializeField] private TextMeshProUGUI dishNameField;
-        [SerializeField] private TextMeshProUGUI resultSummaryField;
-        [SerializeField] private TextMeshProUGUI npcMatchField;
-        [SerializeField] private RectTransform preparationSection;
+        [SerializeField] private TextMeshProUGUI recipeField;
+        [SerializeField] private TextMeshProUGUI representativeTagsField;
+
+        [Header("Quality")]
+        [SerializeField] private CanvasGroup qualityGroup;
+        [SerializeField] private RectTransform qualityVisualRoot;
+        [SerializeField] private Image qualityIconImage;
+        [SerializeField] private TextMeshProUGUI qualityNameField;
+        [SerializeField] private TextMeshProUGUI qualityScoreField;
+
+        [Header("Post-Serve Verdict (Reserved)")]
+        [SerializeField] private CanvasGroup reactionGroup;
+        [SerializeField] private RectTransform reactionVisualRoot;
+        [SerializeField] private Image npcIconImage;
+        [SerializeField] private Image reactionIconImage;
+        [SerializeField] private TextMeshProUGUI npcNameField;
+        [SerializeField] private TextMeshProUGUI reactionNameField;
+        [SerializeField] private TextMeshProUGUI reactionSummaryField;
+        [SerializeField] private CanvasGroup rewardPreviewGroup;
+        [SerializeField] private Image rewardIconImage;
+        [SerializeField] private TextMeshProUGUI rewardPreviewField;
+
+        [Header("Details")]
+        [SerializeField] private Button detailsToggleButton;
+        [SerializeField] private GameObject detailsDrawer;
+        [SerializeField] private RectTransform tagComparisonRoot;
+        [SerializeField] private CookingUiChipView tagChipTemplate;
+        [SerializeField] private TextMeshProUGUI exactMatchField;
         [SerializeField] private RectTransform preparationRoot;
-        [SerializeField] private RectTransform reasonsSection;
-        [SerializeField] private TextMeshProUGUI reasonsField;
-        [SerializeField] private Button handToNpcButton;
-
-        [Header("Prefabs")]
         [SerializeField] private CookingPreparedIngredientRowView preparedIngredientRowPrefab;
+        [SerializeField] private TextMeshProUGUI reasonsField;
 
-        [Header("View Settings")]
-        [SerializeField] private TMP_FontAsset fontAsset;
+        [Header("Actions")]
+        [SerializeField] private CanvasGroup actionGroup;
+        [SerializeField] private Button handToNpcButton;
 
         [Header("Text")]
         [SerializeField] private string noResultText = "완성된 음식이 없습니다.";
 
         private CookingGamePanel _subscribedPanel;
+        private CookingResultPresentationModel _model;
+        private DishResult _lastAnimatedResult;
+        private Sequence _revealSequence;
+        private bool _isRevealing;
+        private bool _detailsOpen;
+        private int _displayedReward;
+        private Coroutine _releaseBlockerRoutine;
+
+        public bool IsRevealing => _isRevealing;
+        public bool DetailsOpen => _detailsOpen;
+        public CookingResultPresentationModel CurrentPresentation => _model;
 
         private void Awake()
         {
             EnsureReferences();
-            EnsureLayout();
-            BindButton();
+            BindButtons();
         }
 
         private void OnEnable()
         {
             EnsureReferences();
-            EnsureLayout();
-            BindButton();
+            BindButtons();
             SubscribePanelEvents();
             Refresh();
         }
 
         private void OnDisable()
         {
+            KillRevealSequence();
+            _isRevealing = false;
+            SetBlocker(false);
+            if (_releaseBlockerRoutine != null)
+            {
+                StopCoroutine(_releaseBlockerRoutine);
+                _releaseBlockerRoutine = null;
+            }
             UnsubscribePanelEvents();
+        }
+
+        private void Update()
+        {
+            if (_isRevealing && UnityEngine.Input.anyKeyDown)
+                CompleteReveal(true);
         }
 
         public void Initialize(CookingGamePanel owner, CookingFlowRunner runner, TMP_FontAsset defaultFontAsset = null)
         {
             gamePanel = owner;
             flowRunner = runner;
-
             if (defaultFontAsset != null)
                 SetFontAsset(defaultFontAsset);
 
-            EnsureLayout();
-            BindButton();
-
-            if (isActiveAndEnabled == true)
+            EnsureReferences();
+            BindButtons();
+            if (isActiveAndEnabled)
             {
                 SubscribePanelEvents();
                 Refresh();
             }
+        }
+
+        public void SetPresentationSettings(CookingUiPresentationSettingsSO value)
+        {
+            presentationSettings = value;
+            if (value?.FontAsset != null)
+                SetFontAsset(value.FontAsset);
         }
 
         public void SetFontAsset(TMP_FontAsset value)
@@ -88,14 +150,17 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
 
             fontAsset = value;
-            ApplyFontToExistingTexts();
+            TextMeshProUGUI[] labels = GetComponentsInChildren<TextMeshProUGUI>(true);
+            for (int i = 0; i < labels.Length; i++)
+            {
+                if (labels[i] != null)
+                    labels[i].font = value;
+            }
         }
 
         public void Refresh()
         {
             EnsureReferences();
-            EnsureLayout();
-
             DishResult result = GetCurrentResult();
             if (result == null)
             {
@@ -103,391 +168,325 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
-            BindDishIcon(result);
-            SetText(dishNameField, result.DisplayName);
-            SetText(resultSummaryField, BuildResultSummaryText(result));
-            SetText(npcMatchField, BuildNpcMatchText(result));
-            RebuildPreparationEntries(result);
-            BindReasons(result);
-            SetHandButtonInteractable(gamePanel != null && gamePanel.CanHandCurrentResultToNpc());
+            CookingGameSnapshot snapshot = gamePanel?.CurrentSnapshot;
+            CookingDataCatalogSO catalog = flowRunner?.Catalog ?? gamePanel?.FlowRunner?.Catalog;
+            Func<string, string> npcNameResolver = gamePanel?.NpcRunner != null
+                ? gamePanel.NpcRunner.GetNpcDisplayName
+                : (Func<string, string>)null;
+            bool canHand = gamePanel != null && gamePanel.CanHandCurrentResultToNpc();
+
+            _model = CookingResultPresentationBuilder.BuildResult(
+                result,
+                snapshot,
+                null,
+                catalog,
+                presentationSettings,
+                npcNameResolver,
+                0,
+                canHand);
+            BindModel(_model);
+
+            if (_lastAnimatedResult != result)
+            {
+                _lastAnimatedResult = result;
+                StartReveal();
+            }
+            else if (_isRevealing == false)
+            {
+                ApplyRevealFinalState();
+            }
         }
 
-        private DishResult GetCurrentResult()
+        public void OnPointerDown(PointerEventData eventData)
         {
-            return gamePanel != null
-                ? gamePanel.GetCurrentDishResult()
-                : flowRunner?.LastResult;
+            if (_isRevealing)
+                CompleteReveal(true);
+        }
+
+        public void ToggleDetails()
+        {
+            if (_isRevealing || detailsDrawer == null)
+                return;
+
+            _detailsOpen = !_detailsOpen;
+            detailsDrawer.SetActive(_detailsOpen);
+            UpdateDetailsButtonLabel();
+        }
+
+        private void BindModel(CookingResultPresentationModel model)
+        {
+            if (model == null)
+                return;
+
+            BindDishIcon(model.Source);
+            SetText(dishNameField, model.DishName);
+            SetText(recipeField, $"{model.RecipeName} · {model.CategoryName}");
+            SetText(representativeTagsField, BuildRepresentativeTagText(model.RepresentativeTags));
+
+            CookingQualityVisual qualityVisual = presentationSettings?.GetQualityVisual(model.Quality);
+            BindImage(qualityIconImage, qualityVisual?.Icon);
+            SetText(qualityNameField, model.QualityName);
+            SetText(qualityScoreField, model.QualityScore == 0 ? "완성도 변화 없음" : $"완성도 {model.QualityScore:+#;-#;0}");
+            if (qualityNameField != null && qualityVisual != null)
+                qualityNameField.color = qualityVisual.Color;
+
+            ApplyPreServeVisibility();
+            RebuildPreparationEntries(model.PreparedIngredients);
+            BindReasons(model.Reasons);
+
+            _detailsOpen = false;
+            SetActive(detailsDrawer, false);
+            UpdateDetailsButtonLabel();
         }
 
         private void BindEmptyState()
         {
+            _model = null;
+            KillRevealSequence();
             SetText(dishNameField, noResultText);
-            SetText(resultSummaryField, string.Empty);
-            SetText(npcMatchField, "요리 결과가 준비되면 NPC 예상 반응이 표시됩니다.");
-            SetText(reasonsField, string.Empty);
+            SetText(recipeField, string.Empty);
+            SetText(representativeTagsField, string.Empty);
+            SetText(qualityNameField, string.Empty);
+            SetText(qualityScoreField, string.Empty);
+            SetText(npcNameField, string.Empty);
+            SetText(reactionNameField, string.Empty);
+            SetText(reactionSummaryField, "요리 결과가 준비되면 예상 만족도가 표시됩니다.");
+            SetText(rewardPreviewField, string.Empty);
             BindDishIcon(null);
-            ClearChildren(preparationRoot);
-            SetSectionPreferredHeight(preparationSection, 94f);
-            SetSectionPreferredHeight(reasonsSection, 84f);
-            SetHandButtonInteractable(false);
+            ClearChildren(tagComparisonRoot, tagChipTemplate != null ? tagChipTemplate.transform : null);
+            ClearChildren(preparationRoot, preparedIngredientRowPrefab != null ? preparedIngredientRowPrefab.transform : null);
+            SetText(reasonsField, string.Empty);
+            SetButtonInteractable(detailsToggleButton, false);
+            SetButtonInteractable(handToNpcButton, false);
+            SetActive(detailsDrawer, false);
+            ApplyPreServeVisibility();
+            SetBlocker(false);
         }
 
-        private void RebuildPreparationEntries(DishResult result)
+        private void ApplyPreServeVisibility()
         {
-            ClearChildren(preparationRoot);
+            SetActive(reactionGroup != null ? reactionGroup.gameObject : null, false);
+            SetActive(rewardPreviewGroup != null ? rewardPreviewGroup.gameObject : null, false);
+            SetActive(exactMatchField != null ? exactMatchField.gameObject : null, false);
+            SetActive(tagComparisonRoot != null ? tagComparisonRoot.gameObject : null, false);
 
-            if (preparationRoot == null)
-                return;
-
-            int count = result?.PreparedIngredients?.Count ?? 0;
-            if (count == 0)
+            if (qualityVisualRoot != null)
             {
-                SetSectionPreferredHeight(preparationSection, 94f);
-                return;
+                qualityVisualRoot.anchorMin = new Vector2(0.08f, 0.12f);
+                qualityVisualRoot.anchorMax = new Vector2(0.92f, 0.88f);
+                qualityVisualRoot.anchoredPosition = Vector2.zero;
+                qualityVisualRoot.sizeDelta = Vector2.zero;
             }
 
-            for (int i = 0; i < count; i++)
-                CreatePreparationEntry(preparationRoot, result.PreparedIngredients[i], i);
-
-            SetSectionPreferredHeight(preparationSection, 58f + count * 84f);
+            SetText(npcNameField, string.Empty);
+            SetText(reactionNameField, string.Empty);
+            SetText(reactionSummaryField, string.Empty);
+            SetText(rewardPreviewField, string.Empty);
+            SetText(exactMatchField, string.Empty);
+            ClearChildren(tagComparisonRoot, tagChipTemplate != null ? tagChipTemplate.transform : null);
         }
 
-        private void BindReasons(DishResult result)
+        private void StartReveal()
         {
-            if (result == null || result.Reasons.Count == 0)
+            KillRevealSequence();
+            _isRevealing = true;
+            SetBlocker(true);
+            SetButtonInteractable(detailsToggleButton, false);
+            SetButtonInteractable(handToNpcButton, false);
+            SetActionGroup(false);
+
+            if (backdropGroup != null)
+                backdropGroup.alpha = 0f;
+            if (dishVisualRoot != null)
+                dishVisualRoot.localScale = new Vector3(0.84f, 0.84f, 1f);
+            SetCanvasGroup(qualityGroup, 0f, false);
+            if (qualityVisualRoot != null)
+                qualityVisualRoot.localScale = new Vector3(0.68f, 0.68f, 1f);
+            ApplyPreServeVisibility();
+
+            float backdropDuration = presentationSettings != null ? presentationSettings.BackdropDuration : 0.4f;
+            float qualityDuration = presentationSettings != null ? presentationSettings.QualityDuration : 0.4f;
+            float actionDuration = presentationSettings != null ? presentationSettings.ActionDuration : 0.2f;
+
+            Sequence sequence = DOTween.Sequence().SetUpdate(true);
+            sequence.AppendCallback(() => PlayClip(presentationSettings?.DishRevealClip));
+            if (backdropGroup != null)
+                sequence.Append(backdropGroup.DOFade(1f, backdropDuration));
+            else
+                sequence.AppendInterval(backdropDuration);
+            if (dishVisualRoot != null)
+                sequence.Join(dishVisualRoot.DOScale(1f, backdropDuration).SetEase(Ease.OutBack));
+
+            sequence.AppendCallback(() => PlayClip(presentationSettings?.QualityStampClip));
+            if (qualityGroup != null)
+                sequence.Append(qualityGroup.DOFade(1f, qualityDuration));
+            else
+                sequence.AppendInterval(qualityDuration);
+            if (qualityVisualRoot != null)
+                sequence.Join(qualityVisualRoot.DOScale(1f, qualityDuration).SetEase(Ease.OutBack));
+
+            if (actionGroup != null)
+                sequence.Append(actionGroup.DOFade(1f, actionDuration));
+            else
+                sequence.AppendInterval(actionDuration);
+            sequence.OnComplete(() => CompleteReveal(false));
+            _revealSequence = sequence;
+        }
+
+        private void CompleteReveal(bool skipped)
+        {
+            if (_isRevealing == false)
+                return;
+
+            KillRevealSequence();
+            ApplyRevealFinalState();
+            if (skipped)
+            {
+                if (_releaseBlockerRoutine != null)
+                    StopCoroutine(_releaseBlockerRoutine);
+                _releaseBlockerRoutine = StartCoroutine(ReleaseBlockerAfterPointerCycle());
+            }
+            else
+            {
+                SetBlocker(false);
+            }
+        }
+
+        private IEnumerator ReleaseBlockerAfterPointerCycle()
+        {
+            yield return null;
+            SetBlocker(false);
+            _releaseBlockerRoutine = null;
+        }
+
+        private void ApplyRevealFinalState()
+        {
+            _isRevealing = false;
+            if (backdropGroup != null)
+                backdropGroup.alpha = 1f;
+            if (dishVisualRoot != null)
+                dishVisualRoot.localScale = Vector3.one;
+            SetCanvasGroup(qualityGroup, 1f, false);
+            if (qualityVisualRoot != null)
+                qualityVisualRoot.localScale = Vector3.one;
+            ApplyPreServeVisibility();
+            SetActionGroup(true);
+            SetButtonInteractable(detailsToggleButton, _model != null);
+            SetButtonInteractable(handToNpcButton, _model != null && _model.CanHandToNpc);
+        }
+
+        private void SetActionGroup(bool visible)
+        {
+            if (actionGroup == null)
+                return;
+
+            actionGroup.alpha = visible ? 1f : 0f;
+            actionGroup.interactable = visible;
+            actionGroup.blocksRaycasts = visible;
+        }
+
+        private void SetRewardPreview(int amount)
+        {
+            _displayedReward = Mathf.Max(0, amount);
+            SetText(rewardPreviewField, $"예상 보상  {_displayedReward}");
+        }
+
+        private void RebuildTagComparisons(IReadOnlyList<CookingTagChipModel> chips)
+        {
+            if (tagComparisonRoot == null || tagChipTemplate == null)
+                return;
+
+            ClearChildren(tagComparisonRoot, tagChipTemplate.transform);
+            for (int i = 0; i < chips.Count; i++)
+            {
+                CookingUiChipView chip = Instantiate(tagChipTemplate, tagComparisonRoot);
+                chip.gameObject.name = $"ResultTagChip{i + 1}";
+                chip.Bind(chips[i], presentationSettings);
+            }
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(tagComparisonRoot);
+        }
+
+        private void RebuildPreparationEntries(IReadOnlyList<CookingPreparedIngredientPresentationModel> preparedIngredients)
+        {
+            if (preparationRoot == null || preparedIngredientRowPrefab == null)
+                return;
+
+            ClearChildren(preparationRoot, preparedIngredientRowPrefab.transform);
+            for (int i = 0; i < preparedIngredients.Count; i++)
+            {
+                CookingPreparedIngredientPresentationModel model = preparedIngredients[i];
+                CookingPreparedIngredientRowView view = Instantiate(preparedIngredientRowPrefab, preparationRoot);
+                view.gameObject.name = $"PreparedIngredient{i + 1}";
+                view.SetPresentationSettings(presentationSettings);
+                Sprite icon = model.Source != null
+                    ? CookingTempVisualUtility.ResolveIngredientIcon(model.Source.Ingredient)
+                    : null;
+                view.Bind(model, icon);
+            }
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(preparationRoot);
+        }
+
+        private void BindReasons(IReadOnlyList<string> reasons)
+        {
+            if (reasons == null || reasons.Count == 0)
             {
                 SetText(reasonsField, "추가 판정 사유 없음");
-                SetSectionPreferredHeight(reasonsSection, 78f);
                 return;
             }
 
-            SetText(reasonsField, BuildReasonText(result));
-            SetSectionPreferredHeight(reasonsSection, 72f + result.Reasons.Count * 26f);
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < reasons.Count; i++)
+                builder.AppendLine($"• {reasons[i]}");
+            SetText(reasonsField, builder.ToString());
         }
 
-        private void CreatePreparationEntry(Transform parent, PreparedIngredientState prepared, int index)
+        private DishResult GetCurrentResult()
         {
-            if (preparedIngredientRowPrefab != null)
-            {
-                CookingPreparedIngredientRowView view = Instantiate(preparedIngredientRowPrefab, parent);
-                Sprite icon = prepared != null ? CookingTempVisualUtility.ResolveIngredientIcon(prepared.Ingredient) : null;
-                view.Bind(BuildPreparedIngredientText(prepared, index), icon);
-                return;
-            }
-
-            Debug.LogError("CookingResultView preparedIngredientRowPrefab is missing. Assign a row prefab.", this);
+            return gamePanel != null ? gamePanel.GetCurrentDishResult() : flowRunner?.LastResult;
         }
 
         private void HandToNpc()
         {
-            if (gamePanel != null)
-                Bus<CookingResultAdvanceRequestedEvent>.Raise(new CookingResultAdvanceRequestedEvent(gamePanel));
+            if (_isRevealing || gamePanel == null)
+                return;
+
+            Bus<CookingResultAdvanceRequestedEvent>.Raise(new CookingResultAdvanceRequestedEvent(gamePanel));
         }
 
-        private void BindDishIcon(DishResult result)
+        private void BindButtons()
         {
-            if (dishIconImage == null)
+            if (detailsToggleButton != null)
             {
-                return;
+                detailsToggleButton.onClick.RemoveListener(ToggleDetails);
+                detailsToggleButton.onClick.AddListener(ToggleDetails);
             }
+            if (handToNpcButton != null)
+            {
+                handToNpcButton.onClick.RemoveListener(HandToNpc);
+                handToNpcButton.onClick.AddListener(HandToNpc);
+            }
+        }
 
-            dishIconImage.sprite = CookingTempVisualUtility.ResolveDishIcon(result);
-            dishIconImage.color = Color.white;
+        private void UpdateDetailsButtonLabel()
+        {
+            if (detailsToggleButton == null)
+                return;
+
+            TextMeshProUGUI label = detailsToggleButton.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null)
+                label.text = _detailsOpen ? "상세 접기" : "상세 보기";
         }
 
         private void EnsureReferences()
         {
             if (gamePanel == null)
                 gamePanel = GetComponentInParent<CookingGamePanel>();
-
             if (flowRunner == null)
                 flowRunner = gamePanel != null ? gamePanel.FlowRunner : GetComponentInParent<CookingFlowRunner>();
-        }
-
-        private void EnsureLayout()
-        {
-            if (HasRequiredLayoutReferences() == true)
-            {
-                return;
-            }
-
-            Debug.LogError("CookingResultView is missing inspector layout references or preparedIngredientRowPrefab. Assign references from a prefab/scene object.", this);
-        }
-
-        private bool HasRequiredLayoutReferences()
-        {
-            return dishIconImage != null
-                   && dishNameField != null
-                   && resultSummaryField != null
-                   && npcMatchField != null
-                   && preparationSection != null
-                   && preparationRoot != null
-                   && reasonsSection != null
-                   && reasonsField != null
-                   && handToNpcButton != null
-                   && preparedIngredientRowPrefab != null;
-        }
-
-        private string BuildResultSummaryText(DishResult result)
-        {
-            StringBuilder builder = new StringBuilder();
-            builder.Append($"품질: {BuildQualityText(result.Quality)}");
-            builder.Append($"  |  완성도: {result.QualityScore:+#;-#;0}");
-            builder.Append($"  |  기준: {BuildRecipeText(result)}");
-            builder.Append($"  |  카테고리: {BuildCategoryText(result.Category)}");
-            builder.AppendLine();
-            builder.Append($"태그: {BuildTagText(result.Tags)}");
-
-            if (result.IsDisgusting)
-                builder.Append("  |  혐오 판정");
-
-            return builder.ToString();
-        }
-
-        private string BuildNpcMatchText(DishResult result)
-        {
-            if (result == null)
-                return "요리 결과가 없어 NPC 요청과 비교할 수 없습니다.";
-
-            if (gamePanel != null)
-            {
-                if (gamePanel.TryBuildNpcMatchReport(result, out NpcDishMatchReport panelReport) == false)
-                    return "현재 NPC 주문 정보가 아직 준비되지 않았습니다.\nNPC 대화에서 요리 단계까지 진행한 뒤 다시 확인해 주세요.";
-
-                return BuildNpcMatchReportText(result, panelReport, true);
-            }
-
-            NpcConversationRunner runner = gamePanel != null ? gamePanel.NpcRunner : null;
-            if (runner == null)
-                runner = FindFirstObjectByType<NpcConversationRunner>();
-
-            if (runner == null)
-                return "현재 씬에서 NpcConversationRunner를 찾지 못했습니다.\nNPC 대화 UI와 연결되면 예상 판정이 표시됩니다.";
-
-            if (CookingNpcDishAdapter.TryBuildMatchReport(runner, result, out NpcDishMatchReport report) == false)
-                return "현재 NPC 주문 정보가 아직 준비되지 않았습니다.\nNPC 대화에서 요리 단계까지 진행한 뒤 다시 확인해 주세요.";
-
-            int percent = Mathf.RoundToInt(report.MatchRatio * 100f);
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine($"NPC: {ValueOrNone(report.Order?.NpcId)}  |  예상 반응: {BuildNpcResultText(report.Evaluation?.Result ?? NpcConversationResult.Wrong)}");
-            builder.AppendLine($"요청 일치도: {report.MatchScore}/{report.MaxMatchScore} ({percent}%)");
-            builder.AppendLine($"레시피: {BuildMatchStateText(report.RecipeMatches)}  목표 {ValueOrNone(report.Order?.CorrectRecipeId)} / 제출 {ValueOrNone(report.Dish?.RecipeId)}");
-            builder.AppendLine($"분류: {BuildMatchStateText(report.FoodTypeMatches)}  목표 {BuildStringListText(report.Order?.AllowedFoodTypes)} / 제출 {ValueOrNone(report.Dish?.FoodType)}");
-            builder.AppendLine($"필수 태그: 맞음 {BuildStringListText(report.MatchedRequiredTags)} / 부족 {BuildStringListText(report.MissingRequiredTags)}");
-            builder.AppendLine($"선호 태그: 맞음 {BuildStringListText(report.MatchedPreferredTags)} / 없음 {BuildStringListText(report.MissingPreferredTags)}");
-
-            if (report.MatchedAvoidTags.Count > 0)
-                builder.AppendLine($"회피 태그 감지: {BuildStringListText(report.MatchedAvoidTags)}");
-
-            if (report.Dish != null && (report.Dish.IsDisgusting || report.MatchedDisgustingTags.Count > 0))
-                builder.AppendLine($"실패 위험: {BuildStringListText(report.MatchedDisgustingTags)}");
-
-            if (report.Evaluation != null)
-                builder.AppendLine($"판정 사유: {report.Evaluation.Reason}");
-
-            return builder.ToString();
-        }
-
-        private string BuildNpcMatchReportText(
-            DishResult result,
-            NpcDishMatchReport report,
-            bool includeRewardPreview)
-        {
-            if (report == null)
-                return "현재 NPC 주문 정보가 아직 준비되지 않았습니다.\nNPC 대화에서 요리 단계까지 진행한 뒤 다시 확인해 주세요.";
-
-            int percent = Mathf.RoundToInt(report.MatchRatio * 100f);
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine($"NPC: {ValueOrNone(report.Order?.NpcId)}  |  예상 반응: {BuildNpcResultText(report.Evaluation?.Result ?? NpcConversationResult.Wrong)}");
-            builder.AppendLine($"요청 일치도: {report.MatchScore}/{report.MaxMatchScore} ({percent}%)");
-
-            if (includeRewardPreview && gamePanel != null)
-                builder.AppendLine($"예상 보상: {gamePanel.PreviewRewardAmount(result)}");
-
-            builder.AppendLine($"레시피: {BuildMatchStateText(report.RecipeMatches)}  목표 {ValueOrNone(report.Order?.CorrectRecipeId)} / 제출 {ValueOrNone(report.Dish?.RecipeId)}");
-            builder.AppendLine($"분류: {BuildMatchStateText(report.FoodTypeMatches)}  목표 {BuildStringListText(report.Order?.AllowedFoodTypes)} / 제출 {ValueOrNone(report.Dish?.FoodType)}");
-            builder.AppendLine($"필수 태그: 맞음 {BuildStringListText(report.MatchedRequiredTags)} / 부족 {BuildStringListText(report.MissingRequiredTags)}");
-            builder.AppendLine($"선호 태그: 맞음 {BuildStringListText(report.MatchedPreferredTags)} / 없음 {BuildStringListText(report.MissingPreferredTags)}");
-
-            if (report.MatchedAvoidTags.Count > 0)
-                builder.AppendLine($"회피 태그 감지: {BuildStringListText(report.MatchedAvoidTags)}");
-
-            if (report.Dish != null && (report.Dish.IsDisgusting || report.MatchedDisgustingTags.Count > 0))
-                builder.AppendLine($"실패 위험: {BuildStringListText(report.MatchedDisgustingTags)}");
-
-            if (report.Evaluation != null)
-                builder.AppendLine($"판정 사유: {report.Evaluation.Reason}");
-
-            return builder.ToString();
-        }
-
-        private static string BuildPreparedIngredientText(PreparedIngredientState prepared, int index)
-        {
-            if (prepared == null)
-                return $"{index + 1}. 알 수 없는 재료";
-
-            StringBuilder builder = new StringBuilder();
-            string ingredientName = prepared.Ingredient != null ? prepared.Ingredient.DisplayName : "알 수 없는 재료";
-            string methodName = prepared.Method != null ? prepared.Method.DisplayName : "손질 없음";
-            builder.AppendLine($"{index + 1}. {ingredientName}");
-            builder.AppendLine($"손질: {methodName}");
-            if (prepared.HasMiniGameResult == true)
-            {
-                builder.AppendLine($"미니게임: {BuildMiniGameGradeText(prepared.MiniGameResult.Grade)}");
-                if (string.IsNullOrWhiteSpace(prepared.MiniGameFeedbackText) == false)
-                    builder.AppendLine($"피드백: {prepared.MiniGameFeedbackText}");
-            }
-
-            builder.Append($"효과: {BuildPreparedEffectText(prepared)}");
-            return builder.ToString();
-        }
-
-        private static string BuildPreparedEffectText(PreparedIngredientState prepared)
-        {
-            List<string> parts = new List<string>();
-
-            if (prepared.QualityDelta != 0)
-                parts.Add($"품질 {prepared.QualityDelta:+#;-#;0}");
-
-            AddTagPart(parts, "추가 태그", prepared.AddedTags);
-            AddTagPart(parts, "제거 태그", prepared.RemoveTags);
-
-            if (string.IsNullOrWhiteSpace(prepared.ResultNameModifier) == false)
-                parts.Add($"이름 변화 {prepared.ResultNameModifier}");
-
-            if (prepared.CausesDisgusting)
-                parts.Add("혐오 위험");
-
-            if (prepared.AddsPoison)
-                parts.Add("독성 추가");
-
-            return parts.Count > 0 ? string.Join(" / ", parts) : "변화 없음";
-        }
-
-        private static string BuildMiniGameGradeText(CookingMiniGameGrade grade)
-        {
-            switch (grade)
-            {
-                case CookingMiniGameGrade.Perfect:
-                    return "완벽";
-                case CookingMiniGameGrade.Good:
-                    return "좋음";
-                case CookingMiniGameGrade.Normal:
-                    return "보통";
-                case CookingMiniGameGrade.Bad:
-                default:
-                    return "아쉬움";
-            }
-        }
-
-        private static void AddTagPart(List<string> parts, string title, IReadOnlyList<FoodTagSO> tags)
-        {
-            string tagText = BuildTagText(tags);
-            if (string.IsNullOrWhiteSpace(tagText) == false && tagText != "없음")
-                parts.Add($"{title} {tagText}");
-        }
-
-        private static string BuildReasonText(DishResult result)
-        {
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < result.Reasons.Count; i++)
-                builder.AppendLine($"- {result.Reasons[i]}");
-
-            return builder.ToString();
-        }
-
-        private static string BuildRecipeText(DishResult result)
-        {
-            if (result.BaseRecipe != null)
-                return result.BaseRecipe.DisplayName;
-
-            return result.IsRecipeMatched ? "알 수 없는 레시피" : "직접 조합";
-        }
-
-        private static string BuildCategoryText(FoodCategorySO category)
-        {
-            return category != null ? category.DisplayName : "분류 없음";
-        }
-
-        private static string BuildTagText(IReadOnlyList<FoodTagSO> tags)
-        {
-            if (tags == null || tags.Count == 0)
-                return "없음";
-
-            List<string> names = new List<string>();
-            for (int i = 0; i < tags.Count; i++)
-            {
-                if (tags[i] != null)
-                    names.Add(tags[i].DisplayName);
-            }
-
-            return names.Count > 0 ? string.Join(", ", names) : "없음";
-        }
-
-        private static string BuildStringListText(IReadOnlyList<string> values)
-        {
-            if (values == null || values.Count == 0)
-                return "없음";
-
-            return string.Join(", ", values);
-        }
-
-        private static string BuildQualityText(DishQuality quality)
-        {
-            switch (quality)
-            {
-                case DishQuality.Perfect:
-                    return "완벽";
-                case DishQuality.Altered:
-                    return "변형";
-                case DishQuality.Disgusting:
-                    return "혐오";
-                case DishQuality.Normal:
-                default:
-                    return "보통";
-            }
-        }
-
-        private static string BuildNpcResultText(NpcConversationResult result)
-        {
-            switch (result)
-            {
-                case NpcConversationResult.Perfect:
-                    return "완전 일치";
-                case NpcConversationResult.Correct:
-                    return "요청 충족";
-                case NpcConversationResult.Similar:
-                    return "비슷함";
-                case NpcConversationResult.Disgusting:
-                case NpcConversationResult.Wrong:
-                default:
-                    return "불일치";
-            }
-        }
-
-        private static string BuildMatchStateText(bool matches)
-        {
-            return matches ? "일치" : "불일치";
-        }
-
-        private static string ValueOrNone(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? "없음" : value;
-        }
-
-        private void BindButton()
-        {
-            if (handToNpcButton == null)
-                return;
-
-            handToNpcButton.onClick.RemoveListener(HandToNpc);
-            handToNpcButton.onClick.AddListener(HandToNpc);
-        }
-
-        private void SetHandButtonInteractable(bool interactable)
-        {
-            if (handToNpcButton != null)
-                handToNpcButton.interactable = interactable;
+            if (audioSource == null)
+                audioSource = GetComponent<AudioSource>();
         }
 
         private void SubscribePanelEvents()
@@ -496,12 +495,11 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
 
             UnsubscribePanelEvents();
-
             if (gamePanel == null)
                 return;
 
-            Bus<CookingDishResultReadyEvent>.Events += HandleResultReady;
             Bus<CookingGameSnapshotChangedEvent>.Events += HandleSnapshotChanged;
+            Bus<CookingDishResultReadyEvent>.Events += HandleDishResultReady;
             _subscribedPanel = gamePanel;
         }
 
@@ -510,53 +508,77 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            Bus<CookingDishResultReadyEvent>.Events -= HandleResultReady;
             Bus<CookingGameSnapshotChangedEvent>.Events -= HandleSnapshotChanged;
+            Bus<CookingDishResultReadyEvent>.Events -= HandleDishResultReady;
             _subscribedPanel = null;
-        }
-
-        private void HandleResultReady(CookingDishResultReadyEvent gameEvent)
-        {
-            if (gameEvent.Source != gamePanel)
-                return;
-
-            Refresh();
         }
 
         private void HandleSnapshotChanged(CookingGameSnapshotChangedEvent gameEvent)
         {
-            if (gameEvent.Source != gamePanel)
-                return;
-
-            Refresh();
+            if (gameEvent.Source == gamePanel && isActiveAndEnabled)
+                Refresh();
         }
 
-        private void ApplyFontToExistingTexts()
+        private void HandleDishResultReady(CookingDishResultReadyEvent gameEvent)
         {
-            if (fontAsset == null)
+            if (gameEvent.Source == gamePanel && isActiveAndEnabled)
+                Refresh();
+        }
+
+        private void KillRevealSequence()
+        {
+            if (_revealSequence == null)
                 return;
 
-            TextMeshProUGUI[] labels = GetComponentsInChildren<TextMeshProUGUI>(true);
-            for (int i = 0; i < labels.Length; i++)
+            _revealSequence.Kill(false);
+            _revealSequence = null;
+        }
+
+        private void PlayClip(AudioClip clip)
+        {
+            if (audioSource != null && clip != null)
+                audioSource.PlayOneShot(clip);
+        }
+
+        private void BindDishIcon(DishResult result)
+        {
+            if (dishIconImage == null)
+                return;
+
+            dishIconImage.sprite = CookingTempVisualUtility.ResolveDishIcon(result);
+            dishIconImage.enabled = dishIconImage.sprite != null;
+            dishIconImage.color = Color.white;
+            dishIconImage.preserveAspect = true;
+        }
+
+        private void SetBlocker(bool active)
+        {
+            if (revealInputBlocker != null)
             {
-                if (labels[i] != null)
-                    labels[i].font = fontAsset;
+                revealInputBlocker.raycastTarget = active;
+                revealInputBlocker.gameObject.SetActive(active);
             }
         }
 
-        private static void SetSectionPreferredHeight(RectTransform section, float preferredHeight)
+        private static string BuildRepresentativeTagText(IReadOnlyList<string> tags)
         {
-            if (section == null)
-                return;
+            if (tags == null || tags.Count == 0)
+                return "대표 태그 없음";
 
-            LayoutElement element = section.GetComponent<LayoutElement>();
-            if (element == null)
-                return;
-
-            element.preferredHeight = preferredHeight;
+            return "#" + string.Join("  #", tags);
         }
 
-        private static void ClearChildren(Transform root)
+        private static void BindImage(Image image, Sprite sprite)
+        {
+            if (image == null)
+                return;
+
+            image.sprite = sprite;
+            image.enabled = sprite != null;
+            image.preserveAspect = true;
+        }
+
+        private static void ClearChildren(RectTransform root, Transform preserved)
         {
             if (root == null)
                 return;
@@ -564,6 +586,9 @@ namespace Work.Cook.Code.Runtime.UI
             for (int i = root.childCount - 1; i >= 0; i--)
             {
                 Transform child = root.GetChild(i);
+                if (child == preserved)
+                    continue;
+
                 if (Application.isPlaying)
                     Destroy(child.gameObject);
                 else
@@ -571,11 +596,32 @@ namespace Work.Cook.Code.Runtime.UI
             }
         }
 
+        private static void SetCanvasGroup(CanvasGroup group, float alpha, bool interactive)
+        {
+            if (group == null)
+                return;
+
+            group.alpha = alpha;
+            group.interactable = interactive;
+            group.blocksRaycasts = interactive;
+        }
+
+        private static void SetButtonInteractable(Button button, bool interactable)
+        {
+            if (button != null)
+                button.interactable = interactable;
+        }
+
         private static void SetText(TextMeshProUGUI field, string text)
         {
             if (field != null)
-                field.text = text;
+                field.text = text ?? string.Empty;
         }
 
+        private static void SetActive(GameObject target, bool active)
+        {
+            if (target != null && target.activeSelf != active)
+                target.SetActive(active);
+        }
     }
 }

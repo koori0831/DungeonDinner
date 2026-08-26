@@ -22,6 +22,17 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private Color ingredientCommittedColor = new Color(1f, 0.88f, 0.52f, 1f);
 
         private UnityAction _ingredientAction;
+        private Vector2 _ingredientOriginalSize;
+        private Vector2 _ingredientOriginalPosition;
+        private Color _nameOriginalColor;
+        private Color _instructionOriginalColor;
+        private bool _focusLayoutCached;
+        private bool _miniGameFocused;
+
+        public RectTransform IngredientInteractionRect
+            => ingredientButton != null ? ingredientButton.transform as RectTransform : null;
+        public Image IngredientImage => ingredientImage;
+        public Sprite IngredientSprite => ingredientImage != null ? ingredientImage.sprite : null;
 
         public void SetFontAsset(TMP_FontAsset value)
         {
@@ -37,6 +48,7 @@ namespace Work.Cook.Code.Runtime.UI
         public void BindIngredient(IngredientSO ingredient)
         {
             EnsureReferences();
+            ExitMiniGameFocus();
             SetBoardCommitted(false);
             SetIngredientAction(null);
 
@@ -60,6 +72,7 @@ namespace Work.Cook.Code.Runtime.UI
             UnityAction completed)
         {
             EnsureReferences();
+            ExitMiniGameFocus();
             SetBoardCommitted(true);
             SetIngredientAction(completed);
 
@@ -110,6 +123,118 @@ namespace Work.Cook.Code.Runtime.UI
             SetText(instructionField, $"{ingredientName}에 [{optionName}] 손질을 적용했습니다.");
         }
 
+        public void EnterMiniGameFocus()
+        {
+            EnsureReferences();
+            if (_miniGameFocused == true)
+                return;
+
+            RectTransform ingredientRect = IngredientInteractionRect;
+            if (ingredientRect == null)
+                return;
+
+            if (_focusLayoutCached == false)
+            {
+                _ingredientOriginalSize = ingredientRect.sizeDelta;
+                _ingredientOriginalPosition = ingredientRect.anchoredPosition;
+                _nameOriginalColor = ingredientNameField != null ? ingredientNameField.color : Color.white;
+                _instructionOriginalColor = instructionField != null ? instructionField.color : Color.white;
+                _focusLayoutCached = true;
+            }
+
+            SetIngredientAction(null);
+            ingredientRect.sizeDelta = new Vector2(460f, 280f);
+            SetTextAlpha(ingredientNameField, 0.12f);
+            SetTextAlpha(instructionField, 0.12f);
+            _miniGameFocused = true;
+            Canvas.ForceUpdateCanvases();
+        }
+
+        public void ExitMiniGameFocus()
+        {
+            if (_miniGameFocused == false)
+                return;
+
+            RectTransform ingredientRect = IngredientInteractionRect;
+            if (ingredientRect != null && _focusLayoutCached == true)
+            {
+                ingredientRect.sizeDelta = _ingredientOriginalSize;
+                ingredientRect.anchoredPosition = _ingredientOriginalPosition;
+            }
+            if (ingredientNameField != null)
+                ingredientNameField.color = _nameOriginalColor;
+            if (instructionField != null)
+                instructionField.color = _instructionOriginalColor;
+            _miniGameFocused = false;
+            Canvas.ForceUpdateCanvases();
+        }
+
+        public void SetFocusedIngredientScreenPosition(Vector2 screenPosition, Camera eventCamera)
+        {
+            if (_miniGameFocused == false)
+                return;
+
+            RectTransform ingredientRect = IngredientInteractionRect;
+            RectTransform parentRect = ingredientRect != null ? ingredientRect.parent as RectTransform : null;
+            if (ingredientRect == null || parentRect == null)
+                return;
+
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    parentRect, screenPosition, eventCamera, out Vector2 localPosition))
+            {
+                ingredientRect.anchoredPosition = localPosition;
+            }
+        }
+
+        public void ResetFocusedIngredientPosition()
+        {
+            RectTransform ingredientRect = IngredientInteractionRect;
+            if (_miniGameFocused == true && ingredientRect != null && _focusLayoutCached == true)
+                ingredientRect.anchoredPosition = _ingredientOriginalPosition;
+        }
+
+        public bool GetDisplayedIngredientWorldCorners(Vector3[] worldCorners)
+        {
+            EnsureReferences();
+            if (worldCorners == null || worldCorners.Length < 4 || ingredientImage == null || ingredientImage.enabled == false)
+                return false;
+
+            RectTransform rectTransform = ingredientImage.rectTransform;
+            Rect fittedRect = rectTransform.rect;
+            Sprite sprite = ingredientImage.sprite;
+            if (ingredientImage.preserveAspect == true && sprite != null && sprite.rect.height > 0f)
+                fittedRect = CalculatePreservedAspectRect(fittedRect, sprite.rect.size);
+
+            worldCorners[0] = rectTransform.TransformPoint(new Vector3(fittedRect.xMin, fittedRect.yMin));
+            worldCorners[1] = rectTransform.TransformPoint(new Vector3(fittedRect.xMin, fittedRect.yMax));
+            worldCorners[2] = rectTransform.TransformPoint(new Vector3(fittedRect.xMax, fittedRect.yMax));
+            worldCorners[3] = rectTransform.TransformPoint(new Vector3(fittedRect.xMax, fittedRect.yMin));
+            return true;
+        }
+
+        public static Rect CalculatePreservedAspectRect(Rect container, Vector2 contentSize)
+        {
+            if (container.width <= 0f || container.height <= 0f || contentSize.x <= 0f || contentSize.y <= 0f)
+                return container;
+
+            float contentAspect = contentSize.x / contentSize.y;
+            float containerAspect = container.width / container.height;
+            if (contentAspect > containerAspect)
+            {
+                float height = container.width / contentAspect;
+                container.y += (container.height - height) * 0.5f;
+                container.height = height;
+            }
+            else
+            {
+                float width = container.height * contentAspect;
+                container.x += (container.width - width) * 0.5f;
+                container.width = width;
+            }
+
+            return container;
+        }
+
         private void SetIngredientAction(UnityAction action)
         {
             _ingredientAction = action;
@@ -150,6 +275,16 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (field != null)
                 field.text = text ?? string.Empty;
+        }
+
+        private static void SetTextAlpha(TextMeshProUGUI field, float alpha)
+        {
+            if (field == null)
+                return;
+
+            Color color = field.color;
+            color.a = alpha;
+            field.color = color;
         }
     }
 }

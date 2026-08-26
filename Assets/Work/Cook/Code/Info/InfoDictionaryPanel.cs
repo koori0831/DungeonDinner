@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Work.Cook.Code.Info
 {
@@ -49,6 +50,7 @@ namespace Work.Cook.Code.Info
                 return;
 
             BuildCategories(categories);
+            RefreshBockmarkContentHeight();
             RestoreState(categories, restoreState);
         }
 
@@ -122,6 +124,41 @@ namespace Work.Cook.Code.Info
                 string categoryDisplayName = categoryData.DisplayName;
                 bockmark.InitializeBtn(() => EnableScrollView(view, bockmark, categoryDisplayName), categoryData.DisplayName, categoryData.MarkIcon);
             }
+        }
+
+        private void RefreshBockmarkContentHeight()
+        {
+            RectTransform contentRect = bockmarkParent as RectTransform;
+            if (contentRect == null || _bockmarkList.Count == 0)
+                return;
+
+            float requiredHeight = 0f;
+            for (int i = 0; i < _bockmarkList.Count; i++)
+            {
+                InfoBockmarkBtn bockmark = _bockmarkList[i];
+                RectTransform rect = bockmark != null ? bockmark.Rect : null;
+                if (rect == null)
+                    continue;
+
+                float height = rect.rect.height;
+                if (height <= 0f)
+                    height = Mathf.Abs(rect.sizeDelta.y);
+                if (height <= 0f)
+                    height = 56f;
+
+                requiredHeight = Mathf.Max(requiredHeight, Mathf.Abs(rect.anchoredPosition.y) + height);
+            }
+
+            float padding = Mathf.Max(Mathf.Abs(y_Offset), 12f);
+            contentRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, requiredHeight + padding);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
+
+            ScrollRect scrollRect = contentRect.GetComponentInParent<ScrollRect>();
+            if (scrollRect == null)
+                return;
+
+            scrollRect.StopMovement();
+            scrollRect.verticalNormalizedPosition = 1f;
         }
 
         private void ClearGeneratedViews()

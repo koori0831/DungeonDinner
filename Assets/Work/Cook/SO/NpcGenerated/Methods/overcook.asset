@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
   methodId: overcook
   displayName: "\uD0DC\uC6CC\uBC84\uB9AC\uAE30"
-  iconSprite: {fileID: 0}
+  iconSprite: {fileID: 21300000, guid: 284079a15d221014aa374a9c4b8ebb13, type: 3}
   description: "\uD0C4\uB9DB\uC774 \uAC15\uD574\uC9C0\uACE0 \uAD34\uC2DD \uD310\uC815\uC744
     \uBC1B\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
   miniGameType: 5

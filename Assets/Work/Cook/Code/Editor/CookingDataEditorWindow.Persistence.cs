@@ -86,6 +86,7 @@ namespace Work.Cook.Code.Editor
         {
             SetString(serialized, "recipeId", _recipeDraft.RecipeId);
             SetString(serialized, "displayName", _recipeDraft.DisplayName);
+            SetObject(serialized, "iconSprite", _recipeDraft.IconSprite);
             SetString(serialized, "description", _recipeDraft.Description);
             SetObject(serialized, "category", _recipeDraft.Category);
             SetInt(serialized, "priority", _recipeDraft.Priority);
@@ -129,6 +130,7 @@ namespace Work.Cook.Code.Editor
         {
             SetString(serialized, "ingredientId", _ingredientDraft.IngredientId);
             SetString(serialized, "displayName", _ingredientDraft.DisplayName);
+            SetObject(serialized, "iconSprite", _ingredientDraft.IconSprite);
             SetString(serialized, "description", _ingredientDraft.Description);
             SetObject(serialized, "category", _ingredientDraft.Category);
             SetObject(serialized, "modelPrefab", _ingredientDraft.ModelPrefab);
