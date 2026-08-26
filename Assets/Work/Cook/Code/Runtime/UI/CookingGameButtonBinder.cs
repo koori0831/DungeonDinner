@@ -2,9 +2,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -41,7 +43,7 @@ namespace Work.Cook.Code.Runtime.UI
         {
             EnsureReferences();
 
-            if (bindButtonOnEnable)
+            if (bindButtonOnEnable == true)
                 BindButton();
 
             SubscribePanel();
@@ -61,7 +63,7 @@ namespace Work.Cook.Code.Runtime.UI
             UnsubscribePanel();
             gamePanel = value;
 
-            if (isActiveAndEnabled)
+            if (isActiveAndEnabled == true)
                 SubscribePanel();
 
             RefreshInteractable();
@@ -103,49 +105,49 @@ namespace Work.Cook.Code.Runtime.UI
                 case CookingGameButtonAction.None:
                     break;
                 case CookingGameButtonAction.OpenRecipeSelection:
-                    gamePanel.OpenRecipeSelection();
+                    Bus<CookingRecipeSelectionOpenRequestedEvent>.Raise(new CookingRecipeSelectionOpenRequestedEvent(gamePanel));
                     break;
                 case CookingGameButtonAction.OpenDirectIngredientSelection:
-                    gamePanel.OpenDirectIngredientSelection();
+                    Bus<CookingDirectIngredientSelectionOpenRequestedEvent>.Raise(new CookingDirectIngredientSelectionOpenRequestedEvent(gamePanel));
                     break;
                 case CookingGameButtonAction.ConfirmIngredientSelection:
-                    gamePanel.ConfirmIngredientSelection();
+                    Bus<CookingIngredientSelectionConfirmRequestedEvent>.Raise(new CookingIngredientSelectionConfirmRequestedEvent(gamePanel));
                     break;
                 case CookingGameButtonAction.ClearIngredientSelection:
-                    gamePanel.ClearIngredientSelection();
+                    Bus<CookingIngredientSelectionClearRequestedEvent>.Raise(new CookingIngredientSelectionClearRequestedEvent(gamePanel));
                     break;
                 case CookingGameButtonAction.ConfirmRecipe:
-                    gamePanel.ConfirmRecipe(recipe);
+                    Bus<CookingRecipeConfirmRequestedEvent>.Raise(new CookingRecipeConfirmRequestedEvent(gamePanel, recipe));
                     break;
                 case CookingGameButtonAction.ToggleIngredientSelection:
-                    gamePanel.ToggleIngredientSelection(ingredient);
+                    Bus<CookingIngredientSelectionToggleRequestedEvent>.Raise(new CookingIngredientSelectionToggleRequestedEvent(gamePanel, ingredient));
                     break;
                 case CookingGameButtonAction.RemoveIngredientSelection:
-                    gamePanel.RemoveIngredientSelection(ingredient);
+                    Bus<CookingIngredientSelectionRemoveRequestedEvent>.Raise(new CookingIngredientSelectionRemoveRequestedEvent(gamePanel, ingredient));
                     break;
                 case CookingGameButtonAction.SelectCurrentPreparationByIndex:
-                    gamePanel.SelectCurrentPreparationByIndex(preparationOptionIndex);
+                    Bus<CookingPreparationSelectCurrentByIndexRequestedEvent>.Raise(new CookingPreparationSelectCurrentByIndexRequestedEvent(gamePanel, preparationOptionIndex));
                     break;
                 case CookingGameButtonAction.SelectCurrentPreparation:
-                    gamePanel.SelectCurrentPreparation(preparationOption);
+                    Bus<CookingPreparationSelectCurrentRequestedEvent>.Raise(new CookingPreparationSelectCurrentRequestedEvent(gamePanel, preparationOption));
                     break;
                 case CookingGameButtonAction.SelectPreparation:
-                    gamePanel.SelectPreparation(ingredient, preparationOption);
+                    Bus<CookingPreparationSelectRequestedEvent>.Raise(new CookingPreparationSelectRequestedEvent(gamePanel, ingredient, preparationOption));
                     break;
                 case CookingGameButtonAction.CompleteCooking:
-                    gamePanel.CompleteCooking();
+                    Bus<CookingCompleteRequestedEvent>.Raise(new CookingCompleteRequestedEvent(gamePanel));
                     break;
                 case CookingGameButtonAction.HandResultToNpc:
-                    gamePanel.HandResultToNpc();
+                    Bus<CookingDishHandToNpcRequestedEvent>.Raise(new CookingDishHandToNpcRequestedEvent(gamePanel));
                     break;
                 case CookingGameButtonAction.ReturnToNpcConversation:
-                    gamePanel.ReturnToNpcConversation();
+                    Bus<CookingNpcConversationReturnRequestedEvent>.Raise(new CookingNpcConversationReturnRequestedEvent(gamePanel));
                     break;
                 case CookingGameButtonAction.CloseCookingViews:
-                    gamePanel.CloseCookingViews();
+                    Bus<CookingViewsCloseRequestedEvent>.Raise(new CookingViewsCloseRequestedEvent(gamePanel));
                     break;
                 case CookingGameButtonAction.RefreshCookingViews:
-                    gamePanel.RefreshCookingViews();
+                    Bus<CookingViewsRefreshRequestedEvent>.Raise(new CookingViewsRefreshRequestedEvent(gamePanel));
                     break;
             }
         }
@@ -221,7 +223,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (gamePanel == null)
                 return;
 
-            gamePanel.SnapshotChanged += HandleSnapshotChanged;
+            Bus<CookingGameSnapshotChangedEvent>.Events += HandleSnapshotChanged;
             _subscribedPanel = gamePanel;
         }
 
@@ -230,12 +232,15 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
+            Bus<CookingGameSnapshotChangedEvent>.Events -= HandleSnapshotChanged;
             _subscribedPanel = null;
         }
 
-        private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
+        private void HandleSnapshotChanged(CookingGameSnapshotChangedEvent gameEvent)
         {
+            if (gameEvent.Source != gamePanel)
+                return;
+
             RefreshInteractable();
         }
     }

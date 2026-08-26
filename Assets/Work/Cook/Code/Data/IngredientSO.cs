@@ -8,6 +8,7 @@ namespace Work.Cook.Code.Data
     {
         [SerializeField] private string ingredientId;
         [SerializeField] private string displayName;
+        [SerializeField] private Sprite iconSprite;
         [SerializeField, TextArea] private string description;
         [SerializeField] private IngredientCategorySO category;
         [SerializeField] private GameObject modelPrefab;
@@ -16,6 +17,7 @@ namespace Work.Cook.Code.Data
 
         public string IngredientId => ingredientId;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? ingredientId : displayName;
+        public Sprite IconSprite => iconSprite;
         public string Description => description;
         public IngredientCategorySO Category => category;
         public GameObject ModelPrefab => modelPrefab;

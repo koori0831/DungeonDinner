@@ -5,6 +5,13 @@ namespace Work.Cook.Code.Data
         None,
         Slicing,
         Roasting,
-        Cleansing
+        Cleansing,
+        Chopping,
+        Burning,
+        Boiling,
+        Stewing,
+        Freezing,
+        Grinding,
+        Diluting
     }
 }

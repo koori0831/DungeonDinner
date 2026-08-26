@@ -134,8 +134,9 @@ namespace Work.NPC.Code.Runtime
 
         private void ShowVisible()
         {
-            canvasGroup.interactable = true;
-            canvasGroup.blocksRaycasts = true;
+            // 조리 중에도 떠 있는 읽기 전용 HUD이므로 미니게임 입력을 가로채지 않는다.
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
 
             if (_isVisible == true)
             {

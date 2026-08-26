@@ -4,9 +4,11 @@ using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Info;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -53,7 +55,7 @@ namespace Work.Cook.Code.Runtime.UI
             EnsureReferences();
             SubscribeKnowledgeStore();
 
-            if (refreshOnEnable)
+            if (refreshOnEnable == true)
                 Refresh();
         }
 
@@ -86,7 +88,7 @@ namespace Work.Cook.Code.Runtime.UI
             EnsureReferences();
             SubscribeKnowledgeStore();
 
-            if (isActiveAndEnabled)
+            if (isActiveAndEnabled == true)
                 Refresh();
         }
 
@@ -280,7 +282,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (recipe == null)
                 return false;
 
-            if (showAllRecipeNamesInEncyclopedia)
+            if (showAllRecipeNamesInEncyclopedia == true)
                 return true;
 
             if (knowledgeStore != null)
@@ -316,7 +318,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (knowledgeStore != null)
                 return knowledgeStore.GetKnownEffectiveTags(recipe);
 
-            if (showBaseTagsAsKnownForTesting)
+            if (showBaseTagsAsKnownForTesting == true)
                 return recipe.BaseTags;
 
             for (int i = 0; i < knownRecipeTags.Count; i++)
@@ -362,7 +364,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (knowledgeStore == null)
                 return;
 
-            knowledgeStore.KnowledgeChanged += HandleKnowledgeChanged;
+            Bus<CookingKnowledgeChangedEvent>.Events += HandleKnowledgeChanged;
             _subscribedKnowledgeStore = knowledgeStore;
         }
 
@@ -371,13 +373,16 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedKnowledgeStore == null)
                 return;
 
-            _subscribedKnowledgeStore.KnowledgeChanged -= HandleKnowledgeChanged;
+            Bus<CookingKnowledgeChangedEvent>.Events -= HandleKnowledgeChanged;
             _subscribedKnowledgeStore = null;
         }
 
-        private void HandleKnowledgeChanged()
+        private void HandleKnowledgeChanged(CookingKnowledgeChangedEvent gameEvent)
         {
-            if (isActiveAndEnabled)
+            if (gameEvent.Source != knowledgeStore)
+                return;
+
+            if (isActiveAndEnabled == true)
                 Refresh();
         }
 

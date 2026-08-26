@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
   ingredientId: flat_mushroom
   displayName: "\uB0A9\uC791\uBC84\uC12F"
+  iconSprite: {fileID: 21300000, guid: ac055dd5fa876c745becdbbb09028c0a, type: 3}
   description: "\uB0A9\uC791\uD558\uAC8C \uC0DD\uAE34 \uBC84\uC12F\uC785\uB2C8\uB2E4."
   category: {fileID: 11400000, guid: c09afd2ec0fc6144db663cb0e38a7b70, type: 2}
   modelPrefab: {fileID: 6455492533640896604, guid: f615f31b098d23848a2eb1deb5cbb1f2, type: 3}
@@ -41,7 +42,7 @@ MonoBehaviour:
       qualityDelta: 0
       addTags: []
       removeTags: []
-      resultNameModifier:
+      resultNameModifier: 
       feedbackText: "\uBB34\uB09C\uD558\uAC8C \uC190\uC9C8\uD588\uC2B5\uB2C8\uB2E4."
     - grade: 2
       qualityDelta: 1
@@ -90,7 +91,7 @@ MonoBehaviour:
       qualityDelta: 0
       addTags: []
       removeTags: []
-      resultNameModifier:
+      resultNameModifier: 
       feedbackText: "\uBB34\uB09C\uD558\uAC8C \uC190\uC9C8\uD588\uC2B5\uB2C8\uB2E4."
     - grade: 2
       qualityDelta: 1

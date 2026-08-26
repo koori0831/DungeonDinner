@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: Cooking_mushroom_cap
   displayName: "\uBC84\uC12F \uAC13"
-  description: Temp cooking test item mapped to mushroom_cap.
+  description: "커다란 버섯에서 잘라낸 향긋하고 부드러운 갓입니다."
   icon: {fileID: 21300000, guid: eaf24aeb6f1447b42a0b8669f822fd9b, type: 3}
   category: {fileID: 11400000, guid: f2b58d9e3f104c6ba7d8e90123f45a6b, type: 2}
   worldLootPoolItem: {fileID: 0}

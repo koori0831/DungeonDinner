@@ -2,42 +2,21 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Info;
 using Work.NPC.Code.Runtime;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
-    [Serializable]
-    public sealed class CookingGameScreenChangedEvent : UnityEvent<CookingGameScreenState>
-    {
-    }
-
-    [Serializable]
-    public sealed class CookingGameDishResultEvent : UnityEvent<DishResult>
-    {
-    }
-
-    [Serializable]
-    public sealed class CookingGameRewardAmountEvent : UnityEvent<int>
-    {
-    }
-
-    [Serializable]
-    public sealed class CookingGameSnapshotEvent : UnityEvent<CookingGameSnapshot>
-    {
-    }
-
     public sealed class CookingGamePanel : MonoBehaviour
     {
-        private const string DEFAULT_MINI_GAME_VIEW_NAME = "CookingTimingMiniGameView";
-
         [Header("Flow")]
         [SerializeField] private CookingFlowRunner flowRunner;
         [SerializeField] private NpcConversationRunner npcRunner;
@@ -52,6 +31,8 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private bool keepNpcConversationVisibleDuringCooking = true;
         [SerializeField] private bool keepRecipeSelectionVisibleBeforePreparation = true;
         [SerializeField] private bool keepRecipeSelectionVisibleDuringInventory = true;
+        [Tooltip("Enable only for legacy layouts that intentionally stack the conversation, recipe, and inventory views.")]
+        [SerializeField] private bool allowLayeredPrimaryViews;
         [SerializeField] private bool allowRecipeConfirmation;
         [SerializeField] private TMP_FontAsset temporaryUiFontAsset;
 
@@ -68,8 +49,6 @@ namespace Work.Cook.Code.Runtime.UI
 
         [Header("Mini Game")]
         [SerializeField] private GameObject miniGameView;
-        [SerializeField] private bool useMiniGames = true;
-        [SerializeField] private bool continueWithoutMiniGameView = true;
 
         [Header("Views")]
         [SerializeField] private GameObject npcConversationView;
@@ -80,16 +59,8 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private GameObject knowledgeUpdateView;
         [SerializeField] private GameObject rewardView;
 
-        [Header("Events")]
-        [SerializeField] private CookingGameScreenChangedEvent screenChanged = new CookingGameScreenChangedEvent();
-        [SerializeField] private CookingGameDishResultEvent resultReady = new CookingGameDishResultEvent();
-        [SerializeField] private CookingGameDishResultEvent dishHandedToNpc = new CookingGameDishResultEvent();
-        [SerializeField] private CookingGameRewardAmountEvent rewardGranted = new CookingGameRewardAmountEvent();
-        [SerializeField] private CookingGameSnapshotEvent snapshotChanged = new CookingGameSnapshotEvent();
-
         private DishResult _currentResult;
         private CookingSession _consumedIngredientSession;
-        private CookingFlowRunner _subscribedFlowRunner;
         private NpcConversationRunner _subscribedNpcRunner;
         private CookingKnowledgeStore _subscribedKnowledgeStore;
         private CookingRewardWallet _subscribedRewardWallet;
@@ -100,12 +71,17 @@ namespace Work.Cook.Code.Runtime.UI
         private bool _isMiniGameActive;
         private IngredientSO _pendingMiniGameIngredient;
         private IngredientPreparationOption _pendingMiniGameOption;
+        private DishResult _pendingRewardResult;
+        private NpcDishMatchReport _pendingRewardMatchReport;
+        private bool _isSubmittingPendingReward;
+        private bool _pendingRewardConversationCompleted;
 
-        public event Action<CookingGameScreenState> ScreenChanged;
-        public event Action<DishResult> ResultReady;
-        public event Action<DishResult> DishHandedToNpc;
-        public event Action<CookingRewardGrant> RewardGranted;
-        public event Action<CookingGameSnapshot> SnapshotChanged;
+        private enum MiniGameStartStatus
+        {
+            NotRequired,
+            Started,
+            Unavailable
+        }
 
         public CookingFlowRunner FlowRunner => flowRunner;
         public NpcConversationRunner NpcRunner => npcRunner;
@@ -138,6 +114,7 @@ namespace Work.Cook.Code.Runtime.UI
         public DishResult CurrentResult => _currentResult;
         public CookingGameSnapshot CurrentSnapshot => BuildSnapshot();
         public bool AllowRecipeConfirmation => allowRecipeConfirmation;
+        public bool HasPendingRewardSettlement => _pendingRewardResult != null && _pendingRewardMatchReport != null;
 
         private void Awake()
         {
@@ -150,6 +127,16 @@ namespace Work.Cook.Code.Runtime.UI
                 ApplyViewActiveStates();
                 PublishSnapshotChanged();
             }
+        }
+
+        private void OnEnable()
+        {
+            SubscribeBusRequests();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeBusRequests();
         }
 
         private void OnDestroy()
@@ -168,6 +155,7 @@ namespace Work.Cook.Code.Runtime.UI
         public void SetNpcRunner(NpcConversationRunner value)
         {
             npcRunner = value;
+            SubscribeStateSources();
             PublishSnapshotChanged();
         }
 
@@ -294,16 +282,9 @@ namespace Work.Cook.Code.Runtime.UI
             int knownPreparationEffectCount = knowledgeStore != null ? knowledgeStore.KnownPreparationEffectCount : 0;
             int rewardBalance = rewardWallet != null ? rewardWallet.Balance : 0;
             DishResult currentResult = _currentResult ?? flowRunner?.LastResult;
-            NpcDishMatchReport matchReport = null;
-            int previewRewardAmount = 0;
-
-            if (currentResult != null
-                && npcRunner != null
-                && CookingNpcDishAdapter.TryBuildMatchReport(npcRunner, currentResult, out matchReport)
-                && rewardCalculator != null)
-            {
-                previewRewardAmount = rewardCalculator.CalculateAmount(matchReport, currentResult);
-            }
+            bool canHandToNpc = _isResultHandBlockedByPreparationVisual == false
+                                && HasPendingRewardSettlement == false
+                                && CookingNpcDishAdapter.CanSubmitToNpc(npcRunner, currentResult, out _);
 
             return new CookingGameSnapshot(
                 CurrentScreen,
@@ -317,19 +298,58 @@ namespace Work.Cook.Code.Runtime.UI
                 knownRecipeCount,
                 knownPreparationEffectCount,
                 rewardBalance,
-                previewRewardAmount,
-                matchReport,
-                currentResult != null && npcRunner != null);
+                0,
+                null,
+                canHandToNpc);
+        }
+
+        public void ClearStoredInfoForDebug()
+        {
+            if (flowRunner == null)
+                flowRunner = GetComponentInChildren<CookingFlowRunner>(true);
+
+            if (knowledgeStore == null)
+                knowledgeStore = GetComponentInChildren<CookingKnowledgeStore>(true);
+
+            if (rewardWallet == null)
+                rewardWallet = GetComponentInChildren<CookingRewardWallet>(true);
+
+            if (recipeIngredientChoiceSource == null)
+                recipeIngredientChoiceSource = GetComponentInChildren<CookingRecipeIngredientChoiceSource>(true);
+
+            if (npcRunner == null)
+                npcRunner = FindFirstObjectByType<NpcConversationRunner>();
+
+            NpcEncounterDirector encounterDirector = GetComponentInChildren<NpcEncounterDirector>(true);
+            if (encounterDirector == null)
+                encounterDirector = FindFirstObjectByType<NpcEncounterDirector>();
+
+            flowRunner?.ResetFlow();
+            recipeIngredientChoiceSource?.Clear();
+            knowledgeStore?.ClearKnowledgeForDebug();
+            rewardWallet?.ClearForDebug();
+            encounterDirector?.ClearEncounterHistory();
+            _currentResult = null;
+            ClearPendingRewardSettlement();
+            ResetConsumedIngredientSession();
+
+            CookingGameScreenState resetScreen = applyInitialScreenOnAwake == true
+                ? initialScreen
+                : CookingGameScreenState.None;
+            SetScreen(resetScreen);
+            RefreshCookingViews();
+            PublishSnapshotChanged();
         }
 
         public void OpenRecipeSelection()
         {
             EnsureReferences();
 
-            if (resetFlowWhenOpeningRecipeSelection && flowRunner != null)
+            if (resetFlowWhenOpeningRecipeSelection == true && flowRunner != null)
                 flowRunner.ResetFlow();
 
             _currentResult = null;
+            ClearPendingRewardSettlement();
             ResetConsumedIngredientSession();
             SetScreen(CookingGameScreenState.RecipeSelection);
         }
@@ -352,7 +372,7 @@ namespace Work.Cook.Code.Runtime.UI
 
             ResetConsumedIngredientSession();
 
-            if (TryBeginRecipeWithIngredientChoices(recipe))
+            if (TryBeginRecipeWithIngredientChoices(recipe) == true)
                 return true;
 
             if (flowRunner.BeginRecipeCooking(recipe) == false)
@@ -364,121 +384,6 @@ namespace Work.Cook.Code.Runtime.UI
             _currentResult = null;
             SetScreen(CookingGameScreenState.Preparation);
             return true;
-        }
-
-        private bool TryBeginRecipeWithIngredientChoices(RecipeSO recipe)
-        {
-            if (recipe == null || flowRunner == null)
-                return false;
-
-            List<IngredientSO> fixedIngredients = new List<IngredientSO>();
-            List<IngredientSO> choiceCandidates = new List<IngredientSO>();
-            int minChoiceCount = 0;
-            int maxChoiceCount = 0;
-
-            IReadOnlyList<IngredientSO> availableIngredients = flowRunner.Ingredients;
-            for (int i = 0; i < recipe.RequiredIngredients.Count; i++)
-            {
-                RecipeIngredientRequirement requirement = recipe.RequiredIngredients[i];
-                if (requirement == null)
-                    continue;
-
-                List<IngredientSO> candidates = BuildRecipeRequirementCandidates(requirement, availableIngredients);
-                if (RequiresPlayerChoice(requirement, candidates))
-                {
-                    AddUnique(choiceCandidates, candidates);
-                    minChoiceCount += requirement.MinCount;
-                    if (requirement.HasMaxCount)
-                        maxChoiceCount += requirement.MaxCount;
-                    else
-                        maxChoiceCount = 0;
-                    continue;
-                }
-
-                int autoCount = Mathf.Max(1, requirement.MinCount);
-                for (int candidateIndex = 0; candidateIndex < candidates.Count && candidateIndex < autoCount; candidateIndex++)
-                    AddUnique(fixedIngredients, candidates[candidateIndex]);
-            }
-
-            if (choiceCandidates.Count == 0)
-                return false;
-
-            if (flowRunner.BeginRecipeIngredientSelection(recipe) == false)
-                return false;
-
-            for (int i = 0; i < fixedIngredients.Count; i++)
-                flowRunner.AddRecipeIngredient(fixedIngredients[i]);
-
-            EnsureRecipeIngredientChoiceSource();
-            recipeIngredientChoiceSource.SetCandidates(choiceCandidates);
-            SetIngredientSelectionSource(recipeIngredientChoiceSource);
-            SetIngredientSelectionLimits(
-                fixedIngredients.Count + minChoiceCount,
-                maxChoiceCount > 0 ? fixedIngredients.Count + maxChoiceCount : 0);
-
-            _currentResult = null;
-            SetScreen(CookingGameScreenState.Inventory);
-            return true;
-        }
-
-        private static List<IngredientSO> BuildRecipeRequirementCandidates(
-            RecipeIngredientRequirement requirement,
-            IReadOnlyList<IngredientSO> availableIngredients)
-        {
-            List<IngredientSO> candidates = new List<IngredientSO>();
-            if (requirement == null)
-                return candidates;
-
-            if (availableIngredients != null)
-            {
-                for (int i = 0; i < availableIngredients.Count; i++)
-                {
-                    IngredientSO ingredient = availableIngredients[i];
-                    if (ingredient != null && requirement.IsMatchedBy(ingredient))
-                        AddUnique(candidates, ingredient);
-                }
-            }
-
-            if (candidates.Count == 0 && requirement.Ingredient != null)
-                candidates.Add(requirement.Ingredient);
-
-            return candidates;
-        }
-
-        private static bool RequiresPlayerChoice(
-            RecipeIngredientRequirement requirement,
-            IReadOnlyList<IngredientSO> candidates)
-        {
-            if (requirement == null || candidates == null)
-                return false;
-
-            if (requirement.RequiresChoice == false)
-                return false;
-
-            if (candidates.Count <= 1)
-                return false;
-
-            if (requirement.HasMaxCount && requirement.MinCount == requirement.MaxCount && candidates.Count <= requirement.MinCount)
-                return false;
-
-            return true;
-        }
-
-        private static void AddUnique(ICollection<IngredientSO> target, IngredientSO ingredient)
-        {
-            if (target == null || ingredient == null || target.Contains(ingredient))
-                return;
-
-            target.Add(ingredient);
-        }
-
-        private static void AddUnique(ICollection<IngredientSO> target, IReadOnlyList<IngredientSO> ingredients)
-        {
-            if (target == null || ingredients == null)
-                return;
-
-            for (int i = 0; i < ingredients.Count; i++)
-                AddUnique(target, ingredients[i]);
         }
 
         public bool OpenDirectIngredientSelection()
@@ -498,16 +403,12 @@ namespace Work.Cook.Code.Runtime.UI
             SetIngredientSelectionSource(null);
             SetIngredientSelectionLimits(1, 0);
             _currentResult = null;
+            ClearPendingRewardSettlement();
             SetScreen(CookingGameScreenState.Inventory);
             return true;
         }
 
         public bool BeginCookingAfterConversation()
-        {
-            return OpenDirectIngredientSelection();
-        }
-
-        public bool OpenInventory()
         {
             return OpenDirectIngredientSelection();
         }
@@ -654,40 +555,277 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
             }
 
-            if (TryStartMiniGame(ingredient, option) == true)
+            MiniGameStartStatus miniGameStatus = TryStartMiniGame(ingredient, option);
+            if (miniGameStatus == MiniGameStartStatus.Started)
                 return true;
+            if (miniGameStatus == MiniGameStartStatus.Unavailable)
+            {
+                RecoverFromUnavailableMiniGame();
+                return false;
+            }
 
             return ApplyPreparationResult(ingredient, option, null);
         }
 
-        private bool TryStartMiniGame(IngredientSO ingredient, IngredientPreparationOption option)
+        /// <summary>
+        /// 조리 뷰의 직접 상호작용 완료 후 미니게임 또는 손질 결과 반영 진행
+        /// </summary>
+        /// <param name="ingredient">손질 대상 재료</param>
+        /// <param name="option">적용할 손질 옵션</param>
+        /// <param name="miniGameResult">선택적으로 함께 저장할 미니게임 결과</param>
+        /// <returns>손질 결과 반영 성공 여부</returns>
+        public bool CompletePreparationInteraction(
+            IngredientSO ingredient,
+            IngredientPreparationOption option,
+            CookingMiniGameResult miniGameResult)
         {
-            if (useMiniGames == false || option == null || option.MiniGameType == CookingMiniGameType.None)
+            EnsureReferences();
+
+            if (_isCompletingPreparationVisualSequence == true)
+            {
                 return false;
+            }
+
+            if (flowRunner == null)
+            {
+                Debug.LogWarning("CookingGamePanel needs a CookingFlowRunner before it can complete a preparation interaction.", this);
+                return false;
+            }
+
+            if (ingredient == null)
+            {
+                Debug.LogWarning("CookingGamePanel could not complete a preparation interaction because the ingredient is missing.", this);
+                return false;
+            }
+
+            if (miniGameResult == null)
+            {
+                MiniGameStartStatus miniGameStatus = TryStartMiniGame(ingredient, option);
+                if (miniGameStatus == MiniGameStartStatus.Started)
+                    return true;
+                if (miniGameStatus == MiniGameStartStatus.Unavailable)
+                {
+                    RecoverFromUnavailableMiniGame();
+                    return false;
+                }
+            }
+
+            return ApplyPreparationResult(ingredient, option, miniGameResult);
+        }
+
+        public bool CompleteCooking()
+        {
+            EnsureReferences();
+
+            if (flowRunner == null)
+            {
+                Debug.LogWarning("CookingGamePanel needs a CookingFlowRunner before it can complete cooking.", this);
+                return false;
+            }
+
+            if (flowRunner.Controller.CanCompleteCooking() == false)
+            {
+                Debug.LogWarning("CookingGamePanel could not complete cooking. Make sure every selected ingredient is prepared.", this);
+                return false;
+            }
+
+            if (TryConsumeSelectedIngredientsForCompletion(flowRunner.Controller.CurrentSession) == false)
+                return false;
+
+            if (flowRunner.TryCompleteCooking(out DishResult result) == false)
+            {
+                Debug.LogWarning("CookingGamePanel could not complete cooking after ingredients were consumed.", this);
+                return false;
+            }
+
+            return OpenResult(result);
+        }
+
+        public bool OpenResult(DishResult result)
+        {
+            if (result == null)
+            {
+                Debug.LogWarning("CookingGamePanel cannot open the result screen without a dish result.", this);
+                return false;
+            }
+
+            _currentResult = result;
+            knowledgeStore?.LearnFromResult(result);
+            SetScreen(CookingGameScreenState.Result);
+            Bus<CookingDishResultReadyEvent>.Raise(new CookingDishResultReadyEvent(this, result));
+            return true;
+        }
+
+        public DishResult GetCurrentDishResult()
+        {
+            EnsureCoreReferences();
+            return _currentResult ?? flowRunner?.LastResult;
+        }
+
+        public bool CanHandCurrentResultToNpc()
+        {
+            DishResult result = GetCurrentDishResult();
+            return _isResultHandBlockedByPreparationVisual == false
+                   && HasPendingRewardSettlement == false
+                   && CookingNpcDishAdapter.CanSubmitToNpc(NpcRunner, result, out _);
+        }
+
+        public bool TryBuildNpcMatchReport(DishResult result, out NpcDishMatchReport matchReport)
+        {
+            EnsureCoreReferences();
+            return CookingNpcDishAdapter.TryBuildMatchReport(npcRunner, result, out matchReport);
+        }
+
+        public int PreviewRewardAmount(DishResult result)
+        {
+            EnsureCoreReferences();
+
+            if (rewardCalculator == null
+                || TryBuildNpcMatchReport(result, out NpcDishMatchReport matchReport) == false)
+            {
+                return 0;
+            }
+
+            return rewardCalculator.CalculateAmount(matchReport, result);
+        }
+
+        public bool HandResultToNpc()
+        {
+            EnsureCoreReferences();
+
+            DishResult result = GetCurrentDishResult();
+            if (result == null)
+            {
+                Debug.LogWarning("CookingGamePanel cannot hand a dish to the NPC because no result is ready.", this);
+                return false;
+            }
+
+            if (CanHandCurrentResultToNpc() == false)
+            {
+                return false;
+            }
+
+            if (TryBuildNpcMatchReport(result, out NpcDishMatchReport matchReport) == false)
+            {
+                Debug.LogWarning("CookingGamePanel could not evaluate the dish before submission.", this);
+                return false;
+            }
+
+            QueuePendingRewardSettlement(result, matchReport);
+
+            ReturnToNpcConversation();
+            Canvas.ForceUpdateCanvases();
+
+            _isSubmittingPendingReward = true;
+            bool submitted = CookingNpcDishAdapter.SubmitToNpc(npcRunner, result, out string submitBlockReason);
+            _isSubmittingPendingReward = false;
+
+            if (submitted == false)
+            {
+                ClearPendingRewardSettlement();
+                Debug.LogWarning(
+                    $"CookingGamePanel could not submit the dish. reason={submitBlockReason}",
+                    this);
+                SetScreen(CookingGameScreenState.Result);
+                return false;
+            }
+
+            Bus<CookingDishHandedToNpcEvent>.Raise(new CookingDishHandedToNpcEvent(this, result));
+            preparationVisualDirector?.PlayDishDismissSequence();
+
+            if (resetFlowAfterHandingDish == true && flowRunner != null)
+                flowRunner.ResetFlow();
+
+            if (_pendingRewardConversationCompleted == true)
+                SettlePendingReward();
+
+            return true;
+        }
+
+        public bool AdvanceFromResult()
+        {
+            EnsureReferences();
+
+            ICookingKnowledgeUpdateView updateView = GetViewContract<ICookingKnowledgeUpdateView>(knowledgeUpdateView);
+            if (updateView != null && knowledgeStore != null && knowledgeStore.PendingKnowledgeUpdateCount > 0)
+            {
+                if (updateView.ShowPendingUpdates(() => HandResultToNpc()) == true)
+                    return true;
+            }
+
+            return HandResultToNpc();
+        }
+
+        public void ReturnToNpcConversation()
+        {
+            SetScreen(CookingGameScreenState.NpcConversation);
+        }
+
+        public void CloseCookingViews()
+        {
+            SetScreen(CookingGameScreenState.None);
+        }
+
+        private bool TryBeginRecipeWithIngredientChoices(RecipeSO recipe)
+        {
+            if (recipe == null || flowRunner == null)
+                return false;
+
+            if (CookingRecipeIngredientChoicePlanner.TryBuild(
+                    recipe,
+                    flowRunner.Ingredients,
+                    out CookingRecipeIngredientChoicePlan plan) == false)
+            {
+                return false;
+            }
+
+            if (flowRunner.BeginRecipeIngredientSelection(recipe) == false)
+                return false;
+
+            for (int i = 0; i < plan.FixedIngredients.Count; i++)
+                flowRunner.AddRecipeIngredient(plan.FixedIngredients[i]);
+
+            EnsureRecipeIngredientChoiceSource();
+            if (recipeIngredientChoiceSource == null)
+                return false;
+
+            recipeIngredientChoiceSource.SetCandidates(plan.ChoiceCandidates);
+            SetIngredientSelectionSource(recipeIngredientChoiceSource);
+            SetIngredientSelectionLimits(
+                plan.FixedIngredients.Count + plan.MinChoiceCount,
+                plan.MaxChoiceCount > 0 ? plan.FixedIngredients.Count + plan.MaxChoiceCount : 0);
+
+            _currentResult = null;
+            SetScreen(CookingGameScreenState.Inventory);
+            return true;
+        }
+
+        private MiniGameStartStatus TryStartMiniGame(IngredientSO ingredient, IngredientPreparationOption option)
+        {
+            if (option == null || option.MiniGameType == CookingMiniGameType.None)
+                return MiniGameStartStatus.NotRequired;
 
             ICookingMiniGameView miniGame = GetMiniGameView();
             if (miniGame == null || miniGame.CanPlay(option.MiniGameType) == false)
             {
-                if (continueWithoutMiniGameView == false)
-                {
-                    Debug.LogWarning(
-                        $"CookingGamePanel could not start mini game, so it will continue with normal preparation. type={option.MiniGameType}, viewMissing={miniGame == null}",
-                        this);
-                    return false;
-                }
-
-                Debug.LogWarning(
-                    $"CookingGamePanel skipped mini game because no compatible mini game view was found. type={option.MiniGameType}",
+                Debug.LogError(
+                    $"CookingGamePanel requires a compatible mini game view. type={option.MiniGameType}, viewMissing={miniGame == null}",
                     this);
-                return false;
+                return MiniGameStartStatus.Unavailable;
             }
 
             _pendingMiniGameIngredient = ingredient;
             _pendingMiniGameOption = option;
             _isMiniGameActive = true;
+            if (miniGame.StartMiniGame(ingredient, option, HandleMiniGameCompleted) == false)
+            {
+                ClearPendingMiniGame();
+                Debug.LogError($"CookingGamePanel failed to start mini game. type={option.MiniGameType}", this);
+                return MiniGameStartStatus.Unavailable;
+            }
+
             SetScreen(CookingGameScreenState.MiniGame);
-            miniGame.StartMiniGame(ingredient, option, HandleMiniGameCompleted);
-            return true;
+            return MiniGameStartStatus.Started;
         }
 
         private void HandleMiniGameCompleted(CookingMiniGameResult result)
@@ -698,11 +836,47 @@ namespace Work.Cook.Code.Runtime.UI
             IngredientSO ingredient = _pendingMiniGameIngredient;
             IngredientPreparationOption option = _pendingMiniGameOption;
 
+            ClearPendingMiniGame();
+
+            if (result == null || option == null || result.MiniGameType != option.MiniGameType)
+            {
+                Debug.LogError("CookingGamePanel rejected an invalid mini game result.", this);
+                SetScreen(CookingGameScreenState.Preparation);
+                RefreshPreparationView(preparationView);
+                return;
+            }
+
+            ApplyPreparationResult(ingredient, option, result);
+        }
+
+        /// <summary>
+        /// 진행 중인 미니게임을 취소하고 현재 재료 손질 선택으로 복귀
+        /// </summary>
+        public void CancelActiveMiniGame()
+        {
+            if (_isMiniGameActive == false)
+                return;
+
+            GetMiniGameView()?.CancelMiniGame();
+            ClearPendingMiniGame();
+            SetScreen(CookingGameScreenState.Preparation);
+            RefreshPreparationView(preparationView);
+        }
+
+        private void ClearPendingMiniGame()
+        {
             _pendingMiniGameIngredient = null;
             _pendingMiniGameOption = null;
             _isMiniGameActive = false;
+        }
 
-            ApplyPreparationResult(ingredient, option, result);
+        private void RecoverFromUnavailableMiniGame()
+        {
+            if (CurrentScreen != CookingGameScreenState.Preparation)
+                SetScreen(CookingGameScreenState.Preparation);
+
+            RefreshPreparationView(preparationView);
+            PublishSnapshotChanged();
         }
 
         private bool ApplyPreparationResult(
@@ -718,6 +892,9 @@ namespace Work.Cook.Code.Runtime.UI
                 Debug.LogWarning("CookingGamePanel could not apply the selected preparation.", this);
                 return false;
             }
+
+            if (CurrentScreen == CookingGameScreenState.MiniGame)
+                SetScreen(CookingGameScreenState.Preparation);
 
             if (flowRunner.GetNextUnpreparedIngredient() == null)
             {
@@ -760,194 +937,6 @@ namespace Work.Cook.Code.Runtime.UI
             PublishSnapshotChanged();
         }
 
-        public bool CompleteCooking()
-        {
-            EnsureReferences();
-
-            if (flowRunner == null)
-            {
-                Debug.LogWarning("CookingGamePanel needs a CookingFlowRunner before it can complete cooking.", this);
-                return false;
-            }
-
-            if (flowRunner.Controller.CanCompleteCooking() == false)
-            {
-                Debug.LogWarning("CookingGamePanel could not complete cooking. Make sure every selected ingredient is prepared.", this);
-                return false;
-            }
-
-            if (TryConsumeSelectedIngredientsForCompletion(flowRunner.Controller.CurrentSession) == false)
-                return false;
-
-            if (flowRunner.TryCompleteCooking(out DishResult result) == false)
-            {
-                Debug.LogWarning("CookingGamePanel could not complete cooking after ingredients were consumed.", this);
-                return false;
-            }
-
-            return OpenResult(result);
-        }
-
-        public bool OpenResult(DishResult result)
-        {
-            if (result == null)
-            {
-                Debug.LogWarning("CookingGamePanel cannot open the result screen without a dish result.", this);
-                return false;
-            }
-
-            _currentResult = result;
-            knowledgeStore?.LearnFromResult(result);
-            SetScreen(CookingGameScreenState.Result);
-            ResultReady?.Invoke(result);
-            resultReady.Invoke(result);
-            return true;
-        }
-
-        public DishResult GetCurrentDishResult()
-        {
-            EnsureCoreReferences();
-            return _currentResult ?? flowRunner?.LastResult;
-        }
-
-        public bool CanHandCurrentResultToNpc()
-        {
-            return GetCurrentDishResult() != null
-                   && NpcRunner != null
-                   && _isResultHandBlockedByPreparationVisual == false;
-        }
-
-        public bool TryBuildCurrentNpcMatchReport(out NpcDishMatchReport matchReport)
-        {
-            return TryBuildNpcMatchReport(GetCurrentDishResult(), out matchReport);
-        }
-
-        public bool TryBuildNpcMatchReport(DishResult result, out NpcDishMatchReport matchReport)
-        {
-            EnsureCoreReferences();
-            return CookingNpcDishAdapter.TryBuildMatchReport(npcRunner, result, out matchReport);
-        }
-
-        public int PreviewCurrentRewardAmount()
-        {
-            return PreviewRewardAmount(GetCurrentDishResult());
-        }
-
-        public int PreviewRewardAmount(DishResult result)
-        {
-            EnsureCoreReferences();
-
-            if (rewardCalculator == null
-                || TryBuildNpcMatchReport(result, out NpcDishMatchReport matchReport) == false)
-            {
-                return 0;
-            }
-
-            return rewardCalculator.CalculateAmount(matchReport, result);
-        }
-
-        public bool HandResultToNpc()
-        {
-            EnsureCoreReferences();
-
-            DishResult result = GetCurrentDishResult();
-            if (result == null)
-            {
-                Debug.LogWarning("CookingGamePanel cannot hand a dish to the NPC because no result is ready.", this);
-                return false;
-            }
-
-            if (CanHandCurrentResultToNpc() == false)
-            {
-                return false;
-            }
-
-            TryBuildNpcMatchReport(result, out NpcDishMatchReport matchReport);
-
-            ReturnToNpcConversation();
-            Canvas.ForceUpdateCanvases();
-
-            if (CookingNpcDishAdapter.SubmitToNpc(npcRunner, result, out string submitBlockReason) == false)
-            {
-                Debug.LogWarning(
-                    $"CookingGamePanel could not submit the dish. reason={submitBlockReason}",
-                    this);
-                SetScreen(CookingGameScreenState.Result);
-                return false;
-            }
-
-            DishHandedToNpc?.Invoke(result);
-            dishHandedToNpc.Invoke(result);
-            preparationVisualDirector?.PlayDishDismissSequence();
-            GrantReward(result, matchReport);
-
-            if (resetFlowAfterHandingDish && flowRunner != null)
-                flowRunner.ResetFlow();
-
-            return true;
-        }
-
-        public bool AdvanceFromResult()
-        {
-            EnsureReferences();
-
-            ICookingKnowledgeUpdateView updateView = GetViewContract<ICookingKnowledgeUpdateView>(knowledgeUpdateView);
-            if (updateView != null && knowledgeStore != null && knowledgeStore.PendingKnowledgeUpdateCount > 0)
-            {
-                if (updateView.ShowPendingUpdates(() => HandResultToNpc()))
-                    return true;
-            }
-
-            return HandResultToNpc();
-        }
-
-        public void ReturnToNpcConversation()
-        {
-            SetScreen(CookingGameScreenState.NpcConversation);
-        }
-
-        public void CloseCookingViews()
-        {
-            SetScreen(CookingGameScreenState.None);
-        }
-
-        public void ClearStoredInfoForDebug()
-        {
-            if (flowRunner == null)
-                flowRunner = GetComponentInChildren<CookingFlowRunner>(true);
-
-            if (knowledgeStore == null)
-                knowledgeStore = GetComponentInChildren<CookingKnowledgeStore>(true);
-
-            if (rewardWallet == null)
-                rewardWallet = GetComponentInChildren<CookingRewardWallet>(true);
-
-            if (recipeIngredientChoiceSource == null)
-                recipeIngredientChoiceSource = GetComponentInChildren<CookingRecipeIngredientChoiceSource>(true);
-
-            if (npcRunner == null)
-                npcRunner = FindFirstObjectByType<NpcConversationRunner>();
-
-            NpcEncounterDirector encounterDirector = GetComponentInChildren<NpcEncounterDirector>(true);
-            if (encounterDirector == null)
-                encounterDirector = FindFirstObjectByType<NpcEncounterDirector>();
-
-            flowRunner?.ResetFlow();
-            recipeIngredientChoiceSource?.Clear();
-            knowledgeStore?.ClearKnowledgeForDebug();
-            rewardWallet?.ClearForDebug();
-            encounterDirector?.ClearEncounterHistory();
-            _currentResult = null;
-            ResetConsumedIngredientSession();
-
-            CookingGameScreenState resetScreen = applyInitialScreenOnAwake
-                ? initialScreen
-                : CookingGameScreenState.None;
-            SetScreen(resetScreen);
-            RefreshCookingViews();
-            PublishSnapshotChanged();
-        }
-
         private void EnsureCoreReferences()
         {
             if (flowRunner == null)
@@ -981,7 +970,7 @@ namespace Work.Cook.Code.Runtime.UI
                 recipeIngredientChoiceSource = GetComponent<CookingRecipeIngredientChoiceSource>();
 
             if (recipeIngredientChoiceSource == null)
-                recipeIngredientChoiceSource = gameObject.AddComponent<CookingRecipeIngredientChoiceSource>();
+                LogMissingViewReference(nameof(recipeIngredientChoiceSource), nameof(CookingRecipeIngredientChoiceSource));
         }
 
         private void EnsureReferences()
@@ -1006,7 +995,10 @@ namespace Work.Cook.Code.Runtime.UI
                 knowledgeStore = GetComponent<CookingKnowledgeStore>();
 
             if (knowledgeStore == null)
-                knowledgeStore = gameObject.AddComponent<CookingKnowledgeStore>();
+            {
+                LogMissingViewReference(nameof(knowledgeStore), nameof(CookingKnowledgeStore));
+                return;
+            }
 
             InitializeKnowledgeStore();
         }
@@ -1031,9 +1023,9 @@ namespace Work.Cook.Code.Runtime.UI
                 rewardWallet = GetComponent<CookingRewardWallet>();
 
             if (rewardWallet == null)
-                rewardWallet = gameObject.AddComponent<CookingRewardWallet>();
-
-            rewardWallet.Initialize();
+                LogMissingViewReference(nameof(rewardWallet), nameof(CookingRewardWallet));
+            else
+                rewardWallet.Initialize();
 
             if (rewardCalculator == null)
                 rewardCalculator = GetComponentInChildren<CookingRewardCalculator>(true);
@@ -1042,7 +1034,7 @@ namespace Work.Cook.Code.Runtime.UI
                 rewardCalculator = GetComponent<CookingRewardCalculator>();
 
             if (rewardCalculator == null)
-                rewardCalculator = gameObject.AddComponent<CookingRewardCalculator>();
+                LogMissingViewReference(nameof(rewardCalculator), nameof(CookingRewardCalculator));
         }
 
         private CookingRewardGrant GrantReward(DishResult result, NpcDishMatchReport matchReport)
@@ -1059,12 +1051,48 @@ namespace Work.Cook.Code.Runtime.UI
             int balanceAfter = rewardWallet.Grant(amount);
             CookingRewardGrant grant = new CookingRewardGrant(result, matchReport, amount, balanceAfter);
 
-            RewardGranted?.Invoke(grant);
-            rewardGranted.Invoke(grant.Amount);
+            Bus<CookingRewardGrantedEvent>.Raise(new CookingRewardGrantedEvent(this, grant));
 
             Debug.Log($"Cooking reward resolved: {grant.BuildDebugSummary()}", this);
             PublishSnapshotChanged();
             return grant;
+        }
+
+        private void QueuePendingRewardSettlement(DishResult result, NpcDishMatchReport matchReport)
+        {
+            _pendingRewardResult = result;
+            _pendingRewardMatchReport = matchReport;
+            _pendingRewardConversationCompleted = false;
+        }
+
+        private void ClearPendingRewardSettlement()
+        {
+            _pendingRewardResult = null;
+            _pendingRewardMatchReport = null;
+            _isSubmittingPendingReward = false;
+            _pendingRewardConversationCompleted = false;
+        }
+
+        private void HandleNpcConversationCompleted()
+        {
+            if (HasPendingRewardSettlement == false)
+                return;
+
+            if (_isSubmittingPendingReward == true)
+            {
+                _pendingRewardConversationCompleted = true;
+                return;
+            }
+
+            SettlePendingReward();
+        }
+
+        private void SettlePendingReward()
+        {
+            DishResult result = _pendingRewardResult;
+            NpcDishMatchReport matchReport = _pendingRewardMatchReport;
+            ClearPendingRewardSettlement();
+            GrantReward(result, matchReport);
         }
 
         private bool TryConsumeSelectedIngredientsForCompletion(CookingSession session)
@@ -1112,115 +1140,8 @@ namespace Work.Cook.Code.Runtime.UI
         {
             CurrentScreen = screen;
             ApplyViewActiveStates();
-            ScreenChanged?.Invoke(CurrentScreen);
-            screenChanged.Invoke(CurrentScreen);
+            Bus<CookingGameScreenChangedEvent>.Raise(new CookingGameScreenChangedEvent(this, CurrentScreen));
             PublishSnapshotChanged();
-        }
-
-        private void SubscribeStateSources()
-        {
-            if (_subscribedFlowRunner != flowRunner)
-            {
-                if (_subscribedFlowRunner != null)
-                    _subscribedFlowRunner.StateChanged -= HandleFlowRunnerStateChanged;
-
-                _subscribedFlowRunner = flowRunner;
-
-                if (_subscribedFlowRunner != null)
-                    _subscribedFlowRunner.StateChanged += HandleFlowRunnerStateChanged;
-            }
-
-            if (_subscribedNpcRunner != npcRunner)
-            {
-                if (_subscribedNpcRunner != null)
-                    _subscribedNpcRunner.CookingStepReady -= HandleNpcCookingStepReady;
-
-                _subscribedNpcRunner = npcRunner;
-
-                if (_subscribedNpcRunner != null)
-                {
-                    _subscribedNpcRunner.CookingStepReady += HandleNpcCookingStepReady;
-                    if (_subscribedNpcRunner.IsReadyForCooking)
-                        HandleNpcCookingStepReady();
-                }
-            }
-
-            if (_subscribedKnowledgeStore != knowledgeStore)
-            {
-                if (_subscribedKnowledgeStore != null)
-                    _subscribedKnowledgeStore.KnowledgeChanged -= HandleKnowledgeChanged;
-
-                _subscribedKnowledgeStore = knowledgeStore;
-
-                if (_subscribedKnowledgeStore != null)
-                    _subscribedKnowledgeStore.KnowledgeChanged += HandleKnowledgeChanged;
-            }
-
-            if (_subscribedRewardWallet != rewardWallet)
-            {
-                if (_subscribedRewardWallet != null)
-                    _subscribedRewardWallet.BalanceChanged -= HandleRewardBalanceChanged;
-
-                _subscribedRewardWallet = rewardWallet;
-
-                if (_subscribedRewardWallet != null)
-                    _subscribedRewardWallet.BalanceChanged += HandleRewardBalanceChanged;
-            }
-        }
-
-        private void UnsubscribeStateSources()
-        {
-            if (_subscribedFlowRunner != null)
-                _subscribedFlowRunner.StateChanged -= HandleFlowRunnerStateChanged;
-
-            if (_subscribedNpcRunner != null)
-                _subscribedNpcRunner.CookingStepReady -= HandleNpcCookingStepReady;
-
-            if (_subscribedKnowledgeStore != null)
-                _subscribedKnowledgeStore.KnowledgeChanged -= HandleKnowledgeChanged;
-
-            if (_subscribedRewardWallet != null)
-                _subscribedRewardWallet.BalanceChanged -= HandleRewardBalanceChanged;
-
-            _subscribedFlowRunner = null;
-            _subscribedNpcRunner = null;
-            _subscribedKnowledgeStore = null;
-            _subscribedRewardWallet = null;
-        }
-
-        private void HandleFlowRunnerStateChanged(CookingFlowState state)
-        {
-            if (state == CookingFlowState.Idle || state == CookingFlowState.SelectingIngredients)
-                ResetConsumedIngredientSession();
-
-            RefreshCookingViews();
-            PublishSnapshotChanged();
-        }
-
-        private void HandleNpcCookingStepReady()
-        {
-            if (autoOpenInventoryWhenNpcReady == false)
-                return;
-
-            BeginCookingAfterConversation();
-        }
-
-        private void HandleKnowledgeChanged()
-        {
-            RefreshRecipeSelectionView(recipeSelectionView);
-            PublishSnapshotChanged();
-        }
-
-        private void HandleRewardBalanceChanged(int balance)
-        {
-            PublishSnapshotChanged();
-        }
-
-        private void PublishSnapshotChanged()
-        {
-            CookingGameSnapshot snapshot = BuildSnapshot();
-            SnapshotChanged?.Invoke(snapshot);
-            snapshotChanged.Invoke(snapshot);
         }
 
         private void ApplyViewActiveStates()
@@ -1233,17 +1154,23 @@ namespace Work.Cook.Code.Runtime.UI
 
             RestorePreparationHiddenViews();
 
-            bool beforePreparation = IsBeforePreparation(CurrentScreen);
-            bool duringIngredientSelection = CurrentScreen == CookingGameScreenState.Inventory;
-            bool showNpcConversation = CurrentScreen == CookingGameScreenState.NpcConversation
-                                        || keepNpcConversationVisibleBeforePreparation == true && beforePreparation == true
-                                        || keepNpcConversationVisibleDuringCooking == true && duringIngredientSelection == true;
-            bool showRecipeSelection = CurrentScreen == CookingGameScreenState.RecipeSelection
-                                        || CurrentScreen == CookingGameScreenState.Inventory
-                                        || keepRecipeSelectionVisibleBeforePreparation == true
-                                        && beforePreparation == true
-                                        && (CurrentScreen != CookingGameScreenState.Inventory
-                                            || keepRecipeSelectionVisibleDuringInventory == true);
+            bool showNpcConversation = CurrentScreen == CookingGameScreenState.NpcConversation;
+            bool showRecipeSelection = CurrentScreen == CookingGameScreenState.RecipeSelection;
+
+            if (allowLayeredPrimaryViews == true)
+            {
+                bool beforePreparation = IsBeforePreparation(CurrentScreen);
+                bool duringIngredientSelection = CurrentScreen == CookingGameScreenState.Inventory;
+                showNpcConversation = showNpcConversation
+                                      || keepNpcConversationVisibleBeforePreparation == true && beforePreparation == true
+                                      || keepNpcConversationVisibleDuringCooking == true && duringIngredientSelection == true;
+                showRecipeSelection = showRecipeSelection
+                                      || CurrentScreen == CookingGameScreenState.Inventory
+                                      || keepRecipeSelectionVisibleBeforePreparation == true
+                                      && beforePreparation == true
+                                      && (CurrentScreen != CookingGameScreenState.Inventory
+                                          || keepRecipeSelectionVisibleDuringInventory == true);
+            }
 
             SetActive(npcConversationView, showNpcConversation);
             SetActive(recipeSelectionView, showRecipeSelection);
@@ -1417,6 +1344,15 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
+            CookingView existingCookingView = GetComponentInChildren<CookingView>(true);
+            if (existingCookingView != null)
+            {
+                preparationView = existingCookingView.gameObject;
+                AttachPreparationViewToOverlayRoot(preparationView);
+                InitializePreparationView(preparationView);
+                return;
+            }
+
             CookingPreparationView existingView = GetComponentInChildren<CookingPreparationView>(true);
             if (existingView != null)
             {
@@ -1452,7 +1388,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (preparation == null)
                 return;
 
-            preparation.Initialize(this, flowRunner);
+            preparation.Initialize(this, flowRunner, temporaryUiFontAsset);
         }
 
         private void EnsureMiniGameView()
@@ -1464,60 +1400,7 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
-            CookingTimingMiniGameView existingView = GetComponentInChildren<CookingTimingMiniGameView>(true);
-            if (existingView != null)
-            {
-                miniGameView = existingView.gameObject;
-                AttachMiniGameViewToOverlayRoot(miniGameView);
-                InitializeMiniGameView(miniGameView);
-                return;
-            }
-
-            if (useMiniGames == true)
-            {
-                miniGameView = CreateDefaultMiniGameView();
-                InitializeMiniGameView(miniGameView);
-                return;
-            }
-
-            if (useMiniGames == true && continueWithoutMiniGameView == false)
-                LogMissingViewReference(nameof(miniGameView), nameof(ICookingMiniGameView));
-        }
-
-        private GameObject CreateDefaultMiniGameView()
-        {
-            Transform overlayParent = FindOverlayViewParent();
-            GameObject viewObject = new GameObject(
-                DEFAULT_MINI_GAME_VIEW_NAME,
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Image),
-                typeof(CanvasGroup));
-            viewObject.SetActive(false);
-
-            if (overlayParent != null)
-                viewObject.transform.SetParent(overlayParent, false);
-
-            RectTransform rectTransform = viewObject.transform as RectTransform;
-            SetStretchRect(rectTransform);
-
-            Image image = viewObject.GetComponent<Image>();
-            if (image != null)
-            {
-                image.color = new Color(0f, 0f, 0f, 0.55f);
-                image.raycastTarget = true;
-            }
-
-            CanvasGroup canvasGroup = viewObject.GetComponent<CanvasGroup>();
-            if (canvasGroup != null)
-            {
-                canvasGroup.alpha = 0f;
-                canvasGroup.interactable = false;
-                canvasGroup.blocksRaycasts = false;
-            }
-
-            viewObject.AddComponent<CookingTimingMiniGameView>();
-            return viewObject;
+            LogMissingViewReference(nameof(miniGameView), nameof(ICookingMiniGameView));
         }
 
         private void AttachMiniGameViewToOverlayRoot(GameObject view)
@@ -1796,10 +1679,10 @@ namespace Work.Cook.Code.Runtime.UI
 
         private static Transform ResolveOverlayRoot(Canvas canvas)
         {
-            const string overlayRootName = "CookingRewardOverlayRoot";
+            const string OVERLAY_ROOT_NAME = "CookingRewardOverlayRoot";
 
             Transform canvasTransform = canvas.transform;
-            Transform existing = canvasTransform.Find(overlayRootName);
+            Transform existing = canvasTransform.Find(OVERLAY_ROOT_NAME);
             if (existing != null)
             {
                 return existing;
@@ -1832,16 +1715,301 @@ namespace Work.Cook.Code.Runtime.UI
                 target.SetActive(active);
         }
 
-        private static void SetStretchRect(RectTransform rectTransform)
+        private void SubscribeBusRequests()
         {
-            if (rectTransform == null)
+            Bus<CookingRecipeSelectionOpenRequestedEvent>.Events -= HandleRecipeSelectionOpenRequested;
+            Bus<CookingRecipeSelectionOpenRequestedEvent>.Events += HandleRecipeSelectionOpenRequested;
+            Bus<CookingDirectIngredientSelectionOpenRequestedEvent>.Events -= HandleDirectIngredientSelectionOpenRequested;
+            Bus<CookingDirectIngredientSelectionOpenRequestedEvent>.Events += HandleDirectIngredientSelectionOpenRequested;
+            Bus<CookingIngredientSelectionConfirmRequestedEvent>.Events -= HandleIngredientSelectionConfirmRequested;
+            Bus<CookingIngredientSelectionConfirmRequestedEvent>.Events += HandleIngredientSelectionConfirmRequested;
+            Bus<CookingIngredientSelectionClearRequestedEvent>.Events -= HandleIngredientSelectionClearRequested;
+            Bus<CookingIngredientSelectionClearRequestedEvent>.Events += HandleIngredientSelectionClearRequested;
+            Bus<CookingRecipeConfirmRequestedEvent>.Events -= HandleRecipeConfirmRequested;
+            Bus<CookingRecipeConfirmRequestedEvent>.Events += HandleRecipeConfirmRequested;
+            Bus<CookingIngredientSelectionToggleRequestedEvent>.Events -= HandleIngredientSelectionToggleRequested;
+            Bus<CookingIngredientSelectionToggleRequestedEvent>.Events += HandleIngredientSelectionToggleRequested;
+            Bus<CookingIngredientSelectionRemoveRequestedEvent>.Events -= HandleIngredientSelectionRemoveRequested;
+            Bus<CookingIngredientSelectionRemoveRequestedEvent>.Events += HandleIngredientSelectionRemoveRequested;
+            Bus<CookingIngredientSearchQueryChangeRequestedEvent>.Events -= HandleIngredientSearchQueryChangeRequested;
+            Bus<CookingIngredientSearchQueryChangeRequestedEvent>.Events += HandleIngredientSearchQueryChangeRequested;
+            Bus<CookingPreparationSelectCurrentByIndexRequestedEvent>.Events -= HandlePreparationSelectCurrentByIndexRequested;
+            Bus<CookingPreparationSelectCurrentByIndexRequestedEvent>.Events += HandlePreparationSelectCurrentByIndexRequested;
+            Bus<CookingPreparationSelectCurrentRequestedEvent>.Events -= HandlePreparationSelectCurrentRequested;
+            Bus<CookingPreparationSelectCurrentRequestedEvent>.Events += HandlePreparationSelectCurrentRequested;
+            Bus<CookingPreparationSelectRequestedEvent>.Events -= HandlePreparationSelectRequested;
+            Bus<CookingPreparationSelectRequestedEvent>.Events += HandlePreparationSelectRequested;
+            Bus<CookingPreparationInteractionCompleteRequestedEvent>.Events -= HandlePreparationInteractionCompleteRequested;
+            Bus<CookingPreparationInteractionCompleteRequestedEvent>.Events += HandlePreparationInteractionCompleteRequested;
+            Bus<CookingCompleteRequestedEvent>.Events -= HandleCookingCompleteRequested;
+            Bus<CookingCompleteRequestedEvent>.Events += HandleCookingCompleteRequested;
+            Bus<CookingResultAdvanceRequestedEvent>.Events -= HandleResultAdvanceRequested;
+            Bus<CookingResultAdvanceRequestedEvent>.Events += HandleResultAdvanceRequested;
+            Bus<CookingDishHandToNpcRequestedEvent>.Events -= HandleDishHandToNpcRequested;
+            Bus<CookingDishHandToNpcRequestedEvent>.Events += HandleDishHandToNpcRequested;
+            Bus<CookingNpcConversationReturnRequestedEvent>.Events -= HandleNpcConversationReturnRequested;
+            Bus<CookingNpcConversationReturnRequestedEvent>.Events += HandleNpcConversationReturnRequested;
+            Bus<CookingViewsCloseRequestedEvent>.Events -= HandleViewsCloseRequested;
+            Bus<CookingViewsCloseRequestedEvent>.Events += HandleViewsCloseRequested;
+            Bus<CookingViewsRefreshRequestedEvent>.Events -= HandleViewsRefreshRequested;
+            Bus<CookingViewsRefreshRequestedEvent>.Events += HandleViewsRefreshRequested;
+            Bus<CookingPreparationOpenRequestedEvent>.Events -= HandlePreparationOpenRequested;
+            Bus<CookingPreparationOpenRequestedEvent>.Events += HandlePreparationOpenRequested;
+            Bus<CookingFlowStateChangedEvent>.Events -= HandleFlowStateChangedEvent;
+            Bus<CookingFlowStateChangedEvent>.Events += HandleFlowStateChangedEvent;
+        }
+
+        private void UnsubscribeBusRequests()
+        {
+            Bus<CookingRecipeSelectionOpenRequestedEvent>.Events -= HandleRecipeSelectionOpenRequested;
+            Bus<CookingDirectIngredientSelectionOpenRequestedEvent>.Events -= HandleDirectIngredientSelectionOpenRequested;
+            Bus<CookingIngredientSelectionConfirmRequestedEvent>.Events -= HandleIngredientSelectionConfirmRequested;
+            Bus<CookingIngredientSelectionClearRequestedEvent>.Events -= HandleIngredientSelectionClearRequested;
+            Bus<CookingRecipeConfirmRequestedEvent>.Events -= HandleRecipeConfirmRequested;
+            Bus<CookingIngredientSelectionToggleRequestedEvent>.Events -= HandleIngredientSelectionToggleRequested;
+            Bus<CookingIngredientSelectionRemoveRequestedEvent>.Events -= HandleIngredientSelectionRemoveRequested;
+            Bus<CookingIngredientSearchQueryChangeRequestedEvent>.Events -= HandleIngredientSearchQueryChangeRequested;
+            Bus<CookingPreparationSelectCurrentByIndexRequestedEvent>.Events -= HandlePreparationSelectCurrentByIndexRequested;
+            Bus<CookingPreparationSelectCurrentRequestedEvent>.Events -= HandlePreparationSelectCurrentRequested;
+            Bus<CookingPreparationSelectRequestedEvent>.Events -= HandlePreparationSelectRequested;
+            Bus<CookingPreparationInteractionCompleteRequestedEvent>.Events -= HandlePreparationInteractionCompleteRequested;
+            Bus<CookingCompleteRequestedEvent>.Events -= HandleCookingCompleteRequested;
+            Bus<CookingResultAdvanceRequestedEvent>.Events -= HandleResultAdvanceRequested;
+            Bus<CookingDishHandToNpcRequestedEvent>.Events -= HandleDishHandToNpcRequested;
+            Bus<CookingNpcConversationReturnRequestedEvent>.Events -= HandleNpcConversationReturnRequested;
+            Bus<CookingViewsCloseRequestedEvent>.Events -= HandleViewsCloseRequested;
+            Bus<CookingViewsRefreshRequestedEvent>.Events -= HandleViewsRefreshRequested;
+            Bus<CookingPreparationOpenRequestedEvent>.Events -= HandlePreparationOpenRequested;
+            Bus<CookingFlowStateChangedEvent>.Events -= HandleFlowStateChangedEvent;
+        }
+
+        private bool IsRequestForThis(CookingGamePanel source)
+        {
+            return source == this;
+        }
+
+        private void HandleRecipeSelectionOpenRequested(CookingRecipeSelectionOpenRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                OpenRecipeSelection();
+        }
+
+        private void HandleDirectIngredientSelectionOpenRequested(CookingDirectIngredientSelectionOpenRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                OpenDirectIngredientSelection();
+        }
+
+        private void HandleIngredientSelectionConfirmRequested(CookingIngredientSelectionConfirmRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                ConfirmIngredientSelection();
+        }
+
+        private void HandleIngredientSelectionClearRequested(CookingIngredientSelectionClearRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                ClearIngredientSelection();
+        }
+
+        private void HandleRecipeConfirmRequested(CookingRecipeConfirmRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                ConfirmRecipe(gameEvent.Recipe);
+        }
+
+        private void HandleIngredientSelectionToggleRequested(CookingIngredientSelectionToggleRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                ToggleIngredientSelection(gameEvent.Ingredient);
+        }
+
+        private void HandleIngredientSelectionRemoveRequested(CookingIngredientSelectionRemoveRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                RemoveIngredientSelection(gameEvent.Ingredient);
+        }
+
+        private void HandleIngredientSearchQueryChangeRequested(CookingIngredientSearchQueryChangeRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                SetIngredientSearchQuery(gameEvent.Query);
+        }
+
+        private void HandlePreparationSelectCurrentByIndexRequested(CookingPreparationSelectCurrentByIndexRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                SelectCurrentPreparationByIndex(gameEvent.OptionIndex);
+        }
+
+        private void HandlePreparationSelectCurrentRequested(CookingPreparationSelectCurrentRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                SelectCurrentPreparation(gameEvent.Option);
+        }
+
+        private void HandlePreparationSelectRequested(CookingPreparationSelectRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                SelectPreparation(gameEvent.Ingredient, gameEvent.Option);
+        }
+
+        private void HandlePreparationInteractionCompleteRequested(CookingPreparationInteractionCompleteRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                CompletePreparationInteraction(gameEvent.Ingredient, gameEvent.Option, gameEvent.MiniGameResult);
+        }
+
+        private void HandleCookingCompleteRequested(CookingCompleteRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                CompleteCooking();
+        }
+
+        private void HandleResultAdvanceRequested(CookingResultAdvanceRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                AdvanceFromResult();
+        }
+
+        private void HandleDishHandToNpcRequested(CookingDishHandToNpcRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                HandResultToNpc();
+        }
+
+        private void HandleNpcConversationReturnRequested(CookingNpcConversationReturnRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                ReturnToNpcConversation();
+        }
+
+        private void HandleViewsCloseRequested(CookingViewsCloseRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                CloseCookingViews();
+        }
+
+        private void HandleViewsRefreshRequested(CookingViewsRefreshRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                RefreshCookingViews();
+        }
+
+        private void HandlePreparationOpenRequested(CookingPreparationOpenRequestedEvent gameEvent)
+        {
+            if (IsRequestForThis(gameEvent.Source) == true)
+                OpenPreparation();
+        }
+
+        private void HandleFlowStateChangedEvent(CookingFlowStateChangedEvent gameEvent)
+        {
+            if (gameEvent.Source == flowRunner)
+                HandleFlowRunnerStateChanged(gameEvent.State);
+        }
+
+        private void SubscribeStateSources()
+        {
+            if (_subscribedNpcRunner != npcRunner)
+            {
+                if (_subscribedNpcRunner != null)
+                {
+                    _subscribedNpcRunner.CookingStepReady -= HandleNpcCookingStepReady;
+                    _subscribedNpcRunner.ConversationCompleted -= HandleNpcConversationCompleted;
+                }
+
+                _subscribedNpcRunner = npcRunner;
+
+                if (_subscribedNpcRunner != null)
+                {
+                    _subscribedNpcRunner.CookingStepReady += HandleNpcCookingStepReady;
+                    _subscribedNpcRunner.ConversationCompleted += HandleNpcConversationCompleted;
+                    if (_subscribedNpcRunner.IsReadyForCooking == true)
+                        HandleNpcCookingStepReady();
+                }
+            }
+
+            if (_subscribedKnowledgeStore != knowledgeStore)
+            {
+                if (_subscribedKnowledgeStore != null)
+                    Bus<CookingKnowledgeChangedEvent>.Events -= HandleKnowledgeChanged;
+
+                _subscribedKnowledgeStore = knowledgeStore;
+
+                if (_subscribedKnowledgeStore != null)
+                    Bus<CookingKnowledgeChangedEvent>.Events += HandleKnowledgeChanged;
+            }
+
+            if (_subscribedRewardWallet != rewardWallet)
+            {
+                if (_subscribedRewardWallet != null)
+                    Bus<CookingRewardBalanceChangedEvent>.Events -= HandleRewardBalanceChanged;
+
+                _subscribedRewardWallet = rewardWallet;
+
+                if (_subscribedRewardWallet != null)
+                    Bus<CookingRewardBalanceChangedEvent>.Events += HandleRewardBalanceChanged;
+            }
+        }
+
+        private void UnsubscribeStateSources()
+        {
+            if (_subscribedNpcRunner != null)
+            {
+                _subscribedNpcRunner.CookingStepReady -= HandleNpcCookingStepReady;
+                _subscribedNpcRunner.ConversationCompleted -= HandleNpcConversationCompleted;
+            }
+
+            if (_subscribedKnowledgeStore != null)
+                Bus<CookingKnowledgeChangedEvent>.Events -= HandleKnowledgeChanged;
+
+            if (_subscribedRewardWallet != null)
+                Bus<CookingRewardBalanceChangedEvent>.Events -= HandleRewardBalanceChanged;
+
+            _subscribedNpcRunner = null;
+            _subscribedKnowledgeStore = null;
+            _subscribedRewardWallet = null;
+        }
+
+        private void HandleFlowRunnerStateChanged(CookingFlowState state)
+        {
+            if (state == CookingFlowState.Idle || state == CookingFlowState.SelectingIngredients)
+                ResetConsumedIngredientSession();
+
+            RefreshCookingViews();
+            PublishSnapshotChanged();
+        }
+
+        private void HandleNpcCookingStepReady()
+        {
+            if (autoOpenInventoryWhenNpcReady == false)
                 return;
 
-            rectTransform.anchorMin = Vector2.zero;
-            rectTransform.anchorMax = Vector2.one;
-            rectTransform.offsetMin = Vector2.zero;
-            rectTransform.offsetMax = Vector2.zero;
-            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            BeginCookingAfterConversation();
         }
+
+        private void HandleKnowledgeChanged(CookingKnowledgeChangedEvent gameEvent)
+        {
+            if (gameEvent.Source != knowledgeStore)
+                return;
+
+            RefreshRecipeSelectionView(recipeSelectionView);
+            PublishSnapshotChanged();
+        }
+
+        private void HandleRewardBalanceChanged(CookingRewardBalanceChangedEvent gameEvent)
+        {
+            if (gameEvent.Source != rewardWallet)
+                return;
+
+            PublishSnapshotChanged();
+        }
+
+        private void PublishSnapshotChanged()
+        {
+            CookingGameSnapshot snapshot = BuildSnapshot();
+            Bus<CookingGameSnapshotChangedEvent>.Raise(new CookingGameSnapshotChangedEvent(this, snapshot));
+        }
+
     }
 }

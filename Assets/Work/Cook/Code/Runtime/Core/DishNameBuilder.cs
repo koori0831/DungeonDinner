@@ -12,7 +12,7 @@ namespace Work.Cook.Code.Runtime.Core
             IReadOnlyList<PreparedIngredientState> preparedIngredients,
             bool isDisgusting)
         {
-            if (isDisgusting)
+            if (isDisgusting == true)
                 return "괴식";
 
             string baseName = recipe != null ? recipe.DisplayName : "알 수 없는 음식";
