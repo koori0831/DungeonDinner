@@ -7,9 +7,11 @@ using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Info;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -90,14 +92,16 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (_currentEntry.IsDirectIngredientSelection)
             {
-                gamePanel.OpenDirectIngredientSelection();
+                Bus<CookingDirectIngredientSelectionOpenRequestedEvent>.Raise(
+                    new CookingDirectIngredientSelectionOpenRequestedEvent(gamePanel));
                 return;
             }
 
             if (gamePanel.AllowRecipeConfirmation == false)
                 return;
 
-            gamePanel.ConfirmRecipe(_currentEntry.Recipe);
+            Bus<CookingRecipeConfirmRequestedEvent>.Raise(
+                new CookingRecipeConfirmRequestedEvent(gamePanel, _currentEntry.Recipe));
         }
 
         private void EnsureGamePanel()

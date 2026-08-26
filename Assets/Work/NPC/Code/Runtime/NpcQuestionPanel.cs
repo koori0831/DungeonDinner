@@ -10,6 +10,8 @@ namespace Work.NPC.Code.Runtime
     {
         [SerializeField] private NpcConversationRunner runner;
         [SerializeField] private RectTransform optionRoot;
+        [SerializeField] private RectTransform conversationContentRoot;
+        [SerializeField, Min(0f)] private float conversationInsetWhenVisible = 324f;
         [SerializeField] private Button questionButtonPrefab;
         [SerializeField] private Button skipButton;
         [SerializeField] private string skipButtonLabel = "요리하기";
@@ -17,6 +19,8 @@ namespace Work.NPC.Code.Runtime
 
         private readonly List<Button> _spawnedButtons = new List<Button>();
         private CanvasGroup _canvasGroup;
+        private Vector2 _conversationDefaultOffsetMin;
+        private bool _hasConversationDefaultOffset;
 
         private void Awake()
         {
@@ -29,6 +33,12 @@ namespace Work.NPC.Code.Runtime
             if (_canvasGroup == null)
             {
                 Debug.LogError("NpcQuestionPanel CanvasGroup is missing. Add it to the prefab or scene object.", this);
+            }
+
+            if (conversationContentRoot != null)
+            {
+                _conversationDefaultOffsetMin = conversationContentRoot.offsetMin;
+                _hasConversationDefaultOffset = true;
             }
 
             SetSkipButtonLabel();
@@ -99,7 +109,12 @@ namespace Work.NPC.Code.Runtime
             }
 
             if (skipButton != null)
+            {
                 skipButton.gameObject.SetActive(true);
+                skipButton.transform.SetAsLastSibling();
+            }
+
+            RefreshOptionLayout();
         }
 
         private void HandleCookingStepReady()
@@ -177,12 +192,35 @@ namespace Work.NPC.Code.Runtime
 
         private void SetVisible(bool visible)
         {
-            if (_canvasGroup == null)
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = visible ? 1f : 0f;
+                _canvasGroup.interactable = visible;
+                _canvasGroup.blocksRaycasts = visible;
+            }
+
+            ApplyConversationInset(visible);
+        }
+
+        private void ApplyConversationInset(bool visible)
+        {
+            if (conversationContentRoot == null || _hasConversationDefaultOffset == false)
                 return;
 
-            _canvasGroup.alpha = visible ? 1f : 0f;
-            _canvasGroup.interactable = visible;
-            _canvasGroup.blocksRaycasts = visible;
+            Vector2 offsetMin = _conversationDefaultOffsetMin;
+            if (visible == true)
+                offsetMin.y += conversationInsetWhenVisible;
+
+            conversationContentRoot.offsetMin = offsetMin;
+            LayoutRebuilder.MarkLayoutForRebuild(conversationContentRoot);
+        }
+
+        private void RefreshOptionLayout()
+        {
+            if (optionRoot == null)
+                return;
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(optionRoot);
         }
 
     }

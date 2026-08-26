@@ -1,11 +1,12 @@
-using System.Collections;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using Work.NPC.Code.Data;
-using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Integration;
+using UnityEngine.UI;
+using Work.Cook.Code.Data;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Systems;
-using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
+using Work.NPC.Code.Data;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -17,16 +18,22 @@ namespace Work.Cook.Code.Runtime.UI
 
         [Header("Layout References")]
         [SerializeField] private CanvasGroup canvasGroup;
+        [SerializeField] private RectTransform visualRoot;
+        [SerializeField] private Image rewardIconImage;
         [SerializeField] private TextMeshProUGUI titleField;
         [SerializeField] private TextMeshProUGUI rewardField;
         [SerializeField] private TextMeshProUGUI balanceField;
 
         [Header("View Settings")]
+        [SerializeField] private CookingUiPresentationSettingsSO presentationSettings;
         [SerializeField] private TMP_FontAsset fontAsset;
         [SerializeField] private Color positiveColor = new Color(0.92f, 0.78f, 0.35f, 1f);
         [SerializeField] private Color emptyColor = new Color(0.72f, 0.68f, 0.60f, 1f);
-        [SerializeField, Min(0.1f)] private float visibleDuration = 3f;
-        [SerializeField, Min(0.01f)] private float fadeDuration = 0.22f;
+        [SerializeField, Min(0.1f)] private float visibleDuration = 2.4f;
+        [SerializeField, Min(0.01f)] private float enterDuration = 0.24f;
+        [SerializeField, Min(0.01f)] private float countDuration = 0.42f;
+        [SerializeField, Min(0.01f)] private float exitDuration = 0.2f;
+        [SerializeField, Min(0f)] private float enterOffset = 72f;
 
         [Header("Text")]
         [SerializeField] private string titleText = "보상 획득";
@@ -34,26 +41,37 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private string balancePrefix = "소지금";
 
         private CookingGamePanel _subscribedPanel;
-        private Coroutine _hideRoutine;
+        private Sequence _activeSequence;
+        private Tween _counterTween;
+        private Vector2 _restingPosition;
+        private int _displayedAmount;
+        private int _accumulatedAmount;
+        private int _targetBalance;
+        private bool _isVisible;
+
+        public int DisplayedAmount => _displayedAmount;
+        public int AccumulatedAmount => _accumulatedAmount;
 
         private void Awake()
         {
             EnsureReferences();
-            EnsureLayout();
+            CaptureRestingPosition();
             HideImmediate();
         }
 
         private void OnEnable()
         {
             EnsureReferences();
-            EnsureLayout();
+            CaptureRestingPosition();
             SubscribePanelEvents();
             BindCurrentBalance();
         }
 
         private void OnDisable()
         {
+            KillAnimations();
             UnsubscribePanelEvents();
+            HideImmediate();
         }
 
         public void Initialize(
@@ -63,16 +81,23 @@ namespace Work.Cook.Code.Runtime.UI
         {
             gamePanel = owner;
             rewardWallet = wallet;
-
             if (defaultFontAsset != null)
                 SetFontAsset(defaultFontAsset);
-
-            EnsureLayout();
-
+            EnsureReferences();
             if (isActiveAndEnabled)
-            {
                 SubscribePanelEvents();
-                BindCurrentBalance();
+        }
+
+        public void SetPresentationSettings(CookingUiPresentationSettingsSO value)
+        {
+            presentationSettings = value;
+            if (value?.FontAsset != null)
+                SetFontAsset(value.FontAsset);
+            if (rewardIconImage != null)
+            {
+                rewardIconImage.sprite = value?.RewardIcon;
+                rewardIconImage.enabled = rewardIconImage.sprite != null;
+                rewardIconImage.preserveAspect = true;
             }
         }
 
@@ -82,99 +107,146 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
 
             fontAsset = value;
-            ApplyFontToExistingTexts();
+            TextMeshProUGUI[] labels = GetComponentsInChildren<TextMeshProUGUI>(true);
+            for (int i = 0; i < labels.Length; i++)
+            {
+                if (labels[i] != null)
+                    labels[i].font = value;
+            }
         }
 
         public void Show(CookingRewardGrant grant)
         {
             EnsureReferences();
-            EnsureLayout();
-
             if (grant == null)
                 return;
 
-            SetText(titleField, BuildTitleText(grant));
-            SetText(rewardField, grant.Amount > 0 ? $"+{grant.Amount}" : noRewardText);
-            SetText(balanceField, $"{balancePrefix} {grant.BalanceAfter}");
-
-            if (rewardField != null)
-                rewardField.color = grant.Amount > 0 ? positiveColor : emptyColor;
-
-            if (_hideRoutine != null)
-                StopCoroutine(_hideRoutine);
-
-            _hideRoutine = StartCoroutine(ShowRoutine());
-        }
-
-        private IEnumerator ShowRoutine()
-        {
-            SetAlpha(1f);
-            yield return new WaitForSeconds(visibleDuration);
-
-            float elapsed = 0f;
-            while (elapsed < fadeDuration)
+            bool append = _isVisible;
+            if (append == false)
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / fadeDuration);
-                SetAlpha(1f - t);
-                yield return null;
+                _accumulatedAmount = 0;
+                _displayedAmount = 0;
             }
 
-            HideImmediate();
-            _hideRoutine = null;
+            _accumulatedAmount += Mathf.Max(0, grant.Amount);
+            _targetBalance = grant.BalanceAfter;
+            SetText(titleField, BuildTitleText(grant, append));
+            if (rewardField != null)
+                rewardField.color = _accumulatedAmount > 0 ? ResolvePositiveColor() : emptyColor;
+
+            if (append == false)
+                PlayEntrance();
+
+            PlayCounterAndScheduleHide(append);
+        }
+
+        private void PlayEntrance()
+        {
+            _isVisible = true;
+            gameObject.SetActive(true);
+            KillAnimations();
+            if (canvasGroup != null)
+                canvasGroup.alpha = 0f;
+            if (visualRoot != null)
+            {
+                visualRoot.anchoredPosition = _restingPosition + Vector2.right * enterOffset;
+                visualRoot.localScale = new Vector3(0.94f, 0.94f, 1f);
+            }
+
+            Sequence sequence = DOTween.Sequence().SetUpdate(true);
+            if (canvasGroup != null)
+                sequence.Join(canvasGroup.DOFade(1f, enterDuration));
+            if (visualRoot != null)
+            {
+                sequence.Join(visualRoot.DOAnchorPos(_restingPosition, enterDuration).SetEase(Ease.OutBack));
+                sequence.Join(visualRoot.DOScale(1f, enterDuration).SetEase(Ease.OutQuad));
+            }
+            _activeSequence = sequence;
+        }
+
+        private void PlayCounterAndScheduleHide(bool appended)
+        {
+            _counterTween?.Kill();
+            _counterTween = DOTween.To(
+                    () => _displayedAmount,
+                    value =>
+                    {
+                        _displayedAmount = value;
+                        SetText(rewardField, _accumulatedAmount > 0 ? $"+{value}" : noRewardText);
+                    },
+                    _accumulatedAmount,
+                    countDuration)
+                .SetEase(Ease.OutCubic)
+                .SetUpdate(true);
+
+            Sequence hideSequence;
+            if (appended || _activeSequence == null)
+            {
+                _activeSequence?.Kill(false);
+                hideSequence = DOTween.Sequence().SetUpdate(true);
+            }
+            else
+            {
+                hideSequence = _activeSequence;
+            }
+            hideSequence.AppendInterval(visibleDuration);
+            if (canvasGroup != null)
+                hideSequence.Append(canvasGroup.DOFade(0f, exitDuration));
+            if (visualRoot != null)
+                hideSequence.Join(visualRoot.DOAnchorPos(_restingPosition + Vector2.right * enterOffset * 0.45f, exitDuration).SetEase(Ease.InQuad));
+            hideSequence.OnComplete(HideImmediate);
+            _activeSequence = hideSequence;
+
+            SetText(balanceField, $"{balancePrefix} {_targetBalance}");
         }
 
         private void BindCurrentBalance()
         {
-            if (rewardWallet == null || canvasGroup == null || canvasGroup.alpha > 0f)
-                return;
-
-            SetText(balanceField, $"{balancePrefix} {rewardWallet.Balance}");
+            if (rewardWallet != null && _isVisible == false)
+                SetText(balanceField, $"{balancePrefix} {rewardWallet.Balance}");
         }
 
-        private string BuildTitleText(CookingRewardGrant grant)
+        private string BuildTitleText(CookingRewardGrant grant, bool appended)
         {
-            if (grant == null)
-                return titleText;
+            if (appended)
+                return "보상 추가 획득";
 
             switch (grant.Result)
             {
                 case NpcConversationResult.Perfect:
                     return "완벽한 접대";
                 case NpcConversationResult.Correct:
-                    return "요청 충족";
+                    return "주문 만족";
                 case NpcConversationResult.Similar:
-                    return "비슷한 요리";
-                case NpcConversationResult.Disgusting:
-                case NpcConversationResult.Wrong:
+                    return "흥미로운 요리";
                 default:
                     return titleText;
             }
+        }
+
+        private Color ResolvePositiveColor()
+        {
+            return presentationSettings != null ? presentationSettings.PositiveColor : positiveColor;
         }
 
         private void EnsureReferences()
         {
             if (gamePanel == null)
                 gamePanel = GetComponentInParent<CookingGamePanel>();
-
             if (rewardWallet == null && gamePanel != null)
                 rewardWallet = gamePanel.RewardWallet;
-
             if (rewardWallet == null)
                 rewardWallet = GetComponentInParent<CookingRewardWallet>();
+            if (canvasGroup == null)
+                canvasGroup = GetComponent<CanvasGroup>();
+            if (visualRoot == null)
+                visualRoot = transform as RectTransform;
         }
 
-        private void EnsureLayout()
+        private void CaptureRestingPosition()
         {
-            if (canvasGroup != null
-                && titleField != null
-                && rewardField != null
-                && balanceField != null)
-            {
-                return;
-            }
-
-            Debug.LogError("CookingRewardToastView is missing canvasGroup/titleField/rewardField/balanceField references. Assign a prefab/inspector based toast.", this);
+            if (visualRoot != null && _isVisible == false)
+                _restingPosition = visualRoot.anchoredPosition;
         }
 
         private void SubscribePanelEvents()
@@ -183,11 +255,10 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
 
             UnsubscribePanelEvents();
-
             if (gamePanel == null)
                 return;
 
-            gamePanel.RewardGranted += HandleRewardGranted;
+            Bus<CookingRewardGrantedEvent>.Events += HandleRewardGranted;
             _subscribedPanel = gamePanel;
         }
 
@@ -196,45 +267,47 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            _subscribedPanel.RewardGranted -= HandleRewardGranted;
+            Bus<CookingRewardGrantedEvent>.Events -= HandleRewardGranted;
             _subscribedPanel = null;
         }
 
-        private void HandleRewardGranted(CookingRewardGrant grant)
+        private void HandleRewardGranted(CookingRewardGrantedEvent gameEvent)
         {
-            Show(grant);
+            if (gameEvent.Source == gamePanel)
+                Show(gameEvent.Grant);
+        }
+
+        private void KillAnimations()
+        {
+            _activeSequence?.Kill(false);
+            _activeSequence = null;
+            _counterTween?.Kill(false);
+            _counterTween = null;
         }
 
         private void HideImmediate()
         {
-            SetAlpha(0f);
-        }
-
-        private void SetAlpha(float value)
-        {
-            if (canvasGroup == null)
-                return;
-
-            canvasGroup.alpha = Mathf.Clamp01(value);
-        }
-
-        private void ApplyFontToExistingTexts()
-        {
-            if (fontAsset == null)
-                return;
-
-            TextMeshProUGUI[] labels = GetComponentsInChildren<TextMeshProUGUI>(true);
-            for (int i = 0; i < labels.Length; i++)
+            KillAnimations();
+            _isVisible = false;
+            _accumulatedAmount = 0;
+            _displayedAmount = 0;
+            if (canvasGroup != null)
             {
-                if (labels[i] != null)
-                    labels[i].font = fontAsset;
+                canvasGroup.alpha = 0f;
+                canvasGroup.interactable = false;
+                canvasGroup.blocksRaycasts = false;
+            }
+            if (visualRoot != null)
+            {
+                visualRoot.anchoredPosition = _restingPosition;
+                visualRoot.localScale = Vector3.one;
             }
         }
 
         private static void SetText(TextMeshProUGUI field, string text)
         {
             if (field != null)
-                field.text = text;
+                field.text = text ?? string.Empty;
         }
     }
 }

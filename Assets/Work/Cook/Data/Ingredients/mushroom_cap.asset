@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
   ingredientId: mushroom_cap
   displayName: "\uBC84\uC12F \uAC13"
+  iconSprite: {fileID: 21300000, guid: eaf24aeb6f1447b42a0b8669f822fd9b, type: 3}
   description: "\uADF8\uB987\uCC98\uB7FC \uC0DD\uAE34 \uBC84\uC12F\uC758 \uAC13 \uBD80\uBD84"
   category: {fileID: 11400000, guid: c09afd2ec0fc6144db663cb0e38a7b70, type: 2}
   modelPrefab: {fileID: 1843261731331868922, guid: 27c217d1d0298794a97ed57400c4a6b4, type: 3}
@@ -52,7 +53,7 @@ MonoBehaviour:
       qualityDelta: 0
       addTags: []
       removeTags: []
-      resultNameModifier:
+      resultNameModifier: 
       feedbackText: "\uBB34\uB09C\uD558\uAC8C \uC190\uC9C8\uD588\uC2B5\uB2C8\uB2E4."
     - grade: 2
       qualityDelta: 1
@@ -92,7 +93,7 @@ MonoBehaviour:
       qualityDelta: 0
       addTags: []
       removeTags: []
-      resultNameModifier:
+      resultNameModifier: 
       feedbackText: "\uBB34\uB09C\uD558\uAC8C \uC190\uC9C8\uD588\uC2B5\uB2C8\uB2E4."
     - grade: 2
       qualityDelta: 1

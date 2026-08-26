@@ -1,9 +1,11 @@
 using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -46,7 +48,7 @@ namespace Work.Cook.Code.Runtime.UI
             UnsubscribePanel();
             gamePanel = value;
 
-            if (isActiveAndEnabled)
+            if (isActiveAndEnabled == true)
                 SubscribePanel();
 
             Refresh();
@@ -98,7 +100,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (gamePanel == null)
                 return;
 
-            gamePanel.SnapshotChanged += HandleSnapshotChanged;
+            Bus<CookingGameSnapshotChangedEvent>.Events += HandleSnapshotChanged;
             _subscribedPanel = gamePanel;
         }
 
@@ -107,12 +109,16 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
+            Bus<CookingGameSnapshotChangedEvent>.Events -= HandleSnapshotChanged;
             _subscribedPanel = null;
         }
 
-        private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
+        private void HandleSnapshotChanged(CookingGameSnapshotChangedEvent gameEvent)
         {
+            if (gameEvent.Source != gamePanel)
+                return;
+
+            CookingGameSnapshot snapshot = gameEvent.Snapshot;
             if (snapshot == null
                 || snapshot.Screen == CookingGameScreenState.Preparation
                 || snapshot.Screen == CookingGameScreenState.MiniGame)

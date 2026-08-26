@@ -4,6 +4,7 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using Work.Core.EventBus;
 using Work.UtillUI.Code.Fade;
+using Work.UtillUI.Code.Settings;
 
 [DisallowMultipleComponent]
 public class TitleUIManager : MonoBehaviour
@@ -19,6 +20,7 @@ public class TitleUIManager : MonoBehaviour
 
     [Header("Settings Action")]
     [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GameSettingsPanel gameSettingsPanel;
     [SerializeField] private bool closeSettingsPanelOnStart = true;
     [SerializeField] private bool toggleSettingsPanel = true;
 
@@ -42,11 +44,17 @@ public class TitleUIManager : MonoBehaviour
     private void OnEnable()
     {
         Bus<TitleSettingsPanelClosedEvent>.Events += HandleSettingsPanelClosed;
+
+        if (gameSettingsPanel != null)
+            gameSettingsPanel.Closed += HandleGameSettingsPanelClosed;
     }
 
     private void OnDisable()
     {
         Bus<TitleSettingsPanelClosedEvent>.Events -= HandleSettingsPanelClosed;
+
+        if (gameSettingsPanel != null)
+            gameSettingsPanel.Closed -= HandleGameSettingsPanelClosed;
     }
 
     private void Awake()
@@ -178,6 +186,12 @@ public class TitleUIManager : MonoBehaviour
     {
         onSettingsClicked?.Invoke();
 
+        if (gameSettingsPanel != null)
+        {
+            gameSettingsPanel.Toggle();
+            return;
+        }
+
         if (settingsPanel == null)
         {
             LogMissingSettingsPanel();
@@ -195,6 +209,12 @@ public class TitleUIManager : MonoBehaviour
 
     public void CloseSettings()
     {
+        if (gameSettingsPanel != null)
+        {
+            gameSettingsPanel.Close();
+            return;
+        }
+
         Bus<TitleSettingsPanelClosedEvent>.Raise(new TitleSettingsPanelClosedEvent());
     }
 
@@ -266,6 +286,12 @@ public class TitleUIManager : MonoBehaviour
         if (settingsPanel != null)
             settingsPanel.SetActive(false);
 
+        if (_lockedButton != null && _lockedButton.Action == TitleButtonAction.Settings)
+            UnlockSelection();
+    }
+
+    private void HandleGameSettingsPanelClosed()
+    {
         if (_lockedButton != null && _lockedButton.Action == TitleButtonAction.Settings)
             UnlockSelection();
     }

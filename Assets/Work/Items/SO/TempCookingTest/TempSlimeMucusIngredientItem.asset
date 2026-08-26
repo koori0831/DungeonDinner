@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: Cooking_slime_mucus
   displayName: "\uC2AC\uB77C\uC784 \uC810\uC561"
-  description: Temp cooking test item mapped to slime_mucus.
+  description: "슬라임에서 채취한 점성이 강한 액체입니다."
   icon: {fileID: 21300000, guid: 6e9dcf5598e75fa44b8ad7befb3bce34, type: 3}
   category: {fileID: 11400000, guid: f2b58d9e3f104c6ba7d8e90123f45a6b, type: 2}
   worldLootPoolItem: {fileID: 0}

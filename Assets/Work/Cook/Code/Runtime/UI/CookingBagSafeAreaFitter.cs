@@ -28,13 +28,13 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void OnEnable()
         {
-            if (fitOnEnable)
+            if (fitOnEnable == true)
                 Fit();
         }
 
         private void LateUpdate()
         {
-            if (fitEveryFrame)
+            if (fitEveryFrame == true)
                 Fit();
         }
 
