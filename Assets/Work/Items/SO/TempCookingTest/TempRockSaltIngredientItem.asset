@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: Cooking_rock_salt
   displayName: "\uC554\uC5FC"
-  description: Temp cooking test item mapped to rock_salt.
+  description: "동굴 암반에서 캐낸 굵고 짭짤한 소금입니다."
   icon: {fileID: 21300000, guid: 9330f664a288b40449c47c5a2f721a46, type: 3}
   category: {fileID: 11400000, guid: f2b58d9e3f104c6ba7d8e90123f45a6b, type: 2}
   worldLootPoolItem: {fileID: 0}

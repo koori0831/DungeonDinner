@@ -93,6 +93,23 @@ namespace Work.NPC.Code.Runtime
                                          && _resultDialoguePlayed == false
                                          && _conversationCompleted == false;
 
+        public bool TryGetNpcData(string npcId, out NpcData npc)
+        {
+            EnsureDatabase();
+            npc = null;
+            return string.IsNullOrWhiteSpace(npcId) == false
+                   && _database != null
+                   && _database.Npcs.TryGetValue(npcId.Trim(), out npc);
+        }
+
+        public string GetNpcDisplayName(string npcId)
+        {
+            return TryGetNpcData(npcId, out NpcData npc)
+                   && string.IsNullOrWhiteSpace(npc.DisplayName) == false
+                ? npc.DisplayName.Trim()
+                : string.Empty;
+        }
+
         private void Awake()
         {
             EnsureDatabase();

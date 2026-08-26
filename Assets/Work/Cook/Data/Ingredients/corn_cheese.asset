@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: corn_cheese
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: corn_cheese
+  displayName: "\uCF58\uCE58\uC988"
+  iconSprite: {fileID: 21300000, guid: b5d8bfa5a00f99244ad1419f206f8a4e, type: 3}
+  description: "\uC54C\uB85D\uB2EC\uB85D\uD55C \uC625\uC218\uC218\uC640 \uCE58\uC988\uAC00
+    \uC5B4\uC6B0\uB7EC\uC9C4 \uC7AC\uB8CC\uC785\uB2C8\uB2E4."
+  category: {fileID: 11400000, guid: aaf105017487cfe41a8415dcc0c5841f, type: 2}
+  modelPrefab: {fileID: 8634902048644013783, guid: b5f08aac412d3834793897237ed2fb39, type: 3}
+  baseTags:
+  - {fileID: 11400000, guid: 3b481dff6be21cf49bccc4590786d902, type: 2}
+  - {fileID: 11400000, guid: f73414f9cae048d47bcb30ad6215c784, type: 2}
+  - {fileID: 11400000, guid: 5b122f10b24af134fa18da0d725c4921, type: 2}
+  preparationOptions:
+  - method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
+    displayNameOverride: "\uADF8\uB300\uB85C \uC0AC\uC6A9\uD558\uAE30"
+    description: "\uCF58\uCE58\uC988\uB97C \uC190\uC9C8\uD558\uC9C0 \uC54A\uACE0
+      \uADF8\uB300\uB85C \uC0AC\uC6A9\uD569\uB2C8\uB2E4."
+    addTags: []
+    removeTags: []
+    qualityDelta: 0
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 
+    miniGameFeedbackRules: []
+  - method: {fileID: 11400000, guid: 3123a5c0376a3ed4dad2b40fbb0c357b, type: 2}
+    displayNameOverride: "\uB178\uB987\uD558\uAC8C \uAD7D\uAE30"
+    description: "\uCF58\uCE58\uC988\uB97C \uB178\uB987\uD558\uAC8C \uAD6C\uC6CC
+      \uD48D\uBBF8\uB97C \uB354\uD569\uB2C8\uB2E4."
+    addTags: []
+    removeTags: []
+    qualityDelta: 0
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 
+    miniGameFeedbackRules: []

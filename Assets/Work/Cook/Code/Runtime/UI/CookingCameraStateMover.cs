@@ -1,9 +1,13 @@
-using System.Collections;
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -16,7 +20,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField, Min(0.01f)] private float moveDuration = 0.45f;
         [SerializeField] private AnimationCurve easing = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
-        private Coroutine _moveRoutine;
+        private CancellationTokenSource _moveCancellationTokenSource;
         private CookingGamePanel _subscribedPanel;
 
         private void Reset()
@@ -34,6 +38,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void OnDisable()
         {
+            CancelMove();
             UnsubscribePanel();
         }
 
@@ -45,7 +50,7 @@ namespace Work.Cook.Code.Runtime.UI
             UnsubscribePanel();
             gamePanel = value;
 
-            if (isActiveAndEnabled)
+            if (isActiveAndEnabled == true)
                 SubscribePanel();
         }
 
@@ -55,19 +60,16 @@ namespace Work.Cook.Code.Runtime.UI
             if (pose == null || targetCamera == null)
                 return;
 
-            if (_moveRoutine != null)
-            {
-                StopCoroutine(_moveRoutine);
-                _moveRoutine = null;
-            }
+            CancelMove();
 
-            if (instant || isActiveAndEnabled == false)
+            if (instant == true || isActiveAndEnabled == false)
             {
                 targetCamera.transform.SetPositionAndRotation(pose.position, pose.rotation);
                 return;
             }
 
-            _moveRoutine = StartCoroutine(MoveCamera(pose));
+            _moveCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
+            MoveCameraAsync(pose, _moveCancellationTokenSource).Forget();
         }
 
         private Transform ResolvePose(CookingGameScreenState state)
@@ -78,25 +80,52 @@ namespace Work.Cook.Code.Runtime.UI
             return conversationPose;
         }
 
-        private IEnumerator MoveCamera(Transform pose)
+        private async UniTask MoveCameraAsync(Transform pose, CancellationTokenSource cancellationTokenSource)
         {
+            CancellationToken cancellationToken = cancellationTokenSource.Token;
             Transform cameraTransform = targetCamera.transform;
             Vector3 startPosition = cameraTransform.position;
             Quaternion startRotation = cameraTransform.rotation;
             float elapsed = 0f;
 
-            while (elapsed < moveDuration)
+            try
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / moveDuration);
-                float eased = easing != null ? easing.Evaluate(t) : t;
-                cameraTransform.position = Vector3.Lerp(startPosition, pose.position, eased);
-                cameraTransform.rotation = Quaternion.Slerp(startRotation, pose.rotation, eased);
-                yield return null;
-            }
+                while (elapsed < moveDuration)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-            cameraTransform.SetPositionAndRotation(pose.position, pose.rotation);
-            _moveRoutine = null;
+                    elapsed += Time.deltaTime;
+                    float t = Mathf.Clamp01(elapsed / moveDuration);
+                    float eased = easing != null ? easing.Evaluate(t) : t;
+                    cameraTransform.position = Vector3.Lerp(startPosition, pose.position, eased);
+                    cameraTransform.rotation = Quaternion.Slerp(startRotation, pose.rotation, eased);
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+
+                cameraTransform.SetPositionAndRotation(pose.position, pose.rotation);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            finally
+            {
+                if (_moveCancellationTokenSource == cancellationTokenSource)
+                {
+                    _moveCancellationTokenSource.Dispose();
+                    _moveCancellationTokenSource = null;
+                }
+            }
+        }
+
+        private void CancelMove()
+        {
+            if (_moveCancellationTokenSource == null)
+                return;
+
+            _moveCancellationTokenSource.Cancel();
+            _moveCancellationTokenSource.Dispose();
+            _moveCancellationTokenSource = null;
         }
 
         private void EnsureReferences()
@@ -118,7 +147,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (gamePanel == null)
                 return;
 
-            gamePanel.ScreenChanged += HandleScreenChanged;
+            Bus<CookingGameScreenChangedEvent>.Events += HandleScreenChanged;
             _subscribedPanel = gamePanel;
         }
 
@@ -127,13 +156,16 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            _subscribedPanel.ScreenChanged -= HandleScreenChanged;
+            Bus<CookingGameScreenChangedEvent>.Events -= HandleScreenChanged;
             _subscribedPanel = null;
         }
 
-        private void HandleScreenChanged(CookingGameScreenState state)
+        private void HandleScreenChanged(CookingGameScreenChangedEvent gameEvent)
         {
-            ApplyState(state);
+            if (gameEvent.Source != gamePanel)
+                return;
+
+            ApplyState(gameEvent.Screen);
         }
     }
 }

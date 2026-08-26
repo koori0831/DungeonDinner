@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,15 +15,20 @@ namespace Work.Cook.Code.Runtime.UI
     /// 재료 선택 반복 버튼 프리팹의 표시와 입력 연결
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class CookingIngredientButtonView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public sealed class CookingIngredientButtonView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IScrollHandler
     {
         [SerializeField] private Button button;
         [SerializeField] private Image iconImage;
         [SerializeField] private TextMeshProUGUI labelField;
         [SerializeField] private GameObject selectedMarker;
+        [SerializeField] private RectTransform hoverVisualRoot;
+        [SerializeField, Min(1f)] private float hoverScale = 1.08f;
+        [SerializeField, Min(0f)] private float hoverDuration = 0.12f;
 
         private UnityAction _pointerEnterAction;
         private UnityAction _pointerExitAction;
+        private ScrollRect _parentScrollRect;
+        private Vector3 _hoverBaseScale = Vector3.one;
 
         public Button Button => button;
 
@@ -36,6 +42,7 @@ namespace Work.Cook.Code.Runtime.UI
             UnityAction pointerExitAction)
         {
             EnsureReferences();
+            ResetHoverVisual();
             _pointerEnterAction = pointerEnterAction;
             _pointerExitAction = pointerExitAction;
 
@@ -70,6 +77,8 @@ namespace Work.Cook.Code.Runtime.UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            AnimateHoverVisual(_hoverBaseScale * hoverScale);
+
             if (_pointerEnterAction != null)
             {
                 _pointerEnterAction.Invoke();
@@ -78,10 +87,48 @@ namespace Work.Cook.Code.Runtime.UI
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            AnimateHoverVisual(_hoverBaseScale);
+
             if (_pointerExitAction != null)
             {
                 _pointerExitAction.Invoke();
             }
+        }
+
+        public void OnScroll(PointerEventData eventData)
+        {
+            EnsureReferences();
+            if (_parentScrollRect != null)
+                _parentScrollRect.OnScroll(eventData);
+        }
+
+        private void OnDisable()
+        {
+            ResetHoverVisual();
+        }
+
+        private void AnimateHoverVisual(Vector3 targetScale)
+        {
+            if (hoverVisualRoot == null)
+                return;
+
+            hoverVisualRoot.DOKill();
+            if (hoverDuration <= 0f)
+            {
+                hoverVisualRoot.localScale = targetScale;
+                return;
+            }
+
+            hoverVisualRoot.DOScale(targetScale, hoverDuration).SetEase(Ease.OutQuad);
+        }
+
+        private void ResetHoverVisual()
+        {
+            if (hoverVisualRoot == null)
+                return;
+
+            hoverVisualRoot.DOKill();
+            hoverVisualRoot.localScale = _hoverBaseScale;
         }
 
         private void EnsureReferences()
@@ -95,6 +142,15 @@ namespace Work.Cook.Code.Runtime.UI
             {
                 labelField = GetComponentInChildren<TextMeshProUGUI>(true);
             }
+
+            if (hoverVisualRoot == null && iconImage != null)
+                hoverVisualRoot = iconImage.rectTransform;
+
+            if (hoverVisualRoot != null)
+                _hoverBaseScale = Vector3.one;
+
+            if (_parentScrollRect == null)
+                _parentScrollRect = GetComponentInParent<ScrollRect>();
         }
     }
 }

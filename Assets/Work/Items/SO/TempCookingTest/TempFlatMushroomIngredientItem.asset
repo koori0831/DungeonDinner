@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: Cooking_flat_mushroom
   displayName: "\uB0A9\uC791 \uBC84\uC12F"
-  description: Temp cooking test item mapped to flat_mushroom.
+  description: "납작한 모양과 쫄깃한 식감이 특징인 버섯입니다."
   icon: {fileID: 21300000, guid: ac055dd5fa876c745becdbbb09028c0a, type: 3}
   category: {fileID: 11400000, guid: f2b58d9e3f104c6ba7d8e90123f45a6b, type: 2}
   worldLootPoolItem: {fileID: 0}
