@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: bleak
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodTagSO
   tagId: bleak
-  displayName: "밋밋함"
-  description: "맛과 향이 지나치게 옅어 밋밋하게 느껴지는 특성입니다."
+  displayName: bleak
+  description: "NPC \uC8FC\uBB38 \uD3C9\uAC00\uC5D0 \uC0AC\uC6A9\uB418\uB294 \uD0DC\uADF8
+    'bleak'\uC785\uB2C8\uB2E4."

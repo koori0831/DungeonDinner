@@ -1,12 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
-using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.Integration
 {
@@ -16,6 +15,7 @@ namespace Work.Cook.Code.Runtime.Integration
 
         [SerializeField] private string sourceName = "레시피 재료 후보";
 
+        public event Action IngredientsChanged;
         public string SourceName => sourceName;
 
         public IReadOnlyList<IngredientSO> GetAvailableIngredients(CookingGamePanel owner, CookingFlowRunner runner)
@@ -45,7 +45,7 @@ namespace Work.Cook.Code.Runtime.Integration
                 }
             }
 
-            NotifyIngredientsChanged();
+            IngredientsChanged?.Invoke();
         }
 
         public void Clear()
@@ -54,12 +54,7 @@ namespace Work.Cook.Code.Runtime.Integration
                 return;
 
             _candidates.Clear();
-            NotifyIngredientsChanged();
-        }
-
-        private void NotifyIngredientsChanged()
-        {
-            Bus<CookingIngredientSourceChangedEvent>.Raise(new CookingIngredientSourceChangedEvent(this));
+            IngredientsChanged?.Invoke();
         }
     }
 }

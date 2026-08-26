@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Work.Cook.Code.Data;
-using Work.Cook.Code.Runtime.Events;
 using Work.Core.EventBus;
 using Work.Items.Code;
 using Work.Players.Code.Inventory;
@@ -30,6 +30,11 @@ namespace Work.Cook.Code.Runtime.Integration
         private readonly List<InventoryItemStack> CONSUME_REQUESTS = new List<InventoryItemStack>();
 
         private bool _isSubscribedToInventoryEvents;
+
+        /// <summary>
+        /// 재료 목록이 변경될 때 발생하는 이벤트
+        /// </summary>
+        public event Action IngredientsChanged;
 
         /// <summary>
         /// 조리 재료 소스 표시 이름
@@ -417,7 +422,14 @@ namespace Work.Cook.Code.Runtime.Integration
 
         private void NotifyIngredientsChanged()
         {
-            Bus<CookingIngredientSourceChangedEvent>.Raise(new CookingIngredientSourceChangedEvent(this));
+            Action handler = IngredientsChanged;
+
+            if (handler == null)
+            {
+                return;
+            }
+
+            handler.Invoke();
         }
     }
 }

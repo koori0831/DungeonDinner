@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
+using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
-using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.Systems
 {
@@ -38,14 +37,16 @@ namespace Work.Cook.Code.Runtime.Systems
             new List<CookingKnowledgeUpdate>();
         private readonly Dictionary<string, HashSet<string>> _knownRecipeTagIds =
             new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
-        private readonly CookingKnowledgePlayerPrefsRepository _playerPrefsRepository =
-            new CookingKnowledgePlayerPrefsRepository();
 
         private bool _initialized;
 
+        public event Action KnowledgeChanged;
+        public event Action<CookingKnowledgeUpdate> KnowledgeUpdateQueued;
+
         public CookingDataCatalogSO Catalog => catalog;
         public string PlayerPrefsKey => playerPrefsKey;
-        public bool HasSavedPlayerPrefs => _playerPrefsRepository.HasSave(playerPrefsKey);
+        public bool HasSavedPlayerPrefs => string.IsNullOrWhiteSpace(playerPrefsKey) == false
+                                           && PlayerPrefs.HasKey(playerPrefsKey);
         public int DiscoveredRecipeCount
         {
             get
@@ -94,12 +95,12 @@ namespace Work.Cook.Code.Runtime.Systems
             if (defaultCatalog != null)
                 catalog = defaultCatalog;
 
-            if (_initialized == true)
+            if (_initialized)
                 return;
 
             RebuildFromSeedData();
 
-            if (loadFromPlayerPrefsOnAwake == true)
+            if (loadFromPlayerPrefsOnAwake)
                 LoadFromPlayerPrefs();
 
             _initialized = true;
@@ -117,7 +118,7 @@ namespace Work.Cook.Code.Runtime.Systems
         {
             EnsureInitialized();
 
-            string recipeId = CookingKnowledgeKeyUtility.GetRecipeId(recipe);
+            string recipeId = GetRecipeId(recipe);
             return string.IsNullOrWhiteSpace(recipeId) == false
                    && _discoveredRecipeIds.Contains(recipeId);
         }
@@ -126,7 +127,7 @@ namespace Work.Cook.Code.Runtime.Systems
         {
             EnsureInitialized();
 
-            string key = CookingKnowledgeKeyUtility.BuildPreparationKey(ingredient, option);
+            string key = BuildPreparationKey(ingredient, option);
             return string.IsNullOrWhiteSpace(key) == false
                    && _knownPreparationEffectKeys.Contains(key);
         }
@@ -135,7 +136,7 @@ namespace Work.Cook.Code.Runtime.Systems
         {
             EnsureInitialized();
 
-            string recipeId = CookingKnowledgeKeyUtility.GetRecipeId(recipe);
+            string recipeId = GetRecipeId(recipe);
             return string.IsNullOrWhiteSpace(recipeId) == false
                    && _attemptedRecipeIds.Contains(recipeId);
         }
@@ -144,7 +145,7 @@ namespace Work.Cook.Code.Runtime.Systems
         {
             EnsureInitialized();
 
-            string ingredientId = CookingKnowledgeKeyUtility.GetIngredientId(ingredient);
+            string ingredientId = GetIngredientId(ingredient);
             return string.IsNullOrWhiteSpace(ingredientId) == false
                    && _triedIngredientIds.Contains(ingredientId);
         }
@@ -153,7 +154,7 @@ namespace Work.Cook.Code.Runtime.Systems
         {
             EnsureInitialized();
 
-            string key = CookingKnowledgeKeyUtility.BuildPreparationKey(ingredient, option);
+            string key = BuildPreparationKey(ingredient, option);
             return string.IsNullOrWhiteSpace(key) == false
                    && _triedPreparationKeys.Contains(key);
         }
@@ -177,8 +178,8 @@ namespace Work.Cook.Code.Runtime.Systems
         {
             EnsureInitialized();
 
-            string recipeId = CookingKnowledgeKeyUtility.GetRecipeId(recipe);
-            if (string.IsNullOrWhiteSpace(recipeId) == true
+            string recipeId = GetRecipeId(recipe);
+            if (string.IsNullOrWhiteSpace(recipeId)
                 || _knownRecipeTagIds.TryGetValue(recipeId, out HashSet<string> tagIds) == false)
             {
                 return Array.Empty<FoodTagSO>();
@@ -200,7 +201,7 @@ namespace Work.Cook.Code.Runtime.Systems
             EnsureInitialized();
 
             bool changed = AddRecipe(recipe);
-            if (changed == true)
+            if (changed)
                 CommitChanges();
 
             return changed;
@@ -213,7 +214,7 @@ namespace Work.Cook.Code.Runtime.Systems
             bool changed = AddTriedIngredient(ingredient);
             changed |= AddTriedPreparation(ingredient, option);
             changed |= AddPreparationEffect(ingredient, option);
-            if (changed == true)
+            if (changed)
                 CommitChanges();
 
             return changed;
@@ -230,7 +231,7 @@ namespace Work.Cook.Code.Runtime.Systems
             for (int i = 0; i < ingredients.Count; i++)
                 changed |= AddTriedIngredient(ingredients[i]);
 
-            if (changed == true)
+            if (changed)
                 CommitChanges();
 
             return changed;
@@ -266,7 +267,7 @@ namespace Work.Cook.Code.Runtime.Systems
                 }
             }
 
-            if (changed == true)
+            if (changed)
                 CommitChanges();
 
             return changed;
@@ -284,10 +285,13 @@ namespace Work.Cook.Code.Runtime.Systems
             _pendingUpdates.Clear();
             _knownRecipeTagIds.Clear();
 
-            if (saveToPlayerPrefs == true)
-                _playerPrefsRepository.Delete(playerPrefsKey);
+            if (saveToPlayerPrefs && string.IsNullOrWhiteSpace(playerPrefsKey) == false)
+            {
+                PlayerPrefs.DeleteKey(playerPrefsKey);
+                PlayerPrefs.Save();
+            }
 
-            NotifyKnowledgeChanged();
+            KnowledgeChanged?.Invoke();
         }
 
         public void ResetToSeedDataForDebug()
@@ -295,7 +299,7 @@ namespace Work.Cook.Code.Runtime.Systems
             EnsureInitialized();
             RebuildFromSeedData();
             SaveToPlayerPrefs();
-            NotifyKnowledgeChanged();
+            KnowledgeChanged?.Invoke();
         }
 
         public string BuildDebugSummary()
@@ -338,7 +342,24 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private void LoadFromPlayerPrefs()
         {
-            CookingKnowledgeSaveData saveData = _playerPrefsRepository.Load(playerPrefsKey, this);
+            if (string.IsNullOrWhiteSpace(playerPrefsKey) || PlayerPrefs.HasKey(playerPrefsKey) == false)
+                return;
+
+            string json = PlayerPrefs.GetString(playerPrefsKey);
+            if (string.IsNullOrWhiteSpace(json))
+                return;
+
+            CookingKnowledgeSaveData saveData;
+            try
+            {
+                saveData = JsonUtility.FromJson<CookingKnowledgeSaveData>(json);
+            }
+            catch (ArgumentException exception)
+            {
+                Debug.LogWarning($"Failed to load cooking knowledge data. {exception.Message}", this);
+                return;
+            }
+
             if (saveData == null)
                 return;
 
@@ -354,7 +375,7 @@ namespace Work.Cook.Code.Runtime.Systems
             for (int i = 0; i < saveData.knownRecipeTags.Count; i++)
             {
                 KnownRecipeTagSaveData entry = saveData.knownRecipeTags[i];
-                if (entry == null || string.IsNullOrWhiteSpace(entry.recipeId) == true)
+                if (entry == null || string.IsNullOrWhiteSpace(entry.recipeId))
                     continue;
 
                 HashSet<string> tags = GetOrCreateRecipeTagSet(entry.recipeId);
@@ -364,7 +385,7 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private void SaveToPlayerPrefs()
         {
-            if (saveToPlayerPrefs == false || string.IsNullOrWhiteSpace(playerPrefsKey) == true)
+            if (saveToPlayerPrefs == false || string.IsNullOrWhiteSpace(playerPrefsKey))
                 return;
 
             CookingKnowledgeSaveData saveData = new CookingKnowledgeSaveData
@@ -386,24 +407,25 @@ namespace Work.Cook.Code.Runtime.Systems
                 });
             }
 
-            _playerPrefsRepository.Save(playerPrefsKey, saveData);
+            PlayerPrefs.SetString(playerPrefsKey, JsonUtility.ToJson(saveData));
+            PlayerPrefs.Save();
         }
 
         private void CommitChanges()
         {
             SaveToPlayerPrefs();
-            NotifyKnowledgeChanged();
+            KnowledgeChanged?.Invoke();
         }
 
         private bool AddRecipe(RecipeSO recipe)
         {
-            string recipeId = CookingKnowledgeKeyUtility.GetRecipeId(recipe);
-            if (string.IsNullOrWhiteSpace(recipeId) == true || _discoveredRecipeIds.Add(recipeId) == false)
+            string recipeId = GetRecipeId(recipe);
+            if (string.IsNullOrWhiteSpace(recipeId) || _discoveredRecipeIds.Add(recipeId) == false)
                 return false;
 
             QueueUpdate(new CookingKnowledgeUpdate(
                 CookingKnowledgeUpdateType.RecipeDiscovered,
-                "레시피 발견",
+                "???덉떆??諛쒓껄",
                 recipe != null ? recipe.DisplayName : recipeId,
                 recipe));
             return true;
@@ -411,8 +433,8 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private bool AddAttemptedRecipe(RecipeSO recipe)
         {
-            string recipeId = CookingKnowledgeKeyUtility.GetRecipeId(recipe);
-            if (string.IsNullOrWhiteSpace(recipeId) == true || _attemptedRecipeIds.Add(recipeId) == false)
+            string recipeId = GetRecipeId(recipe);
+            if (string.IsNullOrWhiteSpace(recipeId) || _attemptedRecipeIds.Add(recipeId) == false)
                 return false;
             return true;
 
@@ -420,8 +442,8 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private bool AddRecipeTags(RecipeSO recipe, IReadOnlyList<FoodTagSO> tags)
         {
-            string recipeId = CookingKnowledgeKeyUtility.GetRecipeId(recipe);
-            if (string.IsNullOrWhiteSpace(recipeId) == true || tags == null)
+            string recipeId = GetRecipeId(recipe);
+            if (string.IsNullOrWhiteSpace(recipeId) || tags == null)
                 return false;
 
             HashSet<string> tagSet = GetOrCreateRecipeTagSet(recipeId);
@@ -429,16 +451,16 @@ namespace Work.Cook.Code.Runtime.Systems
 
             for (int i = 0; i < tags.Count; i++)
             {
-                string tagId = CookingKnowledgeKeyUtility.GetTagId(tags[i]);
+                string tagId = GetTagId(tags[i]);
                 if (string.IsNullOrWhiteSpace(tagId) == false)
                     changed |= tagSet.Add(tagId);
             }
 
-            if (changed == true)
+            if (changed)
             {
                 QueueUpdate(new CookingKnowledgeUpdate(
                     CookingKnowledgeUpdateType.RecipeTagsRevealed,
-                    "유효 태그 기록",
+                    "?좏슚 ?쒓렇 湲곕줉",
                     recipe != null ? recipe.DisplayName : recipeId,
                     recipe));
             }
@@ -448,14 +470,14 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private bool AddPreparationEffect(IngredientSO ingredient, IngredientPreparationOption option)
         {
-            string key = CookingKnowledgeKeyUtility.BuildPreparationKey(ingredient, option);
-            if (string.IsNullOrWhiteSpace(key) == true || _knownPreparationEffectKeys.Add(key) == false)
+            string key = BuildPreparationKey(ingredient, option);
+            if (string.IsNullOrWhiteSpace(key) || _knownPreparationEffectKeys.Add(key) == false)
                 return false;
 
             QueueUpdate(new CookingKnowledgeUpdate(
                 CookingKnowledgeUpdateType.PreparationEffectRevealed,
-                "손질 효과 기록",
-                CookingKnowledgeKeyUtility.BuildPreparationUpdateBody(ingredient, option),
+                "?먯쭏 ?④낵 湲곕줉",
+                BuildPreparationUpdateBody(ingredient, option),
                 null,
                 ingredient,
                 option != null ? option.Method : null));
@@ -464,8 +486,8 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private bool AddTriedIngredient(IngredientSO ingredient)
         {
-            string ingredientId = CookingKnowledgeKeyUtility.GetIngredientId(ingredient);
-            if (string.IsNullOrWhiteSpace(ingredientId) == true || _triedIngredientIds.Add(ingredientId) == false)
+            string ingredientId = GetIngredientId(ingredient);
+            if (string.IsNullOrWhiteSpace(ingredientId) || _triedIngredientIds.Add(ingredientId) == false)
                 return false;
             return true;
 
@@ -473,8 +495,8 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private bool AddTriedPreparation(IngredientSO ingredient, IngredientPreparationOption option)
         {
-            string key = CookingKnowledgeKeyUtility.BuildPreparationKey(ingredient, option);
-            if (string.IsNullOrWhiteSpace(key) == true || _triedPreparationKeys.Add(key) == false)
+            string key = BuildPreparationKey(ingredient, option);
+            if (string.IsNullOrWhiteSpace(key) || _triedPreparationKeys.Add(key) == false)
                 return false;
             return true;
 
@@ -486,18 +508,13 @@ namespace Work.Cook.Code.Runtime.Systems
                 return;
 
             _pendingUpdates.Add(update);
-            Bus<CookingKnowledgeUpdateQueuedEvent>.Raise(new CookingKnowledgeUpdateQueuedEvent(this, update));
-        }
-
-        private void NotifyKnowledgeChanged()
-        {
-            Bus<CookingKnowledgeChangedEvent>.Raise(new CookingKnowledgeChangedEvent(this));
+            KnowledgeUpdateQueued?.Invoke(update);
         }
 
         private HashSet<string> GetOrCreateRecipeTagSet(string recipeId)
         {
-            recipeId = CookingKnowledgeKeyUtility.NormalizeId(recipeId);
-            if (_knownRecipeTagIds.TryGetValue(recipeId, out HashSet<string> tagSet) == true)
+            recipeId = NormalizeId(recipeId);
+            if (_knownRecipeTagIds.TryGetValue(recipeId, out HashSet<string> tagSet))
                 return tagSet;
 
             tagSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -507,14 +524,14 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private FoodTagSO FindTagById(string tagId)
         {
-            tagId = CookingKnowledgeKeyUtility.NormalizeId(tagId);
-            if (string.IsNullOrWhiteSpace(tagId) == true || catalog == null)
+            tagId = NormalizeId(tagId);
+            if (string.IsNullOrWhiteSpace(tagId) || catalog == null)
                 return null;
 
             for (int i = 0; i < catalog.Tags.Count; i++)
             {
                 FoodTagSO tag = catalog.Tags[i];
-                if (tag != null && string.Equals(tag.TagId, tagId, StringComparison.OrdinalIgnoreCase) == true)
+                if (tag != null && string.Equals(tag.TagId, tagId, StringComparison.OrdinalIgnoreCase))
                     return tag;
             }
 
@@ -534,10 +551,69 @@ namespace Work.Cook.Code.Runtime.Systems
 
             for (int i = 0; i < ids.Count; i++)
             {
-                string id = CookingKnowledgeKeyUtility.NormalizeId(ids[i]);
+                string id = NormalizeId(ids[i]);
                 if (string.IsNullOrWhiteSpace(id) == false)
                     target.Add(id);
             }
+        }
+
+        private static string BuildPreparationKey(IngredientSO ingredient, IngredientPreparationOption option)
+        {
+            if (ingredient == null || option == null)
+                return string.Empty;
+
+            string ingredientId = GetIngredientId(ingredient);
+            string methodId = option.Method != null ? option.Method.MethodId : option.DisplayName;
+            methodId = NormalizeId(methodId);
+
+            if (string.IsNullOrWhiteSpace(ingredientId) || string.IsNullOrWhiteSpace(methodId))
+                return string.Empty;
+
+            return $"{ingredientId}:{methodId}";
+        }
+
+        private static string BuildPreparationUpdateBody(IngredientSO ingredient, IngredientPreparationOption option)
+        {
+            string ingredientName = ingredient != null ? ingredient.DisplayName : "?????녿뒗 ?щ즺";
+            string methodName = option != null
+                ? string.IsNullOrWhiteSpace(option.DisplayName) == false
+                    ? option.DisplayName
+                    : option.Method != null ? option.Method.DisplayName : "?????녿뒗 ?먯쭏"
+                : "?먯쭏 ?놁쓬";
+
+            return $"{ingredientName} - {methodName}";
+        }
+
+        private static string GetRecipeId(RecipeSO recipe)
+        {
+            if (recipe == null)
+                return string.Empty;
+
+            string recipeId = NormalizeId(recipe.RecipeId);
+            return string.IsNullOrWhiteSpace(recipeId) ? NormalizeId(recipe.DisplayName) : recipeId;
+        }
+
+        private static string GetIngredientId(IngredientSO ingredient)
+        {
+            if (ingredient == null)
+                return string.Empty;
+
+            string ingredientId = NormalizeId(ingredient.IngredientId);
+            return string.IsNullOrWhiteSpace(ingredientId) ? NormalizeId(ingredient.DisplayName) : ingredientId;
+        }
+
+        private static string GetTagId(FoodTagSO tag)
+        {
+            if (tag == null)
+                return string.Empty;
+
+            string tagId = NormalizeId(tag.TagId);
+            return string.IsNullOrWhiteSpace(tagId) ? NormalizeId(tag.DisplayName) : tagId;
+        }
+
+        private static string NormalizeId(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
         }
 
         [Serializable]
@@ -558,6 +634,24 @@ namespace Work.Cook.Code.Runtime.Systems
 
             public IngredientSO Ingredient => ingredient;
             public IngredientPreparationOption PreparationOption => preparationOption;
+        }
+
+        [Serializable]
+        private sealed class CookingKnowledgeSaveData
+        {
+            public List<string> discoveredRecipeIds = new List<string>();
+            public List<string> knownPreparationEffectKeys = new List<string>();
+            public List<string> attemptedRecipeIds = new List<string>();
+            public List<string> triedIngredientIds = new List<string>();
+            public List<string> triedPreparationKeys = new List<string>();
+            public List<KnownRecipeTagSaveData> knownRecipeTags = new List<KnownRecipeTagSaveData>();
+        }
+
+        [Serializable]
+        private sealed class KnownRecipeTagSaveData
+        {
+            public string recipeId;
+            public List<string> tagIds = new List<string>();
         }
     }
 }

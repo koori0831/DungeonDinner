@@ -1,7 +1,9 @@
 using TMPro;
 using UnityEngine;
-using Work.Cook.Code.Runtime.Events;
-using Work.Core.EventBus;
+using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Integration;
+using Work.Cook.Code.Runtime.Systems;
+using Work.Cook.Code.Runtime.UI;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -33,7 +35,7 @@ namespace Work.Cook.Code.Runtime.UI
         {
             EnsureReferences();
 
-            if (bindInputOnEnable == true)
+            if (bindInputOnEnable)
                 BindInput();
 
             SubscribePanel();
@@ -53,7 +55,7 @@ namespace Work.Cook.Code.Runtime.UI
             UnsubscribePanel();
             gamePanel = value;
 
-            if (isActiveAndEnabled == true)
+            if (isActiveAndEnabled)
                 SubscribePanel();
 
             ApplySnapshot(gamePanel != null ? gamePanel.CurrentSnapshot : null);
@@ -67,7 +69,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (inputField != null && inputField.text != safeQuery)
                 inputField.SetTextWithoutNotify(safeQuery);
 
-            RaiseSearchQueryChange(safeQuery);
+            gamePanel?.SetIngredientSearchQuery(safeQuery);
         }
 
         public void ClearSearchQuery()
@@ -77,7 +79,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void HandleValueChanged(string value)
         {
-            RaiseSearchQueryChange(value);
+            gamePanel?.SetIngredientSearchQuery(value);
         }
 
         private void ApplySnapshot(CookingGameSnapshot snapshot)
@@ -85,18 +87,18 @@ namespace Work.Cook.Code.Runtime.UI
             if (inputField == null)
                 return;
 
-            if (onlyInteractableDuringInventory == true)
+            if (onlyInteractableDuringInventory)
                 inputField.interactable = snapshot != null
                                           && snapshot.Screen == CookingGameScreenState.Inventory;
 
-            if (clearWhenOpeningDirectSelection == true
+            if (clearWhenOpeningDirectSelection
                 && snapshot != null
                 && snapshot.Screen == CookingGameScreenState.Inventory
                 && _lastScreen != CookingGameScreenState.Inventory
                 && string.IsNullOrEmpty(inputField.text) == false)
             {
                 inputField.SetTextWithoutNotify(string.Empty);
-                RaiseSearchQueryChange(string.Empty);
+                gamePanel?.SetIngredientSearchQuery(string.Empty);
             }
 
             _lastScreen = snapshot != null ? snapshot.Screen : CookingGameScreenState.None;
@@ -134,7 +136,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (gamePanel == null)
                 return;
 
-            Bus<CookingGameSnapshotChangedEvent>.Events += HandleSnapshotChanged;
+            gamePanel.SnapshotChanged += HandleSnapshotChanged;
             _subscribedPanel = gamePanel;
         }
 
@@ -143,25 +145,13 @@ namespace Work.Cook.Code.Runtime.UI
             if (_subscribedPanel == null)
                 return;
 
-            Bus<CookingGameSnapshotChangedEvent>.Events -= HandleSnapshotChanged;
+            _subscribedPanel.SnapshotChanged -= HandleSnapshotChanged;
             _subscribedPanel = null;
         }
 
-        private void HandleSnapshotChanged(CookingGameSnapshotChangedEvent gameEvent)
+        private void HandleSnapshotChanged(CookingGameSnapshot snapshot)
         {
-            if (gameEvent.Source != gamePanel)
-                return;
-
-            ApplySnapshot(gameEvent.Snapshot);
-        }
-
-        private void RaiseSearchQueryChange(string query)
-        {
-            if (gamePanel == null)
-                return;
-
-            Bus<CookingIngredientSearchQueryChangeRequestedEvent>.Raise(
-                new CookingIngredientSearchQueryChangeRequestedEvent(gamePanel, query));
+            ApplySnapshot(snapshot);
         }
     }
 }

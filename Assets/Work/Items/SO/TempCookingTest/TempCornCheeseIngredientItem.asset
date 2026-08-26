@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: Cooking_corn_cheese
   displayName: "\uCF58\uCE58\uC988"
-  description: "\uC694\uB9AC\uC5D0 \uC0AC\uC6A9\uD560 \uC218 \uC788\uB294 \uCF58\uCE58\uC988\uC785\uB2C8\uB2E4."
+  description: Temp cooking test item mapped to slime_nucleus.
   icon: {fileID: 21300000, guid: b5d8bfa5a00f99244ad1419f206f8a4e, type: 3}
   category: {fileID: 11400000, guid: f2b58d9e3f104c6ba7d8e90123f45a6b, type: 2}
   worldLootPoolItem: {fileID: 0}
   isStackable: 1
   maxStackAmount: 99
-  ingredient: {fileID: 11400000, guid: 8cec7b909ae7ef04d88c301ac7ae8435, type: 2}
+  ingredient: {fileID: 0}

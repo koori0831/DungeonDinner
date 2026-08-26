@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.PreparationMethodSO
   methodId: dilute
   displayName: "\uBB3D\uAC8C \uB9CC\uB4E4\uAE30"
-  iconSprite: {fileID: 21300000, guid: 1e7add56deb8f9b4181c7fd86355b320, type: 3}
+  iconSprite: {fileID: 0}
   description: "\uC694\uB9AC\uAC00 \uBB3D\uC5B4\uC838 \uC77C\uBD80 NPC\uAC00 \uD53C\uD558\uB294
     \uACB0\uACFC\uAC00 \uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-  miniGameType: 10
+  miniGameType: 0

@@ -20,9 +20,6 @@ namespace Work.Cook.Code.Runtime.UI
         /// <returns>표시용 아이콘</returns>
         public static Sprite ResolveIngredientIcon(IngredientSO ingredient)
         {
-            if (ingredient != null && ingredient.IconSprite != null)
-                return ingredient.IconSprite;
-
             string key = ingredient != null ? ingredient.IngredientId : "missing_ingredient";
             string label = ingredient != null ? ingredient.DisplayName : "Missing Ingredient";
             return ItemIconUtility.GetOrCreateTempIcon($"ingredient_{key}", label, 0.42f, 0.62f, 0.32f);
@@ -39,9 +36,6 @@ namespace Work.Cook.Code.Runtime.UI
             {
                 return ItemIconUtility.GetOrCreateTempIcon("dish_missing", "Missing Dish", 0.62f, 0.42f, 0.28f);
             }
-
-            if (result.BaseRecipe != null && result.BaseRecipe.IconSprite != null)
-                return result.BaseRecipe.IconSprite;
 
             string key = string.IsNullOrWhiteSpace(result.RecipeId) == false ? result.RecipeId : result.DisplayName;
             if (result.IsDisgusting == true)

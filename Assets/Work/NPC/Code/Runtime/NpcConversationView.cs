@@ -21,8 +21,7 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private bool showWhenOrderReady = true;
         [SerializeField] private bool hideWhenCookingStepReady;
         [SerializeField] private bool hideWhenConversationCompleted;
-        [SerializeField] private bool clearChatHistoryWhenConversationStarted = true;
-        [SerializeField] private bool clearChatHistoryWhenConversationCompleted;
+        [SerializeField] private bool clearChatHistoryWhenConversationCompleted = true;
         [SerializeField] private bool showSpeakerNameInBubble = true;
         [SerializeField] private bool completeTypingOnSubmit = true;
         [SerializeField] private string playerNameColor = "#000000";
@@ -172,9 +171,6 @@ namespace Work.NPC.Code.Runtime
 
         private void HandleConversationStarted()
         {
-            if (clearChatHistoryWhenConversationStarted == true)
-                chatPanel?.ClearChats();
-
             if (showWhenConversationStarted == true)
                 SetVisible(true);
         }
