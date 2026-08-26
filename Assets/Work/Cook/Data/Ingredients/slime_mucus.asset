@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
   ingredientId: slime_mucus
   displayName: "\uC2AC\uB77C\uC784 \uC810\uC561"
+  iconSprite: {fileID: 21300000, guid: 6e9dcf5598e75fa44b8ad7befb3bce34, type: 3}
   description: "\uC2AC\uB77C\uC784\uC744 \uBCA0\uAE30\uB098 \uD0C0\uACA9\uB958 \uD0C0\uC785\uC73C\uB85C
     \uACF5\uACA9\uD558\uBA74 \uB4DC\uB78D\uB418\uB294 \uC7AC\uB8CC\uC785\uB2C8\uB2E4."
   category: {fileID: 0}
@@ -34,6 +35,7 @@ MonoBehaviour:
     causesDisgusting: 0
     addsPoison: 0
     resultNameModifier: 
+    miniGameFeedbackRules: []
   - method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
     displayNameOverride: "\uADF8\uB300\uB85C \uC0AC\uC6A9\uD558\uAE30"
     description: "\uC7AC\uB8CC \uBCF8\uC5F0\uC758 \uB9DB\uC744 \uC0B4\uB9AC\uAE30
@@ -44,6 +46,7 @@ MonoBehaviour:
     causesDisgusting: 0
     addsPoison: 0
     resultNameModifier: 
+    miniGameFeedbackRules: []
   - method: {fileID: 11400000, guid: 46b782774bfe5674e83243822b1c1872, type: 2}
     displayNameOverride: "\uC0B4\uC9DD \uC5BC\uB824\uC11C \uC0AC\uC6A9\uD558\uAE30"
     description: "\uC0B4\uC5BC\uC74C\uCC98\uB7FC \uC544\uC8FC \uC0B4\uC9DD \uC5BC\uB824
@@ -56,3 +59,4 @@ MonoBehaviour:
     causesDisgusting: 0
     addsPoison: 0
     resultNameModifier: "\uCC28\uAC00\uC6B4 "
+    miniGameFeedbackRules: []

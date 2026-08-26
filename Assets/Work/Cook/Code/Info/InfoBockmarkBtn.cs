@@ -107,7 +107,7 @@ namespace Work.Cook.Code.Info
 
             rect.DOKill();
 
-            if (instant)
+            if (instant == true)
             {
                 rect.anchoredPosition = new Vector2(targetX, rect.anchoredPosition.y);
                 return;

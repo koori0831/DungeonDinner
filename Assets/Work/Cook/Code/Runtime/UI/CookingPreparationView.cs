@@ -4,9 +4,11 @@ using TMPro;
 using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -74,7 +76,7 @@ namespace Work.Cook.Code.Runtime.UI
 
             EnsureLayout();
 
-            if (isActiveAndEnabled)
+            if (isActiveAndEnabled == true)
             {
                 SubscribeFlowEvents();
                 Refresh();
@@ -196,7 +198,8 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (gamePanel != null)
             {
-                gamePanel.SelectPreparation(ingredient, option);
+                Bus<CookingPreparationSelectRequestedEvent>.Raise(
+                    new CookingPreparationSelectRequestedEvent(gamePanel, ingredient, option));
                 return;
             }
 
@@ -212,11 +215,12 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void CompleteCookingOnce()
         {
-            if (_isCompletingCooking)
+            if (_isCompletingCooking == true)
                 return;
 
             _isCompletingCooking = true;
-            gamePanel?.CompleteCooking();
+            if (gamePanel != null)
+                Bus<CookingCompleteRequestedEvent>.Raise(new CookingCompleteRequestedEvent(gamePanel));
             _isCompletingCooking = false;
         }
 
@@ -257,25 +261,28 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void SubscribeFlowEvents()
         {
-            if (_isSubscribed || flowRunner == null)
+            if (_isSubscribed == true)
                 return;
 
-            flowRunner.StateChanged += HandleFlowStateChanged;
+            Bus<CookingFlowStateChangedEvent>.Events += HandleFlowStateChanged;
             _isSubscribed = true;
         }
 
         private void UnsubscribeFlowEvents()
         {
-            if (_isSubscribed == false || flowRunner == null)
+            if (_isSubscribed == false)
                 return;
 
-            flowRunner.StateChanged -= HandleFlowStateChanged;
+            Bus<CookingFlowStateChangedEvent>.Events -= HandleFlowStateChanged;
             _isSubscribed = false;
         }
 
-        private void HandleFlowStateChanged(CookingFlowState state)
+        private void HandleFlowStateChanged(CookingFlowStateChangedEvent gameEvent)
         {
-            if (isActiveAndEnabled)
+            if (gameEvent.Source != flowRunner)
+                return;
+
+            if (isActiveAndEnabled == true)
                 Refresh();
         }
 

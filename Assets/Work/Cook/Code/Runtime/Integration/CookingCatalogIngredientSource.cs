@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
+using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Runtime.Integration
 {
@@ -18,7 +20,6 @@ namespace Work.Cook.Code.Runtime.Integration
         [SerializeField] private List<IngredientStack> manualIngredientStacks = new List<IngredientStack>();
         [SerializeField, Min(0)] private int defaultCatalogIngredientQuantity = 1;
 
-        public event Action IngredientsChanged;
         public string SourceName => "카탈로그 재료";
 
         public IReadOnlyList<IngredientSO> GetAvailableIngredients(CookingGamePanel owner, CookingFlowRunner runner)
@@ -62,13 +63,13 @@ namespace Work.Cook.Code.Runtime.Integration
 
         public void NotifyIngredientsChanged()
         {
-            IngredientsChanged?.Invoke();
+            Bus<CookingIngredientSourceChangedEvent>.Raise(new CookingIngredientSourceChangedEvent(this));
         }
 
         private IReadOnlyList<IngredientSO> GetBaseIngredients(CookingGamePanel owner, CookingFlowRunner runner)
         {
             CookingFlowRunner resolvedRunner = runner != null ? runner : owner != null ? owner.FlowRunner : null;
-            if (preferRunnerCatalog && resolvedRunner != null && resolvedRunner.Ingredients.Count > 0)
+            if (preferRunnerCatalog == true && resolvedRunner != null && resolvedRunner.Ingredients.Count > 0)
                 return resolvedRunner.Ingredients;
 
             if (fallbackCatalog != null)
