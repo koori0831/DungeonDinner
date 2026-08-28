@@ -3105,6 +3105,7 @@ GameObject:
   - component: {fileID: 579046197}
   - component: {fileID: 579046196}
   - component: {fileID: 579046195}
+  - component: {fileID: 579046198}
   m_Layer: 0
   m_Name: "Button_\uBE44\uC6B0\uAE30"
   m_TagString: Untagged
@@ -3132,6 +3133,26 @@ RectTransform:
   m_AnchoredPosition: {x: 109.685715, y: -22}
   m_SizeDelta: {x: 219.37143, y: 44}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &579046198
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579046193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: 44
+  m_PreferredWidth: -1
+  m_PreferredHeight: 44
+  m_FlexibleWidth: 1
+  m_FlexibleHeight: 0
+  m_LayoutPriority: 1
 --- !u!114 &579046195
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3226,6 +3247,7 @@ GameObject:
   - component: {fileID: 602933023}
   - component: {fileID: 602933022}
   - component: {fileID: 602933021}
+  - component: {fileID: 602933024}
   m_Layer: 0
   m_Name: "Button_\uC7AC\uB8CC_\uD655\uC815"
   m_TagString: Untagged
@@ -3253,6 +3275,26 @@ RectTransform:
   m_AnchoredPosition: {x: 337.05713, y: -22}
   m_SizeDelta: {x: 219.37143, y: 44}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &602933024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 602933019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: 44
+  m_PreferredWidth: -1
+  m_PreferredHeight: 44
+  m_FlexibleWidth: 1
+  m_FlexibleHeight: 0
+  m_LayoutPriority: 1
 --- !u!114 &602933021
 MonoBehaviour:
   m_ObjectHideFlags: 0
