@@ -139,6 +139,21 @@ namespace Work.Cook.Code.Data
         [SerializeField, Range(1f, 1.2f)] private float cardHoverScale = 1.04f;
         [SerializeField, Min(0.01f)] private float cardHoverDuration = 0.14f;
 
+        [Header("Preparation Card Fan")]
+        [SerializeField, Range(1, 7)] private int maxFanCardCount = 7;
+        [SerializeField, Min(2)] private int scrollFallbackThreshold = 8;
+        [SerializeField] private bool enableScrollFallback;
+        [SerializeField, Range(0f, 30f)] private float maxFanAngle = 13f;
+        [SerializeField, Min(1f)] private float minFanCardSpacing = 132f;
+        [SerializeField, Min(1f)] private float maxFanCardSpacing = 220f;
+        [SerializeField, Range(0.5f, 1f)] private float minFanCardScale = 0.86f;
+        [SerializeField, Min(0f)] private float fanArcHeight = 70f;
+        [SerializeField, Min(0f)] private float fanFocusLift = 68f;
+        [SerializeField, Range(1f, 1.25f)] private float fanFocusScale = 1.08f;
+        [SerializeField, Min(0f)] private float fanSelectedLift = 18f;
+        [SerializeField, Min(0f)] private float fanNeighborSpread = 36f;
+        [SerializeField, Min(0.01f)] private float fanTweenDuration = 0.16f;
+
         [Header("Visual Mappings")]
         [SerializeField] private List<CookingQualityVisual> qualityVisuals = new List<CookingQualityVisual>();
         [SerializeField] private List<CookingReactionVisual> reactionVisuals = new List<CookingReactionVisual>();
@@ -180,6 +195,19 @@ namespace Work.Cook.Code.Data
         public float CardHoverOffset => Mathf.Max(0f, cardHoverOffset);
         public float CardHoverScale => Mathf.Clamp(cardHoverScale, 1f, 1.2f);
         public float CardHoverDuration => Mathf.Max(0.01f, cardHoverDuration);
+        public int MaxFanCardCount => Mathf.Clamp(maxFanCardCount, 1, 7);
+        public int ScrollFallbackThreshold => Mathf.Max(MaxFanCardCount + 1, scrollFallbackThreshold);
+        public bool EnableScrollFallback => enableScrollFallback;
+        public float MaxFanAngle => Mathf.Clamp(maxFanAngle, 0f, 30f);
+        public float MinFanCardSpacing => Mathf.Max(1f, minFanCardSpacing);
+        public float MaxFanCardSpacing => Mathf.Max(MinFanCardSpacing, maxFanCardSpacing);
+        public float MinFanCardScale => Mathf.Clamp(minFanCardScale, 0.5f, 1f);
+        public float FanArcHeight => Mathf.Max(0f, fanArcHeight);
+        public float FanFocusLift => Mathf.Max(0f, fanFocusLift);
+        public float FanFocusScale => Mathf.Clamp(fanFocusScale, 1f, 1.25f);
+        public float FanSelectedLift => Mathf.Max(0f, fanSelectedLift);
+        public float FanNeighborSpread => Mathf.Max(0f, fanNeighborSpread);
+        public float FanTweenDuration => Mathf.Max(0.01f, fanTweenDuration);
         public Sprite RewardIcon => rewardIcon;
         public Sprite NpcPlaceholderIcon => npcPlaceholderIcon;
         public Sprite PanelSprite => panelSprite;

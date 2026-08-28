@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,8 +10,16 @@ using Work.Cook.Code.Runtime.Systems;
 
 namespace Work.Cook.Code.Runtime.UI
 {
+    public enum CookingPreparationHandState
+    {
+        Interactive,
+        Selected,
+        MiniGame,
+        Result
+    }
+
     /// <summary>
-    /// 현재 재료에 가능한 손질 카드 손패 표시
+    /// 현재 재료에 가능한 손질 카드 손패를 1~7장 Fan으로 배치하고 입력 상태를 관리한다.
     /// </summary>
     public sealed class CookingPreparationHandView : MonoBehaviour
     {
@@ -26,7 +35,40 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private string unknownEffectText = "아직 결과를 모릅니다.";
         [SerializeField] private string knownEffectTitleText = "확인한 효과";
 
+        private readonly List<CookingPreparationOptionCardView> _cards = new List<CookingPreparationOptionCardView>();
         private CookingKnowledgeStore _knowledgeStore;
+        private CookingPreparationHandState _state = CookingPreparationHandState.Interactive;
+        private int _focusedIndex = -1;
+        private int _selectedIndex = -1;
+        private bool _overflowWarningShown;
+
+        public CookingPreparationHandState State => _state;
+        public int CardCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < _cards.Count; i++)
+                {
+                    if (_cards[i] != null && _cards[i].transform.parent == cardRoot)
+                        count++;
+                }
+                return count;
+            }
+        }
+
+        private void OnDisable()
+        {
+            tooltipView?.Hide(null);
+            KillLayoutTweens();
+            _focusedIndex = -1;
+        }
+
+        private void OnRectTransformDimensionsChange()
+        {
+            if (Application.isPlaying == true && _cards.Count > 0)
+                ApplyFanLayout(true);
+        }
 
         public void Initialize(
             CookingGamePanel owner,
@@ -58,8 +100,11 @@ namespace Work.Cook.Code.Runtime.UI
         {
             EnsureReferences();
             tooltipView?.Hide(null);
-            ClearChildren(cardRoot);
-            SetInteractable(true);
+            ClearCards();
+            _focusedIndex = -1;
+            _selectedIndex = -1;
+            _overflowWarningShown = false;
+            SetState(CookingPreparationHandState.Interactive);
 
             if (cardRoot == null || ingredient == null)
                 return;
@@ -67,44 +112,89 @@ namespace Work.Cook.Code.Runtime.UI
             if (options == null || options.Count == 0)
             {
                 CreateNoOptionCard(ingredient, selected);
-                RefreshCardLayout(true);
+                ApplyFanLayout(true);
                 return;
             }
 
             for (int i = 0; i < options.Count; i++)
             {
                 IngredientPreparationOption option = options[i];
-                if (option == null)
-                    continue;
-
-                CreatePreparationCard(ingredient, option, i, selected);
+                if (option != null)
+                    CreatePreparationCard(ingredient, option, i, selected);
             }
 
-            RefreshCardLayout(true);
+            if (_cards.Count == 0)
+                CreateNoOptionCard(ingredient, selected);
+
+            ApplyFanLayout(true);
         }
 
+        /// <summary>
+        /// 기존 호출 호환용. false는 선택 완료 상태이며 시각적 흐림은 적용하지 않는다.
+        /// 미니게임과 결과의 흐림은 각각 ShowMiniGameState/ShowResultState를 사용한다.
+        /// </summary>
         public void SetInteractable(bool interactable)
         {
-            EnsureReferences();
-            if (cardGroup == null)
-                return;
+            SetState(interactable
+                ? CookingPreparationHandState.Interactive
+                : CookingPreparationHandState.Selected);
+        }
 
-            cardGroup.alpha = interactable == true ? 1f : 0.45f;
-            cardGroup.interactable = interactable;
-            cardGroup.blocksRaycasts = interactable;
+        public void ShowMiniGameState()
+        {
+            SetState(CookingPreparationHandState.MiniGame);
+        }
+
+        public void ShowResultState()
+        {
+            SetState(CookingPreparationHandState.Result);
+        }
+
+        private void SetState(CookingPreparationHandState state)
+        {
+            _state = state;
+            bool inputEnabled = state == CookingPreparationHandState.Interactive;
+            float alpha;
+            switch (state)
+            {
+                case CookingPreparationHandState.MiniGame:
+                    alpha = 0.45f;
+                    break;
+                case CookingPreparationHandState.Result:
+                    alpha = 0.72f;
+                    break;
+                default:
+                    alpha = 1f;
+                    break;
+            }
+
+            if (cardGroup != null)
+            {
+                cardGroup.alpha = alpha;
+                cardGroup.interactable = inputEnabled;
+                cardGroup.blocksRaycasts = inputEnabled;
+            }
+
+            for (int i = 0; i < _cards.Count; i++)
+                _cards[i]?.SetInputEnabled(inputEnabled);
+
+            if (inputEnabled == false)
+            {
+                _focusedIndex = -1;
+                tooltipView?.Hide(null);
+            }
+
+            ApplyFanLayout(false);
         }
 
         private void CreateNoOptionCard(
             IngredientSO ingredient,
             Action<IngredientSO, IngredientPreparationOption> selected)
         {
-            if (preparationOptionCardPrefab == null)
-            {
-                Debug.LogError("CookingPreparationHandView preparationOptionCardPrefab is missing.", this);
+            CookingPreparationOptionCardView view = CreateCard();
+            if (view == null)
                 return;
-            }
 
-            CookingPreparationOptionCardView view = Instantiate(preparationOptionCardPrefab, cardRoot);
             view.Bind(
                 string.Empty,
                 null,
@@ -113,9 +203,7 @@ namespace Work.Cook.Code.Runtime.UI
                 string.Empty,
                 "선택",
                 false,
-                () => selected?.Invoke(ingredient, null));
-            view.SetPresentation(presentationSettings, tooltipView);
-            ApplyFont(view.gameObject);
+                () => HandleCardSelected(view, ingredient, null, selected));
         }
 
         private void CreatePreparationCard(
@@ -124,14 +212,11 @@ namespace Work.Cook.Code.Runtime.UI
             int index,
             Action<IngredientSO, IngredientPreparationOption> selected)
         {
-            if (preparationOptionCardPrefab == null)
-            {
-                Debug.LogError("CookingPreparationHandView preparationOptionCardPrefab is missing.", this);
+            CookingPreparationOptionCardView view = CreateCard();
+            if (view == null)
                 return;
-            }
 
-            CookingPreparationOptionCardView view = Instantiate(preparationOptionCardPrefab, cardRoot);
-            Sprite icon = option != null && option.Method != null ? option.Method.IconSprite : null;
+            Sprite icon = option.Method != null ? option.Method.IconSprite : null;
             view.Bind(
                 BuildOptionIconText(index, option),
                 icon,
@@ -140,9 +225,173 @@ namespace Work.Cook.Code.Runtime.UI
                 BuildKnownEffectText(ingredient, option),
                 "선택",
                 true,
-                () => selected?.Invoke(ingredient, option));
+                () => HandleCardSelected(view, ingredient, option, selected));
+        }
+
+        private CookingPreparationOptionCardView CreateCard()
+        {
+            if (preparationOptionCardPrefab == null)
+            {
+                Debug.LogError("CookingPreparationHandView preparationOptionCardPrefab is missing.", this);
+                return null;
+            }
+
+            CookingPreparationOptionCardView view = Instantiate(preparationOptionCardPrefab, cardRoot);
             view.SetPresentation(presentationSettings, tooltipView);
+            view.HoverChanged += HandleCardHoverChanged;
+            _cards.Add(view);
             ApplyFont(view.gameObject);
+            return view;
+        }
+
+        private void HandleCardSelected(
+            CookingPreparationOptionCardView view,
+            IngredientSO ingredient,
+            IngredientPreparationOption option,
+            Action<IngredientSO, IngredientPreparationOption> selected)
+        {
+            if (_state != CookingPreparationHandState.Interactive)
+                return;
+
+            _selectedIndex = _cards.IndexOf(view);
+            for (int i = 0; i < _cards.Count; i++)
+                _cards[i]?.SetSelected(i == _selectedIndex);
+            SetState(CookingPreparationHandState.Selected);
+            selected?.Invoke(ingredient, option);
+        }
+
+        private void HandleCardHoverChanged(CookingPreparationOptionCardView view, bool hovered)
+        {
+            if (_state != CookingPreparationHandState.Interactive)
+                return;
+
+            int index = _cards.IndexOf(view);
+            if (hovered == true)
+                _focusedIndex = index;
+            else if (_focusedIndex == index)
+                _focusedIndex = -1;
+
+            ApplyFanLayout(false);
+        }
+
+        private void ApplyFanLayout(bool immediate)
+        {
+            if (cardRoot == null || _cards.Count == 0)
+                return;
+
+            Canvas.ForceUpdateCanvases();
+            ConfigureScrollFallback();
+
+            RectTransform first = null;
+            for (int i = 0; i < _cards.Count; i++)
+            {
+                if (_cards[i] == null)
+                    continue;
+
+                first = _cards[i].LayoutRoot;
+                if (first != null)
+                    break;
+            }
+
+            if (first == null)
+                return;
+
+            float cardWidth = Mathf.Max(first.rect.width, first.sizeDelta.x);
+            float availableWidth = Mathf.Max(cardWidth, cardRoot.rect.width);
+            int count = _cards.Count;
+
+            int maxFanCount = presentationSettings != null ? presentationSettings.MaxFanCardCount : 7;
+            if (count > maxFanCount && _overflowWarningShown == false)
+            {
+                _overflowWarningShown = true;
+                Debug.LogWarning(
+                    $"Cooking preparation hand has {count} cards. Scroll fallback is disabled, so the fan uses minimum compression.",
+                    this);
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                CookingPreparationOptionCardView card = _cards[i];
+                RectTransform rect = card != null ? card.LayoutRoot : null;
+                if (rect == null)
+                    continue;
+
+                CookingPreparationFanLayout.CardPose pose = CookingPreparationFanLayout.Calculate(
+                    i,
+                    count,
+                    availableWidth,
+                    cardWidth,
+                    presentationSettings != null ? presentationSettings.MaxFanAngle : 13f,
+                    presentationSettings != null ? presentationSettings.MinFanCardSpacing : 132f,
+                    presentationSettings != null ? presentationSettings.MaxFanCardSpacing : 220f,
+                    presentationSettings != null ? presentationSettings.MinFanCardScale : 0.86f,
+                    presentationSettings != null ? presentationSettings.FanArcHeight : 70f,
+                    _focusedIndex,
+                    _selectedIndex,
+                    presentationSettings != null ? presentationSettings.FanFocusLift : 68f,
+                    presentationSettings != null ? presentationSettings.FanFocusScale : 1.08f,
+                    presentationSettings != null ? presentationSettings.FanSelectedLift : 18f,
+                    presentationSettings != null ? presentationSettings.FanNeighborSpread : 36f);
+
+                rect.DOKill(false);
+                if (immediate == true || Application.isPlaying == false)
+                {
+                    rect.anchoredPosition = pose.AnchoredPosition;
+                    rect.localRotation = Quaternion.Euler(0f, 0f, pose.Rotation);
+                    rect.localScale = Vector3.one * pose.Scale;
+                    continue;
+                }
+
+                float duration = presentationSettings != null ? presentationSettings.FanTweenDuration : 0.16f;
+                Sequence sequence = DOTween.Sequence().SetUpdate(true).SetTarget(rect);
+                sequence.Join(rect.DOAnchorPos(pose.AnchoredPosition, duration).SetEase(Ease.OutQuad));
+                sequence.Join(rect.DOLocalRotate(new Vector3(0f, 0f, pose.Rotation), duration).SetEase(Ease.OutQuad));
+                sequence.Join(rect.DOScale(pose.Scale, duration).SetEase(Ease.OutQuad));
+            }
+
+            ApplySiblingOrder();
+        }
+
+        private void ApplySiblingOrder()
+        {
+            if (cardRoot == null || cardRoot.gameObject.activeInHierarchy == false)
+                return;
+
+            float center = (_cards.Count - 1) * 0.5f;
+            List<int> order = new List<int>(_cards.Count);
+            for (int i = 0; i < _cards.Count; i++)
+                order.Add(i);
+
+            order.Sort((left, right) =>
+                Mathf.Abs(right - center).CompareTo(Mathf.Abs(left - center)));
+            for (int i = 0; i < order.Count; i++)
+                _cards[order[i]]?.transform.SetSiblingIndex(i);
+
+            if (_selectedIndex >= 0 && _selectedIndex < _cards.Count)
+                _cards[_selectedIndex]?.transform.SetAsLastSibling();
+            if (_focusedIndex >= 0 && _focusedIndex < _cards.Count)
+                _cards[_focusedIndex]?.transform.SetAsLastSibling();
+        }
+
+        private void ConfigureScrollFallback()
+        {
+            bool useScroll = presentationSettings != null
+                             && presentationSettings.EnableScrollFallback
+                             && _cards.Count >= presentationSettings.ScrollFallbackThreshold;
+            if (scrollRect != null)
+            {
+                scrollRect.horizontal = useScroll;
+                scrollRect.vertical = false;
+                scrollRect.StopMovement();
+                if (useScroll == false)
+                    scrollRect.horizontalNormalizedPosition = 0.5f;
+            }
+
+            RectMask2D viewportMask = scrollRect?.viewport != null
+                ? scrollRect.viewport.GetComponent<RectMask2D>()
+                : null;
+            if (viewportMask != null)
+                viewportMask.enabled = useScroll;
         }
 
         private string BuildKnownEffectText(IngredientSO ingredient, IngredientPreparationOption option)
@@ -164,10 +413,8 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (string.IsNullOrWhiteSpace(option.ResultNameModifier) == false)
                 builder.AppendLine($"이름 변화: {option.ResultNameModifier}");
-
             if (option.CausesDisgusting == true)
                 builder.AppendLine("괴식 위험이 있습니다.");
-
             if (option.AddsPoison == true)
                 builder.AppendLine("독성이 추가됩니다.");
 
@@ -180,21 +427,17 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (option == null)
                 return string.Empty;
-
             if (string.IsNullOrWhiteSpace(option.Description) == false)
                 return option.Description;
-
             if (option.Method != null && string.IsNullOrWhiteSpace(option.Method.Description) == false)
                 return option.Method.Description;
-
             return "이 방식으로 재료를 손질합니다.";
         }
 
         private static string BuildOptionIconText(int index, IngredientPreparationOption option)
         {
-            if (option != null && option.Method != null && string.IsNullOrWhiteSpace(option.Method.MethodId) == false)
+            if (option?.Method != null && string.IsNullOrWhiteSpace(option.Method.MethodId) == false)
                 return option.Method.MethodId.Substring(0, 1).ToUpperInvariant();
-
             return (index + 1).ToString();
         }
 
@@ -205,16 +448,16 @@ namespace Work.Cook.Code.Runtime.UI
 
             builder.Append(label);
             builder.Append(": ");
+            bool appended = false;
             for (int i = 0; i < tags.Count; i++)
             {
                 if (tags[i] == null)
                     continue;
-
-                if (i > 0)
+                if (appended == true)
                     builder.Append(", ");
                 builder.Append(tags[i].DisplayName);
+                appended = true;
             }
-
             builder.AppendLine();
         }
 
@@ -230,29 +473,6 @@ namespace Work.Cook.Code.Runtime.UI
                 cardGroup = GetComponent<CanvasGroup>();
             if (cardGroup == null)
                 Debug.LogError("CookingPreparationHandView needs a CanvasGroup assigned or attached to the same GameObject.", this);
-        }
-
-        private void RefreshCardLayout(bool resetScroll)
-        {
-            if (cardRoot == null)
-                return;
-
-            Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate(cardRoot);
-
-            if (scrollRect == null)
-                return;
-
-            RectTransform viewport = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.transform as RectTransform;
-            if (viewport != null)
-                LayoutRebuilder.ForceRebuildLayoutImmediate(viewport);
-
-            if (resetScroll == true)
-            {
-                scrollRect.StopMovement();
-                scrollRect.horizontalNormalizedPosition = 0f;
-                scrollRect.verticalNormalizedPosition = 1f;
-            }
         }
 
         private void ApplyFontToExistingTexts()
@@ -273,17 +493,38 @@ namespace Work.Cook.Code.Runtime.UI
             }
         }
 
-        private static void ClearChildren(Transform root)
+        private void KillLayoutTweens()
         {
-            if (root == null)
-                return;
-
-            for (int i = root.childCount - 1; i >= 0; i--)
+            for (int i = 0; i < _cards.Count; i++)
             {
-                Transform child = root.GetChild(i);
-                if (child == null)
-                    continue;
+                RectTransform rect = _cards[i] != null ? _cards[i].LayoutRoot : null;
+                if (rect != null)
+                    rect.DOKill(false);
+            }
+        }
 
+        private void ClearCards()
+        {
+            KillLayoutTweens();
+            for (int i = _cards.Count - 1; i >= 0; i--)
+            {
+                CookingPreparationOptionCardView card = _cards[i];
+                if (card == null)
+                    continue;
+                card.HoverChanged -= HandleCardHoverChanged;
+                card.transform.SetParent(null, false);
+                if (Application.isPlaying == true)
+                    Destroy(card.gameObject);
+                else
+                    DestroyImmediate(card.gameObject);
+            }
+            _cards.Clear();
+
+            if (cardRoot == null || cardRoot.childCount == 0)
+                return;
+            for (int i = cardRoot.childCount - 1; i >= 0; i--)
+            {
+                Transform child = cardRoot.GetChild(i);
                 child.SetParent(null, false);
                 if (Application.isPlaying == true)
                     Destroy(child.gameObject);

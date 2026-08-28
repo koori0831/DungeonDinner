@@ -25,6 +25,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private Image iconImage;
         [SerializeField] private Image stateAccentImage;
         [SerializeField] private Image gradeIconImage;
+        [SerializeField] private TextMeshProUGUI gradeLabelField;
         [SerializeField] private TextMeshProUGUI titleField;
         [SerializeField] private TextMeshProUGUI descriptionField;
         [SerializeField] private TextMeshProUGUI stateField;
@@ -64,6 +65,8 @@ namespace Work.Cook.Code.Runtime.UI
                 descriptionField.font = value;
             if (stateField != null)
                 stateField.font = value;
+            if (gradeLabelField != null)
+                gradeLabelField.font = value;
         }
 
         public void Clear()
@@ -87,8 +90,8 @@ namespace Work.Cook.Code.Runtime.UI
             BindGrade(null);
             string optionName = option != null ? option.DisplayName : "그대로 사용";
             SetText(titleField, optionName);
-            SetText(descriptionField, "중앙 재료를 눌러 손질을 시작하세요.");
-            SetText(stateField, "선택됨");
+            SetText(descriptionField, "중앙 조리대를 눌러 손질을 시작하세요.");
+            SetText(stateField, "준비됨 · 재료를 클릭하세요");
             SetAccent(presentationSettings != null ? presentationSettings.ParchmentColor : new Color(0.9f, 0.7f, 0.3f, 1f));
             PlayCommitAnimation();
         }
@@ -127,6 +130,24 @@ namespace Work.Cook.Code.Runtime.UI
             PlayCompleteAnimation();
         }
 
+        public void BindResultPreview(IngredientPreparationOption option, CookingMiniGameResult result)
+        {
+            State = CookingActivePreparationState.Completed;
+            KillTween();
+            BindIcon(option);
+            string optionName = option != null ? option.DisplayName : "그대로 사용";
+            SetText(titleField, optionName);
+            SetText(descriptionField, result != null ? BuildGradeText(result.Grade) : "완료");
+            SetText(stateField, "판정 완료");
+            BindGradeResult(result);
+            SetAccent(result != null
+                ? GetGradeColor(result.Grade)
+                : presentationSettings != null
+                    ? presentationSettings.PositiveColor
+                    : new Color(0.95f, 0.75f, 0.25f, 1f));
+            PlayCompleteAnimation();
+        }
+
         private void BindIcon(IngredientPreparationOption option)
         {
             if (iconImage == null)
@@ -140,16 +161,26 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void BindGrade(PreparedIngredientState prepared)
         {
-            if (gradeIconImage == null)
-                return;
+            BindGradeResult(prepared?.MiniGameResult);
+        }
 
-            gradeIconImage.sprite = null;
-            gradeIconImage.enabled = false;
-            if (prepared?.MiniGameResult == null)
-                return;
+        private void BindGradeResult(CookingMiniGameResult result)
+        {
+            if (gradeIconImage != null)
+            {
+                gradeIconImage.sprite = null;
+                gradeIconImage.enabled = result != null;
+                if (result != null)
+                    gradeIconImage.color = GetGradeColor(result.Grade);
+            }
 
-            gradeIconImage.color = GetGradeColor(prepared.MiniGameResult.Grade);
-            gradeIconImage.enabled = true;
+            if (gradeLabelField != null)
+            {
+                gradeLabelField.gameObject.SetActive(result != null);
+                gradeLabelField.text = result != null ? BuildGradeLabel(result.Grade) : string.Empty;
+                if (result != null)
+                    gradeLabelField.color = Color.white;
+            }
         }
 
         private void PlayCommitAnimation()
@@ -205,6 +236,12 @@ namespace Work.Cook.Code.Runtime.UI
                 visualRoot = transform as RectTransform;
             if (canvasGroup == null)
                 canvasGroup = GetComponent<CanvasGroup>();
+            if (gradeLabelField == null)
+            {
+                Transform found = transform.Find("GradeSeal/GradeLabel");
+                if (found != null)
+                    gradeLabelField = found.GetComponent<TextMeshProUGUI>();
+            }
         }
 
         private void ApplyFont()
@@ -239,6 +276,21 @@ namespace Work.Cook.Code.Runtime.UI
                     return "보통";
                 default:
                     return "아쉬움";
+            }
+        }
+
+        private static string BuildGradeLabel(CookingMiniGameGrade grade)
+        {
+            switch (grade)
+            {
+                case CookingMiniGameGrade.Perfect:
+                    return "S";
+                case CookingMiniGameGrade.Good:
+                    return "A";
+                case CookingMiniGameGrade.Normal:
+                    return "B";
+                default:
+                    return "C";
             }
         }
 

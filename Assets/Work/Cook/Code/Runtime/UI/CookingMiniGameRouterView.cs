@@ -35,11 +35,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (overlayHost == null)
                 overlayHost = GetComponentInChildren<CookingMiniGameOverlayHost>(true);
 
-            CookingWorkbenchView workbench = null;
-            if (_owner != null && _owner.PreparationView != null)
-                workbench = _owner.PreparationView.GetComponentInChildren<CookingWorkbenchView>(true);
-
-            overlayHost?.Initialize(_owner, workbench, overlaySettings, _fontAsset);
+            overlayHost?.Initialize(_owner, overlaySettings, _fontAsset);
             CollectControllers();
             for (int i = 0; i < _controllers.Count; i++)
                 _controllers[i].Initialize(overlayHost, overlaySettings);

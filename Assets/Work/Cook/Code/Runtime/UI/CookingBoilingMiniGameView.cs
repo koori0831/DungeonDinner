@@ -38,7 +38,7 @@ namespace Work.Cook.Code.Runtime.UI
             _startedTime = Time.unscaledTime;
             if (toolImage != null)
                 toolImage.gameObject.SetActive(false);
-            Host.SetInstruction("기포와 색을 보고 알맞게 익으면 재료를 접시로 끌어내세요.");
+            Host.SetInstruction("기포와 색을 보고 알맞게 익으면 집게를 오른쪽 접시까지 드래그하세요.");
             Host.SetStatus("익힘 상태를 지켜보세요");
             RefreshVisual(0f);
             return true;
@@ -67,8 +67,6 @@ namespace Work.Cook.Code.Runtime.UI
 
             _lastPoint = _dragStart;
             _pathLength = 0f;
-            Host.BeginIngredientDrag();
-            Host.MoveIngredient(eventData.position, eventData.pressEventCamera);
             MoveTool(_dragStart);
         }
 
@@ -78,7 +76,6 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             _pathLength += Vector2.Distance(_lastPoint, point);
             _lastPoint = point;
-            Host.MoveIngredient(eventData.position, eventData.pressEventCamera);
             MoveTool(point);
         }
 
@@ -96,12 +93,10 @@ namespace Work.Cook.Code.Runtime.UI
                 && RectTransformUtility.RectangleContainsScreenPoint(plateZone.rectTransform, eventData.position, eventData.pressEventCamera);
             if (onPlate == false)
             {
-                Host.EndIngredientDrag(false);
-                RegisterMistake("국자나 집게로 오른쪽 접시까지 옮기세요.");
+                RegisterMistake("집게를 오른쪽 접시 영역까지 드래그하세요.");
                 return;
             }
 
-            Host.EndIngredientDrag(true);
             float straightDistance = Vector2.Distance(_dragStart, end);
             float extractionAccuracy = Mathf.Clamp01(straightDistance / Mathf.Max(straightDistance, _pathLength));
             float doneness = Mathf.Clamp01((Time.unscaledTime - _startedTime) / _profile.Duration);

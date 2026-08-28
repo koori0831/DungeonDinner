@@ -358,8 +358,6 @@ namespace Work.Cook.Code.Runtime.UI
             if (selectedIngredientScrollRect == null && selectedIngredientRoot != null)
                 selectedIngredientScrollRect = selectedIngredientRoot.GetComponentInParent<ScrollRect>();
 
-            ConfigureScrollRect(availableIngredientScrollRect, availableIngredientRoot);
-            ConfigureScrollRect(selectedIngredientScrollRect, selectedIngredientRoot);
         }
 
         private IReadOnlyList<IngredientSO> GetAvailableIngredients()
@@ -717,15 +715,10 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(contentRoot);
-            float preferredHeight = LayoutUtility.GetPreferredHeight(contentRoot);
-            if (preferredHeight >= 0f)
-                contentRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
-
             Canvas.ForceUpdateCanvases();
             if (scrollRect == null)
                 return;
 
-            ConfigureScrollRect(scrollRect, contentRoot);
             RectTransform viewport = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.transform as RectTransform;
             if (viewport != null)
                 LayoutRebuilder.ForceRebuildLayoutImmediate(viewport);
@@ -736,24 +729,6 @@ namespace Work.Cook.Code.Runtime.UI
                 scrollRect.verticalNormalizedPosition = 1f;
                 scrollRect.horizontalNormalizedPosition = 0f;
             }
-        }
-
-        private static void ConfigureScrollRect(ScrollRect scrollRect, RectTransform contentRoot)
-        {
-            if (scrollRect == null || contentRoot == null)
-                return;
-
-            scrollRect.content = contentRoot;
-            scrollRect.horizontal = false;
-            scrollRect.vertical = true;
-            scrollRect.movementType = ScrollRect.MovementType.Clamped;
-
-            if (scrollRect.viewport == null)
-                scrollRect.viewport = scrollRect.transform as RectTransform;
-
-            contentRoot.anchorMin = new Vector2(0f, 1f);
-            contentRoot.anchorMax = new Vector2(1f, 1f);
-            contentRoot.pivot = new Vector2(0.5f, 1f);
         }
 
         private static void SetText(TextMeshProUGUI field, string text)

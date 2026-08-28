@@ -1,6 +1,7 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Work.Cook.Code.Data;
 
 namespace Work.Cook.Code.Runtime.UI
@@ -53,6 +54,10 @@ namespace Work.Cook.Code.Runtime.UI
 
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
+            Canvas.ForceUpdateCanvases();
+            if (visualRoot != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(visualRoot);
+            PositionBesideOwner(owner);
             _activeTween?.Kill();
             canvasGroup.alpha = 0f;
             if (visualRoot != null)
@@ -97,6 +102,34 @@ namespace Work.Cook.Code.Runtime.UI
                 descriptionField.font = settings.FontAsset;
             if (effectField != null)
                 effectField.font = settings.FontAsset;
+        }
+
+        private void PositionBesideOwner(CookingPreparationOptionCardView owner)
+        {
+            RectTransform tooltipRect = transform as RectTransform;
+            RectTransform parentRect = tooltipRect != null ? tooltipRect.parent as RectTransform : null;
+            RectTransform cardRect = owner != null ? owner.LayoutRoot : null;
+            if (tooltipRect == null || parentRect == null || cardRect == null)
+                return;
+
+            Vector3[] cardCorners = new Vector3[4];
+            cardRect.GetWorldCorners(cardCorners);
+            Vector3 cardCenterWorld = (cardCorners[0] + cardCorners[2]) * 0.5f;
+            Vector2 cardCenter = parentRect.InverseTransformPoint(cardCenterWorld);
+            Vector2 cardLeft = parentRect.InverseTransformPoint(cardCorners[0]);
+            Vector2 cardRight = parentRect.InverseTransformPoint(cardCorners[3]);
+            float cardHalfWidth = Mathf.Max(1f, Mathf.Abs(cardRight.x - cardLeft.x) * 0.5f);
+            float tooltipHalfWidth = Mathf.Max(1f, tooltipRect.rect.width * 0.5f);
+            float tooltipHalfHeight = Mathf.Max(1f, tooltipRect.rect.height * 0.5f);
+            float direction = cardCenter.x <= parentRect.rect.center.x ? 1f : -1f;
+
+            Vector2 target = new Vector2(
+                cardCenter.x + direction * (cardHalfWidth + tooltipHalfWidth + 18f),
+                cardCenter.y);
+            Rect bounds = parentRect.rect;
+            target.x = Mathf.Clamp(target.x, bounds.xMin + tooltipHalfWidth, bounds.xMax - tooltipHalfWidth);
+            target.y = Mathf.Clamp(target.y, bounds.yMin + tooltipHalfHeight, bounds.yMax - tooltipHalfHeight);
+            tooltipRect.localPosition = new Vector3(target.x, target.y, tooltipRect.localPosition.z);
         }
 
         private static void SetText(TextMeshProUGUI field, string value)

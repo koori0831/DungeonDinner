@@ -270,14 +270,6 @@ namespace Work.Cook.Code.Runtime.UI
             SetActive(exactMatchField != null ? exactMatchField.gameObject : null, false);
             SetActive(tagComparisonRoot != null ? tagComparisonRoot.gameObject : null, false);
 
-            if (qualityVisualRoot != null)
-            {
-                qualityVisualRoot.anchorMin = new Vector2(0.08f, 0.12f);
-                qualityVisualRoot.anchorMax = new Vector2(0.92f, 0.88f);
-                qualityVisualRoot.anchoredPosition = Vector2.zero;
-                qualityVisualRoot.sizeDelta = Vector2.zero;
-            }
-
             SetText(npcNameField, string.Empty);
             SetText(reactionNameField, string.Empty);
             SetText(reactionSummaryField, string.Empty);

@@ -51,7 +51,7 @@ namespace Work.Cook.Code.Runtime.UI
             _dragging = false;
             if (flipIndicator != null)
                 flipIndicator.gameObject.SetActive(true);
-            Host.SetInstruction("재료를 한 번 눌러 뒤집고, 알맞게 익으면 접시로 드래그하세요.");
+            Host.SetInstruction("재료를 한 번 눌러 뒤집고, 알맞게 익으면 가이드를 오른쪽 접시까지 드래그하세요.");
             Host.SetStatus(_type == CookingMiniGameType.Burning ? "진한 그을음이 오를 때 꺼내세요" : "색과 연기를 살펴보세요");
             RefreshVisual(0f);
             return true;
@@ -96,12 +96,8 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (Vector2.Distance(_pointerStart, _currentPoint) > 18f)
             {
-                if (_dragging == false)
-                    Host.BeginIngredientDrag();
                 _dragging = true;
             }
-            if (_dragging)
-                Host.MoveIngredient(eventData.position, eventData.pressEventCamera);
             if (flipIndicator != null && _dragging)
                 flipIndicator.rectTransform.anchoredPosition = _currentPoint;
         }
@@ -135,12 +131,10 @@ namespace Work.Cook.Code.Runtime.UI
                 : _currentPoint.x > ((RectTransform)transform).rect.width * 0.25f;
             if (onPlate == false)
             {
-                Host.EndIngredientDrag(false);
                 RegisterMistake("오른쪽 접시 영역까지 드래그해 꺼내세요.");
                 return;
             }
 
-            Host.EndIngredientDrag(true);
             CompleteAtCurrentState();
         }
 

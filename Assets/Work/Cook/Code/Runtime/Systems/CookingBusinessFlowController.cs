@@ -40,7 +40,6 @@ namespace Work.Cook.Code.Runtime.Systems
         [SerializeField] private NpcEncounterDirector encounterDirector;
         [SerializeField] private NpcConversationRunner npcRunner;
         [SerializeField] private bool startFirstCustomerOnStart = true;
-        [SerializeField] private bool hideCookingTestPanelOnStart = true;
         [SerializeField] private bool advanceDayWhenShopCloses = true;
         [SerializeField] private bool startNextCustomerAfterAdvancingDay = true;
         [SerializeField] private RectTransform actionRoot;
@@ -72,9 +71,6 @@ namespace Work.Cook.Code.Runtime.Systems
         {
             EnsureReferences();
             Subscribe();
-
-            if (hideCookingTestPanelOnStart == true)
-                HideCookingTestPanels();
         }
 
         private void Start()
@@ -356,15 +352,6 @@ namespace Work.Cook.Code.Runtime.Systems
                 component.gameObject.SetActive(active);
         }
 
-        private static void HideCookingTestPanels()
-        {
-            CookingTestPanel[] panels = Resources.FindObjectsOfTypeAll<CookingTestPanel>();
-            for (int i = 0; i < panels.Length; i++)
-            {
-                if (panels[i] != null && panels[i].gameObject.scene.IsValid() == true)
-                    panels[i].gameObject.SetActive(false);
-            }
-        }
     }
 
     

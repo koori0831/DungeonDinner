@@ -9,16 +9,18 @@ using Work.Cook.Code.Runtime.Core;
 namespace Work.Cook.Code.Runtime.UI
 {
     /// <summary>
-    /// 실제 조리대 재료의 표시 영역을 추적하며 입력 차단, 포커스 딤, HUD와 결과 연출을 제공한다.
+    /// 미니게임 중에만 선택 재료를 표시하고 입력 차단, 포커스 딤, HUD와 결과 연출을 제공한다.
     /// </summary>
     public sealed class CookingMiniGameOverlayHost : MonoBehaviour
     {
         [Header("Layout")]
         [SerializeField] private RectTransform overlayRoot;
         [SerializeField] private RectTransform targetFrame;
+        [SerializeField] private RectTransform ingredientAnchor;
         [SerializeField] private RectTransform controllerContainer;
         [SerializeField] private Image maskImage;
         [SerializeField] private Image[] focusDimmers;
+        [SerializeField, Min(0f)] private float targetPadding = 24f;
 
         [Header("HUD")]
         [SerializeField] private RectTransform hudRoot;
@@ -36,32 +38,33 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private AudioSource audioSource;
 
         private CookingGamePanel _owner;
-        private CookingWorkbenchView _workbench;
         private CookingMiniGameOverlaySettingsSO _settings;
         private Coroutine _resultRoutine;
+        private Vector2 _targetFrameOriginalPosition;
+        private Vector2 _targetFrameOriginalSize;
         private float _lastProgressTime;
+        private bool _targetFrameLayoutCached;
         private bool _isRunning;
         private bool _hintShown;
-        private bool _trackIngredient = true;
 
         public RectTransform ControllerContainer => controllerContainer;
         public RectTransform TargetFrame => targetFrame;
         public bool IsRunning => _isRunning;
+        public event Action<CookingMiniGameResult> ResultShown;
 
         public void Initialize(
             CookingGamePanel owner,
-            CookingWorkbenchView workbench,
             CookingMiniGameOverlaySettingsSO settings,
             TMP_FontAsset fontAsset)
         {
             _owner = owner;
-            _workbench = workbench;
             _settings = settings;
 
             if (overlayRoot == null)
                 overlayRoot = transform as RectTransform;
             if (audioSource == null)
                 audioSource = GetComponent<AudioSource>();
+            ResolveIngredientAnchor();
 
             if (cancelButton != null)
             {
@@ -71,6 +74,8 @@ namespace Work.Cook.Code.Runtime.UI
 
             SetFontAsset(fontAsset);
             SetResultVisible(false);
+            CacheTargetFrameLayout();
+            SetIngredientVisible(false);
             ApplyDimColor();
         }
 
@@ -91,16 +96,16 @@ namespace Work.Cook.Code.Runtime.UI
 
         public bool Begin(IngredientSO ingredient, IngredientPreparationOption option)
         {
-            if (_workbench == null || ingredient == null || option == null)
+            if (ingredient == null || option == null || targetFrame == null || maskImage == null)
                 return false;
 
             StopResultRoutine();
-            _workbench.EnterMiniGameFocus();
-            if (maskImage != null)
-            {
-                maskImage.sprite = _workbench.IngredientSprite;
-                maskImage.preserveAspect = true;
-            }
+            CacheTargetFrameLayout();
+            ResetTargetFrame();
+            AlignTargetFrameToIngredientAnchor();
+            maskImage.sprite = ingredient.IconSprite;
+            maskImage.preserveAspect = true;
+            SetIngredientVisible(true);
 
             SetText(titleField, option.DisplayName);
             SetText(instructionField, "재료 위의 가이드를 따라 조작하세요.");
@@ -109,8 +114,9 @@ namespace Work.Cook.Code.Runtime.UI
             _lastProgressTime = Time.unscaledTime;
             _hintShown = false;
             _isRunning = true;
-            _trackIngredient = true;
-            AlignToIngredient();
+            if (cancelButton != null)
+                cancelButton.interactable = true;
+            RefreshFocusLayout();
             return true;
         }
 
@@ -147,39 +153,21 @@ namespace Work.Cook.Code.Runtime.UI
             _resultRoutine = StartCoroutine(ShowResultRoutine(result, completed));
         }
 
-        public void BeginIngredientDrag()
-        {
-            _trackIngredient = false;
-        }
-
-        public void MoveIngredient(Vector2 screenPosition, Camera eventCamera)
-        {
-            _workbench?.SetFocusedIngredientScreenPosition(screenPosition, eventCamera);
-        }
-
-        public void EndIngredientDrag(bool keepAtCurrentPosition)
-        {
-            if (keepAtCurrentPosition == false)
-            {
-                _workbench?.ResetFocusedIngredientPosition();
-                _trackIngredient = true;
-                AlignToIngredient();
-            }
-        }
-
         public void EndImmediate()
         {
             StopResultRoutine();
             _isRunning = false;
-            _trackIngredient = true;
+            if (cancelButton != null)
+                cancelButton.interactable = false;
             SetResultVisible(false);
-            _workbench?.ExitMiniGameFocus();
+            ResetTargetFrame();
+            SetIngredientVisible(false);
         }
 
         private void OnEnable()
         {
             if (_isRunning == true)
-                AlignToIngredient();
+                RefreshFocusLayout();
         }
 
         private void LateUpdate()
@@ -187,8 +175,9 @@ namespace Work.Cook.Code.Runtime.UI
             if (_isRunning == false)
                 return;
 
-            if (_trackIngredient == true)
-                AlignToIngredient();
+            AlignTargetFrameToIngredientAnchor();
+            RefreshFocusLayout();
+
             if (_hintShown == false && Time.unscaledTime - _lastProgressTime >= 10f)
             {
                 _hintShown = true;
@@ -199,6 +188,9 @@ namespace Work.Cook.Code.Runtime.UI
         private IEnumerator ShowResultRoutine(CookingMiniGameResult result, Action completed)
         {
             _isRunning = false;
+            if (cancelButton != null)
+                cancelButton.interactable = false;
+            ResultShown?.Invoke(result);
             SetText(resultField, GetGradeLabel(result != null ? result.Grade : CookingMiniGameGrade.Bad));
             if (resultBackground != null)
                 resultBackground.color = GetGradeColor(result != null ? result.Grade : CookingMiniGameGrade.Bad);
@@ -215,18 +207,75 @@ namespace Work.Cook.Code.Runtime.UI
                 yield return new WaitForSecondsRealtime(duration);
 
             SetResultVisible(false);
-            _workbench?.ExitMiniGameFocus();
+            ResetTargetFrame();
+            SetIngredientVisible(false);
             _resultRoutine = null;
             completed?.Invoke();
         }
 
-        private void AlignToIngredient()
+        private void ResolveIngredientAnchor()
         {
-            if (overlayRoot == null || targetFrame == null || _workbench == null)
+            if (ingredientAnchor != null)
+                return;
+
+            CookingWorkbenchView workbench = _owner != null
+                ? _owner.GetComponentInChildren<CookingWorkbenchView>(true)
+                : FindFirstObjectByType<CookingWorkbenchView>(FindObjectsInactive.Include);
+            if (workbench != null)
+                ingredientAnchor = workbench.IngredientAnchor;
+        }
+
+        private void AlignTargetFrameToIngredientAnchor()
+        {
+            ResolveIngredientAnchor();
+            if (ingredientAnchor == null || targetFrame == null || targetFrame.parent == null)
+                return;
+
+            RectTransform targetParent = targetFrame.parent as RectTransform;
+            if (targetParent == null)
                 return;
 
             Vector3[] worldCorners = new Vector3[4];
-            if (_workbench.GetDisplayedIngredientWorldCorners(worldCorners) == false)
+            ingredientAnchor.GetWorldCorners(worldCorners);
+            Vector3 bottomLeft = targetParent.InverseTransformPoint(worldCorners[0]);
+            Vector3 topRight = targetParent.InverseTransformPoint(worldCorners[2]);
+            Vector2 center = (Vector2)(bottomLeft + topRight) * 0.5f;
+            Vector2 size = new Vector2(
+                Mathf.Max(1f, topRight.x - bottomLeft.x) + targetPadding * 2f,
+                Mathf.Max(1f, topRight.y - bottomLeft.y) + targetPadding * 2f);
+
+            targetFrame.anchorMin = targetFrame.anchorMax = new Vector2(0.5f, 0.5f);
+            targetFrame.pivot = new Vector2(0.5f, 0.5f);
+            targetFrame.anchoredPosition = center - targetParent.rect.center;
+            targetFrame.sizeDelta = size;
+        }
+
+        private void CacheTargetFrameLayout()
+        {
+            if (_targetFrameLayoutCached == true || targetFrame == null)
+                return;
+
+            _targetFrameOriginalPosition = targetFrame.anchoredPosition;
+            _targetFrameOriginalSize = targetFrame.sizeDelta;
+            _targetFrameLayoutCached = true;
+        }
+
+        private void ResetTargetFrame()
+        {
+            if (targetFrame == null || _targetFrameLayoutCached == false)
+                return;
+
+            targetFrame.anchoredPosition = _targetFrameOriginalPosition;
+            targetFrame.sizeDelta = _targetFrameOriginalSize;
+        }
+
+        private void RefreshFocusLayout()
+        {
+            if (overlayRoot == null || targetFrame == null || maskImage == null)
+                return;
+
+            Vector3[] worldCorners = new Vector3[4];
+            if (GetDisplayedIngredientWorldCorners(worldCorners) == false)
                 return;
 
             Vector3 bottomLeft = overlayRoot.InverseTransformPoint(worldCorners[0]);
@@ -236,11 +285,6 @@ namespace Work.Cook.Code.Runtime.UI
                 Mathf.Max(1f, topRight.y - bottomLeft.y));
             Vector2 center = (Vector2)(bottomLeft + topRight) * 0.5f;
 
-            targetFrame.anchorMin = targetFrame.anchorMax = new Vector2(0.5f, 0.5f);
-            targetFrame.pivot = new Vector2(0.5f, 0.5f);
-            targetFrame.anchoredPosition = center;
-            targetFrame.sizeDelta = size;
-
             if (hudRoot != null)
             {
                 float hudY = Mathf.Min(overlayRoot.rect.yMax - 70f, center.y + (size.y * 0.5f) + 58f);
@@ -248,6 +292,60 @@ namespace Work.Cook.Code.Runtime.UI
             }
 
             AlignFocusDimmers(bottomLeft, topRight);
+        }
+
+        private bool GetDisplayedIngredientWorldCorners(Vector3[] worldCorners)
+        {
+            if (worldCorners == null || worldCorners.Length < 4 || maskImage == null || maskImage.enabled == false)
+                return false;
+
+            RectTransform rectTransform = maskImage.rectTransform;
+            Rect fittedRect = rectTransform.rect;
+            Sprite sprite = maskImage.sprite;
+            if (maskImage.preserveAspect == true && sprite != null && sprite.rect.height > 0f)
+                fittedRect = CalculatePreservedAspectRect(fittedRect, sprite.rect.size);
+
+            worldCorners[0] = rectTransform.TransformPoint(new Vector3(fittedRect.xMin, fittedRect.yMin));
+            worldCorners[1] = rectTransform.TransformPoint(new Vector3(fittedRect.xMin, fittedRect.yMax));
+            worldCorners[2] = rectTransform.TransformPoint(new Vector3(fittedRect.xMax, fittedRect.yMax));
+            worldCorners[3] = rectTransform.TransformPoint(new Vector3(fittedRect.xMax, fittedRect.yMin));
+            return true;
+        }
+
+        private void SetIngredientVisible(bool visible)
+        {
+            if (maskImage == null)
+                return;
+
+            maskImage.enabled = visible;
+            Mask mask = maskImage.GetComponent<Mask>();
+            if (mask != null)
+                mask.showMaskGraphic = visible;
+            if (visible == false)
+                maskImage.sprite = null;
+        }
+
+        private static Rect CalculatePreservedAspectRect(Rect container, Vector2 contentSize)
+        {
+            if (container.width <= 0f || container.height <= 0f || contentSize.x <= 0f || contentSize.y <= 0f)
+                return container;
+
+            float contentAspect = contentSize.x / contentSize.y;
+            float containerAspect = container.width / container.height;
+            if (contentAspect > containerAspect)
+            {
+                float height = container.width / contentAspect;
+                container.y += (container.height - height) * 0.5f;
+                container.height = height;
+            }
+            else
+            {
+                float width = container.height * contentAspect;
+                container.x += (container.width - width) * 0.5f;
+                container.width = width;
+            }
+
+            return container;
         }
 
         private void AlignFocusDimmers(Vector2 bottomLeft, Vector2 topRight)
@@ -349,13 +447,13 @@ namespace Work.Cook.Code.Runtime.UI
             switch (grade)
             {
                 case CookingMiniGameGrade.Perfect:
-                    return "Perfect";
+                    return "S";
                 case CookingMiniGameGrade.Good:
-                    return "Good";
+                    return "A";
                 case CookingMiniGameGrade.Normal:
-                    return "Normal";
+                    return "B";
                 default:
-                    return "Bad";
+                    return "C";
             }
         }
 

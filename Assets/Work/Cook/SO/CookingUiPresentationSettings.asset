@@ -30,6 +30,19 @@ MonoBehaviour:
   cardHoverOffset: 20
   cardHoverScale: 1.04
   cardHoverDuration: 0.14
+  maxFanCardCount: 7
+  scrollFallbackThreshold: 8
+  enableScrollFallback: 0
+  maxFanAngle: 13
+  minFanCardSpacing: 132
+  maxFanCardSpacing: 220
+  minFanCardScale: 0.86
+  fanArcHeight: 70
+  fanFocusLift: 68
+  fanFocusScale: 1.08
+  fanSelectedLift: 18
+  fanNeighborSpread: 36
+  fanTweenDuration: 0.16
   qualityVisuals:
   - quality: 2
     displayName: "\uC644\uBCBD"

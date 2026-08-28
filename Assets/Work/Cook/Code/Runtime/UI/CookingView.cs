@@ -4,14 +4,11 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
 using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Core.EventBus;
-using Work.NPC.Code.Runtime;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -29,6 +26,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private CookingWorkbenchView workbenchView;
         [SerializeField] private CookingPreparationHandView handView;
         [SerializeField] private CookingActivePreparationSlotView activeSlotView;
+        [SerializeField] private CookingMiniGameOverlayHost miniGameOverlayHost;
         [SerializeField] private CookingViewTransition transition;
         [SerializeField] private CookingUiPresentationSettingsSO presentationSettings;
 
@@ -128,7 +126,10 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void BindIngredient(IngredientSO ingredient)
         {
-            bool shouldRebuildCards = _boundIngredient != ingredient || _hasBuiltCards == false;
+            bool shouldRebuildCards = _boundIngredient != ingredient
+                                      || _hasBuiltCards == false
+                                      || handView == null
+                                      || handView.CardCount == 0;
             _currentIngredient = ingredient;
             _boundIngredient = ingredient;
             _committedOption = null;
@@ -142,13 +143,47 @@ namespace Work.Cook.Code.Runtime.UI
             if (shouldRebuildCards == false)
             {
                 handView?.SetInteractable(true);
+                EnsureCardHandBuiltAfterLayoutAsync(ingredient).Forget();
                 return;
             }
 
+            RebuildCardHand(ingredient);
+            EnsureCardHandBuiltAfterLayoutAsync(ingredient).Forget();
+        }
+
+        private void RebuildCardHand(IngredientSO ingredient)
+        {
+            if (ingredient == null || flowRunner == null || handView == null)
+                return;
+
             IReadOnlyList<IngredientPreparationOption> options = flowRunner.GetPreparationOptions(ingredient);
-            handView?.Initialize(gamePanel, knowledgeStore, fontAsset, presentationSettings);
-            handView?.Rebuild(ingredient, options, HandleCardSelected);
-            _hasBuiltCards = true;
+            handView.Initialize(gamePanel, knowledgeStore, fontAsset, presentationSettings);
+            handView.Rebuild(ingredient, options, HandleCardSelected);
+            _hasBuiltCards = handView.CardCount > 0;
+        }
+
+        private async UniTaskVoid EnsureCardHandBuiltAfterLayoutAsync(IngredientSO ingredient)
+        {
+            try
+            {
+                await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate, this.GetCancellationTokenOnDestroy());
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            if (isActiveAndEnabled == false
+                || State != CookingViewState.CardSelect
+                || ingredient == null
+                || _currentIngredient != ingredient
+                || handView == null
+                || handView.CardCount > 0)
+            {
+                return;
+            }
+
+            RebuildCardHand(ingredient);
         }
 
         private void HandleCardSelected(IngredientSO ingredient, IngredientPreparationOption option)
@@ -181,6 +216,7 @@ namespace Work.Cook.Code.Runtime.UI
 
             workbenchView?.ShowInteractionStarted(ingredient, option);
             activeSlotView?.BindInProgress(option);
+            handView?.ShowMiniGameState();
 
             if (gamePanel != null)
             {
@@ -218,7 +254,7 @@ namespace Work.Cook.Code.Runtime.UI
             _observedPreparedCount = preparedCount;
             PreparedIngredientState prepared = session.PreparedIngredients[preparedCount - 1];
             activeSlotView?.BindResult(_committedOption, prepared);
-            handView?.SetInteractable(false);
+            handView?.ShowResultState();
             ObservePreparedCountReset();
 
             CancelCompletionDisplay();
@@ -283,6 +319,8 @@ namespace Work.Cook.Code.Runtime.UI
                 handView = GetComponentInChildren<CookingPreparationHandView>(true);
             if (activeSlotView == null)
                 activeSlotView = GetComponentInChildren<CookingActivePreparationSlotView>(true);
+            if (miniGameOverlayHost == null && gamePanel != null)
+                miniGameOverlayHost = gamePanel.GetComponentInChildren<CookingMiniGameOverlayHost>(true);
             if (transition == null)
                 transition = GetComponentInChildren<CookingViewTransition>(true);
             activeSlotView?.SetPresentationSettings(presentationSettings);
@@ -292,11 +330,18 @@ namespace Work.Cook.Code.Runtime.UI
         {
             Bus<CookingFlowStateChangedEvent>.Events -= HandleFlowStateChanged;
             Bus<CookingFlowStateChangedEvent>.Events += HandleFlowStateChanged;
+            if (miniGameOverlayHost != null)
+            {
+                miniGameOverlayHost.ResultShown -= HandleMiniGameResultShown;
+                miniGameOverlayHost.ResultShown += HandleMiniGameResultShown;
+            }
         }
 
         private void UnsubscribeSources()
         {
             Bus<CookingFlowStateChangedEvent>.Events -= HandleFlowStateChanged;
+            if (miniGameOverlayHost != null)
+                miniGameOverlayHost.ResultShown -= HandleMiniGameResultShown;
         }
 
         private void HandleFlowStateChanged(CookingFlowStateChangedEvent gameEvent)
@@ -308,271 +353,15 @@ namespace Work.Cook.Code.Runtime.UI
                 Refresh();
         }
 
-    }
-
-    /// <summary>
-    /// 씬에 배치된 팝업과 런타임 생성 UI가 동일한 UIAsset 스킨을 사용하도록 보정한다.
-    /// 에디터 설치기를 다시 실행하지 않은 씬에서도 동일한 표현을 보장한다.
-    /// </summary>
-    internal static class CookingUiRuntimeSkinApplicator
-    {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void Initialize()
+        private void HandleMiniGameResultShown(CookingMiniGameResult result)
         {
-            SceneManager.sceneLoaded -= HandleSceneLoaded;
-            SceneManager.sceneLoaded += HandleSceneLoaded;
-            Apply(SceneManager.GetActiveScene());
-        }
-
-        private static void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            Apply(scene);
-        }
-
-        private static void Apply(Scene scene)
-        {
-            CookingView[] views = UnityEngine.Object.FindObjectsByType<CookingView>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None);
-            CookingView view = null;
-            for (int i = 0; i < views.Length; i++)
-            {
-                if (views[i].gameObject.scene == scene)
-                {
-                    view = views[i];
-                    break;
-                }
-            }
-
-            CookingUiPresentationSettingsSO settings = view?.PresentationSettings;
-            if (settings == null || settings.PanelSprite == null)
+            if (_committedOption == null)
                 return;
 
-            HideLegacyHud(scene);
-            ApplyImages(scene, settings);
-            ConfigureOrderSlip(scene, settings);
-            ConfigureLayerOrder(scene);
+            activeSlotView?.BindResultPreview(_committedOption, result);
+            handView?.ShowResultState();
+            workbenchView?.ShowInteractionResult(_currentIngredient, _committedOption);
         }
 
-        private static void ApplyImages(Scene scene, CookingUiPresentationSettingsSO settings)
-        {
-            Image[] images = UnityEngine.Object.FindObjectsByType<Image>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None);
-            for (int i = 0; i < images.Length; i++)
-            {
-                Image image = images[i];
-                if (image.gameObject.scene != scene)
-                    continue;
-
-                CookingWorkbenchView workbench = image.GetComponentInParent<CookingWorkbenchView>();
-                if (workbench != null && image.gameObject.name == "IngredientButton")
-                {
-                    image.type = Image.Type.Simple;
-                    image.preserveAspect = true;
-                    continue;
-                }
-
-                CookingIngredientButtonView ingredientButton = image.GetComponent<CookingIngredientButtonView>();
-                if (ingredientButton != null)
-                {
-                    SetSliced(image, settings.CardSprite);
-                    SetDarkText(image.transform);
-                    continue;
-                }
-
-                Button button = image.GetComponent<Button>();
-                if (button != null)
-                {
-                    SetSliced(image, IsPrimaryButton(button.name)
-                        ? settings.PrimaryButtonSprite
-                        : settings.SecondaryButtonSprite);
-                    SetButtonText(button, Color.white);
-                    continue;
-                }
-
-                if (IsPanel(image.name))
-                {
-                    SetSliced(image, settings.PanelSprite);
-                }
-                else if (IsCard(image.name))
-                {
-                    SetSliced(image, settings.CardSprite);
-                    SetDarkText(image.transform);
-                }
-                else if (IsLabel(image.name))
-                {
-                    SetSliced(image, settings.LabelSprite);
-                    image.raycastTarget = false;
-                }
-            }
-        }
-
-        private static void ConfigureOrderSlip(Scene scene, CookingUiPresentationSettingsSO settings)
-        {
-            NpcOrderSlipPanel[] slips = UnityEngine.Object.FindObjectsByType<NpcOrderSlipPanel>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None);
-            for (int i = 0; i < slips.Length; i++)
-            {
-                if (slips[i].gameObject.scene != scene)
-                    continue;
-
-                SetSliced(slips[i].GetComponent<Image>(), settings.ReceiptSprite);
-                Graphic[] graphics = slips[i].GetComponentsInChildren<Graphic>(true);
-                for (int graphicIndex = 0; graphicIndex < graphics.Length; graphicIndex++)
-                    graphics[graphicIndex].raycastTarget = false;
-
-                CanvasGroup group = slips[i].GetComponent<CanvasGroup>();
-                if (group != null)
-                {
-                    group.interactable = false;
-                    group.blocksRaycasts = false;
-                }
-            }
-        }
-
-        private static void ConfigureLayerOrder(Scene scene)
-        {
-            Canvas[] canvases = UnityEngine.Object.FindObjectsByType<Canvas>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None);
-            Canvas canvas = null;
-            for (int i = 0; i < canvases.Length; i++)
-            {
-                if (canvases[i].gameObject.scene == scene && canvases[i].name == "CookUICanvas")
-                {
-                    canvas = canvases[i].rootCanvas;
-                    break;
-                }
-            }
-
-            if (canvas == null)
-                return;
-
-            Transform root = canvas.transform;
-            Transform cooking = FindDescendant(root, "CookingViewRoot");
-            Transform miniGame = FindDescendant(root, "CookingMiniGameOverlayRoot");
-            Transform orderSlip = FindDescendant(root, "NpcOrderSlipPanel");
-            Transform result = FindDescendant(root, "CookingResultPresentationRoot");
-            Transform reward = FindDescendant(root, "CookingRewardToastRoot");
-
-            if (orderSlip != null && orderSlip.parent != root)
-                orderSlip.SetParent(root, false);
-
-            cooking?.SetAsLastSibling();
-            miniGame?.SetAsLastSibling();
-            orderSlip?.SetAsLastSibling();
-            result?.SetAsLastSibling();
-            reward?.SetAsLastSibling();
-        }
-
-        private static void HideLegacyHud(Scene scene)
-        {
-            CookingOrderNoteView[] notes = UnityEngine.Object.FindObjectsByType<CookingOrderNoteView>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None);
-            for (int i = 0; i < notes.Length; i++)
-            {
-                if (notes[i].gameObject.scene == scene)
-                    notes[i].gameObject.SetActive(false);
-            }
-
-            CookingIngredientProgressView[] progressViews =
-                UnityEngine.Object.FindObjectsByType<CookingIngredientProgressView>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
-            for (int i = 0; i < progressViews.Length; i++)
-            {
-                if (progressViews[i].gameObject.scene == scene)
-                    progressViews[i].gameObject.SetActive(false);
-            }
-        }
-
-        private static Transform FindDescendant(Transform root, string name)
-        {
-            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
-            for (int i = 0; i < transforms.Length; i++)
-            {
-                if (transforms[i].name == name)
-                    return transforms[i];
-            }
-
-            return null;
-        }
-
-        private static bool IsPanel(string name)
-        {
-            return name == "TemporaryIngredientSelectionView"
-                   || name == "Workbench"
-                   || name == "ActivePreparationSlot"
-                   || name == "PreparationHand"
-                   || name == "PreparationTooltip"
-                   || name == "DishHeroPanel"
-                   || name == "ResultSummaryPanel"
-                   || name == "ResultDetailsDrawer"
-                   || name == "CookingRewardToastRoot"
-                   || name == "InfoDictionaryPanel"
-                   || name == "InfoRecipePanel"
-                   || name == "RecipeDictionaryPanel"
-                   || name == "IngredientDetail"
-                   || name == "Information"
-                   || name == "ChatPanel";
-        }
-
-        private static bool IsCard(string name)
-        {
-            return name.EndsWith("Card", StringComparison.Ordinal)
-                   || name == "RewardPreview"
-                   || name == "ExpectedReaction"
-                   || name == "PreparedIngredientRowTemplate"
-                   || name == "TagComparisonSection"
-                   || name == "PreparationBreakdown";
-        }
-
-        private static bool IsLabel(string name)
-        {
-            return name.EndsWith("TitleLabel", StringComparison.Ordinal)
-                   || name == "CookingTitleLabel"
-                   || name == "SlotTitleLabel"
-                   || name == "ResultDetailsTitleLabel";
-        }
-
-        private static bool IsPrimaryButton(string name)
-        {
-            return name.IndexOf("Confirm", StringComparison.OrdinalIgnoreCase) >= 0
-                   || name.IndexOf("Complete", StringComparison.OrdinalIgnoreCase) >= 0
-                   || name.IndexOf("HandToNpc", StringComparison.OrdinalIgnoreCase) >= 0
-                   || name.IndexOf("Submit", StringComparison.OrdinalIgnoreCase) >= 0
-                   || name.IndexOf("Start", StringComparison.OrdinalIgnoreCase) >= 0
-                   || name.IndexOf("Next", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        private static void SetSliced(Image image, Sprite sprite)
-        {
-            if (image == null || sprite == null)
-                return;
-
-            image.sprite = sprite;
-            image.type = Image.Type.Sliced;
-            image.preserveAspect = false;
-            image.color = Color.white;
-            image.pixelsPerUnitMultiplier = 1f;
-        }
-
-        private static void SetDarkText(Transform root)
-        {
-            TextMeshProUGUI[] fields = root.GetComponentsInChildren<TextMeshProUGUI>(true);
-            Color color = new Color(0.24f, 0.18f, 0.15f, 1f);
-            for (int i = 0; i < fields.Length; i++)
-                fields[i].color = color;
-        }
-
-        private static void SetButtonText(Button button, Color color)
-        {
-            TextMeshProUGUI[] fields = button.GetComponentsInChildren<TextMeshProUGUI>(true);
-            for (int i = 0; i < fields.Length; i++)
-                fields[i].color = color;
-        }
     }
 }
