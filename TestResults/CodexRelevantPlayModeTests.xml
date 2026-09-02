@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Failed(Child)" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-02 04:52:55Z" end-time="2026-09-02 04:53:04Z" duration="9.5302913">
+  <test-suite type="TestSuite" id="1015" name="DungeonDinner" fullname="DungeonDinner" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-09-02 04:52:55Z" end-time="2026-09-02 04:53:04Z" duration="9.530291" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1008" name="DungeonDinner.Npc.PlayModeTests.dll" fullname="D:/devsan232/DungeonDinner/Library/ScriptAssemblies/DungeonDinner.Npc.PlayModeTests.dll" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-09-02 04:52:55Z" end-time="2026-09-02 04:53:04Z" duration="9.513032" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="32996" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1009" name="DungeonDinner" fullname="DungeonDinner" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-09-02 04:52:55Z" end-time="2026-09-02 04:53:04Z" duration="9.504580" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1010" name="Npc" fullname="DungeonDinner.Npc" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-09-02 04:52:55Z" end-time="2026-09-02 04:53:04Z" duration="9.498668" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1011" name="PlayModeTests" fullname="DungeonDinner.Npc.PlayModeTests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-09-02 04:52:55Z" end-time="2026-09-02 04:53:04Z" duration="9.491392" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1001" name="CookingIntegrationUiGeometryPlayModeTests" fullname="DungeonDinner.Npc.PlayModeTests.CookingIntegrationUiGeometryPlayModeTests" classname="DungeonDinner.Npc.PlayModeTests.CookingIntegrationUiGeometryPlayModeTests" runstate="Runnable" testcasecount="2" result="Failed" site="Child" start-time="2026-09-02 04:52:55Z" end-time="2026-09-02 04:52:59Z" duration="4.069442" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1003" name="DungeonDinner_DispatchOpensClosesAndSharesGameTimeService" fullname="DungeonDinner.Npc.PlayModeTests.CookingIntegrationUiGeometryPlayModeTests.DungeonDinner_DispatchOpensClosesAndSharesGameTimeService" methodname="DungeonDinner_DispatchOpensClosesAndSharesGameTimeService" classname="DungeonDinner.Npc.PlayModeTests.CookingIntegrationUiGeometryPlayModeTests" runstate="Runnable" seed="143605155" result="Passed" start-time="2026-09-02 04:52:55Z" end-time="2026-09-02 04:52:57Z" duration="2.754794" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="DispatchIntegrationSmoke" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[
+IgnoreFailingMessages:true
+NPC encounter selected: date=제국력 975년 7월 14일, region=MossCave, npc=Odin, event=Odin_FirstVisit
+DISPATCH_INTEGRATION_SMOKE {"sceneName":"DungeonDinnerScene","opened":true,"closed":true,"sharedGameTimeService":true,"relevantRuntimeErrorCount":0}
+]]></output>
+              </test-case>
+              <test-case id="1002" name="DungeonDinner_RecipeCardsAreCenteredAndCookingViewIsVisible" fullname="DungeonDinner.Npc.PlayModeTests.CookingIntegrationUiGeometryPlayModeTests.DungeonDinner_RecipeCardsAreCenteredAndCookingViewIsVisible" methodname="DungeonDinner_RecipeCardsAreCenteredAndCookingViewIsVisible" classname="DungeonDinner.Npc.PlayModeTests.CookingIntegrationUiGeometryPlayModeTests" runstate="Runnable" seed="1195595226" result="Failed" start-time="2026-09-02 04:52:57Z" end-time="2026-09-02 04:52:59Z" duration="1.291957" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="CookingIntegrationUiGeometry" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Recipe selection did not create a visible recipe card grid.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at DungeonDinner.Npc.PlayModeTests.CookingIntegrationUiGeometryPlayModeTests+<DungeonDinner_RecipeCardsAreCenteredAndCookingViewIsVisible>d__6.MoveNext () [0x00190] in D:\devsan232\DungeonDinner\Assets\Work\NPC\Code\Tests\PlayMode\CookingIntegrationUiGeometryPlayModeTests.cs:64
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@aebcb98460c6\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[
+IgnoreFailingMessages:true
+NPC encounter selected: date=제국력 975년 7월 14일, region=MossCave, npc=Odin, event=Odin_FirstVisit
+<color=#0099bc><b>DOTWEEN ► </b></color>Target or field is missing/null (Void TryThrowEditorNullExceptionObject(UnityEngine.Object, System.String)) ► The object of type 'UnityEngine.RectTransform' has been destroyed but you are still trying to access it.
+Your script should either check if it is null or you should not destroy the object.
+
+  at UnityEngine.Object+MarshalledUnityObject.TryThrowEditorNullExceptionObject (UnityEngine.Object unityObj, System.String parameterName) [0x0006a] in <500f267b66d74c678b3466bfed6b3d28>:0 
+  at UnityEngine.Bindings.ThrowHelper.ThrowNullReferenceException (System.Object obj) [0x00010] in <500f267b66d74c678b3466bfed6b3d28>:0 
+  at UnityEngine.RectTransform.set_anchoredPosition (UnityEngine.Vector2 value) [0x00006] in <500f267b66d74c678b3466bfed6b3d28>:0 
+  at DG.Tweening.DOTweenModuleUI+<>c__DisplayClass13_0.<DOAnchorPos>b__1 (UnityEngine.Vector2 x) [0x00000] in D:\devsan232\DungeonDinner\Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleUI.cs:210 
+  at DG.Tweening.Plugins.Vector2Plugin.EvaluateAndApply (DG.Tweening.Plugins.Options.VectorOptions options, DG.Tweening.Tween t, System.Boolean isRelative, DG.Tweening.Core.DOGetter`1[T] getter, DG.Tweening.Core.DOSetter`1[T] setter, System.Single elapsed, UnityEngine.Vector2 startValue, UnityEngine.Vector2 changeValue, System.Single duration, System.Boolean usingInversePosition, System.Int32 newCompletedSteps, DG.Tweening.Core.Enums.UpdateNotice updateNotice) [0x001b2] in <5ae618ea15ea4f2ebfe58b132c1de82d>:0 
+  at DG.Tweening.Core.TweenerCore`3[T1,T2,TPlugOptions].ApplyTween (System.Single prevPosition, System.Int32 prevCompletedLoops, System.Int32 newCompletedSteps, System.Boolean useInversePosition, DG.Tweening.Core.Enums.UpdateMode updateMode, DG.Tweening.Core.Enums.UpdateNotice updateNotice) [0x00043] in <5ae618ea15ea4f2ebfe58b132c1de82d>:0 
+
+
+<color=#0099bc><b>DOTWEEN ► </b></color>Target or field is missing/null (Void TryThrowEditorNullExceptionObject(UnityEngine.Object, System.String)) ► The object of type 'UnityEngine.RectTransform' has been destroyed but you are still trying to access it.
+Your script should either check if it is null or you should not destroy the object.
+
+  at UnityEngine.Object+MarshalledUnityObject.TryThrowEditorNullExceptionObject (UnityEngine.Object unityObj, System.String parameterName) [0x0006a] in <500f267b66d74c678b3466bfed6b3d28>:0 
+  at UnityEngine.Bindings.ThrowHelper.ThrowNullReferenceException (System.Object obj) [0x00010] in <500f267b66d74c678b3466bfed6b3d28>:0 
+  at UnityEngine.RectTransform.set_anchoredPosition (UnityEngine.Vector2 value) [0x00006] in <500f267b66d74c678b3466bfed6b3d28>:0 
+  at DG.Tweening.DOTweenModuleUI+<>c__DisplayClass13_0.<DOAnchorPos>b__1 (UnityEngine.Vector2 x) [0x00000] in D:\devsan232\DungeonDinner\Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleUI.cs:210 
+  at DG.Tweening.Plugins.Vector2Plugin.EvaluateAndApply (DG.Tweening.Plugins.Options.VectorOptions options, DG.Tweening.Tween t, System.Boolean isRelative, DG.Tweening.Core.DOGetter`1[T] getter, DG.Tweening.Core.DOSetter`1[T] setter, System.Single elapsed, UnityEngine.Vector2 startValue, UnityEngine.Vector2 changeValue, System.Single duration, System.Boolean usingInversePosition, System.Int32 newCompletedSteps, DG.Tweening.Core.Enums.UpdateNotice updateNotice) [0x001b2] in <5ae618ea15ea4f2ebfe58b132c1de82d>:0 
+  at DG.Tweening.Core.TweenerCore`3[T1,T2,TPlugOptions].ApplyTween (System.Single prevPosition, System.Int32 prevCompletedLoops, System.Int32 newCompletedSteps, System.Boolean useInversePosition, DG.Tweening.Core.Enums.UpdateMode updateMode, DG.Tweening.Core.Enums.UpdateNotice updateNotice) [0x00043] in <5ae618ea15ea4f2ebfe58b132c1de82d>:0 
+
+
+<color=#0099bc><b>DOTWEEN ► </b></color>Target or field is missing/null (Void TryThrowEditorNullExceptionObject(UnityEngine.Object, System.String)) ► The object of type 'UnityEngine.RectTransform' has been destroyed but you are still trying to access it.
+Your script should either check if it is null or you should not destroy the object.
+
+  at UnityEngine.Object+MarshalledUnityObject.TryThrowEditorNullExceptionObject (UnityEngine.Object unityObj, System.String parameterName) [0x0006a] in <500f267b66d74c678b3466bfed6b3d28>:0 
+  at UnityEngine.Bindings.ThrowHelper.ThrowNullReferenceException (System.Object obj) [0x00010] in <500f267b66d74c678b3466bfed6b3d28>:0 
+  at UnityEngine.RectTransform.set_anchoredPosition (UnityEngine.Vector2 value) [0x00006] in <500f267b66d74c678b3466bfed6b3d28>:0 
+  at DG.Tweening.DOTweenModuleUI+<>c__DisplayClass13_0.<DOAnchorPos>b__1 (UnityEngine.Vector2 x) [0x00000] in D:\devsan232\DungeonDinner\Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleUI.cs:210 
+  at DG.Tweening.Plugins.Vector2Plugin.EvaluateAndApply (DG.Tweening.Plugins.Options.VectorOptions options, DG.Tweening.Tween t, System.Boolean isRelative, DG.Tweening.Core.DOGetter`1[T] getter, DG.Tweening.Core.DOSetter`1[T] setter, System.Single elapsed, UnityEngine.Vector2 startValue, UnityEngine.Vector2 changeValue, System.Single duration, System.Boolean usingInversePosition, System.Int32 newCompletedSteps, DG.Tweening.Core.Enums.UpdateNotice updateNotice) [0x001b2] in <5ae618ea15ea4f2ebfe58b132c1de82d>:0 
+  at DG.Tweening.Core.TweenerCore`3[T1,T2,TPlugOptions].ApplyTween (System.Single prevPosition, System.Int32 prevCompletedLoops, System.Int32 newCompletedSteps, System.Boolean useInversePosition, DG.Tweening.Core.Enums.UpdateMode updateMode, DG.Tweening.Core.Enums.UpdateNotice updateNotice) [0x00043] in <5ae618ea15ea4f2ebfe58b132c1de82d>:0 
+
+
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1004" name="NpcQuestionUiGeometryPlayModeTests" fullname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" classname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-02 04:52:59Z" end-time="2026-09-02 04:53:04Z" duration="5.414561" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1006" name="AdventureTestScene_QuestionUiRegionsDoNotOverlap" fullname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests.AdventureTestScene_QuestionUiRegionsDoNotOverlap" methodname="AdventureTestScene_QuestionUiRegionsDoNotOverlap" classname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" runstate="Runnable" seed="52817927" result="Passed" start-time="2026-09-02 04:52:59Z" end-time="2026-09-02 04:53:01Z" duration="1.758881" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="NpcQuestionUiGeometry" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[
+IgnoreFailingMessages:true
+NPC encounter selected: date=제국력 975년 7월 14일, region=MossCave, npc=Odin, event=Odin_FirstVisit
+NPC_QUESTION_UI_GEOMETRY {"scenePath":"Assets/Work/Adventure/Scene/AdventureTestScene.unity","sceneName":"AdventureTestScene","sampleCount":12,"activeButtonCount":5,"chatBubbleCount":6,"buttonPairCount":10,"maxOverlappingButtonPairs":0,"canvasWidth":1920.0,"canvasHeight":1080.0,"buttonContainerWidth":656.050048828125,"buttonContainerHeight":252.0,"chatContentWidth":869.9000854492188,"chatContentHeight":651.06005859375,"sumButtonHeights":220.0,"maxButtonPairOverlapCanvasUnits2":0.0,"maxButtonPairOverlapRatio":0.0,"maxButtonChatBubbleOverlapCanvasUnits2":0.0,"maxButtonChatBubbleOverlapRatio":0.0,"maxButtonOutsideContainerRatio":0.0,"buttonContainerViewportOverlapRatio":0.0,"hasVerticalLayoutGroup":true,"hasContentSizeFitter":true,"conversationContentRootAssigned":true}
+]]></output>
+              </test-case>
+              <test-case id="1005" name="CookTestScene_QuestionUiRegionsDoNotOverlap" fullname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests.CookTestScene_QuestionUiRegionsDoNotOverlap" methodname="CookTestScene_QuestionUiRegionsDoNotOverlap" classname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" runstate="Runnable" seed="1340024326" result="Passed" start-time="2026-09-02 04:53:01Z" end-time="2026-09-02 04:53:02Z" duration="1.808265" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="NpcQuestionUiGeometry" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[
+IgnoreFailingMessages:true
+NullReferenceException: Object reference not set to an instance of an object
+Work.Adventure.Code.UI.MapSelectButton.CloseMap () (at Assets/Work/Adventure/Code/UI/MapSelectButton.cs:33)
+Work.Adventure.Code.UI.AdventureMapUI.<Init>b__9_0 (Work.Adventure.Code.UI.MapSelectButton item) (at Assets/Work/Adventure/Code/UI/AdventureMapUI.cs:31)
+System.Collections.Generic.List`1[T].ForEach (System.Action`1[T] action) (at <41d29b352f6a475ab1bf7c6628b82790>:0)
+Work.Adventure.Code.UI.AdventureMapUI.Init (System.Action callback) (at Assets/Work/Adventure/Code/UI/AdventureMapUI.cs:28)
+Work.Adventure.Code.AdventureManager.Init () (at Assets/Work/Adventure/Code/AdventureManager.cs:37)
+Work.Adventure.Code.PreparationManager.Awake () (at Assets/Work/Adventure/Code/PreparationManager.cs:23)
+
+NPC encounter selected: date=제국력 975년 7월 14일, region=MossCave, npc=Odin, event=Odin_FirstVisit
+NPC_QUESTION_UI_GEOMETRY {"scenePath":"Assets/Work/Cook/Scene/CookTestScene.unity","sceneName":"CookTestScene","sampleCount":12,"activeButtonCount":5,"chatBubbleCount":6,"buttonPairCount":10,"maxOverlappingButtonPairs":0,"canvasWidth":1920.0,"canvasHeight":1080.0,"buttonContainerWidth":656.050048828125,"buttonContainerHeight":252.0,"chatContentWidth":869.9000854492188,"chatContentHeight":651.06005859375,"sumButtonHeights":220.0,"maxButtonPairOverlapCanvasUnits2":0.0,"maxButtonPairOverlapRatio":0.0,"maxButtonChatBubbleOverlapCanvasUnits2":0.0,"maxButtonChatBubbleOverlapRatio":0.0,"maxButtonOutsideContainerRatio":0.0,"buttonContainerViewportOverlapRatio":0.0,"hasVerticalLayoutGroup":true,"hasContentSizeFitter":true,"conversationContentRootAssigned":true}
+]]></output>
+              </test-case>
+              <test-case id="1007" name="DungeonDinnerScene_QuestionUiRegionsDoNotOverlap" fullname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests.DungeonDinnerScene_QuestionUiRegionsDoNotOverlap" methodname="DungeonDinnerScene_QuestionUiRegionsDoNotOverlap" classname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" runstate="Runnable" seed="1892569843" result="Passed" start-time="2026-09-02 04:53:02Z" end-time="2026-09-02 04:53:04Z" duration="1.836238" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="NpcQuestionUiGeometry" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[
+IgnoreFailingMessages:true
+NPC encounter selected: date=제국력 975년 7월 14일, region=MossCave, npc=Odin, event=Odin_FirstVisit
+NPC_QUESTION_UI_GEOMETRY {"scenePath":"Assets/Work/Integration/Scene/DungeonDinnerScene.unity","sceneName":"DungeonDinnerScene","sampleCount":12,"activeButtonCount":5,"chatBubbleCount":6,"buttonPairCount":10,"maxOverlappingButtonPairs":0,"canvasWidth":1920.0,"canvasHeight":1080.0,"buttonContainerWidth":656.050048828125,"buttonContainerHeight":252.0,"chatContentWidth":869.9000854492188,"chatContentHeight":651.06005859375,"sumButtonHeights":220.0,"maxButtonPairOverlapCanvasUnits2":0.0,"maxButtonPairOverlapRatio":0.0,"maxButtonChatBubbleOverlapCanvasUnits2":0.0,"maxButtonChatBubbleOverlapRatio":0.0,"maxButtonOutsideContainerRatio":0.0,"buttonContainerViewportOverlapRatio":0.0,"hasVerticalLayoutGroup":true,"hasContentSizeFitter":true,"conversationContentRootAssigned":true}
+Saving results to: TestResults/CodexRelevantPlayModeTests.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

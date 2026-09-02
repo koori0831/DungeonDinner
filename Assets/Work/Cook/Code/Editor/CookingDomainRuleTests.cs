@@ -421,6 +421,7 @@ namespace Work.Cook.Code.Editor.Tests
 
         [TestCase("Assets/Work/Cook/Scene/CookTestScene.unity")]
         [TestCase("Assets/Work/Adventure/Scene/AdventureTestScene.unity")]
+        [TestCase("Assets/Work/Integration/Scene/DungeonDinnerScene.unity")]
         public void CookingScenes_LoadWithRequiredFlowComponentsAndNoMissingScripts(string scenePath)
         {
             Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
@@ -456,6 +457,12 @@ namespace Work.Cook.Code.Editor.Tests
         public IEnumerator AdventureTestScene_PlayModeCookingFlowInitializes()
         {
             return VerifyCookingSceneInPlayMode("Assets/Work/Adventure/Scene/AdventureTestScene.unity");
+        }
+
+        [UnityTest]
+        public IEnumerator DungeonDinnerScene_PlayModeCookingFlowInitializes()
+        {
+            return VerifyCookingSceneInPlayMode("Assets/Work/Integration/Scene/DungeonDinnerScene.unity");
         }
 
         [Test]

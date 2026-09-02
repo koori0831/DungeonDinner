@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="8" result="Passed" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-02 04:51:47Z" end-time="2026-09-02 04:51:50Z" duration="3.2745059">
+  <test-suite type="TestSuite" id="1000" name="DungeonDinner" fullname="DungeonDinner" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-09-02 04:51:47Z" end-time="2026-09-02 04:51:50Z" duration="3.274506" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1057" name="Assembly-CSharp-Editor.dll" fullname="D:/devsan232/DungeonDinner/Library/ScriptAssemblies/Assembly-CSharp-Editor.dll" runstate="Runnable" testcasecount="46" result="Passed" start-time="2026-09-02 04:51:47Z" end-time="2026-09-02 04:51:50Z" duration="2.722693" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="32996" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1058" name="Work" fullname="Work" runstate="Runnable" testcasecount="46" result="Passed" start-time="2026-09-02 04:51:47Z" end-time="2026-09-02 04:51:50Z" duration="2.709403" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1070" name="Cook" fullname="Work.Cook" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-02 04:51:47Z" end-time="2026-09-02 04:51:48Z" duration="1.086192" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1071" name="Code" fullname="Work.Cook.Code" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-02 04:51:47Z" end-time="2026-09-02 04:51:48Z" duration="1.070617" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1072" name="Editor" fullname="Work.Cook.Code.Editor" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-02 04:51:47Z" end-time="2026-09-02 04:51:48Z" duration="1.056384" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestSuite" id="1073" name="Tests" fullname="Work.Cook.Code.Editor.Tests" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-02 04:51:47Z" end-time="2026-09-02 04:51:48Z" duration="1.042192" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="TestFixture" id="1032" name="CookingDomainRuleTests" fullname="Work.Cook.Code.Editor.Tests.CookingDomainRuleTests" classname="Work.Cook.Code.Editor.Tests.CookingDomainRuleTests" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-02 04:51:47Z" end-time="2026-09-02 04:51:48Z" duration="1.026614" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1054" name="DungeonDinnerScene_PlayModeCookingFlowInitializes" fullname="Work.Cook.Code.Editor.Tests.CookingDomainRuleTests.DungeonDinnerScene_PlayModeCookingFlowInitializes" methodname="DungeonDinnerScene_PlayModeCookingFlowInitializes" classname="Work.Cook.Code.Editor.Tests.CookingDomainRuleTests" runstate="Runnable" seed="999938379" result="Passed" start-time="2026-09-02 04:51:37Z" end-time="2026-09-02 04:51:48Z" duration="10.954904" asserts="0">
+                    <properties>
+                      <property name="_JOINTYPE" value="UnityCombinatorial" />
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+        <test-suite type="TestSuite" id="1066" name="Dispatch" fullname="Work.Dispatch" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-09-02 04:51:48Z" end-time="2026-09-02 04:51:50Z" duration="1.605288" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1067" name="Code" fullname="Work.Dispatch.Code" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-09-02 04:51:48Z" end-time="2026-09-02 04:51:50Z" duration="1.598527" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1068" name="Editor" fullname="Work.Dispatch.Code.Editor" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-09-02 04:51:48Z" end-time="2026-09-02 04:51:50Z" duration="1.588931" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestSuite" id="1069" name="Tests" fullname="Work.Dispatch.Code.Editor.Tests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-09-02 04:51:48Z" end-time="2026-09-02 04:51:50Z" duration="1.588081" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="TestFixture" id="1012" name="DispatchAssetIntegrationTests" fullname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests" classname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-02 04:51:48Z" end-time="2026-09-02 04:51:50Z" duration="1.586450" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1013" name="Catalog_HasNoValidationErrors" fullname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests.Catalog_HasNoValidationErrors" methodname="Catalog_HasNoValidationErrors" classname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests" runstate="Runnable" seed="1541273140" result="Passed" start-time="2026-09-02 04:51:48Z" end-time="2026-09-02 04:51:48Z" duration="0.011693" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-suite type="ParameterizedMethod" id="1018" name="IntegratedScene_ContainsDispatchPrefabInstance" fullname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests.IntegratedScene_ContainsDispatchPrefabInstance" classname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-02 04:51:48Z" end-time="2026-09-02 04:51:49Z" duration="1.042008" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                    <properties />
+                    <test-case id="1016" name="IntegratedScene_ContainsDispatchPrefabInstance(&quot;Assets/Work/Adventure/Scene/AdventureTestScene.unity&quot;)" fullname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests.IntegratedScene_ContainsDispatchPrefabInstance(&quot;Assets/Work/Adventure/Scene/AdventureTestScene.unity&quot;)" methodname="IntegratedScene_ContainsDispatchPrefabInstance" classname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests" runstate="Runnable" seed="795620457" result="Passed" start-time="2026-09-02 04:51:48Z" end-time="2026-09-02 04:51:49Z" duration="0.533606" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1017" name="IntegratedScene_ContainsDispatchPrefabInstance(&quot;Assets/Work/Integration/Scene/DungeonDinnerScene.unity&quot;)" fullname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests.IntegratedScene_ContainsDispatchPrefabInstance(&quot;Assets/Work/Integration/Scene/DungeonDinnerScene.unity&quot;)" methodname="IntegratedScene_ContainsDispatchPrefabInstance" classname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests" runstate="Runnable" seed="258491097" result="Passed" start-time="2026-09-02 04:51:49Z" end-time="2026-09-02 04:51:49Z" duration="0.501298" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                  </test-suite>
+                  <test-case id="1015" name="Prefab_HasActualUidocumentAndRuntimeComponents" fullname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests.Prefab_HasActualUidocumentAndRuntimeComponents" methodname="Prefab_HasActualUidocumentAndRuntimeComponents" classname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests" runstate="Runnable" seed="1471481036" result="Passed" start-time="2026-09-02 04:51:49Z" end-time="2026-09-02 04:51:49Z" duration="0.005216" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1019" name="RuntimeIntegrationScene_UsesLatestCookingPresentationWithoutLegacyViews" fullname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests.RuntimeIntegrationScene_UsesLatestCookingPresentationWithoutLegacyViews" methodname="RuntimeIntegrationScene_UsesLatestCookingPresentationWithoutLegacyViews" classname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests" runstate="Runnable" seed="529059461" result="Passed" start-time="2026-09-02 04:51:49Z" end-time="2026-09-02 04:51:50Z" duration="0.521586" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1014" name="ScreenUxml_ContainsAllStaticPagesAndModal" fullname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests.ScreenUxml_ContainsAllStaticPagesAndModal" methodname="ScreenUxml_ContainsAllStaticPagesAndModal" classname="Work.Dispatch.Code.Editor.Tests.DispatchAssetIntegrationTests" runstate="Runnable" seed="1444349237" result="Passed" start-time="2026-09-02 04:51:50Z" end-time="2026-09-02 04:51:50Z" duration="0.002126" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1081" name="Cook.EditorTests.dll" fullname="D:/devsan232/DungeonDinner/Library/ScriptAssemblies/Cook.EditorTests.dll" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-02 04:51:50Z" end-time="2026-09-02 04:51:50Z" duration="0.207681" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="32996" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1082" name="DungeonDinner" fullname="DungeonDinner" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-02 04:51:50Z" end-time="2026-09-02 04:51:50Z" duration="0.135808" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1083" name="Cook" fullname="DungeonDinner.Cook" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-02 04:51:50Z" end-time="2026-09-02 04:51:50Z" duration="0.122348" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1084" name="EditorTests" fullname="DungeonDinner.Cook.EditorTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-02 04:51:50Z" end-time="2026-09-02 04:51:50Z" duration="0.117119" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1074" name="CookingIngredientSelectionHierarchyTests" fullname="DungeonDinner.Cook.EditorTests.CookingIngredientSelectionHierarchyTests" classname="DungeonDinner.Cook.EditorTests.CookingIngredientSelectionHierarchyTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-02 04:51:50Z" end-time="2026-09-02 04:51:50Z" duration="0.108360" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1076" name="RecipeScrollPrefab_CentersIncompleteThreeColumnRows" fullname="DungeonDinner.Cook.EditorTests.CookingIngredientSelectionHierarchyTests.RecipeScrollPrefab_CentersIncompleteThreeColumnRows" methodname="RecipeScrollPrefab_CentersIncompleteThreeColumnRows" classname="DungeonDinner.Cook.EditorTests.CookingIngredientSelectionHierarchyTests" runstate="Runnable" seed="767789515" result="Passed" start-time="2026-09-02 04:51:50Z" end-time="2026-09-02 04:51:50Z" duration="0.105995" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: TestResults/CodexRelevantEditModeTests.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1091,7 +1091,7 @@ MonoBehaviour:
   selectionOffset: {x: 0, y: 10}
   selectionMoveTime: 0.01
   loadSceneOnStart: 1
-  startSceneName: AdventureTestScene
+  startSceneName: DungeonDinnerScene
   settingsPanel: {fileID: 0}
   gameSettingsPanel: {fileID: 720410952}
   closeSettingsPanelOnStart: 1

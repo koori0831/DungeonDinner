@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-02 03:34:24Z" end-time="2026-09-02 03:34:31Z" duration="6.4158778">
+  <test-suite type="TestSuite" id="1012" name="DungeonDinner" fullname="DungeonDinner" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-02 03:34:24Z" end-time="2026-09-02 03:34:31Z" duration="6.415878" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1005" name="DungeonDinner.Npc.PlayModeTests.dll" fullname="D:/devsan232/DungeonDinner/Library/ScriptAssemblies/DungeonDinner.Npc.PlayModeTests.dll" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-02 03:34:24Z" end-time="2026-09-02 03:34:31Z" duration="6.404322" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="30520" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1006" name="DungeonDinner" fullname="DungeonDinner" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-02 03:34:24Z" end-time="2026-09-02 03:34:31Z" duration="6.403191" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1007" name="Npc" fullname="DungeonDinner.Npc" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-02 03:34:24Z" end-time="2026-09-02 03:34:31Z" duration="6.402721" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1008" name="PlayModeTests" fullname="DungeonDinner.Npc.PlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-02 03:34:24Z" end-time="2026-09-02 03:34:31Z" duration="6.402195" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1001" name="NpcQuestionUiGeometryPlayModeTests" fullname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" classname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-02 03:34:24Z" end-time="2026-09-02 03:34:31Z" duration="6.400069" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1003" name="AdventureTestScene_QuestionUiRegionsDoNotOverlap" fullname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests.AdventureTestScene_QuestionUiRegionsDoNotOverlap" methodname="AdventureTestScene_QuestionUiRegionsDoNotOverlap" classname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" runstate="Runnable" seed="756728861" result="Passed" start-time="2026-09-02 03:34:24Z" end-time="2026-09-02 03:34:27Z" duration="3.066676" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="NpcQuestionUiGeometry" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[
+IgnoreFailingMessages:true
+NPC encounter selected: date=제국력 975년 7월 14일, region=MossCave, npc=Odin, event=Odin_FirstVisit
+NPC_QUESTION_UI_GEOMETRY {"scenePath":"Assets/Work/Adventure/Scene/AdventureTestScene.unity","sceneName":"AdventureTestScene","sampleCount":12,"activeButtonCount":5,"chatBubbleCount":6,"buttonPairCount":10,"maxOverlappingButtonPairs":0,"canvasWidth":1920.0,"canvasHeight":1440.0,"buttonContainerWidth":656.050048828125,"buttonContainerHeight":251.99998474121095,"chatContentWidth":869.9000244140625,"chatContentHeight":651.06005859375,"sumButtonHeights":220.00001525878907,"maxButtonPairOverlapCanvasUnits2":0.0,"maxButtonPairOverlapRatio":0.0,"maxButtonChatBubbleOverlapCanvasUnits2":0.0,"maxButtonChatBubbleOverlapRatio":0.0,"maxButtonOutsideContainerRatio":0.0000013871607507098816,"buttonContainerViewportOverlapRatio":0.0,"hasVerticalLayoutGroup":true,"hasContentSizeFitter":true,"conversationContentRootAssigned":true}
+]]></output>
+              </test-case>
+              <test-case id="1002" name="CookTestScene_QuestionUiRegionsDoNotOverlap" fullname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests.CookTestScene_QuestionUiRegionsDoNotOverlap" methodname="CookTestScene_QuestionUiRegionsDoNotOverlap" classname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" runstate="Runnable" seed="1836330237" result="Passed" start-time="2026-09-02 03:34:27Z" end-time="2026-09-02 03:34:29Z" duration="1.616298" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="NpcQuestionUiGeometry" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[
+IgnoreFailingMessages:true
+NullReferenceException: Object reference not set to an instance of an object
+Work.Adventure.Code.UI.MapSelectButton.CloseMap () (at Assets/Work/Adventure/Code/UI/MapSelectButton.cs:33)
+Work.Adventure.Code.UI.AdventureMapUI.<Init>b__9_0 (Work.Adventure.Code.UI.MapSelectButton item) (at Assets/Work/Adventure/Code/UI/AdventureMapUI.cs:31)
+System.Collections.Generic.List`1[T].ForEach (System.Action`1[T] action) (at <41d29b352f6a475ab1bf7c6628b82790>:0)
+Work.Adventure.Code.UI.AdventureMapUI.Init (System.Action callback) (at Assets/Work/Adventure/Code/UI/AdventureMapUI.cs:28)
+Work.Adventure.Code.AdventureManager.Init () (at Assets/Work/Adventure/Code/AdventureManager.cs:37)
+Work.Adventure.Code.PreparationManager.Awake () (at Assets/Work/Adventure/Code/PreparationManager.cs:23)
+
+NPC encounter selected: date=제국력 975년 7월 14일, region=MossCave, npc=Odin, event=Odin_FirstVisit
+NPC_QUESTION_UI_GEOMETRY {"scenePath":"Assets/Work/Cook/Scene/CookTestScene.unity","sceneName":"CookTestScene","sampleCount":12,"activeButtonCount":5,"chatBubbleCount":6,"buttonPairCount":10,"maxOverlappingButtonPairs":0,"canvasWidth":1920.0,"canvasHeight":1440.0,"buttonContainerWidth":656.050048828125,"buttonContainerHeight":251.99998474121095,"chatContentWidth":869.9000244140625,"chatContentHeight":651.06005859375,"sumButtonHeights":220.00001525878907,"maxButtonPairOverlapCanvasUnits2":0.0,"maxButtonPairOverlapRatio":0.0,"maxButtonChatBubbleOverlapCanvasUnits2":0.0,"maxButtonChatBubbleOverlapRatio":0.0,"maxButtonOutsideContainerRatio":0.0000013871607507098816,"buttonContainerViewportOverlapRatio":0.0,"hasVerticalLayoutGroup":true,"hasContentSizeFitter":true,"conversationContentRootAssigned":true}
+]]></output>
+              </test-case>
+              <test-case id="1004" name="DungeonDinnerScene_QuestionUiRegionsDoNotOverlap" fullname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests.DungeonDinnerScene_QuestionUiRegionsDoNotOverlap" methodname="DungeonDinnerScene_QuestionUiRegionsDoNotOverlap" classname="DungeonDinner.Npc.PlayModeTests.NpcQuestionUiGeometryPlayModeTests" runstate="Runnable" seed="1379796731" result="Passed" start-time="2026-09-02 03:34:29Z" end-time="2026-09-02 03:34:31Z" duration="1.696823" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="Category" value="NpcQuestionUiGeometry" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[
+IgnoreFailingMessages:true
+NPC encounter selected: date=제국력 975년 7월 14일, region=MossCave, npc=Odin, event=Odin_FirstVisit
+NPC_QUESTION_UI_GEOMETRY {"scenePath":"Assets/Work/Integration/Scene/DungeonDinnerScene.unity","sceneName":"DungeonDinnerScene","sampleCount":12,"activeButtonCount":5,"chatBubbleCount":6,"buttonPairCount":10,"maxOverlappingButtonPairs":0,"canvasWidth":1920.0,"canvasHeight":1440.0,"buttonContainerWidth":656.050048828125,"buttonContainerHeight":251.99998474121095,"chatContentWidth":869.9000244140625,"chatContentHeight":651.06005859375,"sumButtonHeights":220.00001525878907,"maxButtonPairOverlapCanvasUnits2":0.0,"maxButtonPairOverlapRatio":0.0,"maxButtonChatBubbleOverlapCanvasUnits2":0.0,"maxButtonChatBubbleOverlapRatio":0.0,"maxButtonOutsideContainerRatio":0.0000013871607507098816,"buttonContainerViewportOverlapRatio":0.0,"hasVerticalLayoutGroup":true,"hasContentSizeFitter":true,"conversationContentRootAssigned":true}
+Saving results to: C:/Users/SAN/AppData/LocalLow/DefaultCompany/DungeonDinner\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

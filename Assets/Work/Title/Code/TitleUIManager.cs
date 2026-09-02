@@ -16,7 +16,7 @@ public class TitleUIManager : MonoBehaviour
 
     [Header("Start Action")]
     [SerializeField] private bool loadSceneOnStart = true;
-    [SerializeField] private string startSceneName = "AdventureTestScene";
+    [SerializeField] private string startSceneName = "DungeonDinnerScene";
 
     [Header("Settings Action")]
     [SerializeField] private GameObject settingsPanel;

@@ -1,0 +1,19 @@
+{
+    "name": "DungeonDinner.Npc.PlayModeTests",
+    "rootNamespace": "DungeonDinner.Npc.PlayModeTests",
+    "references": [
+        "Unity.ugui"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
