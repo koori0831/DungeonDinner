@@ -8,20 +8,24 @@ namespace Work.Cook.Code.Runtime.Core
     {
         public string BuildName(
             RecipeSO recipe,
-            DishQuality quality,
+            DishCraftGrade craftGrade,
             IReadOnlyList<PreparedIngredientState> preparedIngredients,
-            bool isDisgusting)
+            bool isBizarre,
+            bool isFormed)
         {
-            if (isDisgusting == true)
-                return "괴식";
+            if (isFormed == false || recipe == null)
+                return "미완성 요리";
 
-            string baseName = recipe != null ? recipe.DisplayName : "알 수 없는 음식";
+            string baseName = recipe.DisplayName;
             string modifierText = BuildModifierText(recipe, preparedIngredients);
             string modifiedName = string.IsNullOrWhiteSpace(modifierText)
                 ? baseName
                 : $"{modifierText} {baseName}";
 
-            return quality == DishQuality.Perfect ? $"완벽한 {modifiedName}" : modifiedName;
+            if (isBizarre)
+                modifiedName = $"기묘한 {modifiedName}";
+
+            return craftGrade == DishCraftGrade.Perfect ? $"완벽한 {modifiedName}" : modifiedName;
         }
 
         private static string BuildModifierText(

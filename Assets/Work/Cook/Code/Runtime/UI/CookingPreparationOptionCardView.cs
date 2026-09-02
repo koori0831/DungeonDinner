@@ -1,14 +1,10 @@
-using DG.Tweening;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
-using Work.Cook.Code.Runtime.Core;
-using Work.Cook.Code.Runtime.Integration;
-using Work.Cook.Code.Runtime.Systems;
-using Work.Cook.Code.Runtime.UI;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -27,31 +23,34 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private CanvasGroup descriptionGroup;
         [SerializeField] private CanvasGroup effectGroup;
         [SerializeField] private RectTransform hoverVisualRoot;
+        [SerializeField] private Image selectedFrame;
+        [SerializeField] private Outline selectedOutline;
         [SerializeField] private CookingUiPresentationSettingsSO presentationSettings;
 
         private bool _showDetailsOnHover = true;
+        private bool _inputEnabled = true;
         private CookingPreparationTooltipView _tooltipView;
-        private Tween _hoverTween;
-        private Vector2 _restingPosition;
-        private Vector3 _restingScale = Vector3.one;
+        private UnityAction _selectAction;
+        private Color _defaultButtonColor = Color.white;
+        private bool _defaultButtonColorCached;
         private string _displayName = string.Empty;
         private string _description = string.Empty;
         private string _effect = string.Empty;
 
         public RectTransform HoverVisualRoot => hoverVisualRoot;
+        // Fan 배치는 카드 프리팹 루트에 직렬화된 크기를 기준으로 해야 한다.
+        // VisualRoot는 stretch 자식이므로 여기에 anchor/pivot을 덮어쓰면 크기가 0이 된다.
+        public RectTransform LayoutRoot => transform as RectTransform;
+        public event Action<CookingPreparationOptionCardView, bool> HoverChanged;
 
         private void Awake()
         {
             EnsureReferences();
-            CaptureRestingTransform();
         }
 
         private void OnDisable()
         {
             _tooltipView?.Hide(this);
-            _hoverTween?.Kill();
-            _hoverTween = null;
-            RestoreImmediate();
         }
 
         public void SetPresentation(
@@ -60,7 +59,6 @@ namespace Work.Cook.Code.Runtime.UI
         {
             presentationSettings = settings;
             _tooltipView = tooltipView;
-            CaptureRestingTransform();
         }
 
         public void Bind(
@@ -78,6 +76,7 @@ namespace Work.Cook.Code.Runtime.UI
             _displayName = displayName ?? string.Empty;
             _description = description ?? string.Empty;
             _effect = effect ?? string.Empty;
+            _selectAction = selectAction;
 
             if (iconImage != null)
             {
@@ -101,10 +100,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (selectButton != null)
             {
                 selectButton.onClick.RemoveAllListeners();
-                if (selectAction != null)
-                {
-                    selectButton.onClick.AddListener(selectAction);
-                }
+                selectButton.onClick.AddListener(HandleSelectClicked);
 
                 TextMeshProUGUI buttonLabelField = selectButton.GetComponentInChildren<TextMeshProUGUI>(true);
                 if (buttonLabelField != null)
@@ -112,13 +108,46 @@ namespace Work.Cook.Code.Runtime.UI
                     buttonLabelField.text = buttonLabel ?? string.Empty;
                 }
             }
+
+            SetSelected(false);
+            SetInputEnabled(true);
+        }
+
+        public void SetInputEnabled(bool enabled)
+        {
+            _inputEnabled = enabled;
+            if (selectButton != null)
+                selectButton.interactable = enabled && _selectAction != null;
+        }
+
+        public void SetSelected(bool selected)
+        {
+            EnsureReferences();
+            if (selectedFrame != null)
+                selectedFrame.enabled = selected;
+            if (selectedOutline != null)
+                selectedOutline.enabled = selected;
+
+            if (selectButton?.image == null)
+                return;
+
+            CacheDefaultButtonColor();
+            Color accent = presentationSettings != null
+                ? presentationSettings.PositiveColor
+                : new Color(0.95f, 0.74f, 0.27f, 1f);
+            selectButton.image.color = selected
+                ? Color.Lerp(_defaultButtonColor, accent, 0.22f)
+                : _defaultButtonColor;
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            if (_inputEnabled == false)
+                return;
+
+            HoverChanged?.Invoke(this, true);
             if (_showDetailsOnHover == true)
             {
-                AnimateHover(true);
                 if (_tooltipView != null)
                     _tooltipView.Show(this, _displayName, _description, _effect);
                 else
@@ -128,9 +157,9 @@ namespace Work.Cook.Code.Runtime.UI
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            HoverChanged?.Invoke(this, false);
             if (_showDetailsOnHover == true)
             {
-                AnimateHover(false);
                 if (_tooltipView != null)
                     _tooltipView.Hide(this);
                 else
@@ -138,45 +167,21 @@ namespace Work.Cook.Code.Runtime.UI
             }
         }
 
-        private void AnimateHover(bool hovered)
+        private void HandleSelectClicked()
         {
-            EnsureReferences();
-            if (hoverVisualRoot == null)
+            if (_inputEnabled == false)
                 return;
 
-            if (hovered)
-                CaptureRestingTransform();
-
-            float offset = presentationSettings != null ? presentationSettings.CardHoverOffset : 20f;
-            float scale = presentationSettings != null ? presentationSettings.CardHoverScale : 1.04f;
-            float duration = presentationSettings != null ? presentationSettings.CardHoverDuration : 0.14f;
-            Vector2 targetPosition = hovered ? _restingPosition + Vector2.up * offset : _restingPosition;
-            Vector3 targetScale = hovered ? _restingScale * scale : _restingScale;
-
-            _hoverTween?.Kill();
-            Sequence sequence = DOTween.Sequence().SetUpdate(true);
-            sequence.Join(hoverVisualRoot.DOAnchorPos(targetPosition, duration).SetEase(Ease.OutQuad));
-            sequence.Join(hoverVisualRoot.DOScale(targetScale, duration).SetEase(Ease.OutQuad));
-            _hoverTween = sequence;
+            _selectAction?.Invoke();
         }
 
-        private void CaptureRestingTransform()
+        private void CacheDefaultButtonColor()
         {
-            EnsureReferences();
-            if (hoverVisualRoot == null)
+            if (_defaultButtonColorCached == true || selectButton?.image == null)
                 return;
 
-            _restingPosition = hoverVisualRoot.anchoredPosition;
-            _restingScale = hoverVisualRoot.localScale;
-        }
-
-        private void RestoreImmediate()
-        {
-            if (hoverVisualRoot == null)
-                return;
-
-            hoverVisualRoot.anchoredPosition = _restingPosition;
-            hoverVisualRoot.localScale = _restingScale;
+            _defaultButtonColor = selectButton.image.color;
+            _defaultButtonColorCached = true;
         }
 
         private void SetDetailsVisible(bool visible)
@@ -214,6 +219,18 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (hoverVisualRoot == null)
                 hoverVisualRoot = transform as RectTransform;
+
+            if (selectedFrame == null)
+            {
+                Transform selectedFrameTransform = transform.Find("SelectedFrame");
+                if (selectedFrameTransform != null)
+                    selectedFrame = selectedFrameTransform.GetComponent<Image>();
+            }
+
+            if (selectedOutline == null && selectButton != null)
+                selectedOutline = selectButton.GetComponent<Outline>();
+
+            CacheDefaultButtonColor();
         }
     }
 }

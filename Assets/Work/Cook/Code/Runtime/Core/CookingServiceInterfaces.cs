@@ -24,7 +24,12 @@ namespace Work.Cook.Code.Runtime.Core
 
     public interface IDishNameBuilder
     {
-        string BuildName(RecipeSO recipe, DishQuality quality, IReadOnlyList<PreparedIngredientState> preparedIngredients, bool isDisgusting);
+        string BuildName(
+            RecipeSO recipe,
+            DishCraftGrade craftGrade,
+            IReadOnlyList<PreparedIngredientState> preparedIngredients,
+            bool isBizarre,
+            bool isFormed);
     }
 
     public interface IDishResultBuilder

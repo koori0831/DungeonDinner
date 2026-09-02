@@ -58,7 +58,10 @@ namespace Work.Cook.Code.Runtime.Integration
                 result.RecipeId,
                 result.CategoryId,
                 BuildTagIds(result),
-                result.IsDisgusting);
+                MapFormation(result.FormationStatus),
+                MapOddity(result.Oddity),
+                MapSafety(result.Safety),
+                MapCraftGrade(result.CraftGrade));
         }
 
         public static string BuildSubmissionDebugSummary(DishResult result)
@@ -119,6 +122,38 @@ namespace Work.Cook.Code.Runtime.Integration
             }
 
             return tagIds;
+        }
+
+        private static NpcDishFormationStatus MapFormation(DishFormationStatus status)
+        {
+            return status == DishFormationStatus.Formed
+                ? NpcDishFormationStatus.Formed
+                : NpcDishFormationStatus.Unformed;
+        }
+
+        private static NpcDishOddity MapOddity(DishOddity oddity)
+        {
+            return oddity == DishOddity.Bizarre ? NpcDishOddity.Bizarre : NpcDishOddity.Normal;
+        }
+
+        private static NpcDishSafety MapSafety(DishSafety safety)
+        {
+            return safety == DishSafety.Dangerous ? NpcDishSafety.Dangerous : NpcDishSafety.Safe;
+        }
+
+        private static NpcDishCraftGrade MapCraftGrade(DishCraftGrade grade)
+        {
+            switch (grade)
+            {
+                case DishCraftGrade.Bad:
+                    return NpcDishCraftGrade.Bad;
+                case DishCraftGrade.Good:
+                    return NpcDishCraftGrade.Good;
+                case DishCraftGrade.Perfect:
+                    return NpcDishCraftGrade.Perfect;
+                default:
+                    return NpcDishCraftGrade.Normal;
+            }
         }
     }
 }

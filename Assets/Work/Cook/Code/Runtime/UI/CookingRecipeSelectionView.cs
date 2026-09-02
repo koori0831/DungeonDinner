@@ -26,8 +26,8 @@ namespace Work.Cook.Code.Runtime.UI
             ViewHaveInfoEnum.Name | ViewHaveInfoEnum.Image | ViewHaveInfoEnum.Description;
 
         [Header("Recipe Discovery")]
-        [SerializeField] private bool showAllRecipeNamesInEncyclopedia = true;
-        [SerializeField] private bool showAllRecipesUntilKnowledgeStoreExists = true;
+        [SerializeField] private bool showAllRecipeNamesInEncyclopedia;
+        [SerializeField] private bool showAllRecipesUntilKnowledgeStoreExists;
         [SerializeField] private bool showBaseTagsAsKnownForTesting;
         [SerializeField] private List<RecipeSO> discoveredRecipes = new List<RecipeSO>();
         [SerializeField] private List<KnownRecipeTagEntry> knownRecipeTags = new List<KnownRecipeTagEntry>();
@@ -37,7 +37,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private bool includeDirectIngredientSelection;
         [SerializeField] private string directSelectionDisplayName = "재료 직접 선택";
         [SerializeField, TextArea] private string directSelectionDescription =
-            "가방에서 재료를 직접 골라 알려진 레시피에 없는 조합을 시도합니다.";
+            "가방에서 재료를 직접 골라 아직 발견하지 못한 레시피를 찾아봅니다.";
         [SerializeField] private Sprite directSelectionIcon;
 
         [Header("Build")]
@@ -134,7 +134,7 @@ namespace Work.Cook.Code.Runtime.UI
 
                 CookingRecipeEntryData entry = new CookingRecipeEntryData(
                     recipe,
-                    null,
+                    recipe.IconSprite,
                     IsRecipeDiscovered(recipe),
                     HasAttemptedRecipe(recipe),
                     GetKnownEffectiveTags(recipe));

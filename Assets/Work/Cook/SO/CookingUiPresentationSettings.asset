@@ -30,21 +30,34 @@ MonoBehaviour:
   cardHoverOffset: 20
   cardHoverScale: 1.04
   cardHoverDuration: 0.14
+  maxFanCardCount: 7
+  scrollFallbackThreshold: 8
+  enableScrollFallback: 0
+  maxFanAngle: 13
+  minFanCardSpacing: 132
+  maxFanCardSpacing: 220
+  minFanCardScale: 0.86
+  fanArcHeight: 70
+  fanFocusLift: 68
+  fanFocusScale: 1.08
+  fanSelectedLift: 18
+  fanNeighborSpread: 36
+  fanTweenDuration: 0.16
   qualityVisuals:
-  - quality: 2
+  - quality: 3
     displayName: "\uC644\uBCBD"
     color: {r: 1, g: 0.77, b: 0.24, a: 1}
     icon: {fileID: 1450859241877649334, guid: 65de1d0776db4db428703a71744c2506, type: 3}
-  - quality: 0
+  - quality: 1
     displayName: "\uBCF4\uD1B5"
     color: {r: 0.83, g: 0.75, b: 0.58, a: 1}
     icon: {fileID: -1626410434662498960, guid: 65de1d0776db4db428703a71744c2506, type: 3}
-  - quality: 1
-    displayName: "\uBCC0\uD615"
+  - quality: 2
+    displayName: "\uC88B\uC74C"
     color: {r: 0.7, g: 0.48, b: 0.87, a: 1}
     icon: {fileID: 9102559019757446376, guid: 65de1d0776db4db428703a71744c2506, type: 3}
-  - quality: 3
-    displayName: "\uD610\uC624"
+  - quality: 0
+    displayName: "\uBBF8\uD761"
     color: {r: 0.67, g: 0.2, b: 0.16, a: 1}
     icon: {fileID: 7110396538980612230, guid: 65de1d0776db4db428703a71744c2506, type: 3}
   reactionVisuals:

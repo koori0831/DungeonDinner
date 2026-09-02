@@ -29,37 +29,46 @@ namespace Work.Cook.Code.Runtime.Core
             RecipeSO recipe = recipeMatch.Recipe;
             List<PreparedIngredientState> preparedIngredients = CopyPreparedIngredients(session);
             int qualityScore = CalculateQualityScore(session);
-
-            if (disgusting.IsDisgusting)
-            {
-                return new DishResult(
-                    "괴식",
-                    recipe,
-                    recipe != null ? recipe.Category : null,
-                    BuildTags(recipe, session),
-                    DishQuality.Disgusting,
-                    qualityScore,
-                    true,
-                    recipeMatch.IsMatched,
-                    preparedIngredients,
-                    disgusting.Reasons);
-            }
-
             List<FoodTagSO> tags = BuildTags(recipe, session);
-            DishQuality quality = DetermineQuality(recipe, session, qualityScore);
-            string displayName = _dishNameBuilder.BuildName(recipe, quality, preparedIngredients, false);
+            DishFormationStatus formationStatus = recipe != null
+                ? DishFormationStatus.Formed
+                : DishFormationStatus.Unformed;
+            DishVariantStatus variantStatus = recipeMatch.IsVariant
+                ? DishVariantStatus.Variant
+                : DishVariantStatus.Base;
+            DishOddity oddity = disgusting.IsBizarre ? DishOddity.Bizarre : DishOddity.Normal;
+            DishSafety safety = HasPoison(session) ? DishSafety.Dangerous : DishSafety.Safe;
+            DishCraftGrade craftGrade = DetermineCraftGrade(session, qualityScore);
+            string displayName = _dishNameBuilder.BuildName(
+                recipe,
+                craftGrade,
+                preparedIngredients,
+                oddity == DishOddity.Bizarre,
+                formationStatus == DishFormationStatus.Formed);
+
+            List<string> reasons = new List<string>();
+            if (recipeMatch.IsMatched == false && string.IsNullOrWhiteSpace(recipeMatch.Reason) == false)
+                reasons.Add(recipeMatch.Reason);
+            AddReasons(reasons, disgusting.Reasons);
+            AddSafetyReasons(reasons, session);
 
             return new DishResult(
                 displayName,
                 recipe,
                 recipe != null ? recipe.Category : null,
                 tags,
-                quality,
+                formationStatus,
+                variantStatus,
+                oddity,
+                safety,
+                craftGrade,
                 qualityScore,
-                false,
-                recipeMatch.IsMatched,
+                session?.SessionId,
+                recipeMatch.TargetRecipe,
+                recipeMatch.IsTargetRecipeMatched,
+                recipeMatch.VariantIdentity,
                 preparedIngredients,
-                new List<string> { recipeMatch.Reason });
+                reasons);
         }
 
         private static List<PreparedIngredientState> CopyPreparedIngredients(CookingSession session)
@@ -120,29 +129,63 @@ namespace Work.Cook.Code.Runtime.Core
             return qualityScore;
         }
 
-        private static DishQuality DetermineQuality(RecipeSO recipe, CookingSession session, int qualityScore)
+        private static DishCraftGrade DetermineCraftGrade(CookingSession session, int qualityScore)
         {
-            if (recipe == null || session == null)
-                return DishQuality.Disgusting;
+            if (session == null)
+                return DishCraftGrade.Bad;
 
             if (qualityScore >= 2)
-                return DishQuality.Perfect;
+                return DishCraftGrade.Perfect;
+            if (qualityScore >= 1)
+                return DishCraftGrade.Good;
+            if (qualityScore < 0)
+                return DishCraftGrade.Bad;
 
-            bool hasAlteration = false;
+            return DishCraftGrade.Normal;
+        }
+
+        private static bool HasPoison(CookingSession session)
+        {
+            if (session == null)
+                return false;
+
+            for (int i = 0; i < session.PreparedIngredients.Count; i++)
+            {
+                if (session.PreparedIngredients[i]?.AddsPoison == true)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static void AddSafetyReasons(ICollection<string> reasons, CookingSession session)
+        {
+            if (reasons == null || session == null)
+                return;
+
             for (int i = 0; i < session.PreparedIngredients.Count; i++)
             {
                 PreparedIngredientState prepared = session.PreparedIngredients[i];
-                if (prepared == null)
-                    continue;
-
-                if (prepared.QualityDelta != 0 || string.IsNullOrWhiteSpace(prepared.ResultNameModifier) == false)
-                    hasAlteration = true;
-
-                if (prepared.AddedTags.Count > 0 || prepared.RemoveTags.Count > 0)
-                    hasAlteration = true;
+                if (prepared?.AddsPoison == true)
+                    reasons.Add($"{GetIngredientName(prepared)} preparation added poison.");
             }
+        }
 
-            return hasAlteration == true || qualityScore != 0 ? DishQuality.Altered : DishQuality.Normal;
+        private static string GetIngredientName(PreparedIngredientState prepared)
+        {
+            return prepared?.Ingredient != null ? prepared.Ingredient.DisplayName : "Unknown ingredient";
+        }
+
+        private static void AddReasons(ICollection<string> target, IReadOnlyList<string> source)
+        {
+            if (target == null || source == null)
+                return;
+
+            for (int i = 0; i < source.Count; i++)
+            {
+                if (string.IsNullOrWhiteSpace(source[i]) == false && target.Contains(source[i]) == false)
+                    target.Add(source[i]);
+            }
         }
 
         private static void AddTags(ICollection<FoodTagSO> target, IReadOnlyList<FoodTagSO> source)

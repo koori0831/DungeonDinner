@@ -26,10 +26,6 @@ namespace Work.Cook.Code.Runtime.UI
             if (result == null)
                 return null;
 
-            CookingQualityVisual qualityVisual = settings != null
-                ? settings.GetQualityVisual(result.Quality)
-                : null;
-
             bool hasNpcReport = report != null;
             NpcConversationResult reaction = report?.Evaluation?.Result ?? NpcConversationResult.Wrong;
             CookingReactionVisual reactionVisual = settings != null
@@ -53,10 +49,10 @@ namespace Work.Cook.Code.Runtime.UI
                 result.DisplayName,
                 ResolveRecipeName(result, catalog),
                 result.Category != null ? result.Category.DisplayName : "분류 없음",
-                result.Quality,
-                qualityVisual != null ? qualityVisual.DisplayName : BuildQualityName(result.Quality),
+                result.CraftGrade,
+                BuildCraftGradeName(result.CraftGrade),
                 result.QualityScore,
-                BuildRepresentativeTags(result.Tags),
+                hasNpcReport ? BuildRevealedRepresentativeTags(result.Tags, report) : new List<string>(),
                 npcName,
                 reaction,
                 hasNpcReport
@@ -86,7 +82,7 @@ namespace Work.Cook.Code.Runtime.UI
             bool hasOrder = HasOrderInformation(order);
             string recipeName = snapshot?.SelectedRecipe != null
                 ? snapshot.SelectedRecipe.DisplayName
-                : ResolveRecipeId(order?.CorrectRecipeId, catalog, FreeCookingText);
+                : FreeCookingText;
 
             if (string.IsNullOrWhiteSpace(recipeName))
                 recipeName = FreeCookingText;
@@ -95,7 +91,7 @@ namespace Work.Cook.Code.Runtime.UI
                 hasOrder,
                 hasOrder ? ResolveNpcName(order?.NpcId, npcNameResolver) : string.Empty,
                 recipeName,
-                BuildOrderTags(order, catalog),
+                new List<CookingTagChipModel>(),
                 snapshot?.PreparedIngredientCount ?? 0,
                 snapshot?.SelectedIngredientCount ?? 0,
                 hasOrder ? string.Empty : "아직 확인된 주문 단서가 없습니다.");
@@ -348,8 +344,11 @@ namespace Work.Cook.Code.Runtime.UI
 
         private static string ResolveRecipeName(DishResult result, CookingDataCatalogSO catalog)
         {
+            if (result == null || result.FormationStatus == DishFormationStatus.Unformed)
+                return "요리 미성립";
+
             if (result?.BaseRecipe != null)
-                return result.BaseRecipe.DisplayName;
+                return result.IsVariant ? $"변형 · {result.BaseRecipe.DisplayName}" : result.BaseRecipe.DisplayName;
 
             if (result != null && result.IsRecipeMatched == false)
                 return FreeCookingText;
@@ -385,18 +384,54 @@ namespace Work.Cook.Code.Runtime.UI
                    || order.DisgustingTags.Count > 0;
         }
 
-        private static string BuildQualityName(DishQuality quality)
+        private static string BuildCraftGradeName(DishCraftGrade grade)
         {
-            switch (quality)
+            switch (grade)
             {
-                case DishQuality.Perfect:
+                case DishCraftGrade.Bad:
+                    return "미흡";
+                case DishCraftGrade.Good:
+                    return "좋음";
+                case DishCraftGrade.Perfect:
                     return "완벽";
-                case DishQuality.Altered:
-                    return "변형";
-                case DishQuality.Disgusting:
-                    return "혐오";
                 default:
                     return "보통";
+            }
+        }
+
+        private static List<string> BuildRevealedRepresentativeTags(
+            IReadOnlyList<FoodTagSO> tags,
+            NpcDishMatchReport report)
+        {
+            List<string> names = new List<string>();
+            if (tags == null || report == null)
+                return names;
+
+            HashSet<string> revealedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AddIds(revealedIds, report.MatchedRequiredTags);
+            AddIds(revealedIds, report.MatchedPreferredTags);
+            AddIds(revealedIds, report.MatchedAvoidTags);
+            AddIds(revealedIds, report.MatchedDisgustingTags);
+
+            for (int i = 0; i < tags.Count && names.Count < 4; i++)
+            {
+                FoodTagSO tag = tags[i];
+                if (tag != null && revealedIds.Contains(tag.TagId))
+                    names.Add(tag.DisplayName);
+            }
+
+            return names;
+        }
+
+        private static void AddIds(ISet<string> target, IReadOnlyList<string> source)
+        {
+            if (target == null || source == null)
+                return;
+
+            for (int i = 0; i < source.Count; i++)
+            {
+                if (string.IsNullOrWhiteSpace(source[i]) == false)
+                    target.Add(source[i]);
             }
         }
 
@@ -458,6 +493,8 @@ namespace Work.Cook.Code.Runtime.UI
                 return "조리 정보를 불러오지 못했습니다.";
             if (string.Equals(reason, "Selected ingredients do not form a known recipe.", StringComparison.OrdinalIgnoreCase))
                 return "선택한 재료로 알려진 요리를 완성하지 못했습니다.";
+            if (string.Equals(reason, "Prepared ingredients did not match any authored recipe.", StringComparison.OrdinalIgnoreCase))
+                return "선택한 재료와 손질로 성립하는 요리를 완성하지 못했습니다.";
             if (string.Equals(reason, "No ingredients were selected.", StringComparison.OrdinalIgnoreCase))
                 return "선택한 재료가 없습니다.";
 
@@ -495,8 +532,10 @@ namespace Work.Cook.Code.Runtime.UI
             if (report?.Evaluation == null)
                 return string.Empty;
 
-            if (report.Dish?.IsDisgusting == true)
-                return "먹기 어려운 상태의 요리입니다.";
+            if (report.Dish?.IsFormed == false)
+                return "음식으로 성립하지 않은 결과입니다.";
+            if (report.Dish?.IsDangerous == true)
+                return "손님에게 위험한 결과입니다.";
             if (report.MatchedDisgustingTags.Count > 0)
                 return "손님이 꺼리는 치명적인 특성이 포함되었습니다.";
 

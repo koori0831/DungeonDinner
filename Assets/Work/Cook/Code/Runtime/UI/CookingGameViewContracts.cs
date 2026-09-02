@@ -47,6 +47,17 @@ namespace Work.Cook.Code.Runtime.UI
             out string reason);
     }
 
+    public interface ICookingRecipePlanSource
+    {
+        CookingRecipeStartPlan Plan { get; }
+        int GetRequiredIngredientQuantity(IngredientSO ingredient);
+        bool IsSelectionValid(
+            IReadOnlyList<IngredientSO> selectedIngredients,
+            CookingGamePanel owner,
+            CookingFlowRunner runner,
+            out string reason);
+    }
+
     public interface ICookingRecipeSelectionView
     {
         void Initialize(CookingGamePanel owner, CookingFlowRunner runner, CookingKnowledgeStore knowledgeStore);

@@ -79,8 +79,8 @@ namespace Work.Cook.Code.Data
     public sealed class CookingMiniGameOverlaySettingsSO : ScriptableObject
     {
         [SerializeField] private List<CookingMiniGameOverlayProfile> profiles = new List<CookingMiniGameOverlayProfile>();
-        [SerializeField, Min(0f)] private float resultDisplayDuration = 0.6f;
-        [SerializeField] private Color focusDimColor = new Color(0f, 0f, 0f, 0.18f);
+        [SerializeField, Min(0f)] private float resultDisplayDuration = 2f;
+        [SerializeField] private Color focusDimColor = new Color(0f, 0f, 0f, 0.5f);
         [SerializeField] private Color guideColor = new Color(1f, 0.86f, 0.35f, 0.62f);
         [SerializeField] private Color successColor = new Color(0.38f, 0.9f, 0.45f, 0.95f);
         [SerializeField] private Color mistakeColor = new Color(1f, 0.3f, 0.2f, 0.95f);

@@ -44,6 +44,8 @@ namespace Work.Cook.Code.Runtime.UI
             SetParticleScale(1f);
             Host.SetInstruction("절구 안에서 막자를 원형으로 네 바퀴 돌리세요.");
             Host.SetStatus("원 가장자리를 따라 돌리기");
+            ConfigureHud("절구 가장자리를 따라 원형으로 네 바퀴 돌리기", true, false, false);
+            SetProgress(0f, "회전 0/4");
             return true;
         }
 
@@ -91,14 +93,16 @@ namespace Work.Cook.Code.Runtime.UI
             }
             else if (Mathf.Abs(delta) > 60f)
             {
-                RegisterMistake();
+                RegisterMistake("원 가장자리를 따라 끊기지 않게 돌려주세요.");
             }
 
             _lastDirection = direction;
             MovePestle(point);
             float rotations = _accumulatedAngle / 360f;
             SetParticleScale(Mathf.Lerp(1f, 0.35f, Mathf.Clamp01(rotations / 4f)));
-            Host.SetStatus($"회전 {Mathf.Min(4, Mathf.FloorToInt(rotations) + 1)}/4");
+            int completedRotations = Mathf.Min(4, Mathf.FloorToInt(rotations));
+            Host.SetStatus($"완료 회전 {completedRotations}/4");
+            SetProgress(Mathf.Clamp01(rotations / 4f), $"회전 {completedRotations}/4");
             if (rotations >= 4f)
             {
                 float rhythm = _continuitySamples > 0 ? Mathf.Clamp01(_continuitySum / _continuitySamples) : 0f;

@@ -7,6 +7,7 @@ namespace Work.Cook.Code.Data
     [Serializable]
     public sealed class IngredientPreparationOption
     {
+        [SerializeField] private string preparationOptionId;
         [SerializeField] private PreparationMethodSO method;
         [SerializeField] private string displayNameOverride;
         [SerializeField, TextArea] private string description;
@@ -19,6 +20,7 @@ namespace Work.Cook.Code.Data
         [SerializeField] private List<CookingMiniGameFeedbackRule> miniGameFeedbackRules =
             new List<CookingMiniGameFeedbackRule>();
 
+        public string PreparationOptionId => preparationOptionId ?? string.Empty;
         public PreparationMethodSO Method => method;
         public string DisplayName
         {
@@ -44,6 +46,7 @@ namespace Work.Cook.Code.Data
         public bool HasFlavorChange => addTags.Count > 0
                                        || removeTags.Count > 0
                                        || string.IsNullOrWhiteSpace(resultNameModifier) == false;
+        public bool HasIdentityEffect => HasFlavorChange || causesDisgusting || addsPoison;
 
         public CookingMiniGameFeedbackRule FindMiniGameFeedbackRule(CookingMiniGameGrade grade)
         {
@@ -59,5 +62,12 @@ namespace Work.Cook.Code.Data
 
             return null;
         }
+
+#if UNITY_EDITOR
+        public void EditorSetPreparationOptionId(string value)
+        {
+            preparationOptionId = value ?? string.Empty;
+        }
+#endif
     }
 }

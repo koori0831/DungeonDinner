@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using Work.Cook.Code.Runtime.Core;
 
@@ -76,15 +78,63 @@ namespace Work.Cook.Code.Data
 
         public bool MatchesPreparedIngredients(IReadOnlyList<PreparedIngredientState> preparedIngredients)
         {
+            return MatchPreparedIngredients(preparedIngredients).Status == RecipeMatchStatus.Matched;
+        }
+
+        public RecipePreparedMatchResult MatchPreparedIngredients(
+            IReadOnlyList<PreparedIngredientState> preparedIngredients)
+        {
             if (preparedIngredients == null)
-                return false;
+            {
+                return new RecipePreparedMatchResult(
+                    RecipeMatchStatus.NoMatch,
+                    null,
+                    "Prepared ingredients are missing.");
+            }
 
             if (HasRecipeDefiningRequirement() == false)
-                return false;
+            {
+                return new RecipePreparedMatchResult(
+                    RecipeMatchStatus.NoMatch,
+                    null,
+                    "Recipe has no defining ingredient slot.");
+            }
 
-            bool[] usedIngredients = new bool[preparedIngredients.Count];
             int[] counts = new int[requiredIngredients.Count];
-            return TryMatchPreparedRecursive(preparedIngredients, usedIngredients, counts, 0);
+            int[] assignments = new int[preparedIngredients.Count];
+            for (int i = 0; i < assignments.Length; i++)
+                assignments[i] = -1;
+
+            HashSet<string> semanticBindings = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            List<RecipeIngredientMatchBinding> firstBindings = null;
+            FindPreparedBindingsRecursive(
+                preparedIngredients,
+                counts,
+                assignments,
+                0,
+                semanticBindings,
+                ref firstBindings);
+
+            if (semanticBindings.Count == 0)
+            {
+                return new RecipePreparedMatchResult(
+                    RecipeMatchStatus.NoMatch,
+                    null,
+                    "Prepared ingredients do not satisfy this recipe.");
+            }
+
+            if (semanticBindings.Count > 1)
+            {
+                return new RecipePreparedMatchResult(
+                    RecipeMatchStatus.Ambiguous,
+                    firstBindings,
+                    "Prepared ingredients can bind to different recipe slots.");
+            }
+
+            return new RecipePreparedMatchResult(
+                RecipeMatchStatus.Matched,
+                firstBindings,
+                "Prepared ingredients matched one stable slot binding.");
         }
 
         public int CalculateMatchScore(IReadOnlyList<PreparedIngredientState> preparedIngredients)
@@ -92,6 +142,11 @@ namespace Work.Cook.Code.Data
             if (MatchesPreparedIngredients(preparedIngredients) == false)
                 return -1;
 
+            return CalculateMatchSpecificityScore();
+        }
+
+        public int CalculateMatchSpecificityScore()
+        {
             int score = priority * 1000;
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
@@ -185,7 +240,7 @@ namespace Work.Cook.Code.Data
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
-                if (IsRecipeDefiningRequirement(requirement) == false
+                if (requirement == null
                     || requirement.CanAcceptMore(counts[requirementIndex]) == false
                     || requirement.IsMatchedBy(ingredient) == false)
                 {
@@ -202,43 +257,163 @@ namespace Work.Cook.Code.Data
                 usedIngredients[ingredientIndex] = false;
             }
 
-            return TryMatchIngredientsRecursive(ingredients, usedIngredients, counts, ingredientIndex + 1);
+            // Every supplied ingredient must belong to an authored recipe slot.
+            // Non recipe-defining requirements are optional, but they are still the
+            // explicit allow-list for garnishes and other narrow variations.
+            return false;
         }
 
-        private bool TryMatchPreparedRecursive(
+        private void FindPreparedBindingsRecursive(
             IReadOnlyList<PreparedIngredientState> preparedIngredients,
-            bool[] usedIngredients,
             int[] counts,
+            int[] assignments,
             int preparedIndex)
         {
+            List<RecipeIngredientMatchBinding> ignored = null;
+            HashSet<string> signatures = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            FindPreparedBindingsRecursive(
+                preparedIngredients,
+                counts,
+                assignments,
+                preparedIndex,
+                signatures,
+                ref ignored);
+        }
+
+        private void FindPreparedBindingsRecursive(
+            IReadOnlyList<PreparedIngredientState> preparedIngredients,
+            int[] counts,
+            int[] assignments,
+            int preparedIndex,
+            ISet<string> semanticBindings,
+            ref List<RecipeIngredientMatchBinding> firstBindings)
+        {
+            if (semanticBindings.Count > 1)
+                return;
+
             if (preparedIndex >= preparedIngredients.Count)
-                return AreRequirementCountsSatisfied(counts);
+            {
+                if (AreRequirementCountsSatisfied(counts) == false)
+                    return;
+
+                List<RecipeIngredientMatchBinding> bindings = BuildBindings(preparedIngredients, assignments);
+                string signature = BuildBindingSignature(bindings);
+                if (semanticBindings.Add(signature) && firstBindings == null)
+                    firstBindings = bindings;
+                return;
+            }
 
             PreparedIngredientState prepared = preparedIngredients[preparedIndex];
             if (prepared == null)
-                return TryMatchPreparedRecursive(preparedIngredients, usedIngredients, counts, preparedIndex + 1);
+            {
+                FindPreparedBindingsRecursive(
+                    preparedIngredients,
+                    counts,
+                    assignments,
+                    preparedIndex + 1,
+                    semanticBindings,
+                    ref firstBindings);
+                return;
+            }
 
             for (int requirementIndex = 0; requirementIndex < requiredIngredients.Count; requirementIndex++)
             {
                 RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
-                if (IsRecipeDefiningRequirement(requirement) == false
+                if (requirement == null
                     || requirement.CanAcceptMore(counts[requirementIndex]) == false
                     || requirement.IsPreparedMatch(prepared) == false)
                 {
                     continue;
                 }
 
-                usedIngredients[preparedIndex] = true;
                 counts[requirementIndex]++;
+                assignments[preparedIndex] = requirementIndex;
 
-                if (TryMatchPreparedRecursive(preparedIngredients, usedIngredients, counts, preparedIndex + 1))
-                    return true;
+                FindPreparedBindingsRecursive(
+                    preparedIngredients,
+                    counts,
+                    assignments,
+                    preparedIndex + 1,
+                    semanticBindings,
+                    ref firstBindings);
 
                 counts[requirementIndex]--;
-                usedIngredients[preparedIndex] = false;
+                assignments[preparedIndex] = -1;
+            }
+        }
+
+        private List<RecipeIngredientMatchBinding> BuildBindings(
+            IReadOnlyList<PreparedIngredientState> preparedIngredients,
+            IReadOnlyList<int> assignments)
+        {
+            List<RecipeIngredientMatchBinding> bindings = new List<RecipeIngredientMatchBinding>();
+            for (int preparedIndex = 0; preparedIndex < assignments.Count; preparedIndex++)
+            {
+                int requirementIndex = assignments[preparedIndex];
+                if (requirementIndex < 0 || requirementIndex >= requiredIngredients.Count)
+                    continue;
+
+                RecipeIngredientRequirement requirement = requiredIngredients[requirementIndex];
+                PreparedIngredientState prepared = preparedIngredients[preparedIndex];
+                bindings.Add(new RecipeIngredientMatchBinding(
+                    GetStableRequirementId(requirement, requirementIndex),
+                    requirementIndex,
+                    preparedIndex,
+                    requirement,
+                    prepared,
+                    GetMatchKind(requirement, prepared?.Ingredient)));
             }
 
-            return TryMatchPreparedRecursive(preparedIngredients, usedIngredients, counts, preparedIndex + 1);
+            return bindings;
+        }
+
+        private static string BuildBindingSignature(IReadOnlyList<RecipeIngredientMatchBinding> bindings)
+        {
+            List<string> parts = new List<string>();
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                RecipeIngredientMatchBinding binding = bindings[i];
+                PreparedIngredientState prepared = binding.PreparedIngredient;
+                string ingredientId = prepared?.Ingredient != null
+                    ? prepared.Ingredient.IngredientId
+                    : "none";
+                string optionId = prepared?.PreparationOption != null
+                    ? prepared.PreparationOption.PreparationOptionId
+                    : "none";
+                string effectId = prepared?.MiniGameFeedbackRule != null
+                    ? prepared.MiniGameFeedbackRule.VariantEffectId
+                    : "none";
+                parts.Add(binding.RequirementId + ":" + ingredientId + ":" + optionId + ":" + effectId);
+            }
+
+            parts.Sort(StringComparer.OrdinalIgnoreCase);
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < parts.Count; i++)
+                builder.Append(parts[i]).Append('|');
+            return builder.ToString();
+        }
+
+        private static RecipeIngredientMatchKind GetMatchKind(
+            RecipeIngredientRequirement requirement,
+            IngredientSO ingredient)
+        {
+            if (requirement == null || requirement.RecipeDefining == false)
+                return RecipeIngredientMatchKind.Optional;
+            if (requirement.Ingredient != null && requirement.Ingredient != ingredient)
+                return RecipeIngredientMatchKind.Alternative;
+            return RecipeIngredientMatchKind.Canonical;
+        }
+
+        private static string GetStableRequirementId(
+            RecipeIngredientRequirement requirement,
+            int requirementIndex)
+        {
+            if (requirement != null && string.IsNullOrWhiteSpace(requirement.RequirementId) == false)
+                return requirement.RequirementId;
+
+            // Runtime never writes IDs. This fallback only keeps legacy data usable
+            // until the editor migration tool persists authored IDs.
+            return "slot_legacy_" + requirementIndex;
         }
 
         private bool AreRequirementCountsSatisfied(IReadOnlyList<int> counts)

@@ -11,7 +11,8 @@ namespace Work.Cook.Code.Runtime.Core
         IngredientTried,
         PreparationTried,
         PreparationEffectRevealed,
-        RecipeTagsRevealed
+        RecipeTagsRevealed,
+        RecipeVariantDiscovered
     }
 
     [Serializable]
@@ -23,6 +24,7 @@ namespace Work.Cook.Code.Runtime.Core
         [SerializeField] private RecipeSO recipe;
         [SerializeField] private IngredientSO ingredient;
         [SerializeField] private PreparationMethodSO preparationMethod;
+        [SerializeField] private string variantId;
 
         public CookingKnowledgeUpdateType UpdateType => updateType;
         public string Title => title;
@@ -30,6 +32,7 @@ namespace Work.Cook.Code.Runtime.Core
         public RecipeSO Recipe => recipe;
         public IngredientSO Ingredient => ingredient;
         public PreparationMethodSO PreparationMethod => preparationMethod;
+        public string VariantId => variantId ?? string.Empty;
 
         public CookingKnowledgeUpdate(
             CookingKnowledgeUpdateType updateType,
@@ -37,7 +40,8 @@ namespace Work.Cook.Code.Runtime.Core
             string body,
             RecipeSO recipe = null,
             IngredientSO ingredient = null,
-            PreparationMethodSO preparationMethod = null)
+            PreparationMethodSO preparationMethod = null,
+            string variantId = null)
         {
             this.updateType = updateType;
             this.title = title;
@@ -45,6 +49,7 @@ namespace Work.Cook.Code.Runtime.Core
             this.recipe = recipe;
             this.ingredient = ingredient;
             this.preparationMethod = preparationMethod;
+            this.variantId = variantId ?? string.Empty;
         }
     }
 }

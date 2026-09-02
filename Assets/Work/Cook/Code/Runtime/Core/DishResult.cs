@@ -10,25 +10,43 @@ namespace Work.Cook.Code.Runtime.Core
         public RecipeSO BaseRecipe { get; }
         public FoodCategorySO Category { get; }
         public IReadOnlyList<FoodTagSO> Tags { get; }
-        public DishQuality Quality { get; }
+        public DishFormationStatus FormationStatus { get; }
+        public DishVariantStatus VariantStatus { get; }
+        public DishOddity Oddity { get; }
+        public DishSafety Safety { get; }
+        public DishCraftGrade CraftGrade { get; }
         public int QualityScore { get; }
-        public bool IsDisgusting { get; }
-        public bool IsRecipeMatched { get; }
+        public string CookingSessionId { get; }
+        public RecipeSO TargetRecipe { get; }
+        public bool IsTargetRecipeMatched { get; }
+        public CookingVariantIdentity VariantIdentity { get; }
+        public string VariantId => VariantIdentity?.VariantId ?? string.Empty;
+        public string VariantKey => VariantId;
         public IReadOnlyList<PreparedIngredientState> PreparedIngredients { get; }
         public IReadOnlyList<string> Reasons { get; }
 
         public string RecipeId => BaseRecipe != null ? BaseRecipe.RecipeId : string.Empty;
         public string CategoryId => Category != null ? Category.CategoryId : string.Empty;
+        public bool IsRecipeMatched => FormationStatus == DishFormationStatus.Formed && BaseRecipe != null;
+        public bool IsVariant => IsRecipeMatched && VariantStatus == DishVariantStatus.Variant;
+        public bool IsBizarre => Oddity == DishOddity.Bizarre;
+        public bool IsDangerous => Safety == DishSafety.Dangerous;
 
         public DishResult(
             string displayName,
             RecipeSO baseRecipe,
             FoodCategorySO category,
             IReadOnlyList<FoodTagSO> tags,
-            DishQuality quality,
+            DishFormationStatus formationStatus,
+            DishVariantStatus variantStatus,
+            DishOddity oddity,
+            DishSafety safety,
+            DishCraftGrade craftGrade,
             int qualityScore,
-            bool isDisgusting,
-            bool isRecipeMatched,
+            string cookingSessionId,
+            RecipeSO targetRecipe,
+            bool isTargetRecipeMatched,
+            CookingVariantIdentity variantIdentity,
             IReadOnlyList<PreparedIngredientState> preparedIngredients,
             IReadOnlyList<string> reasons)
         {
@@ -36,10 +54,16 @@ namespace Work.Cook.Code.Runtime.Core
             BaseRecipe = baseRecipe;
             Category = category;
             Tags = tags ?? new List<FoodTagSO>();
-            Quality = quality;
+            FormationStatus = formationStatus;
+            VariantStatus = variantStatus;
+            Oddity = oddity;
+            Safety = safety;
+            CraftGrade = craftGrade;
             QualityScore = qualityScore;
-            IsDisgusting = isDisgusting;
-            IsRecipeMatched = isRecipeMatched;
+            CookingSessionId = cookingSessionId ?? string.Empty;
+            TargetRecipe = targetRecipe;
+            IsTargetRecipeMatched = isTargetRecipeMatched;
+            VariantIdentity = variantIdentity ?? CookingVariantIdentity.Base;
             PreparedIngredients = preparedIngredients ?? new List<PreparedIngredientState>();
             Reasons = reasons ?? new List<string>();
         }
@@ -65,7 +89,9 @@ namespace Work.Cook.Code.Runtime.Core
         public string BuildDebugSummary()
         {
             return $"DishResult name={DisplayName}, recipe={RecipeId}, category={CategoryId}, " +
-                   $"quality={Quality}, qualityScore={QualityScore}, disgusting={IsDisgusting}, tags={BuildTagText()}";
+                   $"formation={FormationStatus}, variant={VariantStatus}, oddity={Oddity}, safety={Safety}, " +
+                   $"craft={CraftGrade}, qualityScore={QualityScore}, targetMatched={IsTargetRecipeMatched}, tags={BuildTagText()}";
         }
+
     }
 }

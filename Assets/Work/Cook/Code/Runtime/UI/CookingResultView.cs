@@ -174,16 +174,18 @@ namespace Work.Cook.Code.Runtime.UI
                 ? gamePanel.NpcRunner.GetNpcDisplayName
                 : (Func<string, string>)null;
             bool canHand = gamePanel != null && gamePanel.CanHandCurrentResultToNpc();
+            NpcDishMatchReport report = snapshot?.CurrentNpcMatchReport;
+            bool canAdvance = canHand || report != null;
 
             _model = CookingResultPresentationBuilder.BuildResult(
                 result,
                 snapshot,
-                null,
+                report,
                 catalog,
                 presentationSettings,
                 npcNameResolver,
-                0,
-                canHand);
+                snapshot?.PreviewRewardAmount ?? 0,
+                canAdvance);
             BindModel(_model);
 
             if (_lastAnimatedResult != result)
@@ -223,16 +225,17 @@ namespace Work.Cook.Code.Runtime.UI
             SetText(recipeField, $"{model.RecipeName} · {model.CategoryName}");
             SetText(representativeTagsField, BuildRepresentativeTagText(model.RepresentativeTags));
 
-            CookingQualityVisual qualityVisual = presentationSettings?.GetQualityVisual(model.Quality);
+            CookingQualityVisual qualityVisual = presentationSettings?.GetQualityVisual(model.CraftGrade);
             BindImage(qualityIconImage, qualityVisual?.Icon);
             SetText(qualityNameField, model.QualityName);
             SetText(qualityScoreField, model.QualityScore == 0 ? "완성도 변화 없음" : $"완성도 {model.QualityScore:+#;-#;0}");
             if (qualityNameField != null && qualityVisual != null)
                 qualityNameField.color = qualityVisual.Color;
 
-            ApplyPreServeVisibility();
+            ApplyVerdictVisibility(model);
             RebuildPreparationEntries(model.PreparedIngredients);
             BindReasons(model.Reasons);
+            UpdateActionButtonLabel(model.HasNpcReport);
 
             _detailsOpen = false;
             SetActive(detailsDrawer, false);
@@ -270,20 +273,37 @@ namespace Work.Cook.Code.Runtime.UI
             SetActive(exactMatchField != null ? exactMatchField.gameObject : null, false);
             SetActive(tagComparisonRoot != null ? tagComparisonRoot.gameObject : null, false);
 
-            if (qualityVisualRoot != null)
-            {
-                qualityVisualRoot.anchorMin = new Vector2(0.08f, 0.12f);
-                qualityVisualRoot.anchorMax = new Vector2(0.92f, 0.88f);
-                qualityVisualRoot.anchoredPosition = Vector2.zero;
-                qualityVisualRoot.sizeDelta = Vector2.zero;
-            }
-
             SetText(npcNameField, string.Empty);
             SetText(reactionNameField, string.Empty);
             SetText(reactionSummaryField, string.Empty);
             SetText(rewardPreviewField, string.Empty);
             SetText(exactMatchField, string.Empty);
             ClearChildren(tagComparisonRoot, tagChipTemplate != null ? tagChipTemplate.transform : null);
+        }
+
+        private void ApplyVerdictVisibility(CookingResultPresentationModel model)
+        {
+            if (model == null || model.HasNpcReport == false)
+            {
+                ApplyPreServeVisibility();
+                return;
+            }
+
+            SetActive(reactionGroup != null ? reactionGroup.gameObject : null, true);
+            SetActive(rewardPreviewGroup != null ? rewardPreviewGroup.gameObject : null, true);
+            SetActive(exactMatchField != null ? exactMatchField.gameObject : null, true);
+            SetActive(tagComparisonRoot != null ? tagComparisonRoot.gameObject : null, true);
+
+            CookingReactionVisual reactionVisual = presentationSettings?.GetReactionVisual(model.Reaction);
+            BindImage(npcIconImage, presentationSettings?.NpcPlaceholderIcon);
+            BindImage(reactionIconImage, reactionVisual?.Icon);
+            BindImage(rewardIconImage, presentationSettings?.RewardIcon);
+            SetText(npcNameField, model.NpcName);
+            SetText(reactionNameField, model.ReactionName);
+            SetText(reactionSummaryField, model.ReactionSummary);
+            SetText(exactMatchField, model.Source.IsTargetRecipeMatched ? "목표 레시피 일치" : "목표 레시피 불일치");
+            SetRewardPreview(model.PreviewReward);
+            RebuildTagComparisons(model.TagComparisons);
         }
 
         private void StartReveal()
@@ -369,10 +389,20 @@ namespace Work.Cook.Code.Runtime.UI
             SetCanvasGroup(qualityGroup, 1f, false);
             if (qualityVisualRoot != null)
                 qualityVisualRoot.localScale = Vector3.one;
-            ApplyPreServeVisibility();
+            ApplyVerdictVisibility(_model);
             SetActionGroup(true);
             SetButtonInteractable(detailsToggleButton, _model != null);
             SetButtonInteractable(handToNpcButton, _model != null && _model.CanHandToNpc);
+        }
+
+        private void UpdateActionButtonLabel(bool hasNpcReport)
+        {
+            if (handToNpcButton == null)
+                return;
+
+            TextMeshProUGUI label = handToNpcButton.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null)
+                label.text = hasNpcReport ? "평가 확인" : "손님에게 제공";
         }
 
         private void SetActionGroup(bool visible)

@@ -27,9 +27,20 @@ namespace Work.Cook.Code.Runtime.UI
 
         [Header("Flow")]
         [SerializeField] private CookingGamePanel gamePanel;
+        [SerializeField] private CookingKnowledgeStore knowledgeStore;
         [SerializeField] private bool showConfirmButtonForDirectSelection = true;
 
         private CookingRecipeEntryData _currentEntry;
+        private ScrollRect _knowledgeScrollRect;
+        private RectTransform _knowledgeContent;
+        private RectTransform _variantListRoot;
+        private TextMeshProUGUI _descriptionBodyField;
+        private TextMeshProUGUI _requirementsBodyField;
+        private TextMeshProUGUI _completionBodyField;
+        private TextMeshProUGUI _tagsBodyField;
+        private TextMeshProUGUI _guestsBodyField;
+        private TextMeshProUGUI _emptyVariantsField;
+        private bool _knowledgeEventsSubscribed;
 
         public void SetGamePanel(CookingGamePanel value)
         {
@@ -39,6 +50,10 @@ namespace Work.Cook.Code.Runtime.UI
         public override void InitializeDisplay(Action backAction)
         {
             base.InitializeDisplay(backAction);
+            EnsureGamePanel();
+            EnsureKnowledgeStore();
+            EnsureKnowledgeLayout();
+            SubscribeKnowledgeEvents();
             SetText(requiredIngredientsField, string.Empty);
             SetText(knownEffectiveTagsField, string.Empty);
             SetConfirmButton(false, string.Empty);
@@ -49,6 +64,7 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
+            confirmButton.onClick.RemoveListener(ConfirmCurrentEntry);
             confirmButton.onClick.AddListener(ConfirmCurrentEntry);
         }
 
@@ -58,6 +74,12 @@ namespace Work.Cook.Code.Runtime.UI
 
             _currentEntry = displayInfo as CookingRecipeEntryData;
             BindRecipeFields();
+        }
+
+        private void OnDestroy()
+        {
+            if (_knowledgeEventsSubscribed)
+                Bus<CookingKnowledgeChangedEvent>.Events -= HandleKnowledgeChanged;
         }
 
         private void BindRecipeFields()
@@ -72,9 +94,12 @@ namespace Work.Cook.Code.Runtime.UI
 
             SetText(requiredIngredientsField, BuildRequiredIngredientText(_currentEntry));
             SetText(knownEffectiveTagsField, BuildKnownEffectiveTagText(_currentEntry));
+            BindKnowledgeBody();
             bool canConfirm = _currentEntry.IsDirectIngredientSelection
                 ? showConfirmButtonForDirectSelection
-                : gamePanel != null && gamePanel.AllowRecipeConfirmation;
+                : gamePanel != null
+                  && gamePanel.AllowRecipeConfirmation
+                  && _currentEntry.IsDiscovered;
             SetConfirmButton(canConfirm, _currentEntry.IsDirectIngredientSelection ? directSelectionText : confirmRecipeText);
         }
 
@@ -97,11 +122,22 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
-            if (gamePanel.AllowRecipeConfirmation == false)
+            if (gamePanel.AllowRecipeConfirmation == false || _currentEntry.IsDiscovered == false)
                 return;
 
             Bus<CookingRecipeConfirmRequestedEvent>.Raise(
                 new CookingRecipeConfirmRequestedEvent(gamePanel, _currentEntry.Recipe));
+        }
+
+        private void ConfirmVariant(string variantId)
+        {
+            if (_currentEntry?.Recipe == null || string.IsNullOrWhiteSpace(variantId))
+                return;
+            EnsureGamePanel();
+            if (gamePanel == null || gamePanel.AllowRecipeConfirmation == false)
+                return;
+            Bus<CookingRecipeConfirmRequestedEvent>.Raise(
+                new CookingRecipeConfirmRequestedEvent(gamePanel, _currentEntry.Recipe, variantId));
         }
 
         private void EnsureGamePanel()
@@ -111,6 +147,198 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (gamePanel == null)
                 gamePanel = FindFirstObjectByType<CookingGamePanel>();
+        }
+
+        private void EnsureKnowledgeStore()
+        {
+            if (knowledgeStore == null && gamePanel != null)
+                knowledgeStore = gamePanel.KnowledgeStore;
+            if (knowledgeStore == null)
+                knowledgeStore = GetComponentInParent<CookingKnowledgeStore>();
+        }
+
+        private void SubscribeKnowledgeEvents()
+        {
+            if (_knowledgeEventsSubscribed)
+                return;
+            Bus<CookingKnowledgeChangedEvent>.Events += HandleKnowledgeChanged;
+            _knowledgeEventsSubscribed = true;
+        }
+
+        private void HandleKnowledgeChanged(CookingKnowledgeChangedEvent gameEvent)
+        {
+            if (knowledgeStore == null || gameEvent.Source != knowledgeStore || _currentEntry?.Recipe == null)
+                return;
+            BindKnowledgeBody();
+        }
+
+        private void BindKnowledgeBody()
+        {
+            EnsureKnowledgeLayout();
+            if (_knowledgeContent == null)
+                return;
+
+            ClearChildren(_variantListRoot);
+            if (_currentEntry == null)
+                return;
+
+            if (_currentEntry.IsDirectIngredientSelection)
+            {
+                SetText(_descriptionBodyField, _currentEntry.Description);
+                SetText(_requirementsBodyField, "가방에서 사용할 재료를 직접 고릅니다.");
+                SetText(_completionBodyField, string.Empty);
+                SetText(_tagsBodyField, string.Empty);
+                SetText(_guestsBodyField, string.Empty);
+                SetText(_emptyVariantsField, string.Empty);
+                return;
+            }
+
+            EnsureKnowledgeStore();
+            CookingRecipeKnowledgeSnapshot snapshot = knowledgeStore != null
+                ? knowledgeStore.GetRecipeKnowledge(_currentEntry.Recipe)
+                : null;
+            CookingRecipeKnowledgePresentationModel model =
+                new CookingRecipeKnowledgePresentationBuilder(knowledgeStore?.Catalog).Build(snapshot);
+            SetText(_descriptionBodyField, model.RecipeDescription);
+            SetText(_requirementsBodyField, BuildRequiredIngredientText(_currentEntry));
+            SetText(_completionBodyField, model.CompletionSummary);
+            SetText(_tagsBodyField, model.KnownTags);
+            SetText(_guestsBodyField, model.GuestSummaries);
+            SetText(_emptyVariantsField, model.Variants.Count == 0 ? "발견한 변형이 없습니다." : string.Empty);
+
+            TMP_FontAsset font = nameField != null ? nameField.font : null;
+            for (int i = 0; i < model.Variants.Count; i++)
+            {
+                CookingRecipeVariantRowView row = CookingRecipeVariantRowView.Create(_variantListRoot, font);
+                row.Bind(model.Variants[i], ConfirmVariant);
+            }
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_knowledgeContent);
+            Canvas.ForceUpdateCanvases();
+            if (_knowledgeScrollRect != null)
+                _knowledgeScrollRect.verticalNormalizedPosition = 1f;
+        }
+
+        private void EnsureKnowledgeLayout()
+        {
+            if (_knowledgeContent != null)
+                return;
+
+            if (descriptionField != null)
+                descriptionField.gameObject.SetActive(false);
+            if (requiredIngredientsField != null)
+                requiredIngredientsField.gameObject.SetActive(false);
+            if (knownEffectiveTagsField != null)
+                knownEffectiveTagsField.gameObject.SetActive(false);
+
+            GameObject scrollObject = new GameObject(
+                "KnowledgeScroll",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(ScrollRect));
+            scrollObject.transform.SetParent(transform, false);
+            RectTransform scrollRectTransform = scrollObject.GetComponent<RectTransform>();
+            scrollRectTransform.anchorMin = Vector2.zero;
+            scrollRectTransform.anchorMax = Vector2.one;
+            scrollRectTransform.offsetMin = new Vector2(24f, 56f);
+            scrollRectTransform.offsetMax = new Vector2(-24f, -128f);
+            scrollObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.12f);
+            _knowledgeScrollRect = scrollObject.GetComponent<ScrollRect>();
+            _knowledgeScrollRect.horizontal = false;
+            _knowledgeScrollRect.vertical = true;
+            _knowledgeScrollRect.movementType = ScrollRect.MovementType.Clamped;
+
+            GameObject viewportObject = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
+            viewportObject.transform.SetParent(scrollObject.transform, false);
+            RectTransform viewport = viewportObject.GetComponent<RectTransform>();
+            viewport.anchorMin = Vector2.zero;
+            viewport.anchorMax = Vector2.one;
+            viewport.offsetMin = Vector2.zero;
+            viewport.offsetMax = Vector2.zero;
+            viewportObject.GetComponent<Image>().color = Color.white;
+            viewportObject.GetComponent<Mask>().showMaskGraphic = false;
+
+            GameObject contentObject = new GameObject(
+                "Content",
+                typeof(RectTransform),
+                typeof(VerticalLayoutGroup),
+                typeof(ContentSizeFitter));
+            contentObject.transform.SetParent(viewportObject.transform, false);
+            _knowledgeContent = contentObject.GetComponent<RectTransform>();
+            _knowledgeContent.anchorMin = new Vector2(0f, 1f);
+            _knowledgeContent.anchorMax = new Vector2(1f, 1f);
+            _knowledgeContent.pivot = new Vector2(0.5f, 1f);
+            _knowledgeContent.anchoredPosition = Vector2.zero;
+            _knowledgeContent.sizeDelta = Vector2.zero;
+            VerticalLayoutGroup layout = contentObject.GetComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(14, 14, 12, 12);
+            layout.spacing = 10f;
+            layout.childControlHeight = true;
+            layout.childControlWidth = true;
+            layout.childForceExpandHeight = false;
+            contentObject.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            _knowledgeScrollRect.viewport = viewport;
+            _knowledgeScrollRect.content = _knowledgeContent;
+
+            TMP_FontAsset font = nameField != null ? nameField.font : null;
+            _descriptionBodyField = CreateBodyText(_knowledgeContent, "Description", font, 17f);
+            _requirementsBodyField = CreateBodyText(_knowledgeContent, "Requirements", font, 16f);
+            _completionBodyField = CreateBodyText(_knowledgeContent, "Completion", font, 17f);
+            _tagsBodyField = CreateBodyText(_knowledgeContent, "KnownTags", font, 16f);
+            _guestsBodyField = CreateBodyText(_knowledgeContent, "Guests", font, 16f);
+            CreateBodyText(_knowledgeContent, "VariantTitle", font, 19f).text = "발견한 변형";
+            _emptyVariantsField = CreateBodyText(_knowledgeContent, "VariantEmpty", font, 16f);
+            GameObject variantList = new GameObject(
+                "VariantList",
+                typeof(RectTransform),
+                typeof(VerticalLayoutGroup),
+                typeof(ContentSizeFitter));
+            variantList.transform.SetParent(_knowledgeContent, false);
+            _variantListRoot = variantList.GetComponent<RectTransform>();
+            VerticalLayoutGroup variantLayout = variantList.GetComponent<VerticalLayoutGroup>();
+            variantLayout.spacing = 8f;
+            variantLayout.childControlHeight = true;
+            variantLayout.childControlWidth = true;
+            variantLayout.childForceExpandHeight = false;
+            variantList.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            if (confirmButton != null && confirmButton.transform is RectTransform confirmRect)
+            {
+                confirmRect.anchorMin = new Vector2(1f, 0f);
+                confirmRect.anchorMax = new Vector2(1f, 0f);
+                confirmRect.pivot = new Vector2(1f, 0f);
+                confirmRect.anchoredPosition = new Vector2(-24f, 14f);
+            }
+        }
+
+        private static TextMeshProUGUI CreateBodyText(
+            Transform parent,
+            string name,
+            TMP_FontAsset font,
+            float fontSize)
+        {
+            GameObject textObject = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            textObject.transform.SetParent(parent, false);
+            TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
+            text.font = font;
+            text.fontSize = fontSize;
+            text.color = Color.white;
+            text.textWrappingMode = TextWrappingModes.Normal;
+            text.raycastTarget = false;
+            return text;
+        }
+
+        private static void ClearChildren(Transform root)
+        {
+            if (root == null)
+                return;
+            for (int i = root.childCount - 1; i >= 0; i--)
+            {
+                GameObject child = root.GetChild(i).gameObject;
+                if (Application.isPlaying)
+                    Destroy(child);
+                else
+                    DestroyImmediate(child);
+            }
         }
 
         private void SetConfirmButton(bool interactable, string label)

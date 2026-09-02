@@ -26,17 +26,17 @@ namespace Work.Cook.Code.Data
     [Serializable]
     public sealed class CookingQualityVisual
     {
-        [SerializeField] private DishQuality quality;
+        [SerializeField] private DishCraftGrade quality;
         [SerializeField] private string displayName;
         [SerializeField] private Color color = Color.white;
         [SerializeField] private Sprite icon;
 
-        public DishQuality Quality => quality;
+        public DishCraftGrade Quality => quality;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? quality.ToString() : displayName;
         public Color Color => color;
         public Sprite Icon => icon;
 
-        public CookingQualityVisual(DishQuality quality, string displayName, Color color, Sprite icon = null)
+        public CookingQualityVisual(DishCraftGrade quality, string displayName, Color color, Sprite icon = null)
         {
             this.quality = quality;
             this.displayName = displayName;
@@ -139,6 +139,21 @@ namespace Work.Cook.Code.Data
         [SerializeField, Range(1f, 1.2f)] private float cardHoverScale = 1.04f;
         [SerializeField, Min(0.01f)] private float cardHoverDuration = 0.14f;
 
+        [Header("Preparation Card Fan")]
+        [SerializeField, Range(1, 7)] private int maxFanCardCount = 7;
+        [SerializeField, Min(2)] private int scrollFallbackThreshold = 8;
+        [SerializeField] private bool enableScrollFallback;
+        [SerializeField, Range(0f, 30f)] private float maxFanAngle = 13f;
+        [SerializeField, Min(1f)] private float minFanCardSpacing = 132f;
+        [SerializeField, Min(1f)] private float maxFanCardSpacing = 220f;
+        [SerializeField, Range(0.5f, 1f)] private float minFanCardScale = 0.86f;
+        [SerializeField, Min(0f)] private float fanArcHeight = 70f;
+        [SerializeField, Min(0f)] private float fanFocusLift = 68f;
+        [SerializeField, Range(1f, 1.25f)] private float fanFocusScale = 1.08f;
+        [SerializeField, Min(0f)] private float fanSelectedLift = 18f;
+        [SerializeField, Min(0f)] private float fanNeighborSpread = 36f;
+        [SerializeField, Min(0.01f)] private float fanTweenDuration = 0.16f;
+
         [Header("Visual Mappings")]
         [SerializeField] private List<CookingQualityVisual> qualityVisuals = new List<CookingQualityVisual>();
         [SerializeField] private List<CookingReactionVisual> reactionVisuals = new List<CookingReactionVisual>();
@@ -180,6 +195,19 @@ namespace Work.Cook.Code.Data
         public float CardHoverOffset => Mathf.Max(0f, cardHoverOffset);
         public float CardHoverScale => Mathf.Clamp(cardHoverScale, 1f, 1.2f);
         public float CardHoverDuration => Mathf.Max(0.01f, cardHoverDuration);
+        public int MaxFanCardCount => Mathf.Clamp(maxFanCardCount, 1, 7);
+        public int ScrollFallbackThreshold => Mathf.Max(MaxFanCardCount + 1, scrollFallbackThreshold);
+        public bool EnableScrollFallback => enableScrollFallback;
+        public float MaxFanAngle => Mathf.Clamp(maxFanAngle, 0f, 30f);
+        public float MinFanCardSpacing => Mathf.Max(1f, minFanCardSpacing);
+        public float MaxFanCardSpacing => Mathf.Max(MinFanCardSpacing, maxFanCardSpacing);
+        public float MinFanCardScale => Mathf.Clamp(minFanCardScale, 0.5f, 1f);
+        public float FanArcHeight => Mathf.Max(0f, fanArcHeight);
+        public float FanFocusLift => Mathf.Max(0f, fanFocusLift);
+        public float FanFocusScale => Mathf.Clamp(fanFocusScale, 1f, 1.25f);
+        public float FanSelectedLift => Mathf.Max(0f, fanSelectedLift);
+        public float FanNeighborSpread => Mathf.Max(0f, fanNeighborSpread);
+        public float FanTweenDuration => Mathf.Max(0.01f, fanTweenDuration);
         public Sprite RewardIcon => rewardIcon;
         public Sprite NpcPlaceholderIcon => npcPlaceholderIcon;
         public Sprite PanelSprite => panelSprite;
@@ -194,7 +222,7 @@ namespace Work.Cook.Code.Data
         public AudioClip QualityStampClip => qualityStampClip;
         public AudioClip RewardCountClip => rewardCountClip;
 
-        public CookingQualityVisual GetQualityVisual(DishQuality quality)
+        public CookingQualityVisual GetQualityVisual(DishCraftGrade quality)
         {
             if (qualityVisuals != null)
             {
@@ -259,7 +287,7 @@ namespace Work.Cook.Code.Data
             fontAsset = value;
         }
 
-        public void SetQualityIcon(DishQuality quality, Sprite value)
+        public void SetQualityIcon(DishCraftGrade quality, Sprite value)
         {
             CookingQualityVisual visual = FindQualityVisual(quality);
             if (visual == null)
@@ -322,10 +350,10 @@ namespace Work.Cook.Code.Data
         {
             qualityVisuals = new List<CookingQualityVisual>
             {
-                CreateDefaultQualityVisual(DishQuality.Perfect),
-                CreateDefaultQualityVisual(DishQuality.Normal),
-                CreateDefaultQualityVisual(DishQuality.Altered),
-                CreateDefaultQualityVisual(DishQuality.Disgusting)
+                CreateDefaultQualityVisual(DishCraftGrade.Perfect),
+                CreateDefaultQualityVisual(DishCraftGrade.Good),
+                CreateDefaultQualityVisual(DishCraftGrade.Normal),
+                CreateDefaultQualityVisual(DishCraftGrade.Bad)
             };
             reactionVisuals = new List<CookingReactionVisual>
             {
@@ -344,7 +372,7 @@ namespace Work.Cook.Code.Data
             };
         }
 
-        private CookingQualityVisual FindQualityVisual(DishQuality quality)
+        private CookingQualityVisual FindQualityVisual(DishCraftGrade quality)
         {
             if (qualityVisuals == null)
                 qualityVisuals = new List<CookingQualityVisual>();
@@ -380,16 +408,16 @@ namespace Work.Cook.Code.Data
             return null;
         }
 
-        private static CookingQualityVisual CreateDefaultQualityVisual(DishQuality quality)
+        private static CookingQualityVisual CreateDefaultQualityVisual(DishCraftGrade quality)
         {
             switch (quality)
             {
-                case DishQuality.Perfect:
+                case DishCraftGrade.Perfect:
                     return new CookingQualityVisual(quality, "완벽", new Color(1f, 0.77f, 0.24f, 1f));
-                case DishQuality.Altered:
-                    return new CookingQualityVisual(quality, "변형", new Color(0.7f, 0.48f, 0.87f, 1f));
-                case DishQuality.Disgusting:
-                    return new CookingQualityVisual(quality, "혐오", new Color(0.67f, 0.2f, 0.16f, 1f));
+                case DishCraftGrade.Good:
+                    return new CookingQualityVisual(quality, "좋음", new Color(0.7f, 0.48f, 0.87f, 1f));
+                case DishCraftGrade.Bad:
+                    return new CookingQualityVisual(quality, "미흡", new Color(0.67f, 0.2f, 0.16f, 1f));
                 default:
                     return new CookingQualityVisual(quality, "보통", new Color(0.83f, 0.75f, 0.58f, 1f));
             }

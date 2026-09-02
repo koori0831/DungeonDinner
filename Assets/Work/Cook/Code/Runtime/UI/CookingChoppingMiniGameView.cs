@@ -20,6 +20,7 @@ namespace Work.Cook.Code.Runtime.UI
         private int _mistakes;
         private float _accuracySum;
         private float _startedTime;
+        private CookingMiniGameOverlayProfile _profile;
 
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
@@ -51,9 +52,22 @@ namespace Work.Cook.Code.Runtime.UI
             _mistakes = 0;
             _accuracySum = 0f;
             _startedTime = Time.unscaledTime;
+            _profile = GetProfile(CookingMiniGameType.Chopping);
             Host.SetInstruction("빛나는 타격점을 순서대로 빠르게 누르세요.");
+            ConfigureHud("빛나는 지점을 빠르게 연타!", true, false, true);
+            SetProgress(0f, $"타격 0/{targetImages.Length}");
+            SetTimer(_profile.Duration, _profile.Duration);
             RefreshTargets();
             return true;
+        }
+
+        private void Update()
+        {
+            if (Completion == null || _profile == null)
+                return;
+
+            float elapsed = Time.unscaledTime - _startedTime;
+            SetTimer(Mathf.Max(0f, _profile.Duration - elapsed), _profile.Duration);
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -84,11 +98,11 @@ namespace Work.Cook.Code.Runtime.UI
             _accuracySum += Mathf.Clamp01(1f - distance / Mathf.Max(1f, radius));
             _orderIndex++;
             MarkProgress();
+            SetProgress((float)_orderIndex / _order.Length, $"타격 {_orderIndex}/{_order.Length}");
             if (_orderIndex >= _order.Length)
             {
                 float elapsed = Time.unscaledTime - _startedTime;
-                CookingMiniGameOverlayProfile profile = GetProfile(CookingMiniGameType.Chopping);
-                float speedScore = 1f - Mathf.InverseLerp(profile.Duration * 0.45f, profile.Duration, elapsed);
+                float speedScore = 1f - Mathf.InverseLerp(_profile.Duration * 0.45f, _profile.Duration, elapsed);
                 float accuracyScore = Mathf.Clamp01(_accuracySum / _order.Length - _mistakes * 0.12f);
                 Finish(CookingMiniGameType.Chopping, speedScore * 0.4f + accuracyScore * 0.6f,
                     "타격점을 빠르고 고르게 다졌습니다.");
@@ -108,7 +122,7 @@ namespace Work.Cook.Code.Runtime.UI
                 bool done = IsCompleted(i);
                 targetImages[i].color = done ? completedColor : i == active ? activeColor : pendingColor;
             }
-            Host.SetStatus($"타격 {_orderIndex + 1}/{targetImages.Length}");
+            Host.SetStatus($"다음 타격점 · {_orderIndex + 1}/{targetImages.Length}");
         }
 
         private bool IsCompleted(int targetIndex)

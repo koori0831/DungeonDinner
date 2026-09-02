@@ -20,6 +20,7 @@ namespace Work.Cook.Code.Runtime.UI
         private float _accuracySum;
         private float _startedTime;
         private bool _stepAdvancedDuringDrag;
+        private CookingMiniGameOverlayProfile _profile;
 
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
@@ -38,10 +39,23 @@ namespace Work.Cook.Code.Runtime.UI
             _stirAngle = 0f;
             _accuracySum = 0f;
             _startedTime = Time.unscaledTime;
+            _profile = GetProfile(CookingMiniGameType.Stewing);
             if (wasteZone != null)
                 wasteZone.gameObject.SetActive(false);
+            ConfigureHud("노브를 오른쪽으로 드래그 →", true, false, true);
+            SetProgress(0f, "단계 1/3");
+            SetTimer(_profile.Duration, _profile.Duration);
             RefreshStep();
             return true;
+        }
+
+        private void Update()
+        {
+            if (Completion == null || _profile == null)
+                return;
+
+            float elapsed = Time.unscaledTime - _startedTime;
+            SetTimer(Mathf.Max(0f, _profile.Duration - elapsed), _profile.Duration);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -75,6 +89,8 @@ namespace Work.Cook.Code.Runtime.UI
                 {
                     _stirAngle += delta;
                     MarkProgress();
+                    SetProgress((1f + Mathf.Clamp01(_stirAngle / 360f)) / 3f,
+                        $"단계 2/3 · 젓기 {Mathf.RoundToInt(Mathf.Clamp01(_stirAngle / 360f) * 100f)}%");
                 }
                 _lastDirection = direction;
                 if (_stirAngle >= 360f)
@@ -129,11 +145,11 @@ namespace Work.Cook.Code.Runtime.UI
         {
             _step++;
             MarkProgress();
+            SetProgress(Mathf.Clamp01((float)_step / 3f), $"단계 {Mathf.Min(_step + 1, 3)}/3");
             if (_step >= 3)
             {
-                CookingMiniGameOverlayProfile profile = GetProfile(CookingMiniGameType.Stewing);
                 float elapsed = Time.unscaledTime - _startedTime;
-                float speed = 1f - Mathf.InverseLerp(profile.Duration * 0.65f, profile.Duration * 1.2f, elapsed);
+                float speed = 1f - Mathf.InverseLerp(_profile.Duration * 0.65f, _profile.Duration * 1.2f, elapsed);
                 float accuracy = Mathf.Clamp01(_accuracySum / 3f);
                 Finish(CookingMiniGameType.Stewing, accuracy * 0.65f + speed * 0.35f,
                     "불과 국물 상태를 순서대로 조절했습니다.");
@@ -146,11 +162,20 @@ namespace Work.Cook.Code.Runtime.UI
         {
             string instruction;
             if (_step == 0)
+            {
                 instruction = "불 조절 노브를 오른쪽 적정 위치로 드래그하세요.";
+                SetGesture("노브를 오른쪽으로 드래그 →");
+            }
             else if (_step == 1)
+            {
                 instruction = "국물 중앙을 한 바퀴 원형으로 저으세요.";
+                SetGesture("국물 중앙을 원형으로 한 바퀴 돌리기");
+            }
             else
+            {
                 instruction = "거품을 오른쪽 위 폐기 영역으로 밀어내세요.";
+                SetGesture("거품을 오른쪽 위로 밀기 ↗");
+            }
 
             if (wasteZone != null)
                 wasteZone.gameObject.SetActive(_step == 2);

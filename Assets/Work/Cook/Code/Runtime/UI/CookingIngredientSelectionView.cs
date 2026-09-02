@@ -191,7 +191,7 @@ namespace Work.Cook.Code.Runtime.UI
             RebuildAvailableIngredients(availableIngredients, selectedIngredients, resetScroll);
             RebuildSelectedIngredients(selectedIngredients, resetScroll);
             BindAvailableSummary(availableIngredients);
-            SetConfirmInteractable(IsSelectionCountValid(selectedIngredients));
+            SetConfirmInteractable(IsSelectionValid(selectedIngredients, out _));
             BindFocusedIngredientDetail();
         }
 
@@ -200,18 +200,17 @@ namespace Work.Cook.Code.Runtime.UI
             if (ingredient == null || flowRunner == null)
                 return;
 
-            if (ContainsIngredient(flowRunner.SelectedIngredients, ingredient))
-                flowRunner.RemoveDirectIngredient(ingredient);
-            else
-            {
-                if (CanSelectMore(flowRunner.SelectedIngredients) == false)
-                    return;
+            if (CanSelectMore(flowRunner.SelectedIngredients) == false)
+                return;
 
-                if (flowRunner.Controller.CurrentSession?.Mode == CookingMode.Recipe)
-                    flowRunner.AddRecipeIngredient(ingredient);
-                else
-                    flowRunner.AddDirectIngredient(ingredient);
-            }
+            int selectedQuantity = CountIngredientOccurrences(flowRunner.SelectedIngredients, ingredient);
+            if (selectedQuantity >= GetAvailableQuantity(ingredient))
+                return;
+
+            if (flowRunner.Controller.CurrentSession?.Mode == CookingMode.Recipe)
+                flowRunner.AddRecipeIngredient(ingredient);
+            else
+                flowRunner.AddDirectIngredient(ingredient);
 
             Refresh(false);
         }
@@ -239,7 +238,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         public void ConfirmSelection()
         {
-            if (IsSelectionCountValid(flowRunner?.SelectedIngredients) == false)
+            if (IsSelectionValid(flowRunner?.SelectedIngredients, out _) == false)
             {
                 Refresh(false);
                 return;
@@ -274,12 +273,15 @@ namespace Work.Cook.Code.Runtime.UI
                     continue;
 
                 int availableQuantity = GetAvailableQuantity(ingredient);
-                if (hideUnavailableIngredients == true && availableQuantity <= 0)
+                if (hideUnavailableIngredients == true
+                    && ResolveIngredientSource() is ICookingRecipePlanSource == false
+                    && availableQuantity <= 0)
                     continue;
 
-                bool selected = ContainsIngredient(selectedIngredients, ingredient);
-                bool interactable = selected == true
-                                    || (availableQuantity > 0 && CanSelectMore(selectedIngredients) == true);
+                int selectedQuantity = CountIngredientOccurrences(selectedIngredients, ingredient);
+                bool selected = selectedQuantity > 0;
+                bool interactable = selectedQuantity < availableQuantity
+                                    && CanSelectMore(selectedIngredients) == true;
                 Button button = CreateIngredientButton(
                     availableIngredientRoot,
                     ingredient,
@@ -358,8 +360,6 @@ namespace Work.Cook.Code.Runtime.UI
             if (selectedIngredientScrollRect == null && selectedIngredientRoot != null)
                 selectedIngredientScrollRect = selectedIngredientRoot.GetComponentInParent<ScrollRect>();
 
-            ConfigureScrollRect(availableIngredientScrollRect, availableIngredientRoot);
-            ConfigureScrollRect(selectedIngredientScrollRect, selectedIngredientRoot);
         }
 
         private IReadOnlyList<IngredientSO> GetAvailableIngredients()
@@ -415,6 +415,13 @@ namespace Work.Cook.Code.Runtime.UI
 
         private string BuildAvailableIngredientLabel(IngredientSO ingredient, int availableQuantity)
         {
+            ICookingRecipePlanSource planSource = ResolveIngredientSource() as ICookingRecipePlanSource;
+            if (planSource != null)
+            {
+                int required = planSource.GetRequiredIngredientQuantity(ingredient);
+                return $"{ingredient.DisplayName}  필요 {required} / 보유 {availableQuantity}";
+            }
+
             return CookingIngredientSelectionTextFormatter.BuildAvailableIngredientLabel(
                 ingredient,
                 availableQuantity,
@@ -584,6 +591,17 @@ namespace Work.Cook.Code.Runtime.UI
 
         private string BuildSelectionRuleText(int selectedCount)
         {
+            ICookingRecipePlanSource planSource = ResolveIngredientSource() as ICookingRecipePlanSource;
+            if (planSource != null)
+            {
+                bool valid = planSource.IsSelectionValid(
+                    flowRunner?.SelectedIngredients,
+                    gamePanel,
+                    flowRunner,
+                    out string reason);
+                return valid ? "레시피 슬롯과 보유 수량을 충족했습니다." : reason;
+            }
+
             return CookingIngredientSelectionTextFormatter.BuildSelectionRuleText(
                 selectedCount,
                 minSelectedIngredients,
@@ -666,6 +684,23 @@ namespace Work.Cook.Code.Runtime.UI
             return CookingIngredientSelectionRules.ContainsIngredient(ingredients, ingredient);
         }
 
+        private static int CountIngredientOccurrences(
+            IReadOnlyList<IngredientSO> ingredients,
+            IngredientSO ingredient)
+        {
+            if (ingredients == null || ingredient == null)
+                return 0;
+
+            int count = 0;
+            for (int i = 0; i < ingredients.Count; i++)
+            {
+                if (ingredients[i] == ingredient)
+                    count++;
+            }
+
+            return count;
+        }
+
         private int CountDisplayableIngredients(IReadOnlyList<IngredientSO> ingredients)
         {
             if (ingredients == null)
@@ -681,13 +716,28 @@ namespace Work.Cook.Code.Runtime.UI
                 if (MatchesSearch(ingredient) == false)
                     continue;
 
-                if (hideUnavailableIngredients == true && GetAvailableQuantity(ingredient) <= 0)
+                if (hideUnavailableIngredients == true
+                    && ResolveIngredientSource() is ICookingRecipePlanSource == false
+                    && GetAvailableQuantity(ingredient) <= 0)
                     continue;
 
                 count++;
             }
 
             return count;
+        }
+
+        private bool IsSelectionValid(
+            IReadOnlyList<IngredientSO> selectedIngredients,
+            out string reason)
+        {
+            ICookingRecipePlanSource planSource = ResolveIngredientSource() as ICookingRecipePlanSource;
+            if (planSource != null)
+                return planSource.IsSelectionValid(selectedIngredients, gamePanel, flowRunner, out reason);
+
+            bool valid = IsSelectionCountValid(selectedIngredients);
+            reason = valid ? string.Empty : BuildSelectionRuleText(selectedIngredients != null ? selectedIngredients.Count : 0);
+            return valid;
         }
 
         private static void ClearChildren(Transform root)
@@ -717,15 +767,10 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(contentRoot);
-            float preferredHeight = LayoutUtility.GetPreferredHeight(contentRoot);
-            if (preferredHeight >= 0f)
-                contentRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
-
             Canvas.ForceUpdateCanvases();
             if (scrollRect == null)
                 return;
 
-            ConfigureScrollRect(scrollRect, contentRoot);
             RectTransform viewport = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.transform as RectTransform;
             if (viewport != null)
                 LayoutRebuilder.ForceRebuildLayoutImmediate(viewport);
@@ -736,24 +781,6 @@ namespace Work.Cook.Code.Runtime.UI
                 scrollRect.verticalNormalizedPosition = 1f;
                 scrollRect.horizontalNormalizedPosition = 0f;
             }
-        }
-
-        private static void ConfigureScrollRect(ScrollRect scrollRect, RectTransform contentRoot)
-        {
-            if (scrollRect == null || contentRoot == null)
-                return;
-
-            scrollRect.content = contentRoot;
-            scrollRect.horizontal = false;
-            scrollRect.vertical = true;
-            scrollRect.movementType = ScrollRect.MovementType.Clamped;
-
-            if (scrollRect.viewport == null)
-                scrollRect.viewport = scrollRect.transform as RectTransform;
-
-            contentRoot.anchorMin = new Vector2(0f, 1f);
-            contentRoot.anchorMax = new Vector2(1f, 1f);
-            contentRoot.pivot = new Vector2(0.5f, 1f);
         }
 
         private static void SetText(TextMeshProUGUI field, string text)

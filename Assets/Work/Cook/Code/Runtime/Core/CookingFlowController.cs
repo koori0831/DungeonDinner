@@ -50,10 +50,15 @@ namespace Work.Cook.Code.Runtime.Core
 
         public bool BeginRecipeIngredientSelection(RecipeSO recipe)
         {
+            return BeginRecipeIngredientSelection(recipe, null);
+        }
+
+        public bool BeginRecipeIngredientSelection(RecipeSO recipe, CookingRecipeStartPlan startPlan)
+        {
             if (recipe == null)
                 return false;
 
-            _session = CookingSession.CreateForRecipe(recipe, Array.Empty<IngredientSO>());
+            _session = CookingSession.CreateForRecipe(recipe, Array.Empty<IngredientSO>(), startPlan);
             LastResult = null;
             SetState(CookingFlowState.SelectingIngredients);
             return true;
@@ -143,17 +148,50 @@ namespace Work.Cook.Code.Runtime.Core
 
         public IngredientSO GetNextUnpreparedIngredient()
         {
+            return GetNextUnpreparedOccurrence()?.Ingredient;
+        }
+
+        public CookingIngredientOccurrence GetNextUnpreparedOccurrence()
+        {
             if (_session == null)
                 return null;
 
             for (int i = 0; i < _session.SelectedIngredients.Count; i++)
             {
                 IngredientSO ingredient = _session.SelectedIngredients[i];
-                if (_session.GetPreparedIngredient(ingredient) == null)
-                    return ingredient;
+                if (_session.IsOccurrencePrepared(i) == false)
+                {
+                    int occurrence = 0;
+                    for (int previous = 0; previous < i; previous++)
+                    {
+                        if (_session.SelectedIngredients[previous] == ingredient)
+                            occurrence++;
+                    }
+                    return new CookingIngredientOccurrence(i, occurrence, ingredient);
+                }
             }
 
             return null;
+        }
+
+        public PlannedPreparation GetCurrentPreparationRecommendation()
+        {
+            CookingIngredientOccurrence occurrence = GetNextUnpreparedOccurrence();
+            return occurrence != null && _session?.StartPlan != null
+                ? _session.StartPlan.GetPreparationRecommendation(
+                    _session.SelectedIngredients,
+                    occurrence.SelectedIndex)
+                : null;
+        }
+
+        public bool IsCurrentPreparationAllowed(IngredientPreparationOption option)
+        {
+            CookingIngredientOccurrence occurrence = GetNextUnpreparedOccurrence();
+            return occurrence == null || _session?.StartPlan == null
+                || _session.StartPlan.IsPreparationAllowed(
+                    _session.SelectedIngredients,
+                    occurrence.SelectedIndex,
+                    option);
         }
 
         public bool SelectPreparation(IngredientSO ingredient, IngredientPreparationOption preparationOption)

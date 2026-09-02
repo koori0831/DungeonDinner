@@ -60,8 +60,14 @@ namespace Work.Cook.Code.Runtime.UI
                 }
 
                 int autoCount = requirement.MinCount > 1 ? requirement.MinCount : 1;
-                for (int candidateIndex = 0; candidateIndex < candidates.Count && candidateIndex < autoCount; candidateIndex++)
-                    AddUnique(fixedIngredients, candidates[candidateIndex]);
+                if (candidates.Count > 0)
+                {
+                    IngredientSO fixedIngredient = requirement.Ingredient != null
+                        ? requirement.Ingredient
+                        : candidates[0];
+                    for (int count = 0; count < autoCount; count++)
+                        fixedIngredients.Add(fixedIngredient);
+                }
             }
 
             if (choiceCandidates.Count == 0)

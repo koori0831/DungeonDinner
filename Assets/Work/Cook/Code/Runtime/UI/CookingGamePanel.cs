@@ -44,9 +44,6 @@ namespace Work.Cook.Code.Runtime.UI
         [Header("Business Flow")]
         [SerializeField] private CookingBusinessFlowController businessFlowController;
 
-        [Header("Preparation Visuals")]
-        [SerializeField] private CookingPreparationVisualDirector preparationVisualDirector;
-
         [Header("Mini Game")]
         [SerializeField] private GameObject miniGameView;
 
@@ -66,8 +63,6 @@ namespace Work.Cook.Code.Runtime.UI
         private CookingRewardWallet _subscribedRewardWallet;
         private readonly List<GameObject> _preparationHiddenViews = new List<GameObject>();
         private bool _isPreparationViewIsolated;
-        private bool _isCompletingPreparationVisualSequence;
-        private bool _isResultHandBlockedByPreparationVisual;
         private bool _isMiniGameActive;
         private IngredientSO _pendingMiniGameIngredient;
         private IngredientPreparationOption _pendingMiniGameOption;
@@ -75,6 +70,8 @@ namespace Work.Cook.Code.Runtime.UI
         private NpcDishMatchReport _pendingRewardMatchReport;
         private bool _isSubmittingPendingReward;
         private bool _pendingRewardConversationCompleted;
+        private NpcDishMatchReport _settledMatchReport;
+        private CookingRewardGrant _settledRewardGrant;
 
         private enum MiniGameStartStatus
         {
@@ -115,6 +112,9 @@ namespace Work.Cook.Code.Runtime.UI
         public CookingGameSnapshot CurrentSnapshot => BuildSnapshot();
         public bool AllowRecipeConfirmation => allowRecipeConfirmation;
         public bool HasPendingRewardSettlement => _pendingRewardResult != null && _pendingRewardMatchReport != null;
+        public bool HasSettledOutcome => _settledMatchReport != null;
+        public NpcDishMatchReport SettledMatchReport => _settledMatchReport;
+        public CookingRewardGrant SettledRewardGrant => _settledRewardGrant;
 
         private void Awake()
         {
@@ -282,8 +282,8 @@ namespace Work.Cook.Code.Runtime.UI
             int knownPreparationEffectCount = knowledgeStore != null ? knowledgeStore.KnownPreparationEffectCount : 0;
             int rewardBalance = rewardWallet != null ? rewardWallet.Balance : 0;
             DishResult currentResult = _currentResult ?? flowRunner?.LastResult;
-            bool canHandToNpc = _isResultHandBlockedByPreparationVisual == false
-                                && HasPendingRewardSettlement == false
+            bool canHandToNpc = HasPendingRewardSettlement == false
+                                && HasSettledOutcome == false
                                 && CookingNpcDishAdapter.CanSubmitToNpc(npcRunner, currentResult, out _);
 
             return new CookingGameSnapshot(
@@ -298,8 +298,8 @@ namespace Work.Cook.Code.Runtime.UI
                 knownRecipeCount,
                 knownPreparationEffectCount,
                 rewardBalance,
-                0,
-                null,
+                _settledRewardGrant?.Amount ?? 0,
+                _settledMatchReport,
                 canHandToNpc);
         }
 
@@ -331,6 +331,7 @@ namespace Work.Cook.Code.Runtime.UI
             encounterDirector?.ClearEncounterHistory();
             _currentResult = null;
             ClearPendingRewardSettlement();
+            ClearSettledOutcome();
             ResetConsumedIngredientSession();
 
             CookingGameScreenState resetScreen = applyInitialScreenOnAwake == true
@@ -350,11 +351,17 @@ namespace Work.Cook.Code.Runtime.UI
 
             _currentResult = null;
             ClearPendingRewardSettlement();
+            ClearSettledOutcome();
             ResetConsumedIngredientSession();
             SetScreen(CookingGameScreenState.RecipeSelection);
         }
 
         public bool ConfirmRecipe(RecipeSO recipe)
+        {
+            return ConfirmRecipe(recipe, null);
+        }
+
+        public bool ConfirmRecipe(RecipeSO recipe, string variantId)
         {
             EnsureReferences();
 
@@ -370,19 +377,20 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
             }
 
-            ResetConsumedIngredientSession();
-
-            if (TryBeginRecipeWithIngredientChoices(recipe) == true)
-                return true;
-
-            if (flowRunner.BeginRecipeCooking(recipe) == false)
+            if (knowledgeStore != null && knowledgeStore.IsRecipeDiscovered(recipe) == false)
             {
-                Debug.LogWarning("CookingGamePanel could not begin recipe cooking because the recipe is missing.", this);
+                Debug.LogWarning("Undiscovered recipes cannot be selected as a cooking shortcut.", this);
                 return false;
             }
 
-            _currentResult = null;
-            SetScreen(CookingGameScreenState.Preparation);
+            ResetConsumedIngredientSession();
+            ClearSettledOutcome();
+
+            if (TryBeginRecipeWithIngredientChoices(recipe, variantId) == false)
+            {
+                Debug.LogWarning("CookingGamePanel could not build the recipe ingredient confirmation plan.", this);
+                return false;
+            }
             return true;
         }
 
@@ -404,6 +412,7 @@ namespace Work.Cook.Code.Runtime.UI
             SetIngredientSelectionLimits(1, 0);
             _currentResult = null;
             ClearPendingRewardSettlement();
+            ClearSettledOutcome();
             SetScreen(CookingGameScreenState.Inventory);
             return true;
         }
@@ -476,7 +485,6 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
             }
 
-            knowledgeStore?.LearnSelectedIngredients(flowRunner.SelectedIngredients);
             SetIngredientSelectionSource(null);
             SetScreen(CookingGameScreenState.Preparation);
             return true;
@@ -538,11 +546,6 @@ namespace Work.Cook.Code.Runtime.UI
         {
             EnsureReferences();
 
-            if (_isCompletingPreparationVisualSequence == true)
-            {
-                return false;
-            }
-
             if (flowRunner == null)
             {
                 Debug.LogWarning("CookingGamePanel needs a CookingFlowRunner before it can select a preparation.", this);
@@ -580,11 +583,6 @@ namespace Work.Cook.Code.Runtime.UI
             CookingMiniGameResult miniGameResult)
         {
             EnsureReferences();
-
-            if (_isCompletingPreparationVisualSequence == true)
-            {
-                return false;
-            }
 
             if (flowRunner == null)
             {
@@ -650,7 +648,7 @@ namespace Work.Cook.Code.Runtime.UI
             }
 
             _currentResult = result;
-            knowledgeStore?.LearnFromResult(result);
+            ClearSettledOutcome();
             SetScreen(CookingGameScreenState.Result);
             Bus<CookingDishResultReadyEvent>.Raise(new CookingDishResultReadyEvent(this, result));
             return true;
@@ -665,8 +663,8 @@ namespace Work.Cook.Code.Runtime.UI
         public bool CanHandCurrentResultToNpc()
         {
             DishResult result = GetCurrentDishResult();
-            return _isResultHandBlockedByPreparationVisual == false
-                   && HasPendingRewardSettlement == false
+            return HasPendingRewardSettlement == false
+                   && HasSettledOutcome == false
                    && CookingNpcDishAdapter.CanSubmitToNpc(NpcRunner, result, out _);
         }
 
@@ -731,7 +729,6 @@ namespace Work.Cook.Code.Runtime.UI
             }
 
             Bus<CookingDishHandedToNpcEvent>.Raise(new CookingDishHandedToNpcEvent(this, result));
-            preparationVisualDirector?.PlayDishDismissSequence();
 
             if (resetFlowAfterHandingDish == true && flowRunner != null)
                 flowRunner.ResetFlow();
@@ -746,11 +743,20 @@ namespace Work.Cook.Code.Runtime.UI
         {
             EnsureReferences();
 
-            ICookingKnowledgeUpdateView updateView = GetViewContract<ICookingKnowledgeUpdateView>(knowledgeUpdateView);
-            if (updateView != null && knowledgeStore != null && knowledgeStore.PendingKnowledgeUpdateCount > 0)
+            if (HasSettledOutcome)
             {
-                if (updateView.ShowPendingUpdates(() => HandResultToNpc()) == true)
+                ICookingKnowledgeUpdateView settledUpdateView =
+                    GetViewContract<ICookingKnowledgeUpdateView>(knowledgeUpdateView);
+                if (settledUpdateView != null
+                    && knowledgeStore != null
+                    && knowledgeStore.PendingKnowledgeUpdateCount > 0
+                    && settledUpdateView.ShowPendingUpdates(FinishSettledResult) == true)
+                {
                     return true;
+                }
+
+                FinishSettledResult();
+                return true;
             }
 
             return HandResultToNpc();
@@ -766,34 +772,55 @@ namespace Work.Cook.Code.Runtime.UI
             SetScreen(CookingGameScreenState.None);
         }
 
-        private bool TryBeginRecipeWithIngredientChoices(RecipeSO recipe)
+        private bool TryBeginRecipeWithIngredientChoices(RecipeSO recipe, string variantId)
         {
             if (recipe == null || flowRunner == null)
                 return false;
 
-            if (CookingRecipeIngredientChoicePlanner.TryBuild(
-                    recipe,
-                    flowRunner.Ingredients,
-                    out CookingRecipeIngredientChoicePlan plan) == false)
+            ICookingIngredientSelectionView selectionView = GetIngredientSelectionView();
+            ICookingIngredientSource backingSource = selectionView?.GetCurrentIngredientSource();
+            if (backingSource is CookingRecipeIngredientChoiceSource previousPlanSource)
+                backingSource = previousPlanSource.BackingSource;
+            if (backingSource == null)
+                backingSource = GetComponentInChildren<InventoryCookingIngredientSource>(true);
+            ICookingIngredientQuantitySource quantitySource = backingSource as ICookingIngredientQuantitySource;
+            CookingRecipeStartPlanBuilder builder = new CookingRecipeStartPlanBuilder(
+                flowRunner.Ingredients,
+                ingredient => quantitySource != null
+                    ? quantitySource.GetAvailableIngredientQuantity(ingredient, this, flowRunner)
+                    : 0,
+                knowledgeStore);
+
+            CookingRecipeStartPlan plan;
+            if (string.IsNullOrWhiteSpace(variantId))
             {
-                return false;
+                plan = builder.BuildBase(recipe);
+            }
+            else
+            {
+                if (knowledgeStore == null
+                    || knowledgeStore.TryGetDiscoveredVariant(recipe, variantId, out CookingRecipeVariantKnowledgeSnapshot variant) == false
+                    || variant.CanReplay == false)
+                {
+                    Debug.LogWarning("The selected legacy or unknown variant cannot be replayed.", this);
+                    return false;
+                }
+                plan = builder.BuildVariant(recipe, variant);
             }
 
-            if (flowRunner.BeginRecipeIngredientSelection(recipe) == false)
+            if (flowRunner.BeginRecipeIngredientSelection(recipe, plan) == false)
                 return false;
 
-            for (int i = 0; i < plan.FixedIngredients.Count; i++)
-                flowRunner.AddRecipeIngredient(plan.FixedIngredients[i]);
+            for (int i = 0; i < plan.PresetIngredients.Count; i++)
+                flowRunner.AddRecipeIngredient(plan.PresetIngredients[i].Ingredient);
 
             EnsureRecipeIngredientChoiceSource();
             if (recipeIngredientChoiceSource == null)
                 return false;
 
-            recipeIngredientChoiceSource.SetCandidates(plan.ChoiceCandidates);
+            recipeIngredientChoiceSource.SetPlan(plan, backingSource);
             SetIngredientSelectionSource(recipeIngredientChoiceSource);
-            SetIngredientSelectionLimits(
-                plan.FixedIngredients.Count + plan.MinChoiceCount,
-                plan.MaxChoiceCount > 0 ? plan.FixedIngredients.Count + plan.MaxChoiceCount : 0);
+            SetIngredientSelectionLimits(0, 0);
 
             _currentResult = null;
             SetScreen(CookingGameScreenState.Inventory);
@@ -884,9 +911,6 @@ namespace Work.Cook.Code.Runtime.UI
             IngredientPreparationOption option,
             CookingMiniGameResult miniGameResult)
         {
-            if (option != null)
-                knowledgeStore?.LearnPreparationEffect(ingredient, option);
-
             if (flowRunner.SelectPreparation(ingredient, option, miniGameResult) == false)
             {
                 Debug.LogWarning("CookingGamePanel could not apply the selected preparation.", this);
@@ -897,44 +921,11 @@ namespace Work.Cook.Code.Runtime.UI
                 SetScreen(CookingGameScreenState.Preparation);
 
             if (flowRunner.GetNextUnpreparedIngredient() == null)
-            {
-                if (preparationVisualDirector != null)
-                {
-                    _isCompletingPreparationVisualSequence = true;
-                    _isResultHandBlockedByPreparationVisual = true;
-                    if (preparationVisualDirector.PlayCompletionSequence(
-                            ingredient,
-                            CompleteCookingAfterPreparationDishReplacement,
-                            EnableResultHandAfterPreparationVisualSequence) == true)
-                    {
-                        return true;
-                    }
-
-                    _isCompletingPreparationVisualSequence = false;
-                    _isResultHandBlockedByPreparationVisual = false;
-                    preparationVisualDirector.SpawnPreparedIngredient(ingredient);
-                }
-
                 return CompleteCooking();
-            }
-
-            preparationVisualDirector?.SpawnPreparedIngredient(ingredient);
 
             RefreshPreparationView(preparationView);
             PublishSnapshotChanged();
             return true;
-        }
-
-        private void CompleteCookingAfterPreparationDishReplacement()
-        {
-            CompleteCooking();
-        }
-
-        private void EnableResultHandAfterPreparationVisualSequence()
-        {
-            _isCompletingPreparationVisualSequence = false;
-            _isResultHandBlockedByPreparationVisual = false;
-            PublishSnapshotChanged();
         }
 
         private void EnsureCoreReferences()
@@ -948,17 +939,7 @@ namespace Work.Cook.Code.Runtime.UI
             EnsureKnowledgeStore();
             EnsureRewardSystems();
             EnsureRecipeIngredientChoiceSource();
-            EnsurePreparationVisualDirector();
             SubscribeStateSources();
-        }
-
-        private void EnsurePreparationVisualDirector()
-        {
-            if (preparationVisualDirector == null)
-                preparationVisualDirector = GetComponentInChildren<CookingPreparationVisualDirector>(true);
-
-            if (preparationVisualDirector == null)
-                preparationVisualDirector = GetComponent<CookingPreparationVisualDirector>();
         }
 
         private void EnsureRecipeIngredientChoiceSource()
@@ -1060,6 +1041,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void QueuePendingRewardSettlement(DishResult result, NpcDishMatchReport matchReport)
         {
+            ClearSettledOutcome();
             _pendingRewardResult = result;
             _pendingRewardMatchReport = matchReport;
             _pendingRewardConversationCompleted = false;
@@ -1092,7 +1074,22 @@ namespace Work.Cook.Code.Runtime.UI
             DishResult result = _pendingRewardResult;
             NpcDishMatchReport matchReport = _pendingRewardMatchReport;
             ClearPendingRewardSettlement();
-            GrantReward(result, matchReport);
+            knowledgeStore?.LearnFromService(result, matchReport);
+            _settledMatchReport = matchReport;
+            _settledRewardGrant = GrantReward(result, matchReport);
+            SetScreen(CookingGameScreenState.Result);
+        }
+
+        private void FinishSettledResult()
+        {
+            ClearSettledOutcome();
+            CloseCookingViews();
+        }
+
+        private void ClearSettledOutcome()
+        {
+            _settledMatchReport = null;
+            _settledRewardGrant = null;
         }
 
         private bool TryConsumeSelectedIngredientsForCompletion(CookingSession session)
@@ -1196,18 +1193,7 @@ namespace Work.Cook.Code.Runtime.UI
             SetActive(preparationView, true);
             SetActive(miniGameView, showMiniGame);
 
-            if (showMiniGame == true)
-                BringMiniGameViewToFront();
-
             _isPreparationViewIsolated = true;
-        }
-
-        private void BringMiniGameViewToFront()
-        {
-            if (miniGameView == null || miniGameView.transform.parent == null)
-                return;
-
-            miniGameView.transform.SetAsLastSibling();
         }
 
         private void HideDictionaryPanelsForPreparation()
@@ -1276,34 +1262,6 @@ namespace Work.Cook.Code.Runtime.UI
             LogMissingViewReference(nameof(inventoryView), nameof(CookingIngredientSelectionView));
         }
 
-        private Transform FindInventoryViewParent()
-        {
-            RectTransform recipeRect = recipeSelectionView != null
-                ? recipeSelectionView.transform as RectTransform
-                : null;
-
-            if (recipeRect != null)
-            {
-                RectTransform recipeParent = recipeRect.parent as RectTransform;
-                if (recipeParent != null)
-                {
-                    if (recipeParent.GetComponent<LayoutGroup>() != null && recipeParent.parent != null)
-                        return recipeParent.parent;
-
-                    return recipeParent;
-                }
-            }
-
-            RectTransform npcRect = npcConversationView != null
-                ? npcConversationView.transform as RectTransform
-                : null;
-
-            if (npcRect != null && npcRect.parent != null)
-                return npcRect.parent;
-
-            return transform;
-        }
-
         private void InitializeRecipeSelectionView(GameObject view)
         {
             if (view == null)
@@ -1339,7 +1297,6 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (preparationView != null)
             {
-                AttachPreparationViewToOverlayRoot(preparationView);
                 InitializePreparationView(preparationView);
                 return;
             }
@@ -1348,7 +1305,6 @@ namespace Work.Cook.Code.Runtime.UI
             if (existingCookingView != null)
             {
                 preparationView = existingCookingView.gameObject;
-                AttachPreparationViewToOverlayRoot(preparationView);
                 InitializePreparationView(preparationView);
                 return;
             }
@@ -1357,26 +1313,11 @@ namespace Work.Cook.Code.Runtime.UI
             if (existingView != null)
             {
                 preparationView = existingView.gameObject;
-                AttachPreparationViewToOverlayRoot(preparationView);
                 InitializePreparationView(preparationView);
                 return;
             }
 
             LogMissingViewReference(nameof(preparationView), nameof(CookingPreparationView));
-        }
-
-        private void AttachPreparationViewToOverlayRoot(GameObject view)
-        {
-            if (view == null)
-                return;
-
-            Transform overlayParent = FindOverlayViewParent();
-            if (overlayParent == null || view.transform.parent == overlayParent)
-                return;
-
-            view.transform.SetParent(overlayParent, false);
-            view.transform.localRotation = Quaternion.identity;
-            view.transform.localScale = Vector3.one;
         }
 
         private void InitializePreparationView(GameObject view)
@@ -1395,26 +1336,11 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (miniGameView != null)
             {
-                AttachMiniGameViewToOverlayRoot(miniGameView);
                 InitializeMiniGameView(miniGameView);
                 return;
             }
 
             LogMissingViewReference(nameof(miniGameView), nameof(ICookingMiniGameView));
-        }
-
-        private void AttachMiniGameViewToOverlayRoot(GameObject view)
-        {
-            if (view == null)
-                return;
-
-            Transform overlayParent = FindOverlayViewParent();
-            if (overlayParent == null || view.transform.parent == overlayParent)
-                return;
-
-            view.transform.SetParent(overlayParent, false);
-            view.transform.localRotation = Quaternion.identity;
-            view.transform.localScale = Vector3.one;
         }
 
         private void InitializeMiniGameView(GameObject view)
@@ -1452,7 +1378,6 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (knowledgeUpdateView != null)
             {
-                AttachKnowledgeUpdateViewToOverlayRoot(knowledgeUpdateView);
                 InitializeKnowledgeUpdateView(knowledgeUpdateView);
                 return;
             }
@@ -1461,7 +1386,6 @@ namespace Work.Cook.Code.Runtime.UI
             if (existingView != null)
             {
                 knowledgeUpdateView = existingView.gameObject;
-                AttachKnowledgeUpdateViewToOverlayRoot(knowledgeUpdateView);
                 InitializeKnowledgeUpdateView(knowledgeUpdateView);
                 return;
             }
@@ -1481,20 +1405,6 @@ namespace Work.Cook.Code.Runtime.UI
             result.Initialize(this, flowRunner);
         }
 
-        private void AttachKnowledgeUpdateViewToOverlayRoot(GameObject view)
-        {
-            if (view == null)
-                return;
-
-            Transform overlayParent = FindOverlayViewParent();
-            if (overlayParent == null || view.transform.parent == overlayParent)
-                return;
-
-            view.transform.SetParent(overlayParent, false);
-            view.transform.localRotation = Quaternion.identity;
-            view.transform.localScale = Vector3.one;
-        }
-
         private void InitializeKnowledgeUpdateView(GameObject view)
         {
             if (view == null)
@@ -1511,7 +1421,6 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (rewardView != null)
             {
-                AttachRewardViewToOverlayRoot(rewardView);
                 InitializeRewardView(rewardView);
                 return;
             }
@@ -1520,26 +1429,11 @@ namespace Work.Cook.Code.Runtime.UI
             if (existingView != null)
             {
                 rewardView = existingView.gameObject;
-                AttachRewardViewToOverlayRoot(rewardView);
                 InitializeRewardView(rewardView);
                 return;
             }
 
             LogMissingViewReference(nameof(rewardView), nameof(CookingRewardToastView));
-        }
-
-        private void AttachRewardViewToOverlayRoot(GameObject view)
-        {
-            if (view == null)
-                return;
-
-            Transform overlayParent = FindOverlayViewParent();
-            if (overlayParent == null || view.transform.parent == overlayParent)
-                return;
-
-            view.transform.SetParent(overlayParent, false);
-            view.transform.localRotation = Quaternion.identity;
-            view.transform.localScale = Vector3.one;
         }
 
         private void InitializeRewardView(GameObject view)
@@ -1629,20 +1523,6 @@ namespace Work.Cook.Code.Runtime.UI
             return contract ?? view.GetComponentInChildren<T>(true);
         }
 
-        private Transform FindOverlayViewParent()
-        {
-            Canvas parentCanvas = FindCanvasFromConnectedViews();
-            if (parentCanvas == null)
-                parentCanvas = GetComponentInParent<Canvas>(true);
-            if (parentCanvas == null)
-                parentCanvas = FindFirstObjectByType<Canvas>();
-
-            if (parentCanvas != null)
-                return ResolveOverlayRoot(parentCanvas.rootCanvas != null ? parentCanvas.rootCanvas : parentCanvas);
-
-            return FindInventoryViewParent();
-        }
-
         private Canvas FindCanvasFromConnectedViews()
         {
             Canvas canvas = FindCanvas(npcConversationView);
@@ -1675,20 +1555,6 @@ namespace Work.Cook.Code.Runtime.UI
         private static Canvas FindCanvas(GameObject view)
         {
             return view != null ? view.GetComponentInParent<Canvas>(true) : null;
-        }
-
-        private static Transform ResolveOverlayRoot(Canvas canvas)
-        {
-            const string OVERLAY_ROOT_NAME = "CookingRewardOverlayRoot";
-
-            Transform canvasTransform = canvas.transform;
-            Transform existing = canvasTransform.Find(OVERLAY_ROOT_NAME);
-            if (existing != null)
-            {
-                return existing;
-            }
-
-            return canvasTransform;
         }
 
         private static bool IsBeforePreparation(CookingGameScreenState screen)
@@ -1815,7 +1681,7 @@ namespace Work.Cook.Code.Runtime.UI
         private void HandleRecipeConfirmRequested(CookingRecipeConfirmRequestedEvent gameEvent)
         {
             if (IsRequestForThis(gameEvent.Source) == true)
-                ConfirmRecipe(gameEvent.Recipe);
+                ConfirmRecipe(gameEvent.Recipe, gameEvent.VariantId);
         }
 
         private void HandleIngredientSelectionToggleRequested(CookingIngredientSelectionToggleRequestedEvent gameEvent)

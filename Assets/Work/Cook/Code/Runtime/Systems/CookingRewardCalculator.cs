@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using Work.NPC.Code.Data;
 using Work.NPC.Code.Runtime;
 using Work.Cook.Code.Runtime.Core;
@@ -17,9 +18,10 @@ namespace Work.Cook.Code.Runtime.Systems
         [SerializeField, Min(0)] private int correctReward = 18;
         [SerializeField, Min(0)] private int perfectReward = 30;
 
-        [Header("Dish Quality Bonus")]
+        [Header("Dish Craft Grade Bonus")]
         [SerializeField, Min(0)] private int perfectDishBonus = 5;
-        [SerializeField, Min(0)] private int alteredDishBonus;
+        [FormerlySerializedAs("alteredDishBonus")]
+        [SerializeField, Min(0)] private int goodDishBonus;
         [SerializeField, Min(0)] private int normalDishBonus;
         [SerializeField, Min(0)] private int qualityScoreBonusPerPoint = 2;
         [SerializeField, Min(0)] private int qualityScorePenaltyPerPoint = 2;
@@ -30,7 +32,7 @@ namespace Work.Cook.Code.Runtime.Systems
                 return 0;
 
             int amount = GetBaseReward(matchReport.Evaluation?.Result ?? NpcConversationResult.Wrong);
-            amount += GetDishQualityBonus(dishResult);
+            amount += GetCraftGradeBonus(dishResult);
             amount += GetQualityScoreRewardDelta(dishResult);
             return Mathf.Max(0, amount);
         }
@@ -52,20 +54,20 @@ namespace Work.Cook.Code.Runtime.Systems
             }
         }
 
-        private int GetDishQualityBonus(DishResult dishResult)
+        private int GetCraftGradeBonus(DishResult dishResult)
         {
             if (dishResult == null)
                 return 0;
 
-            switch (dishResult.Quality)
+            switch (dishResult.CraftGrade)
             {
-                case DishQuality.Perfect:
+                case DishCraftGrade.Perfect:
                     return perfectDishBonus;
-                case DishQuality.Altered:
-                    return alteredDishBonus;
-                case DishQuality.Normal:
+                case DishCraftGrade.Good:
+                    return goodDishBonus;
+                case DishCraftGrade.Normal:
                     return normalDishBonus;
-                case DishQuality.Disgusting:
+                case DishCraftGrade.Bad:
                 default:
                     return 0;
             }

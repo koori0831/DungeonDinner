@@ -137,12 +137,12 @@ namespace Work.Cook.Code.Editor
                 }
 
                 EditorGUILayout.EndHorizontal();
+                requirement.RequirementId = EditorGUILayout.TextField("슬롯 ID", requirement.RequirementId);
                 requirement.Ingredient = (IngredientSO)EditorGUILayout.ObjectField("기준 재료", requirement.Ingredient, typeof(IngredientSO), false);
                 requirement.IngredientCategory = (IngredientCategorySO)EditorGUILayout.ObjectField("재료군 조건", requirement.IngredientCategory, typeof(IngredientCategorySO), false);
                 requirement.MinCount = Mathf.Max(0, EditorGUILayout.IntField("최소 개수", requirement.MinCount));
                 requirement.MaxCount = Mathf.Max(0, EditorGUILayout.IntField("최대 개수 (0 = 제한 없음)", requirement.MaxCount));
                 requirement.RecipeDefining = EditorGUILayout.Toggle("요리 결정 조건", requirement.RecipeDefining);
-                requirement.RequireManualPreparation = EditorGUILayout.Toggle("직접 손질 필요", requirement.RequireManualPreparation);
 
                 if (DrawObjectList("필수 태그", requirement.RequiredTags, typeof(FoodTagSO), "+ 필수 태그"))
                     MarkDraftDirty();
@@ -338,6 +338,7 @@ namespace Work.Cook.Code.Editor
                 }
 
                 EditorGUILayout.EndHorizontal();
+                option.PreparationOptionId = EditorGUILayout.TextField("손질 옵션 ID", option.PreparationOptionId);
                 option.Method = (PreparationMethodSO)EditorGUILayout.ObjectField("손질법", option.Method, typeof(PreparationMethodSO), false);
                 option.DisplayNameOverride = EditorGUILayout.TextField("표시 이름 덮어쓰기", option.DisplayNameOverride);
                 EditorGUILayout.LabelField("설명");
@@ -352,6 +353,39 @@ namespace Work.Cook.Code.Editor
                 option.CausesDisgusting = EditorGUILayout.Toggle("괴식으로 만듦", option.CausesDisgusting);
                 option.AddsPoison = EditorGUILayout.Toggle("독 속성 추가", option.AddsPoison);
                 option.ResultNameModifier = EditorGUILayout.TextField("결과 이름 수식어", option.ResultNameModifier);
+
+                EditorGUILayout.LabelField("미니게임 등급 효과", EditorStyles.boldLabel);
+                for (int ruleIndex = 0; ruleIndex < option.MiniGameFeedbackRules.Count; ruleIndex++)
+                {
+                    MiniGameFeedbackRuleDraft rule = option.MiniGameFeedbackRules[ruleIndex];
+                    EditorGUILayout.BeginVertical("box");
+                    EditorGUILayout.BeginHorizontal();
+                    rule.Grade = (CookingMiniGameGrade)EditorGUILayout.EnumPopup("등급", rule.Grade);
+                    if (GUILayout.Button("삭제", GUILayout.Width(52f)))
+                    {
+                        option.MiniGameFeedbackRules.RemoveAt(ruleIndex);
+                        MarkDraftDirty();
+                        EditorGUILayout.EndHorizontal();
+                        EditorGUILayout.EndVertical();
+                        GUIUtility.ExitGUI();
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    rule.VariantEffectId = EditorGUILayout.TextField("변형 효과 ID", rule.VariantEffectId);
+                    rule.QualityDelta = EditorGUILayout.IntField("품질 변화", rule.QualityDelta);
+                    if (DrawObjectList("추가 태그", rule.AddTags, typeof(FoodTagSO), "+ 추가 태그"))
+                        MarkDraftDirty();
+                    if (DrawObjectList("제거 태그", rule.RemoveTags, typeof(FoodTagSO), "+ 제거 태그"))
+                        MarkDraftDirty();
+                    rule.ResultNameModifier = EditorGUILayout.TextField("결과 이름 수식어", rule.ResultNameModifier);
+                    EditorGUILayout.LabelField("피드백 문구");
+                    rule.FeedbackText = EditorGUILayout.TextArea(rule.FeedbackText, GUILayout.MinHeight(36f));
+                    EditorGUILayout.EndVertical();
+                }
+                if (GUILayout.Button("+ 미니게임 등급 효과"))
+                {
+                    option.MiniGameFeedbackRules.Add(new MiniGameFeedbackRuleDraft());
+                    MarkDraftDirty();
+                }
                 EditorGUILayout.EndVertical();
             }
 

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d832093ac8aade746a6a2f3d9b35210b, type: 3}
+  m_Name: DefaultCookingUiPreviewScenario
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::Work.Cook.Code.Editor.PreviewLab.CookingUiPreviewScenario
+  targetScreen: 2
+  catalogOverride: {fileID: 11400000, guid: 4ec4ea9cc8f39c342a0f95dcb38f25da, type: 2}
+  ingredients:
+  - ingredient: {fileID: 11400000, guid: 09db9e234bdaac645977b8020c1fd84e, type: 2}
+    quantity: 1
+    preparationOptionIndex: 0
+  minimumSelection: 1
+  maximumSelection: 0
+  forcedGrade: 2
+  forcedScore: 0.8
+  forcedFeedback: "\uC5D0\uB514\uD130 \uD504\uB9AC\uBDF0 \uD310\uC815"

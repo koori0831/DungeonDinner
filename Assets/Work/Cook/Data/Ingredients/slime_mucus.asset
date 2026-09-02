@@ -22,7 +22,8 @@ MonoBehaviour:
   baseTags:
   - {fileID: 11400000, guid: 8f44838da1b5e3e4a8ca2d4945460c46, type: 2}
   preparationOptions:
-  - method: {fileID: 11400000, guid: 54425d125cda1aa4ca2ae94606707622, type: 2}
+  - preparationOptionId: boil_water
+    method: {fileID: 11400000, guid: 54425d125cda1aa4ca2ae94606707622, type: 2}
     displayNameOverride: "\uC388 \uBD88\uC5D0 \uB053\uC774\uAE30"
     description: "\uC624\uB798 \uB053\uC5EC \uBB3D\uAC8C \uB9CC\uB4E4\uC5B4 \uC0AC\uC6A9\uD558\uB294
       \uC190\uC9C8\uBC95"
@@ -36,7 +37,8 @@ MonoBehaviour:
     addsPoison: 0
     resultNameModifier: 
     miniGameFeedbackRules: []
-  - method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
+  - preparationOptionId: just
+    method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
     displayNameOverride: "\uADF8\uB300\uB85C \uC0AC\uC6A9\uD558\uAE30"
     description: "\uC7AC\uB8CC \uBCF8\uC5F0\uC758 \uB9DB\uC744 \uC0B4\uB9AC\uAE30
       \uAC00\uC7A5\uC88B\uC740 \uC190\uC9C8\uBC95"
@@ -47,7 +49,8 @@ MonoBehaviour:
     addsPoison: 0
     resultNameModifier: 
     miniGameFeedbackRules: []
-  - method: {fileID: 11400000, guid: 46b782774bfe5674e83243822b1c1872, type: 2}
+  - preparationOptionId: freeze
+    method: {fileID: 11400000, guid: 46b782774bfe5674e83243822b1c1872, type: 2}
     displayNameOverride: "\uC0B4\uC9DD \uC5BC\uB824\uC11C \uC0AC\uC6A9\uD558\uAE30"
     description: "\uC0B4\uC5BC\uC74C\uCC98\uB7FC \uC544\uC8FC \uC0B4\uC9DD \uC5BC\uB824
       \uC2DD\uAC10\uC788\uAC8C \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC95 "
