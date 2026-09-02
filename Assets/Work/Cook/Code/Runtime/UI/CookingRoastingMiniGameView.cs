@@ -8,11 +8,10 @@ using Work.Cook.Code.Runtime.Core;
 namespace Work.Cook.Code.Runtime.UI
 {
     public sealed class CookingRoastingMiniGameView : CookingOverlayMiniGameController,
-        IPointerDownHandler, IDragHandler, IPointerUpHandler
+        IPointerClickHandler
     {
         [SerializeField] private Image heatTint;
         [SerializeField] private Image flipIndicator;
-        [SerializeField] private Image plateZone;
 
         private CookingMiniGameType _type;
         private CookingMiniGameOverlayProfile _profile;
@@ -21,9 +20,6 @@ namespace Work.Cook.Code.Runtime.UI
         private float _sideBExposure;
         private float _flipProgress;
         private bool _flipped;
-        private Vector2 _pointerStart;
-        private Vector2 _currentPoint;
-        private bool _dragging;
 
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
@@ -48,12 +44,15 @@ namespace Work.Cook.Code.Runtime.UI
             _sideBExposure = 0f;
             _flipProgress = 0f;
             _flipped = false;
-            _dragging = false;
             if (flipIndicator != null)
+            {
                 flipIndicator.gameObject.SetActive(true);
-            Host.SetInstruction("재료를 한 번 눌러 뒤집고, 알맞게 익으면 가이드를 오른쪽 접시까지 드래그하세요.");
+                flipIndicator.rectTransform.localRotation = Quaternion.identity;
+                flipIndicator.rectTransform.localScale = Vector3.one;
+            }
+            Host.SetInstruction("재료를 한 번 눌러 뒤집고, 알맞게 익으면 다시 눌러 꺼내세요.");
             Host.SetStatus(_type == CookingMiniGameType.Burning ? "진한 그을음이 오를 때 꺼내세요" : "색과 연기를 살펴보세요");
-            ConfigureHud("한 번 탭해 뒤집기 · 익으면 접시로 드래그 →", false, true, true);
+            ConfigureHud("한 번 클릭해 뒤집기 · 적정 구간에서 다시 클릭", false, true, true);
             SetTargetState(0f, _profile.TargetMin, _profile.TargetMax, "덜 익음");
             float maximumDuration = Mathf.Max(_profile.Duration, _profile.MaximumDuration);
             SetTimer(maximumDuration, maximumDuration);
@@ -84,66 +83,31 @@ namespace Work.Cook.Code.Runtime.UI
             }
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData)
         {
-            if (Completion == null || TryCapturePointer(eventData) == false
-                || TryGetLocalPosition(eventData, out _pointerStart) == false)
+            if (Completion == null)
+                return;
+
+            if (Host.IsIngredientHit(eventData) == false)
             {
-                ReleasePointer();
+                RegisterMistake("재료를 눌러주세요.");
                 return;
             }
 
-            _currentPoint = _pointerStart;
-            _dragging = false;
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (IsActivePointer(eventData) == false || TryGetLocalPosition(eventData, out _currentPoint) == false)
-                return;
-
-            if (Vector2.Distance(_pointerStart, _currentPoint) > 18f)
+            if (_flipped == false)
             {
-                _dragging = true;
-            }
-            if (flipIndicator != null && _dragging)
-                flipIndicator.rectTransform.anchoredPosition = _currentPoint;
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (IsActivePointer(eventData) == false)
-                return;
-            TryGetLocalPosition(eventData, out _currentPoint);
-            ReleasePointer();
-
-            if (_dragging == false)
-            {
-                if (_flipped)
-                {
-                    RegisterMistake("한 번만 뒤집고 익힘 상태를 기다리세요.");
-                    return;
-                }
-
                 _flipped = true;
                 _flipProgress = Mathf.Clamp01((Time.unscaledTime - _startedTime) / _profile.Duration);
                 if (flipIndicator != null)
                     flipIndicator.rectTransform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                Host.PlayIngredientFlipFeedback();
                 MarkProgress();
-                Host.SetStatus("뒤집기 완료 · 접시로 꺼낼 순간을 고르세요");
-                SetGesture("적정 구간에서 오른쪽 접시로 드래그 →");
+                Host.SetStatus("뒤집기 완료 · 적정 순간에 재료를 클릭하세요");
+                SetGesture("적정 구간에서 재료를 다시 클릭");
                 return;
             }
 
-            bool onPlate = plateZone != null
-                ? RectTransformUtility.RectangleContainsScreenPoint(plateZone.rectTransform, eventData.position, eventData.pressEventCamera)
-                : _currentPoint.x > ((RectTransform)transform).rect.width * 0.25f;
-            if (onPlate == false)
-            {
-                RegisterMistake("오른쪽 접시 영역까지 드래그해 꺼내세요.");
-                return;
-            }
-
+            Host.PlayIngredientClickFeedback();
             CompleteAtCurrentState();
         }
 
@@ -174,7 +138,7 @@ namespace Work.Cook.Code.Runtime.UI
                 heatTint.color = color;
             }
 
-            if (flipIndicator != null && _dragging == false)
+            if (flipIndicator != null)
             {
                 float pulse = 1f + Mathf.Sin(Time.unscaledTime * 4f) * 0.06f;
                 flipIndicator.rectTransform.localScale = Vector3.one * pulse;
@@ -186,8 +150,8 @@ namespace Work.Cook.Code.Runtime.UI
             if (doneness < _profile.TargetMin)
                 return _flipped ? "뒤집기 완료 · 아직 덜 익음" : "덜 익음 · 한 번 탭해 뒤집기";
             if (doneness <= _profile.TargetMax)
-                return "적정 · 지금 접시로 옮기세요";
-            return _type == CookingMiniGameType.Burning ? "진한 그을음 · 곧 꺼내세요" : "과열 위험 · 바로 꺼내세요";
+                return "적정 · 지금 재료를 클릭하세요";
+            return _type == CookingMiniGameType.Burning ? "진한 그을음 · 지금 재료를 클릭하세요" : "과열 위험 · 바로 재료를 클릭하세요";
         }
     }
 }

@@ -1297,7 +1297,7 @@ GameObject:
   - component: {fileID: 4123824552336522827}
   - component: {fileID: 3488525721907611940}
   m_Layer: 0
-  m_Name: FlipAndDragGuide
+  m_Name: IngredientClickGuide
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2400,8 +2400,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4093531070522254530}
-  - {fileID: 9076736058708926203}
-  - {fileID: 8867192404729762454}
   - {fileID: 8659375623850891179}
   - {fileID: 8751501500865842532}
   - {fileID: 6490330893826645931}
@@ -2465,8 +2463,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22f3e8c957d97044c9ddfba7524085a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingBoilingMiniGameView
-  toolImage: {fileID: 9135964069531355918}
-  plateZone: {fileID: 1526762687672051585}
   bubbleImages:
   - {fileID: 6619492021506907763}
   - {fileID: 4483573550402888685}
@@ -3005,6 +3001,7 @@ MonoBehaviour:
   - {fileID: 7350322298756445144}
   - {fileID: 2046826446544950662}
   - {fileID: 4266578777233546766}
+  inactiveColor: {r: 1, g: 1, b: 1, a: 0.12}
   pendingColor: {r: 1, g: 0.86, b: 0.35, a: 0.72}
   completedColor: {r: 0.38, g: 0.9, b: 0.45, a: 0.9}
   mistakePenalty: 0.1
@@ -3740,6 +3737,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingMiniGameOverlayHost
   overlayRoot: {fileID: 657454443501758799}
   targetFrame: {fileID: 374858985590350046}
+  ingredientAnchor: {fileID: 0}
   controllerContainer: {fileID: 2785433280494904277}
   maskImage: {fileID: 4796341176635091183}
   focusDimmers:
@@ -3747,15 +3745,35 @@ MonoBehaviour:
   - {fileID: 6701385046543994295}
   - {fileID: 2506767067452245352}
   - {fileID: 839463318750410661}
+  targetPadding: 24
+  actionHudGap: 24
   hudRoot: {fileID: 9026926573900914221}
   titleField: {fileID: 8479255726037362401}
   instructionField: {fileID: 3058273752513071721}
   statusField: {fileID: 8466039011913524375}
   cancelButton: {fileID: 6701228023086048220}
+  actionHudRoot: {fileID: 0}
+  progressGaugeRoot: {fileID: 0}
+  progressFill: {fileID: 0}
+  targetBand: {fileID: 0}
+  targetMarker: {fileID: 0}
+  progressField: {fileID: 0}
+  gestureField: {fileID: 0}
+  timerGaugeRoot: {fileID: 0}
+  timerFill: {fileID: 0}
+  mistakeCanvasGroup: {fileID: 0}
+  mistakeField: {fileID: 0}
+  mistakeDisplayDuration: 1.2
   resultCanvasGroup: {fileID: 1063787421887636388}
   resultField: {fileID: 1232530647599972185}
+  resultScoreField: {fileID: 0}
+  resultReasonField: {fileID: 0}
   resultBackground: {fileID: 1393408852787080654}
   audioSource: {fileID: 5724275533503780916}
+  useTemporaryFeedbackAudio: 1
+  synchronizedWorkbenchView: {fileID: 0}
+  synchronizedHandView: {fileID: 0}
+  synchronizedActiveSlotView: {fileID: 0}
 --- !u!1 &5305085370572477496
 GameObject:
   m_ObjectHideFlags: 0
@@ -4115,81 +4133,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.55, g: 0.9, b: 1, a: 0.05}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!1 &6011377892383942487
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1398154141777363561}
-  - component: {fileID: 8581987383871835493}
-  - component: {fileID: 4626169346300593191}
-  m_Layer: 0
-  m_Name: PlateZone
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1398154141777363561
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6011377892383942487}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1495507256813369508}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 166, y: -16}
-  m_SizeDelta: {x: 104, y: 178}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &8581987383871835493
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6011377892383942487}
-  m_CullTransparentMesh: 1
---- !u!114 &4626169346300593191
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6011377892383942487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.82, g: 0.95, b: 1, a: 0.32}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4899,7 +4842,6 @@ RectTransform:
   m_Children:
   - {fileID: 4357127893011809814}
   - {fileID: 1111595253302328348}
-  - {fileID: 1398154141777363561}
   m_Father: {fileID: 2785433280494904277}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4959,7 +4901,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.UI.CookingRoastingMiniGameView
   heatTint: {fileID: 3231645069934998890}
   flipIndicator: {fileID: 3488525721907611940}
-  plateZone: {fileID: 4626169346300593191}
 --- !u!1 &6986387023497570779
 GameObject:
   m_ObjectHideFlags: 0
@@ -6108,156 +6049,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 0.86, b: 0.35, a: 0.72}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!1 &9074507284138547606
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8867192404729762454}
-  - component: {fileID: 8798934688987441095}
-  - component: {fileID: 1526762687672051585}
-  m_Layer: 0
-  m_Name: PlateZone
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &8867192404729762454
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9074507284138547606}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 410131325143700905}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 166, y: -16}
-  m_SizeDelta: {x: 104, y: 178}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &8798934688987441095
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9074507284138547606}
-  m_CullTransparentMesh: 1
---- !u!114 &1526762687672051585
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9074507284138547606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.82, g: 0.95, b: 1, a: 0.32}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!1 &9123001252043265552
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 9076736058708926203}
-  - component: {fileID: 8550036466378544911}
-  - component: {fileID: 9135964069531355918}
-  m_Layer: 0
-  m_Name: LadleGuide
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!224 &9076736058708926203
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9123001252043265552}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 410131325143700905}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 54, y: 96}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &8550036466378544911
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9123001252043265552}
-  m_CullTransparentMesh: 1
---- !u!114 &9135964069531355918
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9123001252043265552}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.86, g: 0.9, b: 0.96, a: 0.92}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

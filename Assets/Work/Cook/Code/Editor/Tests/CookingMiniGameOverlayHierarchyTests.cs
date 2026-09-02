@@ -9,6 +9,10 @@ namespace DungeonDinner.Cook.EditorTests
     public sealed class CookingMiniGameOverlayHierarchyTests
     {
         private const string PrefabPath = "Assets/Work/Cook/Prefabs/UI/CookingPresentationRoot.prefab";
+        private const string StandaloneOverlayPrefabPath =
+            "Assets/Work/Cook/Prefabs/UI/CookingMiniGameOverlayRoot.prefab";
+        private const string IntegrationScenePath =
+            "Assets/Work/Integration/Scene/DungeonDinnerScene.unity";
         private const string SettingsPath = "Assets/Work/Cook/SO/CookingMiniGameOverlaySettings.asset";
 
         [Test]
@@ -78,14 +82,73 @@ namespace DungeonDinner.Cook.EditorTests
                 Assert.That(cutLine.GetComponent<Image>(), Is.Not.Null);
             }
 
+            Assert.That(FindDeep(overlay, "IngredientClickGuide"), Is.Not.Null,
+                "Roasting must keep a visible click/flip guide over the stationary ingredient.");
+            Assert.That(FindDeep(overlay, "PlateZone"), Is.Null,
+                "Transport destination zones must not remain after click interaction migration.");
+            Assert.That(FindDeep(overlay, "LadleGuide"), Is.Null,
+                "The boiling drag tool must not remain after click interaction migration.");
+
             MonoBehaviour[] temporaryLabels = overlay.GetComponentsInChildren<MonoBehaviour>(true)
                 .Where(component => component != null
                     && component.name == "TemporaryLabel"
                     && component.GetType().Name == "TextMeshProUGUI")
                 .ToArray();
-            Assert.That(temporaryLabels.Length, Is.GreaterThanOrEqualTo(12),
-                "Temporary tool and zone labels must remain available until final art replaces them.");
             Assert.That(temporaryLabels.All(HasNonEmptyText), Is.True);
+        }
+
+        [Test]
+        public void BoilingScore_UsesOnlyCookingTiming()
+        {
+            System.Type scoringType = System.Type.GetType(
+                "Work.Cook.Code.Runtime.UI.CookingMiniGameScoring, Assembly-CSharp");
+            Assert.That(scoringType, Is.Not.Null);
+
+            System.Reflection.MethodInfo method = scoringType.GetMethod(
+                "ScoreBoiling",
+                new[] { typeof(float), typeof(float), typeof(float) });
+            Assert.That(method, Is.Not.Null,
+                "Boiling scoring must expose the three-argument timing-only signature.");
+
+            float early = (float)method.Invoke(null, new object[] { 0.2f, 0.52f, 0.7f });
+            float centered = (float)method.Invoke(null, new object[] { 0.61f, 0.52f, 0.7f });
+            float late = (float)method.Invoke(null, new object[] { 0.95f, 0.52f, 0.7f });
+            Assert.That(centered, Is.GreaterThan(early));
+            Assert.That(centered, Is.GreaterThan(late));
+        }
+
+        [TestCase(PrefabPath)]
+        [TestCase(StandaloneOverlayPrefabPath)]
+        public void ClickInteractionPrefabs_DoNotKeepTransportDragObjects(string prefabPath)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            Assert.That(prefab, Is.Not.Null, $"The cooking UI prefab is missing: {prefabPath}");
+
+            Transform overlay = prefab.name == "CookingMiniGameOverlayRoot"
+                ? prefab.transform
+                : FindDeep(prefab.transform, "CookingMiniGameOverlayRoot");
+            Assert.That(overlay, Is.Not.Null);
+            Assert.That(FindDeep(overlay, "IngredientClickGuide"), Is.Not.Null);
+            Assert.That(FindDeep(overlay, "PlateZone"), Is.Null);
+            Assert.That(FindDeep(overlay, "LadleGuide"), Is.Null);
+            Assert.That(FindDeep(overlay, "FlipAndDragGuide"), Is.Null);
+        }
+
+        [Test]
+        public void DungeonDinnerScene_UsesClickInteractionPresentationPrefab()
+        {
+            SceneAsset scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(IntegrationScenePath);
+            Assert.That(scene, Is.Not.Null, "The integration scene is missing.");
+
+            string[] dependencies = AssetDatabase.GetDependencies(IntegrationScenePath, true);
+            Assert.That(dependencies, Does.Contain(PrefabPath),
+                "DungeonDinnerScene must use the updated cooking presentation prefab.");
+
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            Transform overlay = FindDeep(prefab.transform, "CookingMiniGameOverlayRoot");
+            Assert.That(FindDeep(overlay, "IngredientClickGuide"), Is.Not.Null);
+            Assert.That(FindDeep(overlay, "PlateZone"), Is.Null);
+            Assert.That(FindDeep(overlay, "LadleGuide"), Is.Null);
         }
 
         [Test]

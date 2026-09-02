@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
@@ -71,10 +72,16 @@ namespace Work.Cook.Code.Runtime.UI
         private CookingMiniGameOverlaySettingsSO _settings;
         private Coroutine _resultRoutine;
         private Coroutine _mistakeRoutine;
+        private Coroutine _ingredientFeedbackRoutine;
+        private Image _ingredientVisualImage;
         private Vector2 _targetFrameOriginalPosition;
         private Vector2 _targetFrameOriginalSize;
+        private Vector3 _ingredientBaseScale;
+        private Quaternion _ingredientBaseRotation;
         private float _lastProgressTime;
         private bool _targetFrameLayoutCached;
+        private bool _ingredientTransformCached;
+        private bool _ingredientFlipped;
         private bool _isRunning;
         private bool _hintShown;
         private int _presentationSyncFramesRemaining;
@@ -124,6 +131,8 @@ namespace Work.Cook.Code.Runtime.UI
             StopMistakeRoutine();
             ResetActionHud();
             CacheTargetFrameLayout();
+            CacheIngredientTransform();
+            ResetIngredientTransform();
             SetIngredientVisible(false);
             ApplyDimColor();
         }
@@ -173,11 +182,19 @@ namespace Work.Cook.Code.Runtime.UI
             _presentationSyncFramesRemaining = 2;
             ResolvePresentationPeers();
             CacheTargetFrameLayout();
+            ResetIngredientTransform();
             ResetTargetFrame();
             AlignTargetFrameToIngredientAnchor();
             SynchronizePreparationPresentation();
-            maskImage.sprite = CookingTempVisualUtility.ResolveIngredientIcon(ingredient);
+            EnsureIngredientVisualImage();
+            Sprite ingredientSprite = CookingTempVisualUtility.ResolveIngredientIcon(ingredient);
+            maskImage.sprite = ingredientSprite;
             maskImage.preserveAspect = true;
+            if (_ingredientVisualImage != null)
+            {
+                _ingredientVisualImage.sprite = ingredientSprite;
+                _ingredientVisualImage.preserveAspect = true;
+            }
             SetIngredientVisible(true);
 
             SetText(titleField, option.DisplayName);
@@ -228,6 +245,57 @@ namespace Work.Cook.Code.Runtime.UI
             _lastMistakeFeedbackTime = Time.unscaledTime;
             PlayClip(_settings != null ? _settings.MistakeClip : null, TemporaryFeedbackTone.Mistake);
             TryVibrate();
+        }
+
+        public bool IsIngredientHit(PointerEventData eventData)
+        {
+            if (_isRunning == false || eventData == null || maskImage == null || maskImage.enabled == false)
+                return false;
+
+            RectTransform rectTransform = maskImage.rectTransform;
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    rectTransform,
+                    eventData.position,
+                    eventData.pressEventCamera,
+                    out Vector2 localPoint) == false)
+            {
+                return false;
+            }
+
+            Rect hitRect = rectTransform.rect;
+            Sprite sprite = maskImage.sprite;
+            if (maskImage.preserveAspect == true && sprite != null && sprite.rect.height > 0f)
+                hitRect = CalculatePreservedAspectRect(hitRect, sprite.rect.size);
+            return hitRect.Contains(localPoint);
+        }
+
+        public void PlayIngredientClickFeedback()
+        {
+            EnsureIngredientVisualImage();
+            if (_ingredientVisualImage == null || _ingredientVisualImage.enabled == false)
+                return;
+
+            CacheIngredientTransform();
+            StopIngredientFeedback(false);
+            Quaternion rotation = GetIngredientStableRotation();
+            _ingredientFeedbackRoutine = StartCoroutine(AnimateIngredientFeedback(rotation, rotation, 0.14f, false));
+        }
+
+        public void PlayIngredientFlipFeedback()
+        {
+            EnsureIngredientVisualImage();
+            if (_ingredientVisualImage == null || _ingredientVisualImage.enabled == false)
+                return;
+
+            CacheIngredientTransform();
+            StopIngredientFeedback(false);
+            Quaternion startRotation = GetIngredientStableRotation();
+            _ingredientFlipped = !_ingredientFlipped;
+            _ingredientFeedbackRoutine = StartCoroutine(AnimateIngredientFeedback(
+                startRotation,
+                GetIngredientStableRotation(),
+                0.2f,
+                true));
         }
 
         public void ConfigureActionHud(string gestureText, bool showProgress, bool showTarget, bool showTimer)
@@ -326,6 +394,11 @@ namespace Work.Cook.Code.Runtime.UI
                 SynchronizePreparationPresentation();
                 RefreshFocusLayout();
             }
+        }
+
+        private void OnDisable()
+        {
+            ResetIngredientTransform();
         }
 
         private void LateUpdate()
@@ -507,6 +580,84 @@ namespace Work.Cook.Code.Runtime.UI
             targetFrame.sizeDelta = _targetFrameOriginalSize;
         }
 
+        private void CacheIngredientTransform()
+        {
+            EnsureIngredientVisualImage();
+            if (_ingredientTransformCached == true || _ingredientVisualImage == null)
+                return;
+
+            _ingredientBaseScale = _ingredientVisualImage.rectTransform.localScale;
+            _ingredientBaseRotation = _ingredientVisualImage.rectTransform.localRotation;
+            _ingredientTransformCached = true;
+        }
+
+        private void ResetIngredientTransform()
+        {
+            StopIngredientFeedback(true);
+        }
+
+        private void StopIngredientFeedback(bool resetFlipState)
+        {
+            if (_ingredientFeedbackRoutine != null)
+            {
+                StopCoroutine(_ingredientFeedbackRoutine);
+                _ingredientFeedbackRoutine = null;
+            }
+
+            if (resetFlipState)
+                _ingredientFlipped = false;
+            ApplyIngredientStableTransform();
+        }
+
+        private void ApplyIngredientStableTransform()
+        {
+            EnsureIngredientVisualImage();
+            if (_ingredientVisualImage == null)
+                return;
+
+            CacheIngredientTransform();
+            _ingredientVisualImage.rectTransform.localScale = _ingredientBaseScale;
+            _ingredientVisualImage.rectTransform.localRotation = GetIngredientStableRotation();
+        }
+
+        private Quaternion GetIngredientStableRotation()
+        {
+            return _ingredientBaseRotation * Quaternion.Euler(0f, _ingredientFlipped ? 180f : 0f, 0f);
+        }
+
+        private IEnumerator AnimateIngredientFeedback(
+            Quaternion startRotation,
+            Quaternion endRotation,
+            float duration,
+            bool flip)
+        {
+            RectTransform rectTransform = _ingredientVisualImage != null
+                ? _ingredientVisualImage.rectTransform
+                : null;
+            if (rectTransform == null)
+            {
+                _ingredientFeedbackRoutine = null;
+                yield break;
+            }
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float progress = Mathf.Clamp01(elapsed / duration);
+                float pulse = Mathf.Sin(progress * Mathf.PI);
+                float scale = flip
+                    ? Mathf.Lerp(1f, 0.82f, pulse)
+                    : Mathf.Lerp(1f, 1.08f, pulse);
+                rectTransform.localScale = Vector3.Scale(_ingredientBaseScale, new Vector3(scale, scale, 1f));
+                rectTransform.localRotation = Quaternion.Slerp(startRotation, endRotation, progress);
+                yield return null;
+            }
+
+            ApplyIngredientStableTransform();
+            _ingredientFeedbackRoutine = null;
+        }
+
         private void RefreshFocusLayout()
         {
             if (overlayRoot == null || targetFrame == null || maskImage == null)
@@ -574,12 +725,58 @@ namespace Work.Cook.Code.Runtime.UI
             if (maskImage == null)
                 return;
 
+            if (visible)
+                EnsureIngredientVisualImage();
+            if (visible == false)
+                ResetIngredientTransform();
             maskImage.enabled = visible;
             Mask mask = maskImage.GetComponent<Mask>();
             if (mask != null)
-                mask.showMaskGraphic = visible;
+                mask.showMaskGraphic = false;
+            if (_ingredientVisualImage != null)
+                _ingredientVisualImage.enabled = visible;
             if (visible == false)
+            {
                 maskImage.sprite = null;
+                if (_ingredientVisualImage != null)
+                    _ingredientVisualImage.sprite = null;
+            }
+        }
+
+        private void EnsureIngredientVisualImage()
+        {
+            if (_ingredientVisualImage != null || maskImage == null)
+                return;
+
+            GameObject visualObject = new GameObject(
+                "IngredientFeedbackVisual",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image));
+            visualObject.layer = maskImage.gameObject.layer;
+
+            RectTransform visualRect = visualObject.GetComponent<RectTransform>();
+            visualRect.SetParent(maskImage.rectTransform, false);
+            visualRect.anchorMin = Vector2.zero;
+            visualRect.anchorMax = Vector2.one;
+            visualRect.anchoredPosition = Vector2.zero;
+            visualRect.sizeDelta = Vector2.zero;
+            visualRect.localScale = Vector3.one;
+            visualRect.localRotation = Quaternion.identity;
+            visualRect.SetAsFirstSibling();
+
+            _ingredientVisualImage = visualObject.GetComponent<Image>();
+            _ingredientVisualImage.material = maskImage.material;
+            _ingredientVisualImage.color = maskImage.color;
+            _ingredientVisualImage.type = maskImage.type;
+            _ingredientVisualImage.preserveAspect = true;
+            _ingredientVisualImage.raycastTarget = false;
+            _ingredientVisualImage.maskable = true;
+            _ingredientTransformCached = false;
+
+            Mask mask = maskImage.GetComponent<Mask>();
+            if (mask != null)
+                mask.showMaskGraphic = false;
         }
 
         private static Rect CalculatePreservedAspectRect(Rect container, Vector2 contentSize)
