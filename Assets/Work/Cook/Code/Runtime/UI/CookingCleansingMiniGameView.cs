@@ -18,6 +18,7 @@ namespace Work.Cook.Code.Runtime.UI
         private int _remaining;
         private int _usefulSamples;
         private int _wastedSamples;
+        private int _wastedStreak;
         private Vector2 _lastPoint;
 
         public override bool CanPlay(CookingMiniGameType miniGameType)
@@ -40,6 +41,7 @@ namespace Work.Cook.Code.Runtime.UI
             _remaining = stainImages.Length;
             _usefulSamples = 0;
             _wastedSamples = 0;
+            _wastedStreak = 0;
             for (int i = 0; i < stainImages.Length; i++)
             {
                 _stainAmounts[i] = 1f;
@@ -53,6 +55,8 @@ namespace Work.Cook.Code.Runtime.UI
             if (brushImage != null)
                 brushImage.gameObject.SetActive(false);
             Host.SetInstruction("얼룩 위를 브러시로 문질러 씻어내세요.");
+            ConfigureHud("얼룩 위를 좌우로 문지르기 ↔", true, false, false);
+            SetProgress(0f, $"남은 얼룩 {_remaining}개");
             RefreshStatus();
             return true;
         }
@@ -125,9 +129,26 @@ namespace Work.Cook.Code.Runtime.UI
             }
 
             if (useful)
+            {
                 _usefulSamples++;
+                _wastedStreak = 0;
+            }
             else
+            {
                 _wastedSamples++;
+                _wastedStreak++;
+                if (_wastedStreak >= 10)
+                {
+                    _wastedStreak = 0;
+                    RegisterMistake("브러시를 남아 있는 얼룩 위로 옮겨주세요.");
+                }
+            }
+
+            float remainingAmount = 0f;
+            for (int i = 0; i < _stainAmounts.Length; i++)
+                remainingAmount += _stainAmounts[i];
+            float cleanProgress = 1f - remainingAmount / Mathf.Max(1, _stainAmounts.Length);
+            SetProgress(cleanProgress, _remaining > 0 ? $"남은 얼룩 {_remaining}개" : "깨끗해졌습니다");
 
             if (_remaining > 0)
                 return;

@@ -38,5 +38,26 @@ namespace Work.Cook.Code.Data
 
             return null;
         }
+
+        public IngredientPreparationOption FindPreparationOption(string preparationOptionId)
+        {
+            if (string.IsNullOrWhiteSpace(preparationOptionId))
+                return null;
+
+            for (int i = 0; i < preparationOptions.Count; i++)
+            {
+                IngredientPreparationOption option = preparationOptions[i];
+                if (option != null
+                    && string.Equals(
+                        option.PreparationOptionId,
+                        preparationOptionId,
+                        System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return option;
+                }
+            }
+
+            return null;
+        }
     }
 }

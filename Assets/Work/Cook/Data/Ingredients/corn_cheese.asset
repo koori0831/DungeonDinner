@@ -24,7 +24,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f73414f9cae048d47bcb30ad6215c784, type: 2}
   - {fileID: 11400000, guid: 5b122f10b24af134fa18da0d725c4921, type: 2}
   preparationOptions:
-  - method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
+  - preparationOptionId: just
+    method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
     displayNameOverride: "\uADF8\uB300\uB85C \uC0AC\uC6A9\uD558\uAE30"
     description: "\uCF58\uCE58\uC988\uB97C \uC190\uC9C8\uD558\uC9C0 \uC54A\uACE0
       \uADF8\uB300\uB85C \uC0AC\uC6A9\uD569\uB2C8\uB2E4."
@@ -35,7 +36,8 @@ MonoBehaviour:
     addsPoison: 0
     resultNameModifier: 
     miniGameFeedbackRules: []
-  - method: {fileID: 11400000, guid: 3123a5c0376a3ed4dad2b40fbb0c357b, type: 2}
+  - preparationOptionId: roast
+    method: {fileID: 11400000, guid: 3123a5c0376a3ed4dad2b40fbb0c357b, type: 2}
     displayNameOverride: "\uB178\uB987\uD558\uAC8C \uAD7D\uAE30"
     description: "\uCF58\uCE58\uC988\uB97C \uB178\uB987\uD558\uAC8C \uAD6C\uC6CC
       \uD48D\uBBF8\uB97C \uB354\uD569\uB2C8\uB2E4."

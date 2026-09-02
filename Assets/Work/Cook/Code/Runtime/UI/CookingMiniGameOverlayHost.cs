@@ -21,6 +21,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private Image maskImage;
         [SerializeField] private Image[] focusDimmers;
         [SerializeField, Min(0f)] private float targetPadding = 24f;
+        [SerializeField, Min(0f)] private float actionHudGap = 24f;
 
         [Header("HUD")]
         [SerializeField] private RectTransform hudRoot;
@@ -29,23 +30,69 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private TextMeshProUGUI statusField;
         [SerializeField] private Button cancelButton;
 
+        [Header("Action HUD")]
+        [SerializeField] private RectTransform actionHudRoot;
+        [SerializeField] private RectTransform progressGaugeRoot;
+        [SerializeField] private Image progressFill;
+        [SerializeField] private Image targetBand;
+        [SerializeField] private Image targetMarker;
+        [SerializeField] private TextMeshProUGUI progressField;
+        [SerializeField] private TextMeshProUGUI gestureField;
+        [SerializeField] private RectTransform timerGaugeRoot;
+        [SerializeField] private Image timerFill;
+
+        [Header("Mistake Toast")]
+        [SerializeField] private CanvasGroup mistakeCanvasGroup;
+        [SerializeField] private TextMeshProUGUI mistakeField;
+        [SerializeField, Min(0.1f)] private float mistakeDisplayDuration = 1.2f;
+
         [Header("Result")]
         [SerializeField] private CanvasGroup resultCanvasGroup;
         [SerializeField] private TextMeshProUGUI resultField;
+        [SerializeField] private TextMeshProUGUI resultScoreField;
+        [SerializeField] private TextMeshProUGUI resultReasonField;
         [SerializeField] private Image resultBackground;
 
         [Header("Feedback")]
         [SerializeField] private AudioSource audioSource;
+        [SerializeField] private bool useTemporaryFeedbackAudio = true;
+
+        [Header("Synchronized Presentation")]
+        [SerializeField] private CookingWorkbenchView synchronizedWorkbenchView;
+        [SerializeField] private CookingPreparationHandView synchronizedHandView;
+        [SerializeField] private CookingActivePreparationSlotView synchronizedActiveSlotView;
 
         private CookingGamePanel _owner;
+        private CookingWorkbenchView _workbenchView;
+        private CookingPreparationHandView _preparationHandView;
+        private CookingActivePreparationSlotView _activeSlotView;
+        private IngredientSO _activeIngredient;
+        private IngredientPreparationOption _activeOption;
         private CookingMiniGameOverlaySettingsSO _settings;
         private Coroutine _resultRoutine;
+        private Coroutine _mistakeRoutine;
         private Vector2 _targetFrameOriginalPosition;
         private Vector2 _targetFrameOriginalSize;
         private float _lastProgressTime;
         private bool _targetFrameLayoutCached;
         private bool _isRunning;
         private bool _hintShown;
+        private int _presentationSyncFramesRemaining;
+        private float _lastActionFeedbackTime = float.MinValue;
+        private float _lastMistakeFeedbackTime = float.MinValue;
+
+        private const float ActionFeedbackCooldown = 0.08f;
+        private const float MistakeFeedbackCooldown = 0.18f;
+        private static AudioClip _temporaryActionClip;
+        private static AudioClip _temporarySuccessClip;
+        private static AudioClip _temporaryMistakeClip;
+
+        private enum TemporaryFeedbackTone
+        {
+            Action,
+            Success,
+            Mistake
+        }
 
         public RectTransform ControllerContainer => controllerContainer;
         public RectTransform TargetFrame => targetFrame;
@@ -64,7 +111,7 @@ namespace Work.Cook.Code.Runtime.UI
                 overlayRoot = transform as RectTransform;
             if (audioSource == null)
                 audioSource = GetComponent<AudioSource>();
-            ResolveIngredientAnchor();
+            ResolvePresentationPeers();
 
             if (cancelButton != null)
             {
@@ -74,6 +121,8 @@ namespace Work.Cook.Code.Runtime.UI
 
             SetFontAsset(fontAsset);
             SetResultVisible(false);
+            StopMistakeRoutine();
+            ResetActionHud();
             CacheTargetFrameLayout();
             SetIngredientVisible(false);
             ApplyDimColor();
@@ -92,6 +141,25 @@ namespace Work.Cook.Code.Runtime.UI
                 statusField.font = fontAsset;
             if (resultField != null)
                 resultField.font = fontAsset;
+            if (resultScoreField != null)
+                resultScoreField.font = fontAsset;
+            if (resultReasonField != null)
+                resultReasonField.font = fontAsset;
+            if (progressField != null)
+            {
+                progressField.font = fontAsset;
+                progressField.fontSize = Mathf.Max(progressField.fontSize, 20f);
+            }
+            if (gestureField != null)
+            {
+                gestureField.font = fontAsset;
+                gestureField.fontSize = Mathf.Max(gestureField.fontSize, 22f);
+            }
+            if (mistakeField != null)
+            {
+                mistakeField.font = fontAsset;
+                mistakeField.fontSize = Mathf.Max(mistakeField.fontSize, 21f);
+            }
         }
 
         public bool Begin(IngredientSO ingredient, IngredientPreparationOption option)
@@ -100,10 +168,15 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
 
             StopResultRoutine();
+            _activeIngredient = ingredient;
+            _activeOption = option;
+            _presentationSyncFramesRemaining = 2;
+            ResolvePresentationPeers();
             CacheTargetFrameLayout();
             ResetTargetFrame();
             AlignTargetFrameToIngredientAnchor();
-            maskImage.sprite = ingredient.IconSprite;
+            SynchronizePreparationPresentation();
+            maskImage.sprite = CookingTempVisualUtility.ResolveIngredientIcon(ingredient);
             maskImage.preserveAspect = true;
             SetIngredientVisible(true);
 
@@ -111,6 +184,8 @@ namespace Work.Cook.Code.Runtime.UI
             SetText(instructionField, "재료 위의 가이드를 따라 조작하세요.");
             SetText(statusField, string.Empty);
             SetResultVisible(false);
+            StopMistakeRoutine();
+            ResetActionHud();
             _lastProgressTime = Time.unscaledTime;
             _hintShown = false;
             _isRunning = true;
@@ -138,13 +213,88 @@ namespace Work.Cook.Code.Runtime.UI
 
         public void PlayActionFeedback()
         {
-            PlayClip(_settings != null ? _settings.ActionClip : null);
+            if (Time.unscaledTime - _lastActionFeedbackTime < ActionFeedbackCooldown)
+                return;
+
+            _lastActionFeedbackTime = Time.unscaledTime;
+            PlayClip(_settings != null ? _settings.ActionClip : null, TemporaryFeedbackTone.Action);
         }
 
         public void PlayMistakeFeedback()
         {
-            PlayClip(_settings != null ? _settings.MistakeClip : null);
+            if (Time.unscaledTime - _lastMistakeFeedbackTime < MistakeFeedbackCooldown)
+                return;
+
+            _lastMistakeFeedbackTime = Time.unscaledTime;
+            PlayClip(_settings != null ? _settings.MistakeClip : null, TemporaryFeedbackTone.Mistake);
             TryVibrate();
+        }
+
+        public void ConfigureActionHud(string gestureText, bool showProgress, bool showTarget, bool showTimer)
+        {
+            if (actionHudRoot != null)
+                actionHudRoot.gameObject.SetActive(true);
+            if (progressGaugeRoot != null)
+                progressGaugeRoot.gameObject.SetActive(showProgress || showTarget);
+            if (progressFill != null)
+                progressFill.gameObject.SetActive(showProgress || showTarget);
+            if (targetBand != null)
+                targetBand.gameObject.SetActive(showTarget);
+            if (targetMarker != null)
+                targetMarker.gameObject.SetActive(showTarget);
+            if (timerGaugeRoot != null)
+                timerGaugeRoot.gameObject.SetActive(showTimer);
+
+            SetText(gestureField, gestureText);
+            SetText(progressField, string.Empty);
+            SetHorizontalFill(progressFill, 0f);
+            SetHorizontalFill(timerFill, 1f);
+        }
+
+        public void SetGesture(string text)
+        {
+            SetText(gestureField, text);
+        }
+
+        public void SetProgress(float normalizedValue, string label)
+        {
+            SetHorizontalFill(progressFill, normalizedValue);
+            if (targetBand != null)
+                targetBand.gameObject.SetActive(false);
+            if (targetMarker != null)
+                targetMarker.gameObject.SetActive(false);
+            SetText(progressField, label);
+        }
+
+        public void SetTargetState(float normalizedValue, float targetMin, float targetMax, string label)
+        {
+            float minimum = Mathf.Clamp01(Mathf.Min(targetMin, targetMax));
+            float maximum = Mathf.Clamp01(Mathf.Max(targetMin, targetMax));
+            SetHorizontalFill(progressFill, normalizedValue);
+            SetHorizontalRange(targetBand, minimum, maximum);
+            SetHorizontalMarker(targetMarker, normalizedValue);
+            if (targetBand != null)
+                targetBand.gameObject.SetActive(true);
+            if (targetMarker != null)
+                targetMarker.gameObject.SetActive(true);
+            SetText(progressField, label);
+        }
+
+        public void SetTimer(float remaining, float duration)
+        {
+            float normalized = duration > 0f ? Mathf.Clamp01(remaining / duration) : 0f;
+            SetHorizontalFill(timerFill, normalized);
+        }
+
+        public void ShowMistake(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                text = "입력 가이드를 다시 확인하세요.";
+
+            if (_mistakeRoutine != null)
+                StopCoroutine(_mistakeRoutine);
+            _mistakeRoutine = StartCoroutine(ShowMistakeRoutine(text));
+            PlayMistakeFeedback();
         }
 
         public void PlayResult(CookingMiniGameResult result, Action completed)
@@ -157,9 +307,14 @@ namespace Work.Cook.Code.Runtime.UI
         {
             StopResultRoutine();
             _isRunning = false;
+            _presentationSyncFramesRemaining = 0;
+            _activeIngredient = null;
+            _activeOption = null;
             if (cancelButton != null)
                 cancelButton.interactable = false;
             SetResultVisible(false);
+            StopMistakeRoutine();
+            ResetActionHud();
             ResetTargetFrame();
             SetIngredientVisible(false);
         }
@@ -167,7 +322,10 @@ namespace Work.Cook.Code.Runtime.UI
         private void OnEnable()
         {
             if (_isRunning == true)
+            {
+                SynchronizePreparationPresentation();
                 RefreshFocusLayout();
+            }
         }
 
         private void LateUpdate()
@@ -175,13 +333,19 @@ namespace Work.Cook.Code.Runtime.UI
             if (_isRunning == false)
                 return;
 
+            if (_presentationSyncFramesRemaining > 0)
+            {
+                _presentationSyncFramesRemaining--;
+                SynchronizePreparationPresentation();
+            }
+
             AlignTargetFrameToIngredientAnchor();
             RefreshFocusLayout();
 
             if (_hintShown == false && Time.unscaledTime - _lastProgressTime >= 10f)
             {
                 _hintShown = true;
-                SetStatus("빛나는 가이드를 따라 조작하세요");
+                ShowMistake("입력 가이드를 다시 확인하세요.");
             }
         }
 
@@ -190,21 +354,67 @@ namespace Work.Cook.Code.Runtime.UI
             _isRunning = false;
             if (cancelButton != null)
                 cancelButton.interactable = false;
+            StopMistakeRoutine();
+            ResetActionHud();
             ResultShown?.Invoke(result);
-            SetText(resultField, GetGradeLabel(result != null ? result.Grade : CookingMiniGameGrade.Bad));
+            CookingMiniGameGrade grade = result != null ? result.Grade : CookingMiniGameGrade.Bad;
+            SetText(resultField, GetGradeLabel(grade));
+            SetText(resultScoreField, result != null ? $"정확도 {Mathf.RoundToInt(result.Score * 100f)}%" : "정확도 0%");
+            SetText(resultReasonField, result != null ? result.FeedbackText : "조리 결과를 확인하세요.");
+            Color resultTextColor = new Color(0.08f, 0.055f, 0.035f, 1f);
+            if (resultField != null)
+                resultField.color = resultTextColor;
+            if (resultScoreField != null)
+                resultScoreField.color = resultTextColor;
+            if (resultReasonField != null)
+                resultReasonField.color = resultTextColor;
             if (resultBackground != null)
-                resultBackground.color = GetGradeColor(result != null ? result.Grade : CookingMiniGameGrade.Bad);
+                resultBackground.color = GetGradeColor(grade);
             SetResultVisible(true);
             AudioClip resultClip = null;
             if (_settings != null)
                 resultClip = result != null && result.Grade == CookingMiniGameGrade.Bad
                     ? _settings.MistakeClip
                     : _settings.SuccessClip;
-            PlayClip(resultClip);
+            PlayClip(resultClip, result != null && result.Grade == CookingMiniGameGrade.Bad
+                ? TemporaryFeedbackTone.Mistake
+                : TemporaryFeedbackTone.Success);
 
-            float duration = _settings != null ? _settings.ResultDisplayDuration : 0.6f;
+            RectTransform resultRoot = resultCanvasGroup != null
+                ? resultCanvasGroup.transform as RectTransform
+                : null;
+            if (resultCanvasGroup != null)
+                resultCanvasGroup.alpha = 0f;
+            if (resultRoot != null)
+                resultRoot.localScale = Vector3.one * 0.88f;
+
+            const float revealDuration = 0.16f;
+            float revealElapsed = 0f;
+            while (revealElapsed < revealDuration)
+            {
+                revealElapsed += Time.unscaledDeltaTime;
+                float progress = Mathf.Clamp01(revealElapsed / revealDuration);
+                float eased = 1f - Mathf.Pow(1f - progress, 3f);
+                if (resultCanvasGroup != null)
+                    resultCanvasGroup.alpha = eased;
+                if (resultRoot != null)
+                    resultRoot.localScale = Vector3.one * Mathf.LerpUnclamped(0.88f, 1f, eased);
+                yield return null;
+            }
+
+            float duration = _settings != null ? _settings.ResultDisplayDuration : 2f;
             if (duration > 0f)
                 yield return new WaitForSecondsRealtime(duration);
+
+            const float fadeDuration = 0.14f;
+            float fadeElapsed = 0f;
+            while (fadeElapsed < fadeDuration)
+            {
+                fadeElapsed += Time.unscaledDeltaTime;
+                if (resultCanvasGroup != null)
+                    resultCanvasGroup.alpha = 1f - Mathf.Clamp01(fadeElapsed / fadeDuration);
+                yield return null;
+            }
 
             SetResultVisible(false);
             ResetTargetFrame();
@@ -213,21 +423,47 @@ namespace Work.Cook.Code.Runtime.UI
             completed?.Invoke();
         }
 
-        private void ResolveIngredientAnchor()
+        private void ResolvePresentationPeers()
         {
-            if (ingredientAnchor != null)
+            if (_workbenchView == null)
+                _workbenchView = synchronizedWorkbenchView;
+            if (_workbenchView == null && _owner != null)
+                _workbenchView = _owner.GetComponentInChildren<CookingWorkbenchView>(true);
+            if (_workbenchView == null)
+                _workbenchView = FindFirstObjectByType<CookingWorkbenchView>(FindObjectsInactive.Include);
+
+            if (_preparationHandView == null)
+                _preparationHandView = synchronizedHandView;
+            if (_preparationHandView == null && _owner != null)
+                _preparationHandView = _owner.GetComponentInChildren<CookingPreparationHandView>(true);
+            if (_preparationHandView == null)
+                _preparationHandView = FindFirstObjectByType<CookingPreparationHandView>(FindObjectsInactive.Include);
+
+            if (_activeSlotView == null)
+                _activeSlotView = synchronizedActiveSlotView;
+            if (_activeSlotView == null && _owner != null)
+                _activeSlotView = _owner.GetComponentInChildren<CookingActivePreparationSlotView>(true);
+            if (_activeSlotView == null)
+                _activeSlotView = FindFirstObjectByType<CookingActivePreparationSlotView>(FindObjectsInactive.Include);
+
+            if (ingredientAnchor == null && _workbenchView != null)
+                ingredientAnchor = _workbenchView.IngredientAnchor;
+        }
+
+        private void SynchronizePreparationPresentation()
+        {
+            if (_activeIngredient == null || _activeOption == null)
                 return;
 
-            CookingWorkbenchView workbench = _owner != null
-                ? _owner.GetComponentInChildren<CookingWorkbenchView>(true)
-                : FindFirstObjectByType<CookingWorkbenchView>(FindObjectsInactive.Include);
-            if (workbench != null)
-                ingredientAnchor = workbench.IngredientAnchor;
+            ResolvePresentationPeers();
+            _workbenchView?.ShowInteractionStarted(_activeIngredient, _activeOption);
+            _activeSlotView?.BindInProgress(_activeOption);
+            _preparationHandView?.ShowMiniGameState();
         }
 
         private void AlignTargetFrameToIngredientAnchor()
         {
-            ResolveIngredientAnchor();
+            ResolvePresentationPeers();
             if (ingredientAnchor == null || targetFrame == null || targetFrame.parent == null)
                 return;
 
@@ -243,6 +479,8 @@ namespace Work.Cook.Code.Runtime.UI
             Vector2 size = new Vector2(
                 Mathf.Max(1f, topRight.x - bottomLeft.x) + targetPadding * 2f,
                 Mathf.Max(1f, topRight.y - bottomLeft.y) + targetPadding * 2f);
+            if (_targetFrameLayoutCached)
+                size = Vector2.Max(size, _targetFrameOriginalSize);
 
             targetFrame.anchorMin = targetFrame.anchorMax = new Vector2(0.5f, 0.5f);
             targetFrame.pivot = new Vector2(0.5f, 0.5f);
@@ -280,15 +518,34 @@ namespace Work.Cook.Code.Runtime.UI
 
             Vector3 bottomLeft = overlayRoot.InverseTransformPoint(worldCorners[0]);
             Vector3 topRight = overlayRoot.InverseTransformPoint(worldCorners[2]);
-            Vector2 size = new Vector2(
-                Mathf.Max(1f, topRight.x - bottomLeft.x),
-                Mathf.Max(1f, topRight.y - bottomLeft.y));
-            Vector2 center = (Vector2)(bottomLeft + topRight) * 0.5f;
+
+            Vector3[] targetWorldCorners = new Vector3[4];
+            targetFrame.GetWorldCorners(targetWorldCorners);
+            Vector2 targetBottomLeft = overlayRoot.InverseTransformPoint(targetWorldCorners[0]);
+            Vector2 targetTopRight = overlayRoot.InverseTransformPoint(targetWorldCorners[2]);
+            Vector2 targetCenter = (targetBottomLeft + targetTopRight) * 0.5f;
 
             if (hudRoot != null)
             {
-                float hudY = Mathf.Min(overlayRoot.rect.yMax - 70f, center.y + (size.y * 0.5f) + 58f);
-                hudRoot.anchoredPosition = new Vector2(center.x, hudY);
+                float hudY = Mathf.Min(overlayRoot.rect.yMax - 70f, targetTopRight.y + 58f);
+                hudRoot.anchoredPosition = new Vector2(targetCenter.x, hudY);
+            }
+
+            if (actionHudRoot != null)
+            {
+                float actionHeight = Mathf.Max(1f, actionHudRoot.rect.height);
+                float actionY = targetBottomLeft.y - actionHudGap - actionHeight * 0.5f;
+                actionY = Mathf.Max(overlayRoot.rect.yMin + actionHeight * 0.5f + 24f, actionY);
+                actionHudRoot.anchoredPosition = new Vector2(targetCenter.x, actionY);
+            }
+
+            if (mistakeCanvasGroup != null && mistakeCanvasGroup.transform is RectTransform mistakeRoot)
+            {
+                float actionTop = actionHudRoot != null
+                    ? actionHudRoot.anchoredPosition.y + actionHudRoot.rect.height * 0.5f
+                    : targetBottomLeft.y - actionHudGap;
+                float toastY = actionTop + 16f + mistakeRoot.rect.height * 0.5f;
+                mistakeRoot.anchoredPosition = new Vector2(targetCenter.x, toastY);
             }
 
             AlignFocusDimmers(bottomLeft, topRight);
@@ -377,7 +634,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (focusDimmers == null)
                 return;
 
-            Color color = _settings != null ? _settings.FocusDimColor : new Color(0f, 0f, 0f, 0.18f);
+            Color color = _settings != null ? _settings.FocusDimColor : new Color(0f, 0f, 0f, 0.5f);
             for (int i = 0; i < focusDimmers.Length; i++)
             {
                 if (focusDimmers[i] != null)
@@ -395,10 +652,180 @@ namespace Work.Cook.Code.Runtime.UI
             resultCanvasGroup.blocksRaycasts = false;
         }
 
-        private void PlayClip(AudioClip clip)
+        private IEnumerator ShowMistakeRoutine(string text)
         {
-            if (audioSource != null && clip != null)
-                audioSource.PlayOneShot(clip);
+            SetText(mistakeField, text);
+            SetMistakeVisible(true);
+
+            RectTransform mistakeRoot = mistakeCanvasGroup != null
+                ? mistakeCanvasGroup.transform as RectTransform
+                : null;
+            if (mistakeCanvasGroup != null)
+                mistakeCanvasGroup.alpha = 0f;
+            if (mistakeRoot != null)
+                mistakeRoot.localScale = Vector3.one * 0.9f;
+
+            const float revealDuration = 0.12f;
+            float revealElapsed = 0f;
+            while (revealElapsed < revealDuration)
+            {
+                revealElapsed += Time.unscaledDeltaTime;
+                float progress = Mathf.Clamp01(revealElapsed / revealDuration);
+                float eased = 1f - Mathf.Pow(1f - progress, 3f);
+                if (mistakeCanvasGroup != null)
+                    mistakeCanvasGroup.alpha = eased;
+                if (mistakeRoot != null)
+                    mistakeRoot.localScale = Vector3.one * Mathf.LerpUnclamped(0.9f, 1.04f, eased);
+                yield return null;
+            }
+            if (mistakeRoot != null)
+                mistakeRoot.localScale = Vector3.one;
+
+            float holdDuration = Mathf.Max(0.1f, mistakeDisplayDuration - revealDuration - 0.18f);
+            yield return new WaitForSecondsRealtime(holdDuration);
+
+            float elapsed = 0f;
+            const float fadeDuration = 0.18f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                if (mistakeCanvasGroup != null)
+                    mistakeCanvasGroup.alpha = 1f - Mathf.Clamp01(elapsed / fadeDuration);
+                yield return null;
+            }
+
+            SetMistakeVisible(false);
+            if (mistakeRoot != null)
+                mistakeRoot.localScale = Vector3.one;
+            _mistakeRoutine = null;
+        }
+
+        private void StopMistakeRoutine()
+        {
+            if (_mistakeRoutine != null)
+            {
+                StopCoroutine(_mistakeRoutine);
+                _mistakeRoutine = null;
+            }
+            SetMistakeVisible(false);
+            if (mistakeCanvasGroup != null)
+                mistakeCanvasGroup.transform.localScale = Vector3.one;
+        }
+
+        private void SetMistakeVisible(bool visible)
+        {
+            if (mistakeCanvasGroup == null)
+                return;
+
+            mistakeCanvasGroup.alpha = visible ? 1f : 0f;
+            mistakeCanvasGroup.interactable = false;
+            mistakeCanvasGroup.blocksRaycasts = false;
+        }
+
+        private void ResetActionHud()
+        {
+            if (actionHudRoot != null)
+                actionHudRoot.gameObject.SetActive(false);
+            SetText(progressField, string.Empty);
+            SetText(gestureField, string.Empty);
+            SetHorizontalFill(progressFill, 0f);
+            SetHorizontalFill(timerFill, 1f);
+            if (targetBand != null)
+                targetBand.gameObject.SetActive(false);
+            if (targetMarker != null)
+                targetMarker.gameObject.SetActive(false);
+        }
+
+        private static void SetHorizontalFill(Image image, float normalizedValue)
+        {
+            if (image == null)
+                return;
+
+            RectTransform rect = image.rectTransform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = new Vector2(Mathf.Clamp01(normalizedValue), 1f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+        }
+
+        private static void SetHorizontalRange(Image image, float minimum, float maximum)
+        {
+            if (image == null)
+                return;
+
+            RectTransform rect = image.rectTransform;
+            rect.anchorMin = new Vector2(Mathf.Clamp01(minimum), 0f);
+            rect.anchorMax = new Vector2(Mathf.Clamp01(maximum), 1f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+        }
+
+        private static void SetHorizontalMarker(Image image, float normalizedValue)
+        {
+            if (image == null)
+                return;
+
+            float value = Mathf.Clamp01(normalizedValue);
+            RectTransform rect = image.rectTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(value, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+        }
+
+        private void PlayClip(AudioClip clip, TemporaryFeedbackTone fallbackTone)
+        {
+            if (audioSource == null)
+                return;
+
+            AudioClip resolvedClip = clip;
+            if (resolvedClip == null && useTemporaryFeedbackAudio == true)
+                resolvedClip = GetOrCreateTemporaryClip(fallbackTone);
+            if (resolvedClip != null)
+                audioSource.PlayOneShot(resolvedClip);
+        }
+
+        private static AudioClip GetOrCreateTemporaryClip(TemporaryFeedbackTone tone)
+        {
+            switch (tone)
+            {
+                case TemporaryFeedbackTone.Action:
+                    return _temporaryActionClip != null
+                        ? _temporaryActionClip
+                        : _temporaryActionClip = CreateTemporaryTone("Temp Cooking Action", 0.045f, 660f, 760f, 0.045f);
+                case TemporaryFeedbackTone.Success:
+                    return _temporarySuccessClip != null
+                        ? _temporarySuccessClip
+                        : _temporarySuccessClip = CreateTemporaryTone("Temp Cooking Success", 0.18f, 520f, 920f, 0.065f);
+                default:
+                    return _temporaryMistakeClip != null
+                        ? _temporaryMistakeClip
+                        : _temporaryMistakeClip = CreateTemporaryTone("Temp Cooking Mistake", 0.13f, 240f, 150f, 0.075f);
+            }
+        }
+
+        private static AudioClip CreateTemporaryTone(
+            string clipName,
+            float duration,
+            float startFrequency,
+            float endFrequency,
+            float volume)
+        {
+            const int sampleRate = 22050;
+            int sampleCount = Mathf.Max(1, Mathf.RoundToInt(sampleRate * duration));
+            float[] samples = new float[sampleCount];
+            float phase = 0f;
+            for (int i = 0; i < sampleCount; i++)
+            {
+                float progress = sampleCount > 1 ? (float)i / (sampleCount - 1) : 1f;
+                float frequency = Mathf.Lerp(startFrequency, endFrequency, progress);
+                phase += frequency * Mathf.PI * 2f / sampleRate;
+                float envelope = Mathf.Sin(Mathf.PI * progress) * (1f - progress * 0.45f);
+                samples[i] = Mathf.Sin(phase) * envelope * volume;
+            }
+
+            AudioClip clip = AudioClip.Create(clipName, sampleCount, 1, sampleRate, false);
+            clip.hideFlags = HideFlags.DontSave;
+            clip.SetData(samples, 0);
+            return clip;
         }
 
         private void TryVibrate()
@@ -447,13 +874,13 @@ namespace Work.Cook.Code.Runtime.UI
             switch (grade)
             {
                 case CookingMiniGameGrade.Perfect:
-                    return "S";
+                    return "S · 완벽";
                 case CookingMiniGameGrade.Good:
-                    return "A";
+                    return "A · 좋음";
                 case CookingMiniGameGrade.Normal:
-                    return "B";
+                    return "B · 보통";
                 default:
-                    return "C";
+                    return "C · 미흡";
             }
         }
 

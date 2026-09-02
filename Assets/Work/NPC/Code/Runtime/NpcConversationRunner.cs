@@ -850,6 +850,32 @@ namespace Work.NPC.Code.Runtime
         }
     }
 
+    public enum NpcDishFormationStatus
+    {
+        Formed,
+        Unformed
+    }
+
+    public enum NpcDishOddity
+    {
+        Normal,
+        Bizarre
+    }
+
+    public enum NpcDishSafety
+    {
+        Safe,
+        Dangerous
+    }
+
+    public enum NpcDishCraftGrade
+    {
+        Bad,
+        Normal,
+        Good,
+        Perfect
+    }
+
     public sealed class NpcDishSubmission
     {
         private static readonly char[] TagSeparators = { '|', ',', ';', ' ' };
@@ -857,7 +883,12 @@ namespace Work.NPC.Code.Runtime
         public string RecipeId { get; }
         public string FoodType { get; }
         public IReadOnlyList<string> Tags { get; }
-        public bool IsDisgusting { get; }
+        public NpcDishFormationStatus FormationStatus { get; }
+        public NpcDishOddity Oddity { get; }
+        public NpcDishSafety Safety { get; }
+        public NpcDishCraftGrade CraftGrade { get; }
+        public bool IsDangerous => Safety == NpcDishSafety.Dangerous;
+        public bool IsFormed => FormationStatus == NpcDishFormationStatus.Formed;
         public bool HasRecipeId => string.IsNullOrWhiteSpace(RecipeId) == false;
         public bool HasFoodType => string.IsNullOrWhiteSpace(FoodType) == false;
         public bool HasTags => Tags.Count > 0;
@@ -867,11 +898,35 @@ namespace Work.NPC.Code.Runtime
             string foodType,
             IReadOnlyList<string> tags,
             bool isDisgusting = false)
+            : this(
+                recipeId,
+                foodType,
+                tags,
+                string.IsNullOrWhiteSpace(recipeId) && string.IsNullOrWhiteSpace(foodType)
+                    ? NpcDishFormationStatus.Unformed
+                    : NpcDishFormationStatus.Formed,
+                isDisgusting ? NpcDishOddity.Bizarre : NpcDishOddity.Normal,
+                NpcDishSafety.Safe,
+                NpcDishCraftGrade.Normal)
+        {
+        }
+
+        public NpcDishSubmission(
+            string recipeId,
+            string foodType,
+            IReadOnlyList<string> tags,
+            NpcDishFormationStatus formationStatus,
+            NpcDishOddity oddity,
+            NpcDishSafety safety,
+            NpcDishCraftGrade craftGrade)
         {
             RecipeId = recipeId?.Trim() ?? string.Empty;
             FoodType = foodType?.Trim() ?? string.Empty;
             Tags = CopyTags(tags);
-            IsDisgusting = isDisgusting;
+            FormationStatus = formationStatus;
+            Oddity = oddity;
+            Safety = safety;
+            CraftGrade = craftGrade;
         }
 
         public static NpcDishSubmission FromText(string recipeId, string foodType, string tagText)
@@ -891,7 +946,8 @@ namespace Work.NPC.Code.Runtime
         public string BuildDebugSummary()
         {
             string tags = Tags.Count > 0 ? string.Join("|", Tags) : "None";
-            return $"Recipe={ValueOrNone(RecipeId)}, FoodType={ValueOrNone(FoodType)}, Tags={tags}, Disgusting={IsDisgusting}";
+            return $"Recipe={ValueOrNone(RecipeId)}, FoodType={ValueOrNone(FoodType)}, Tags={tags}, " +
+                   $"Formation={FormationStatus}, Oddity={Oddity}, Safety={Safety}, Craft={CraftGrade}";
         }
 
         private static IReadOnlyList<string> CopyTags(IReadOnlyList<string> tags)
@@ -928,8 +984,9 @@ namespace Work.NPC.Code.Runtime
         public int MatchScore { get; }
         public int MaxMatchScore { get; }
         public float MatchRatio => MaxMatchScore > 0 ? (float)MatchScore / MaxMatchScore : 0f;
-        public bool HasBlockingIssue => Dish != null && Dish.IsDisgusting
-                                        || MatchedAvoidTags.Count > 0
+        public bool HasBlockingIssue => Dish == null
+                                        || Dish.IsFormed == false
+                                        || Dish.IsDangerous
                                         || MatchedDisgustingTags.Count > 0;
 
         public NpcDishMatchReport(
@@ -970,7 +1027,8 @@ namespace Work.NPC.Code.Runtime
                 $"Recipe={RecipeMatches}, FoodType={FoodTypeMatches}, " +
                 $"Required={ListOrNone(MatchedRequiredTags)}, Missing={ListOrNone(MissingRequiredTags)}, " +
                 $"Preferred={ListOrNone(MatchedPreferredTags)}, Avoid={ListOrNone(MatchedAvoidTags)}, " +
-                $"Disgusting={Dish?.IsDisgusting ?? false}/{ListOrNone(MatchedDisgustingTags)}, " +
+                $"Oddity={Dish?.Oddity ?? NpcDishOddity.Normal}/{ListOrNone(MatchedDisgustingTags)}, " +
+                $"Safety={Dish?.Safety ?? NpcDishSafety.Safe}, Craft={Dish?.CraftGrade ?? NpcDishCraftGrade.Normal}, " +
                 $"Reason={Evaluation?.Reason ?? string.Empty}";
         }
 
@@ -1005,7 +1063,7 @@ namespace Work.NPC.Code.Runtime
         private const int PreferredTagMatchScore = 1;
         private const int AvoidTagPenalty = 1;
         private const int DisgustingTagPenalty = 2;
-        private const int DisgustingDishPenalty = 2;
+        private const int CraftGradeScore = 1;
 
         public static NpcDishEvaluation Evaluate(VisitEventData visitEvent, NpcDishSubmission dish)
         {
@@ -1096,7 +1154,11 @@ namespace Work.NPC.Code.Runtime
             return new NpcDishSubmission(
                 visitEvent.CorrectRecipeId,
                 visitEvent.AllowedFoodTypes.FirstOrDefault() ?? string.Empty,
-                tags.Distinct(StringComparer.OrdinalIgnoreCase).ToList());
+                tags.Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+                NpcDishFormationStatus.Formed,
+                NpcDishOddity.Normal,
+                NpcDishSafety.Safe,
+                NpcDishCraftGrade.Perfect);
         }
 
         public static NpcDishSubmission BuildDisgustingDish(VisitEventData visitEvent)
@@ -1118,40 +1180,48 @@ namespace Work.NPC.Code.Runtime
                 "Debug_BadDish",
                 visitEvent.AllowedFoodTypes.FirstOrDefault() ?? string.Empty,
                 tags.Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
-                true);
+                NpcDishFormationStatus.Formed,
+                NpcDishOddity.Bizarre,
+                NpcDishSafety.Safe,
+                NpcDishCraftGrade.Normal);
         }
 
         private static NpcDishEvaluation EvaluateFacts(NpcDishMatchFacts facts)
         {
-            if (facts.Dish.IsDisgusting)
-                return new NpcDishEvaluation(NpcConversationResult.Wrong, "Dish was marked as disgusting.");
+            if (facts.Dish.IsFormed == false)
+                return new NpcDishEvaluation(NpcConversationResult.Wrong, "Dish was not formed.");
+
+            if (facts.Dish.IsDangerous)
+                return new NpcDishEvaluation(NpcConversationResult.Wrong, "Dish was dangerous.");
 
             if (facts.MatchedDisgustingTags.Count > 0)
             {
                 return new NpcDishEvaluation(
-                    NpcConversationResult.Wrong,
+                    NpcConversationResult.Disgusting,
                     $"Disgusting tag matched. count={facts.MatchedDisgustingTags.Count}");
             }
 
-            if (facts.RecipeMatches && facts.MatchedAvoidTags.Count == 0)
+            bool preferredTagsMatched = facts.MatchedPreferredTags.Count >= facts.Order.PreferredTags.Count;
+            bool noAvoidTags = facts.MatchedAvoidTags.Count == 0;
+            if (facts.RecipeMatches
+                && facts.FoodTypeMatches
+                && facts.RequiredTagsMatched
+                && preferredTagsMatched
+                && noAvoidTags
+                && facts.Dish.CraftGrade == NpcDishCraftGrade.Perfect)
             {
                 return new NpcDishEvaluation(
                     NpcConversationResult.Perfect,
-                    "Correct recipe matched without avoid tags.");
+                    "Recipe, requirements, preferences, and craft quality all matched.");
             }
 
-            if (facts.RecipeMatches)
-            {
-                return new NpcDishEvaluation(
-                    NpcConversationResult.Similar,
-                    $"Correct recipe matched, but avoid tags were present. avoid={facts.MatchedAvoidTags.Count}");
-            }
-
-            if (facts.FoodTypeMatches && facts.RequiredTagsMatched && facts.MatchedAvoidTags.Count == 0)
+            if ((facts.RecipeMatches || facts.FoodTypeMatches)
+                && facts.RequiredTagsMatched
+                && noAvoidTags)
             {
                 return new NpcDishEvaluation(
                     NpcConversationResult.Correct,
-                    $"Food type and required tags matched. preferred={facts.MatchedPreferredTags.Count}");
+                    $"Core order conditions matched. preferred={facts.MatchedPreferredTags.Count}/{facts.Order.PreferredTags.Count}");
             }
 
             if (IsSimilarMatch(facts))
@@ -1210,10 +1280,12 @@ namespace Work.NPC.Code.Runtime
             maxScore += facts.Order.PreferredTags.Count * PreferredTagMatchScore;
             score += facts.MatchedPreferredTags.Count * PreferredTagMatchScore;
 
+            maxScore += CraftGradeScore;
+            if (facts.Dish.CraftGrade == NpcDishCraftGrade.Perfect)
+                score += CraftGradeScore;
+
             score -= facts.MatchedAvoidTags.Count * AvoidTagPenalty;
             score -= facts.MatchedDisgustingTags.Count * DisgustingTagPenalty;
-            if (facts.Dish.IsDisgusting)
-                score -= DisgustingDishPenalty;
         }
 
         private static bool IsSimilarMatch(NpcDishMatchFacts facts)

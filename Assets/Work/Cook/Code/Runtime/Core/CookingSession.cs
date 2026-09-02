@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Work.Cook.Code.Data;
 
@@ -9,12 +10,15 @@ namespace Work.Cook.Code.Runtime.Core
         private readonly List<PreparedIngredientState> _preparedIngredients = new List<PreparedIngredientState>();
 
         public CookingMode Mode { get; }
+        public string SessionId { get; }
         public RecipeSO SelectedRecipe { get; }
+        public CookingRecipeStartPlan StartPlan { get; private set; }
         public IReadOnlyList<IngredientSO> SelectedIngredients => _selectedIngredients;
         public IReadOnlyList<PreparedIngredientState> PreparedIngredients => _preparedIngredients;
 
         private CookingSession(CookingMode mode, RecipeSO selectedRecipe)
         {
+            SessionId = Guid.NewGuid().ToString("N");
             Mode = mode;
             SelectedRecipe = selectedRecipe;
         }
@@ -26,7 +30,16 @@ namespace Work.Cook.Code.Runtime.Core
 
         public static CookingSession CreateForRecipe(RecipeSO recipe, IEnumerable<IngredientSO> selectedIngredients)
         {
+            return CreateForRecipe(recipe, selectedIngredients, null);
+        }
+
+        public static CookingSession CreateForRecipe(
+            RecipeSO recipe,
+            IEnumerable<IngredientSO> selectedIngredients,
+            CookingRecipeStartPlan startPlan)
+        {
             CookingSession session = new CookingSession(CookingMode.Recipe, recipe);
+            session.StartPlan = startPlan;
             if (recipe == null)
                 return session;
 
@@ -46,6 +59,11 @@ namespace Work.Cook.Code.Runtime.Core
             }
 
             return session;
+        }
+
+        public void SetStartPlan(CookingRecipeStartPlan startPlan)
+        {
+            StartPlan = startPlan;
         }
 
         public static CookingSession CreateForDirectIngredients(IEnumerable<IngredientSO> ingredients)
@@ -79,7 +97,7 @@ namespace Work.Cook.Code.Runtime.Core
                     continue;
 
                 _selectedIngredients.RemoveAt(i);
-                RemovePreparationIfIngredientIsGone(ingredient);
+                TrimPreparationsToSelectedCount(ingredient);
                 return true;
             }
 
@@ -99,12 +117,12 @@ namespace Work.Cook.Code.Runtime.Core
             if (ingredient == null)
                 return;
 
-            for (int i = _preparedIngredients.Count - 1; i >= 0; i--)
-            {
-                if (_preparedIngredients[i].Ingredient == ingredient)
-                    _preparedIngredients.RemoveAt(i);
-            }
-
+            // One call prepares one selected occurrence. This preserves separate
+            // preparation records when the same IngredientSO is selected twice.
+            int selectedCount = CountSelectedOccurrences(ingredient);
+            int preparedCount = CountPreparedOccurrences(ingredient);
+            if (preparedCount >= selectedCount)
+                RemoveLastPreparedOccurrence(ingredient);
             _preparedIngredients.Add(new PreparedIngredientState(ingredient, preparationOption, miniGameResult));
         }
 
@@ -132,25 +150,70 @@ namespace Work.Cook.Code.Runtime.Core
 
             for (int i = 0; i < _selectedIngredients.Count; i++)
             {
-                if (GetPreparedIngredient(_selectedIngredients[i]) == null)
+                IngredientSO ingredient = _selectedIngredients[i];
+                if (CountPreparedOccurrences(ingredient) < CountSelectedOccurrences(ingredient))
                     return false;
             }
 
             return true;
         }
 
-        private void RemovePreparationIfIngredientIsGone(IngredientSO ingredient)
+        public bool IsOccurrencePrepared(int selectedIndex)
         {
+            if (selectedIndex < 0 || selectedIndex >= _selectedIngredients.Count)
+                return false;
+
+            IngredientSO ingredient = _selectedIngredients[selectedIndex];
+            int occurrence = 0;
+            for (int i = 0; i <= selectedIndex; i++)
+            {
+                if (_selectedIngredients[i] == ingredient)
+                    occurrence++;
+            }
+
+            return CountPreparedOccurrences(ingredient) >= occurrence;
+        }
+
+        private int CountSelectedOccurrences(IngredientSO ingredient)
+        {
+            int count = 0;
             for (int i = 0; i < _selectedIngredients.Count; i++)
             {
                 if (_selectedIngredients[i] == ingredient)
-                    return;
+                    count++;
             }
 
+            return count;
+        }
+
+        private int CountPreparedOccurrences(IngredientSO ingredient)
+        {
+            int count = 0;
+            for (int i = 0; i < _preparedIngredients.Count; i++)
+            {
+                if (_preparedIngredients[i]?.Ingredient == ingredient)
+                    count++;
+            }
+
+            return count;
+        }
+
+        private void TrimPreparationsToSelectedCount(IngredientSO ingredient)
+        {
+            int selectedCount = CountSelectedOccurrences(ingredient);
+            while (CountPreparedOccurrences(ingredient) > selectedCount)
+                RemoveLastPreparedOccurrence(ingredient);
+        }
+
+        private void RemoveLastPreparedOccurrence(IngredientSO ingredient)
+        {
             for (int i = _preparedIngredients.Count - 1; i >= 0; i--)
             {
                 if (_preparedIngredients[i].Ingredient == ingredient)
+                {
                     _preparedIngredients.RemoveAt(i);
+                    return;
+                }
             }
         }
     }

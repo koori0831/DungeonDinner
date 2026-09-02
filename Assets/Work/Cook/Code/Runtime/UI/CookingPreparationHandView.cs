@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
+using Work.Cook.Code.Runtime.Core;
 using Work.Cook.Code.Runtime.Systems;
 
 namespace Work.Cook.Code.Runtime.UI
@@ -23,6 +24,9 @@ namespace Work.Cook.Code.Runtime.UI
     /// </summary>
     public sealed class CookingPreparationHandView : MonoBehaviour
     {
+        private const float MiniGameBackdropAlpha = 0.08f;
+        private const float ResultBackdropAlpha = 0.72f;
+
         [SerializeField] private RectTransform cardRoot;
         [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private CookingPreparationOptionCardView preparationOptionCardPrefab;
@@ -41,6 +45,9 @@ namespace Work.Cook.Code.Runtime.UI
         private int _focusedIndex = -1;
         private int _selectedIndex = -1;
         private bool _overflowWarningShown;
+        private IngredientPreparationOption _recommendedOption;
+        private Func<IngredientPreparationOption, bool> _isRecipeAllowed;
+        private CookingPreparationRecommendationKind _recommendationKind;
 
         public CookingPreparationHandState State => _state;
         public int CardCount
@@ -98,12 +105,25 @@ namespace Work.Cook.Code.Runtime.UI
             IReadOnlyList<IngredientPreparationOption> options,
             Action<IngredientSO, IngredientPreparationOption> selected)
         {
+            Rebuild(ingredient, options, null, null, selected);
+        }
+
+        public void Rebuild(
+            IngredientSO ingredient,
+            IReadOnlyList<IngredientPreparationOption> options,
+            PlannedPreparation recommendation,
+            Func<IngredientPreparationOption, bool> isRecipeAllowed,
+            Action<IngredientSO, IngredientPreparationOption> selected)
+        {
             EnsureReferences();
             tooltipView?.Hide(null);
             ClearCards();
             _focusedIndex = -1;
             _selectedIndex = -1;
             _overflowWarningShown = false;
+            _recommendedOption = recommendation?.PreparationOption;
+            _recommendationKind = recommendation?.Kind ?? CookingPreparationRecommendationKind.None;
+            _isRecipeAllowed = isRecipeAllowed;
             SetState(CookingPreparationHandState.Interactive);
 
             if (cardRoot == null || ingredient == null)
@@ -158,10 +178,10 @@ namespace Work.Cook.Code.Runtime.UI
             switch (state)
             {
                 case CookingPreparationHandState.MiniGame:
-                    alpha = 0.45f;
+                    alpha = MiniGameBackdropAlpha;
                     break;
                 case CookingPreparationHandState.Result:
-                    alpha = 0.72f;
+                    alpha = ResultBackdropAlpha;
                     break;
                 default:
                     alpha = 1f;
@@ -226,6 +246,7 @@ namespace Work.Cook.Code.Runtime.UI
                 "선택",
                 true,
                 () => HandleCardSelected(view, ingredient, option, selected));
+            view.SetSelected(option == _recommendedOption);
         }
 
         private CookingPreparationOptionCardView CreateCard()
@@ -423,15 +444,35 @@ namespace Work.Cook.Code.Runtime.UI
                 : $"{knownEffectTitleText}\n특별한 변화 없음";
         }
 
-        private static string BuildOptionDescription(IngredientPreparationOption option)
+        private string BuildOptionDescription(IngredientPreparationOption option)
         {
             if (option == null)
                 return string.Empty;
+            StringBuilder builder = new StringBuilder();
+            if (option == _recommendedOption)
+                builder.AppendLine(BuildRecommendationLabel(_recommendationKind));
+            else if (_isRecipeAllowed?.Invoke(option) == true)
+                builder.AppendLine("레시피 허용");
             if (string.IsNullOrWhiteSpace(option.Description) == false)
-                return option.Description;
-            if (option.Method != null && string.IsNullOrWhiteSpace(option.Method.Description) == false)
-                return option.Method.Description;
-            return "이 방식으로 재료를 손질합니다.";
+                builder.Append(option.Description);
+            else if (option.Method != null && string.IsNullOrWhiteSpace(option.Method.Description) == false)
+                builder.Append(option.Method.Description);
+            else
+                builder.Append("이 방식으로 재료를 손질합니다.");
+            return builder.ToString();
+        }
+
+        private static string BuildRecommendationLabel(CookingPreparationRecommendationKind kind)
+        {
+            switch (kind)
+            {
+                case CookingPreparationRecommendationKind.ReplayedVariant:
+                    return "추천 · 변형 기록";
+                case CookingPreparationRecommendationKind.KnownPerfect:
+                    return "추천 · 확인한 최적 손질";
+                default:
+                    return "추천 · 유일한 레시피 허용 손질";
+            }
         }
 
         private static string BuildOptionIconText(int index, IngredientPreparationOption option)

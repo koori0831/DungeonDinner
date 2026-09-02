@@ -158,7 +158,12 @@ namespace Work.Cook.Code.Runtime.UI
 
             IReadOnlyList<IngredientPreparationOption> options = flowRunner.GetPreparationOptions(ingredient);
             handView.Initialize(gamePanel, knowledgeStore, fontAsset, presentationSettings);
-            handView.Rebuild(ingredient, options, HandleCardSelected);
+            handView.Rebuild(
+                ingredient,
+                options,
+                flowRunner.GetCurrentPreparationRecommendation(),
+                flowRunner.IsCurrentPreparationAllowed,
+                HandleCardSelected);
             _hasBuiltCards = handView.CardCount > 0;
         }
 
@@ -359,7 +364,9 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
 
             activeSlotView?.BindResultPreview(_committedOption, result);
-            handView?.ShowResultState();
+            // Keep the preparation hand isolated while the centered result badge is readable.
+            // The completed preparation flow restores the result-state hand after the badge closes.
+            handView?.ShowMiniGameState();
             workbenchView?.ShowInteractionResult(_currentIngredient, _committedOption);
         }
 

@@ -20,7 +20,8 @@ MonoBehaviour:
   modelPrefab: {fileID: 6455492533640896604, guid: f615f31b098d23848a2eb1deb5cbb1f2, type: 3}
   baseTags: []
   preparationOptions:
-  - method: {fileID: 11400000, guid: 04676038e45c8fe4ab12e5097dce2760, type: 2}
+  - preparationOptionId: slicing
+    method: {fileID: 11400000, guid: 04676038e45c8fe4ab12e5097dce2760, type: 2}
     displayNameOverride: "\uD55C\uC785 \uD06C\uAE30\uB85C \uC370\uAE30"
     description: "\uD55C\uC785\uC5D0 \uB4E4\uC5B4\uAC00\uB294 \uD06C\uAE30\uB85C
       \uC370\uC5B4\uC11C \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC95\uC785\uB2C8\uB2E4."
@@ -32,6 +33,7 @@ MonoBehaviour:
     resultNameModifier: 
     miniGameFeedbackRules:
     - grade: 0
+      variantEffectId: effect_cut_rough
       qualityDelta: -1
       addTags:
       - {fileID: 11400000, guid: c99f4992c1b88714f89a62950433eacf, type: 2}
@@ -39,12 +41,14 @@ MonoBehaviour:
       resultNameModifier: "\uAC70\uCE60\uAC8C"
       feedbackText: "\uCE7C\uC9C8\uC774 \uAC70\uCE60\uC5B4 \uC2DD\uAC10\uC774 \uD22C\uBC15\uD574\uC84C\uC2B5\uB2C8\uB2E4."
     - grade: 1
+      variantEffectId:
       qualityDelta: 0
       addTags: []
       removeTags: []
       resultNameModifier: 
       feedbackText: "\uBB34\uB09C\uD558\uAC8C \uC190\uC9C8\uD588\uC2B5\uB2C8\uB2E4."
     - grade: 2
+      variantEffectId: effect_cut_clean
       qualityDelta: 1
       addTags: []
       removeTags: []
@@ -52,6 +56,7 @@ MonoBehaviour:
       feedbackText: "\uCE7C\uC9C8\uC774 \uC77C\uC815\uD574 \uC644\uC131\uB3C4\uAC00
         \uC62C\uB790\uC2B5\uB2C8\uB2E4."
     - grade: 3
+      variantEffectId: effect_cut_precise
       qualityDelta: 2
       addTags:
       - {fileID: 11400000, guid: f73414f9cae048d47bcb30ad6215c784, type: 2}
@@ -59,7 +64,8 @@ MonoBehaviour:
       resultNameModifier: "\uC815\uAD50\uD558\uAC8C"
       feedbackText: "\uC7AC\uB8CC \uACB0\uC744 \uC644\uBCBD\uD558\uAC8C \uC0B4\uB824
         \uBD80\uB4DC\uB7EC\uC6B4 \uC2DD\uAC10\uC774 \uB354\uD574\uC84C\uC2B5\uB2C8\uB2E4."
-  - method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
+  - preparationOptionId: just
+    method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
     displayNameOverride: "\uADF8\uB0E5 \uC0AC\uC6A9\uD558\uAE30"
     description: "\uC7AC\uB8CC \uBCF8\uC5F0\uC758 \uB9DB\uC744 \uAC00\uC7A5 \uC798
       \uB290\uB084\uC218 \uC788\uB294 \uC870\uB9AC?\uBC95 \uC785\uB2C8\uB2E4."
@@ -70,7 +76,8 @@ MonoBehaviour:
     addsPoison: 0
     resultNameModifier: 
     miniGameFeedbackRules: []
-  - method: {fileID: 11400000, guid: 9a9ab2bc5e82e934cb3c1c1b1246b55d, type: 2}
+  - preparationOptionId: chopping
+    method: {fileID: 11400000, guid: 9a9ab2bc5e82e934cb3c1c1b1246b55d, type: 2}
     displayNameOverride: "\uB2E4\uC838\uC11C \uC0AC\uC6A9\uD558\uAE30"
     description: "\uC798\uAC8C \uB2E4\uC838\uC11C \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC95\uC785\uB2C8\uB2E4."
     addTags: []
@@ -81,6 +88,7 @@ MonoBehaviour:
     resultNameModifier: 
     miniGameFeedbackRules:
     - grade: 0
+      variantEffectId: effect_cut_rough
       qualityDelta: -1
       addTags:
       - {fileID: 11400000, guid: c99f4992c1b88714f89a62950433eacf, type: 2}
@@ -88,12 +96,14 @@ MonoBehaviour:
       resultNameModifier: "\uAC70\uCE60\uAC8C"
       feedbackText: "\uCE7C\uC9C8\uC774 \uAC70\uCE60\uC5B4 \uC2DD\uAC10\uC774 \uD22C\uBC15\uD574\uC84C\uC2B5\uB2C8\uB2E4."
     - grade: 1
+      variantEffectId:
       qualityDelta: 0
       addTags: []
       removeTags: []
       resultNameModifier: 
       feedbackText: "\uBB34\uB09C\uD558\uAC8C \uC190\uC9C8\uD588\uC2B5\uB2C8\uB2E4."
     - grade: 2
+      variantEffectId: effect_cut_clean
       qualityDelta: 1
       addTags: []
       removeTags: []
@@ -101,6 +111,7 @@ MonoBehaviour:
       feedbackText: "\uCE7C\uC9C8\uC774 \uC77C\uC815\uD574 \uC644\uC131\uB3C4\uAC00
         \uC62C\uB790\uC2B5\uB2C8\uB2E4."
     - grade: 3
+      variantEffectId: effect_cut_precise
       qualityDelta: 2
       addTags:
       - {fileID: 11400000, guid: f73414f9cae048d47bcb30ad6215c784, type: 2}

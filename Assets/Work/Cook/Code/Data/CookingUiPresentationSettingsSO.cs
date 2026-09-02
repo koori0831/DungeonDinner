@@ -26,17 +26,17 @@ namespace Work.Cook.Code.Data
     [Serializable]
     public sealed class CookingQualityVisual
     {
-        [SerializeField] private DishQuality quality;
+        [SerializeField] private DishCraftGrade quality;
         [SerializeField] private string displayName;
         [SerializeField] private Color color = Color.white;
         [SerializeField] private Sprite icon;
 
-        public DishQuality Quality => quality;
+        public DishCraftGrade Quality => quality;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? quality.ToString() : displayName;
         public Color Color => color;
         public Sprite Icon => icon;
 
-        public CookingQualityVisual(DishQuality quality, string displayName, Color color, Sprite icon = null)
+        public CookingQualityVisual(DishCraftGrade quality, string displayName, Color color, Sprite icon = null)
         {
             this.quality = quality;
             this.displayName = displayName;
@@ -222,7 +222,7 @@ namespace Work.Cook.Code.Data
         public AudioClip QualityStampClip => qualityStampClip;
         public AudioClip RewardCountClip => rewardCountClip;
 
-        public CookingQualityVisual GetQualityVisual(DishQuality quality)
+        public CookingQualityVisual GetQualityVisual(DishCraftGrade quality)
         {
             if (qualityVisuals != null)
             {
@@ -287,7 +287,7 @@ namespace Work.Cook.Code.Data
             fontAsset = value;
         }
 
-        public void SetQualityIcon(DishQuality quality, Sprite value)
+        public void SetQualityIcon(DishCraftGrade quality, Sprite value)
         {
             CookingQualityVisual visual = FindQualityVisual(quality);
             if (visual == null)
@@ -350,10 +350,10 @@ namespace Work.Cook.Code.Data
         {
             qualityVisuals = new List<CookingQualityVisual>
             {
-                CreateDefaultQualityVisual(DishQuality.Perfect),
-                CreateDefaultQualityVisual(DishQuality.Normal),
-                CreateDefaultQualityVisual(DishQuality.Altered),
-                CreateDefaultQualityVisual(DishQuality.Disgusting)
+                CreateDefaultQualityVisual(DishCraftGrade.Perfect),
+                CreateDefaultQualityVisual(DishCraftGrade.Good),
+                CreateDefaultQualityVisual(DishCraftGrade.Normal),
+                CreateDefaultQualityVisual(DishCraftGrade.Bad)
             };
             reactionVisuals = new List<CookingReactionVisual>
             {
@@ -372,7 +372,7 @@ namespace Work.Cook.Code.Data
             };
         }
 
-        private CookingQualityVisual FindQualityVisual(DishQuality quality)
+        private CookingQualityVisual FindQualityVisual(DishCraftGrade quality)
         {
             if (qualityVisuals == null)
                 qualityVisuals = new List<CookingQualityVisual>();
@@ -408,16 +408,16 @@ namespace Work.Cook.Code.Data
             return null;
         }
 
-        private static CookingQualityVisual CreateDefaultQualityVisual(DishQuality quality)
+        private static CookingQualityVisual CreateDefaultQualityVisual(DishCraftGrade quality)
         {
             switch (quality)
             {
-                case DishQuality.Perfect:
+                case DishCraftGrade.Perfect:
                     return new CookingQualityVisual(quality, "완벽", new Color(1f, 0.77f, 0.24f, 1f));
-                case DishQuality.Altered:
-                    return new CookingQualityVisual(quality, "변형", new Color(0.7f, 0.48f, 0.87f, 1f));
-                case DishQuality.Disgusting:
-                    return new CookingQualityVisual(quality, "혐오", new Color(0.67f, 0.2f, 0.16f, 1f));
+                case DishCraftGrade.Good:
+                    return new CookingQualityVisual(quality, "좋음", new Color(0.7f, 0.48f, 0.87f, 1f));
+                case DishCraftGrade.Bad:
+                    return new CookingQualityVisual(quality, "미흡", new Color(0.67f, 0.2f, 0.16f, 1f));
                 default:
                     return new CookingQualityVisual(quality, "보통", new Color(0.83f, 0.75f, 0.58f, 1f));
             }

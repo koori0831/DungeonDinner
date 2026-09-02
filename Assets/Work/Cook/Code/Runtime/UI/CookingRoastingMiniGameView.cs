@@ -53,6 +53,10 @@ namespace Work.Cook.Code.Runtime.UI
                 flipIndicator.gameObject.SetActive(true);
             Host.SetInstruction("재료를 한 번 눌러 뒤집고, 알맞게 익으면 가이드를 오른쪽 접시까지 드래그하세요.");
             Host.SetStatus(_type == CookingMiniGameType.Burning ? "진한 그을음이 오를 때 꺼내세요" : "색과 연기를 살펴보세요");
+            ConfigureHud("한 번 탭해 뒤집기 · 익으면 접시로 드래그 →", false, true, true);
+            SetTargetState(0f, _profile.TargetMin, _profile.TargetMax, "덜 익음");
+            float maximumDuration = Mathf.Max(_profile.Duration, _profile.MaximumDuration);
+            SetTimer(maximumDuration, maximumDuration);
             RefreshVisual(0f);
             return true;
         }
@@ -70,7 +74,11 @@ namespace Work.Cook.Code.Runtime.UI
                 _sideAExposure += Time.unscaledDeltaTime;
             RefreshVisual(doneness);
 
-            if (elapsed >= Mathf.Max(_profile.Duration, _profile.MaximumDuration))
+            float maximumDuration = Mathf.Max(_profile.Duration, _profile.MaximumDuration);
+            SetTargetState(doneness, _profile.TargetMin, _profile.TargetMax, GetDonenessLabel(doneness));
+            SetTimer(Mathf.Max(0f, maximumDuration - elapsed), maximumDuration);
+
+            if (elapsed >= maximumDuration)
             {
                 Finish(_type, 0.15f, "재료를 너무 오래 익혀 상태를 놓쳤습니다.");
             }
@@ -123,6 +131,7 @@ namespace Work.Cook.Code.Runtime.UI
                     flipIndicator.rectTransform.localRotation = Quaternion.Euler(0f, 180f, 0f);
                 MarkProgress();
                 Host.SetStatus("뒤집기 완료 · 접시로 꺼낼 순간을 고르세요");
+                SetGesture("적정 구간에서 오른쪽 접시로 드래그 →");
                 return;
             }
 
@@ -170,6 +179,15 @@ namespace Work.Cook.Code.Runtime.UI
                 float pulse = 1f + Mathf.Sin(Time.unscaledTime * 4f) * 0.06f;
                 flipIndicator.rectTransform.localScale = Vector3.one * pulse;
             }
+        }
+
+        private string GetDonenessLabel(float doneness)
+        {
+            if (doneness < _profile.TargetMin)
+                return _flipped ? "뒤집기 완료 · 아직 덜 익음" : "덜 익음 · 한 번 탭해 뒤집기";
+            if (doneness <= _profile.TargetMax)
+                return "적정 · 지금 접시로 옮기세요";
+            return _type == CookingMiniGameType.Burning ? "진한 그을음 · 곧 꺼내세요" : "과열 위험 · 바로 꺼내세요";
         }
     }
 }

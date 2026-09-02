@@ -113,12 +113,34 @@ namespace Work.Cook.Code.Runtime.UI
             Host?.PlayActionFeedback();
         }
 
+        protected void ConfigureHud(string gestureText, bool showProgress, bool showTarget, bool showTimer)
+        {
+            Host?.ConfigureActionHud(gestureText, showProgress, showTarget, showTimer);
+        }
+
+        protected void SetGesture(string text)
+        {
+            Host?.SetGesture(text);
+        }
+
+        protected void SetProgress(float normalizedValue, string label)
+        {
+            Host?.SetProgress(normalizedValue, label);
+        }
+
+        protected void SetTargetState(float normalizedValue, float targetMin, float targetMax, string label)
+        {
+            Host?.SetTargetState(normalizedValue, targetMin, targetMax, label);
+        }
+
+        protected void SetTimer(float remaining, float duration)
+        {
+            Host?.SetTimer(remaining, duration);
+        }
+
         protected void RegisterMistake(string instruction = null)
         {
-            Host?.MarkProgress();
-            Host?.PlayMistakeFeedback();
-            if (string.IsNullOrWhiteSpace(instruction) == false)
-                Host?.SetInstruction(instruction);
+            Host?.ShowMistake(instruction);
         }
 
         protected void Finish(CookingMiniGameType type, float score, string feedbackText)

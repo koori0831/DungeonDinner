@@ -70,6 +70,8 @@ namespace Work.Cook.Code.Runtime.UI
         private NpcDishMatchReport _pendingRewardMatchReport;
         private bool _isSubmittingPendingReward;
         private bool _pendingRewardConversationCompleted;
+        private NpcDishMatchReport _settledMatchReport;
+        private CookingRewardGrant _settledRewardGrant;
 
         private enum MiniGameStartStatus
         {
@@ -110,6 +112,9 @@ namespace Work.Cook.Code.Runtime.UI
         public CookingGameSnapshot CurrentSnapshot => BuildSnapshot();
         public bool AllowRecipeConfirmation => allowRecipeConfirmation;
         public bool HasPendingRewardSettlement => _pendingRewardResult != null && _pendingRewardMatchReport != null;
+        public bool HasSettledOutcome => _settledMatchReport != null;
+        public NpcDishMatchReport SettledMatchReport => _settledMatchReport;
+        public CookingRewardGrant SettledRewardGrant => _settledRewardGrant;
 
         private void Awake()
         {
@@ -278,6 +283,7 @@ namespace Work.Cook.Code.Runtime.UI
             int rewardBalance = rewardWallet != null ? rewardWallet.Balance : 0;
             DishResult currentResult = _currentResult ?? flowRunner?.LastResult;
             bool canHandToNpc = HasPendingRewardSettlement == false
+                                && HasSettledOutcome == false
                                 && CookingNpcDishAdapter.CanSubmitToNpc(npcRunner, currentResult, out _);
 
             return new CookingGameSnapshot(
@@ -292,8 +298,8 @@ namespace Work.Cook.Code.Runtime.UI
                 knownRecipeCount,
                 knownPreparationEffectCount,
                 rewardBalance,
-                0,
-                null,
+                _settledRewardGrant?.Amount ?? 0,
+                _settledMatchReport,
                 canHandToNpc);
         }
 
@@ -325,6 +331,7 @@ namespace Work.Cook.Code.Runtime.UI
             encounterDirector?.ClearEncounterHistory();
             _currentResult = null;
             ClearPendingRewardSettlement();
+            ClearSettledOutcome();
             ResetConsumedIngredientSession();
 
             CookingGameScreenState resetScreen = applyInitialScreenOnAwake == true
@@ -344,11 +351,17 @@ namespace Work.Cook.Code.Runtime.UI
 
             _currentResult = null;
             ClearPendingRewardSettlement();
+            ClearSettledOutcome();
             ResetConsumedIngredientSession();
             SetScreen(CookingGameScreenState.RecipeSelection);
         }
 
         public bool ConfirmRecipe(RecipeSO recipe)
+        {
+            return ConfirmRecipe(recipe, null);
+        }
+
+        public bool ConfirmRecipe(RecipeSO recipe, string variantId)
         {
             EnsureReferences();
 
@@ -364,19 +377,20 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
             }
 
-            ResetConsumedIngredientSession();
-
-            if (TryBeginRecipeWithIngredientChoices(recipe) == true)
-                return true;
-
-            if (flowRunner.BeginRecipeCooking(recipe) == false)
+            if (knowledgeStore != null && knowledgeStore.IsRecipeDiscovered(recipe) == false)
             {
-                Debug.LogWarning("CookingGamePanel could not begin recipe cooking because the recipe is missing.", this);
+                Debug.LogWarning("Undiscovered recipes cannot be selected as a cooking shortcut.", this);
                 return false;
             }
 
-            _currentResult = null;
-            SetScreen(CookingGameScreenState.Preparation);
+            ResetConsumedIngredientSession();
+            ClearSettledOutcome();
+
+            if (TryBeginRecipeWithIngredientChoices(recipe, variantId) == false)
+            {
+                Debug.LogWarning("CookingGamePanel could not build the recipe ingredient confirmation plan.", this);
+                return false;
+            }
             return true;
         }
 
@@ -398,6 +412,7 @@ namespace Work.Cook.Code.Runtime.UI
             SetIngredientSelectionLimits(1, 0);
             _currentResult = null;
             ClearPendingRewardSettlement();
+            ClearSettledOutcome();
             SetScreen(CookingGameScreenState.Inventory);
             return true;
         }
@@ -470,7 +485,6 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
             }
 
-            knowledgeStore?.LearnSelectedIngredients(flowRunner.SelectedIngredients);
             SetIngredientSelectionSource(null);
             SetScreen(CookingGameScreenState.Preparation);
             return true;
@@ -634,7 +648,7 @@ namespace Work.Cook.Code.Runtime.UI
             }
 
             _currentResult = result;
-            knowledgeStore?.LearnFromResult(result);
+            ClearSettledOutcome();
             SetScreen(CookingGameScreenState.Result);
             Bus<CookingDishResultReadyEvent>.Raise(new CookingDishResultReadyEvent(this, result));
             return true;
@@ -650,6 +664,7 @@ namespace Work.Cook.Code.Runtime.UI
         {
             DishResult result = GetCurrentDishResult();
             return HasPendingRewardSettlement == false
+                   && HasSettledOutcome == false
                    && CookingNpcDishAdapter.CanSubmitToNpc(NpcRunner, result, out _);
         }
 
@@ -728,11 +743,20 @@ namespace Work.Cook.Code.Runtime.UI
         {
             EnsureReferences();
 
-            ICookingKnowledgeUpdateView updateView = GetViewContract<ICookingKnowledgeUpdateView>(knowledgeUpdateView);
-            if (updateView != null && knowledgeStore != null && knowledgeStore.PendingKnowledgeUpdateCount > 0)
+            if (HasSettledOutcome)
             {
-                if (updateView.ShowPendingUpdates(() => HandResultToNpc()) == true)
+                ICookingKnowledgeUpdateView settledUpdateView =
+                    GetViewContract<ICookingKnowledgeUpdateView>(knowledgeUpdateView);
+                if (settledUpdateView != null
+                    && knowledgeStore != null
+                    && knowledgeStore.PendingKnowledgeUpdateCount > 0
+                    && settledUpdateView.ShowPendingUpdates(FinishSettledResult) == true)
+                {
                     return true;
+                }
+
+                FinishSettledResult();
+                return true;
             }
 
             return HandResultToNpc();
@@ -748,34 +772,55 @@ namespace Work.Cook.Code.Runtime.UI
             SetScreen(CookingGameScreenState.None);
         }
 
-        private bool TryBeginRecipeWithIngredientChoices(RecipeSO recipe)
+        private bool TryBeginRecipeWithIngredientChoices(RecipeSO recipe, string variantId)
         {
             if (recipe == null || flowRunner == null)
                 return false;
 
-            if (CookingRecipeIngredientChoicePlanner.TryBuild(
-                    recipe,
-                    flowRunner.Ingredients,
-                    out CookingRecipeIngredientChoicePlan plan) == false)
+            ICookingIngredientSelectionView selectionView = GetIngredientSelectionView();
+            ICookingIngredientSource backingSource = selectionView?.GetCurrentIngredientSource();
+            if (backingSource is CookingRecipeIngredientChoiceSource previousPlanSource)
+                backingSource = previousPlanSource.BackingSource;
+            if (backingSource == null)
+                backingSource = GetComponentInChildren<InventoryCookingIngredientSource>(true);
+            ICookingIngredientQuantitySource quantitySource = backingSource as ICookingIngredientQuantitySource;
+            CookingRecipeStartPlanBuilder builder = new CookingRecipeStartPlanBuilder(
+                flowRunner.Ingredients,
+                ingredient => quantitySource != null
+                    ? quantitySource.GetAvailableIngredientQuantity(ingredient, this, flowRunner)
+                    : 0,
+                knowledgeStore);
+
+            CookingRecipeStartPlan plan;
+            if (string.IsNullOrWhiteSpace(variantId))
             {
-                return false;
+                plan = builder.BuildBase(recipe);
+            }
+            else
+            {
+                if (knowledgeStore == null
+                    || knowledgeStore.TryGetDiscoveredVariant(recipe, variantId, out CookingRecipeVariantKnowledgeSnapshot variant) == false
+                    || variant.CanReplay == false)
+                {
+                    Debug.LogWarning("The selected legacy or unknown variant cannot be replayed.", this);
+                    return false;
+                }
+                plan = builder.BuildVariant(recipe, variant);
             }
 
-            if (flowRunner.BeginRecipeIngredientSelection(recipe) == false)
+            if (flowRunner.BeginRecipeIngredientSelection(recipe, plan) == false)
                 return false;
 
-            for (int i = 0; i < plan.FixedIngredients.Count; i++)
-                flowRunner.AddRecipeIngredient(plan.FixedIngredients[i]);
+            for (int i = 0; i < plan.PresetIngredients.Count; i++)
+                flowRunner.AddRecipeIngredient(plan.PresetIngredients[i].Ingredient);
 
             EnsureRecipeIngredientChoiceSource();
             if (recipeIngredientChoiceSource == null)
                 return false;
 
-            recipeIngredientChoiceSource.SetCandidates(plan.ChoiceCandidates);
+            recipeIngredientChoiceSource.SetPlan(plan, backingSource);
             SetIngredientSelectionSource(recipeIngredientChoiceSource);
-            SetIngredientSelectionLimits(
-                plan.FixedIngredients.Count + plan.MinChoiceCount,
-                plan.MaxChoiceCount > 0 ? plan.FixedIngredients.Count + plan.MaxChoiceCount : 0);
+            SetIngredientSelectionLimits(0, 0);
 
             _currentResult = null;
             SetScreen(CookingGameScreenState.Inventory);
@@ -866,9 +911,6 @@ namespace Work.Cook.Code.Runtime.UI
             IngredientPreparationOption option,
             CookingMiniGameResult miniGameResult)
         {
-            if (option != null)
-                knowledgeStore?.LearnPreparationEffect(ingredient, option);
-
             if (flowRunner.SelectPreparation(ingredient, option, miniGameResult) == false)
             {
                 Debug.LogWarning("CookingGamePanel could not apply the selected preparation.", this);
@@ -999,6 +1041,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void QueuePendingRewardSettlement(DishResult result, NpcDishMatchReport matchReport)
         {
+            ClearSettledOutcome();
             _pendingRewardResult = result;
             _pendingRewardMatchReport = matchReport;
             _pendingRewardConversationCompleted = false;
@@ -1031,7 +1074,22 @@ namespace Work.Cook.Code.Runtime.UI
             DishResult result = _pendingRewardResult;
             NpcDishMatchReport matchReport = _pendingRewardMatchReport;
             ClearPendingRewardSettlement();
-            GrantReward(result, matchReport);
+            knowledgeStore?.LearnFromService(result, matchReport);
+            _settledMatchReport = matchReport;
+            _settledRewardGrant = GrantReward(result, matchReport);
+            SetScreen(CookingGameScreenState.Result);
+        }
+
+        private void FinishSettledResult()
+        {
+            ClearSettledOutcome();
+            CloseCookingViews();
+        }
+
+        private void ClearSettledOutcome()
+        {
+            _settledMatchReport = null;
+            _settledRewardGrant = null;
         }
 
         private bool TryConsumeSelectedIngredientsForCompletion(CookingSession session)
@@ -1623,7 +1681,7 @@ namespace Work.Cook.Code.Runtime.UI
         private void HandleRecipeConfirmRequested(CookingRecipeConfirmRequestedEvent gameEvent)
         {
             if (IsRequestForThis(gameEvent.Source) == true)
-                ConfirmRecipe(gameEvent.Recipe);
+                ConfirmRecipe(gameEvent.Recipe, gameEvent.VariantId);
         }
 
         private void HandleIngredientSelectionToggleRequested(CookingIngredientSelectionToggleRequestedEvent gameEvent)

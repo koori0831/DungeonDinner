@@ -14,11 +14,8 @@ namespace Work.Cook.Code.Runtime.Core
                 return new DisgustingEvaluation(true, reasons);
             }
 
-            if (session.Mode == CookingMode.DirectIngredients && (recipeMatch == null || recipeMatch.IsMatched == false))
-                reasons.Add("Selected ingredients do not form a known recipe.");
-
             if (session.SelectedIngredients.Count == 0)
-                reasons.Add("No ingredients were selected.");
+                return new DisgustingEvaluation(false, reasons);
 
             for (int i = 0; i < session.PreparedIngredients.Count; i++)
             {
@@ -29,8 +26,6 @@ namespace Work.Cook.Code.Runtime.Core
                 if (prepared.CausesDisgusting)
                     reasons.Add($"{GetIngredientName(prepared)} preparation causes disgusting result.");
 
-                if (prepared.AddsPoison)
-                    reasons.Add($"{GetIngredientName(prepared)} preparation added poison.");
             }
 
             return new DisgustingEvaluation(reasons.Count > 0, reasons);

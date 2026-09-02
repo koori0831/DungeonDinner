@@ -57,6 +57,11 @@ namespace Work.Cook.Code.Runtime.Systems
             return Controller.BeginRecipeIngredientSelection(recipe);
         }
 
+        public bool BeginRecipeIngredientSelection(RecipeSO recipe, CookingRecipeStartPlan startPlan)
+        {
+            return Controller.BeginRecipeIngredientSelection(recipe, startPlan);
+        }
+
         public void BeginDirectSelection()
         {
             Controller.BeginDirectSelection();
@@ -95,6 +100,21 @@ namespace Work.Cook.Code.Runtime.Systems
         public IngredientSO GetNextUnpreparedIngredient()
         {
             return Controller.GetNextUnpreparedIngredient();
+        }
+
+        public CookingIngredientOccurrence GetNextUnpreparedOccurrence()
+        {
+            return Controller.GetNextUnpreparedOccurrence();
+        }
+
+        public PlannedPreparation GetCurrentPreparationRecommendation()
+        {
+            return Controller.GetCurrentPreparationRecommendation();
+        }
+
+        public bool IsCurrentPreparationAllowed(IngredientPreparationOption option)
+        {
+            return Controller.IsCurrentPreparationAllowed(option);
         }
 
         public bool SelectPreparation(IngredientSO ingredient, IngredientPreparationOption preparationOption)

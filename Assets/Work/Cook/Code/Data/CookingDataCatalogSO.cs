@@ -38,22 +38,36 @@ namespace Work.Cook.Code.Data
 
         public RecipeSO FindRecipeByIngredients(IReadOnlyList<IngredientSO> selectedIngredients)
         {
+            RecipeSO bestRecipe = null;
+            int bestScore = int.MinValue;
+            bool tied = false;
             for (int i = 0; i < recipes.Count; i++)
             {
                 RecipeSO recipe = recipes[i];
                 if (recipe != null
                     && recipe.HasRequiredPreparationMethods == false
                     && recipe.MatchesIngredients(selectedIngredients))
-                    return recipe;
+                {
+                    int score = recipe.CalculateMatchSpecificityScore();
+                    if (score > bestScore)
+                    {
+                        bestRecipe = recipe;
+                        bestScore = score;
+                        tied = false;
+                    }
+                    else if (score == bestScore)
+                        tied = true;
+                }
             }
 
-            return null;
+            return tied ? null : bestRecipe;
         }
 
         public RecipeSO FindRecipeByPreparedIngredients(IReadOnlyList<PreparedIngredientState> preparedIngredients)
         {
             RecipeSO bestRecipe = null;
             int bestScore = int.MinValue;
+            bool tied = false;
 
             for (int i = 0; i < recipes.Count; i++)
             {
@@ -66,45 +80,22 @@ namespace Work.Cook.Code.Data
                 {
                     bestRecipe = recipe;
                     bestScore = score;
+                    tied = false;
                 }
+                else if (score >= 0 && score == bestScore)
+                    tied = true;
             }
 
-            return bestScore >= 0 ? bestRecipe : null;
+            return bestScore >= 0 && tied == false ? bestRecipe : null;
         }
 
         public List<string> BuildValidationMessages()
         {
             List<string> messages = new List<string>();
-            AddDuplicateIdMessages(messages, categories, category => category != null ? category.CategoryId : string.Empty, "category");
-            AddDuplicateIdMessages(messages, ingredientCategories, category => category != null ? category.CategoryId : string.Empty, "ingredient category");
-            AddDuplicateIdMessages(messages, tags, tag => tag != null ? tag.TagId : string.Empty, "tag");
-            AddDuplicateIdMessages(messages, preparationMethods, method => method != null ? method.MethodId : string.Empty, "preparation method");
-            AddDuplicateIdMessages(messages, ingredients, ingredient => ingredient != null ? ingredient.IngredientId : string.Empty, "ingredient");
-            AddDuplicateIdMessages(messages, recipes, recipe => recipe != null ? recipe.RecipeId : string.Empty, "recipe");
+            CookingDataValidationReport report = new CookingDataValidationService().ValidateCatalog(this);
+            for (int i = 0; i < report.Issues.Count; i++)
+                messages.Add(report.Issues[i].ToString());
             return messages;
-        }
-
-        private static void AddDuplicateIdMessages<T>(
-            ICollection<string> messages,
-            IReadOnlyList<T> values,
-            System.Func<T, string> getId,
-            string label)
-        {
-            HashSet<string> seen = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
-            HashSet<string> duplicates = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
-
-            for (int i = 0; i < values.Count; i++)
-            {
-                string id = getId(values[i]);
-                if (string.IsNullOrWhiteSpace(id))
-                    continue;
-
-                if (seen.Add(id) == false)
-                    duplicates.Add(id);
-            }
-
-            foreach (string duplicate in duplicates)
-                messages.Add($"Duplicate {label} id: {duplicate}");
         }
     }
 }

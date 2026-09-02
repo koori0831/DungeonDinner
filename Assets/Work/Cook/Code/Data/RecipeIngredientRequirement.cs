@@ -8,6 +8,7 @@ namespace Work.Cook.Code.Data
     [Serializable]
     public sealed class RecipeIngredientRequirement
     {
+        [SerializeField] private string requirementId;
         [SerializeField] private IngredientSO ingredient;
         [SerializeField] private IngredientCategorySO ingredientCategory;
         [SerializeField] private List<FoodTagSO> requiredTags = new List<FoodTagSO>();
@@ -18,9 +19,10 @@ namespace Work.Cook.Code.Data
         [SerializeField, Min(0)] private int minCount = 1;
         [SerializeField, Min(0)] private int maxCount = 1;
         [SerializeField] private bool recipeDefining = true;
-        [SerializeField] private bool requireManualPreparation;
+        [SerializeField, HideInInspector] private bool requireManualPreparation;
         [SerializeField] private bool usePreparationResultNameModifier = true;
 
+        public string RequirementId => requirementId ?? string.Empty;
         public IngredientSO Ingredient => ingredient;
         public IngredientCategorySO IngredientCategory => ingredientCategory;
         public IReadOnlyList<FoodTagSO> RequiredTags => requiredTags;
@@ -187,6 +189,13 @@ namespace Work.Cook.Code.Data
 
             return string.Empty;
         }
+
+#if UNITY_EDITOR
+        public void EditorSetRequirementId(string value)
+        {
+            requirementId = value ?? string.Empty;
+        }
+#endif
     }
 
     [Serializable]

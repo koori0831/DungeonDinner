@@ -24,7 +24,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dd7703eca9180d843943b69b0b1e7031, type: 2}
   - {fileID: 11400000, guid: 8f44838da1b5e3e4a8ca2d4945460c46, type: 2}
   preparationOptions:
-  - method: {fileID: 11400000, guid: 6111f9b37a2bd024a804fbb32ee8eb69, type: 2}
+  - preparationOptionId: washing_water
+    method: {fileID: 11400000, guid: 6111f9b37a2bd024a804fbb32ee8eb69, type: 2}
     displayNameOverride: "\uD750\uB974\uB294 \uBB3C\uC5D0 \uC53B\uC5B4\uB0B4\uAE30"
     description: 
     addTags: []
@@ -35,7 +36,8 @@ MonoBehaviour:
     addsPoison: 0
     resultNameModifier: "\uBB3C\uC5D0 \uC53B\uC740"
     miniGameFeedbackRules: []
-  - method: {fileID: 11400000, guid: 3123a5c0376a3ed4dad2b40fbb0c357b, type: 2}
+  - preparationOptionId: roast
+    method: {fileID: 11400000, guid: 3123a5c0376a3ed4dad2b40fbb0c357b, type: 2}
     displayNameOverride: "\uBD88\uC5D0 \uC0B4\uC9DD \uADF8\uC744\uB9AC\uAE30"
     description: "\uBD88\uC5D0 \uC0B4\uC9DD \uADF8\uC744\uB824\uC11C \uBD88\uB9DB\uC744
       \uC785\uD788\uB294 \uC190\uC9C8\uBC95 \uC785\uB2C8\uB2E4."
@@ -47,7 +49,8 @@ MonoBehaviour:
     addsPoison: 0
     resultNameModifier: "\uBD88\uC5D0 \uADF8\uC744\uB9B0"
     miniGameFeedbackRules: []
-  - method: {fileID: 11400000, guid: 2f52066121feea8429d367cc15a502ae, type: 2}
+  - preparationOptionId: parboil
+    method: {fileID: 11400000, guid: 2f52066121feea8429d367cc15a502ae, type: 2}
     displayNameOverride: "\uC0B6\uC544\uC11C \uC0AC\uC6A9\uD558\uAE30"
     description: "\uBB3C\uC5D0 \uB123\uC5B4\uC11C \uC9E7\uC740\uC2DC\uAC04 \uC0B6\uC544\uB0B4\uC5B4
       \uC0AC\uC6A9\uD558\uB294 \uC190\uC9C8\uBC95\uC785\uB2C8\uB2E4."

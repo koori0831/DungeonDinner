@@ -45,6 +45,9 @@ namespace Work.Cook.Code.Runtime.UI
                 handIndicator.gameObject.SetActive(false);
             Host.SetInstruction("재료 표면 전체를 문질러 냉기를 고르게 퍼뜨리세요.");
             Host.SetStatus("서리가 빈 곳을 채우세요");
+            ConfigureHud("표면 전체를 고르게 문지르기 ↔", false, true, true);
+            SetTargetState(0f, _profile.TargetMin, _profile.TargetMax, "냉각 부족");
+            SetTimer(_profile.MaximumDuration, _profile.MaximumDuration);
             return true;
         }
 
@@ -52,7 +55,9 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (Completion == null)
                 return;
-            if (Time.unscaledTime - _startedTime >= _profile.MaximumDuration)
+            float elapsed = Time.unscaledTime - _startedTime;
+            SetTimer(Mathf.Max(0f, _profile.MaximumDuration - elapsed), _profile.MaximumDuration);
+            if (elapsed >= _profile.MaximumDuration)
                 Finish(CookingMiniGameType.Freezing, Mathf.Min(0.44f, CookingMiniGameScoring.ScoreFreezing(
                     _cells, _profile.TargetMin, _profile.TargetMax)), "냉기를 충분히 고르게 퍼뜨리지 못했습니다.");
         }
@@ -127,12 +132,26 @@ namespace Work.Cook.Code.Runtime.UI
             if (hit)
                 MarkProgress();
             else
-                RegisterMistake();
+                RegisterMistake("재료 표면 안쪽을 문질러주세요.");
 
             float mean = 0f;
+            float minimum = 1f;
             for (int i = 0; i < _cells.Length; i++)
+            {
                 mean += _cells[i];
+                minimum = Mathf.Min(minimum, _cells[i]);
+            }
             mean /= _cells.Length;
+            string stateLabel;
+            if (mean < _profile.TargetMin)
+                stateLabel = $"냉각 {Mathf.RoundToInt(mean * 100f)}% · 빈 곳을 채우세요";
+            else if (mean <= _profile.TargetMax && minimum >= _profile.TargetMin * 0.72f)
+                stateLabel = "적정 · 고르게 얼었습니다";
+            else if (mean > _profile.TargetMax)
+                stateLabel = "과냉각 위험 · 같은 곳을 피하세요";
+            else
+                stateLabel = "냉각량은 충분 · 빈 곳을 더 채우세요";
+            SetTargetState(mean, _profile.TargetMin, _profile.TargetMax, stateLabel);
             if (mean > _profile.TargetMax + 0.12f)
             {
                 Finish(CookingMiniGameType.Freezing,
@@ -146,7 +165,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (frostCells[index] == null)
                 return;
             Color color = frostColor;
-            color.a *= Mathf.Lerp(0.06f, 1f, _cells[index]);
+            color.a *= Mathf.Lerp(0.18f, 1f, _cells[index]);
             frostCells[index].color = color;
         }
 

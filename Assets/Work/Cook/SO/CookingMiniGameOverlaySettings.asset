@@ -93,9 +93,9 @@ MonoBehaviour:
     requiredCount: 1
     primaryTolerance: 0.18
     secondaryTolerance: 0.1
-  resultDisplayDuration: 0.6
-  focusDimColor: {r: 0, g: 0, b: 0, a: 0.18}
-  guideColor: {r: 1, g: 0.86, b: 0.35, a: 0.62}
+  resultDisplayDuration: 2
+  focusDimColor: {r: 0, g: 0, b: 0, a: 0.5}
+  guideColor: {r: 1, g: 0.86, b: 0.35, a: 0.9}
   successColor: {r: 0.38, g: 0.9, b: 0.45, a: 0.95}
   mistakeColor: {r: 1, g: 0.3, b: 0.2, a: 0.95}
   knifeSprite: {fileID: 0}

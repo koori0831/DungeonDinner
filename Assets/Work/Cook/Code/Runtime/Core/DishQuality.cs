@@ -1,10 +1,34 @@
 namespace Work.Cook.Code.Runtime.Core
 {
-    public enum DishQuality
+    public enum DishFormationStatus
+    {
+        Formed,
+        Unformed
+    }
+
+    public enum DishVariantStatus
+    {
+        Base,
+        Variant
+    }
+
+    public enum DishOddity
     {
         Normal,
-        Altered,
-        Perfect,
-        Disgusting
+        Bizarre
+    }
+
+    public enum DishSafety
+    {
+        Safe,
+        Dangerous
+    }
+
+    public enum DishCraftGrade
+    {
+        Bad,
+        Normal,
+        Good,
+        Perfect
     }
 }

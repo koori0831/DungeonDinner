@@ -191,7 +191,7 @@ namespace Work.Cook.Code.Runtime.UI
             RebuildAvailableIngredients(availableIngredients, selectedIngredients, resetScroll);
             RebuildSelectedIngredients(selectedIngredients, resetScroll);
             BindAvailableSummary(availableIngredients);
-            SetConfirmInteractable(IsSelectionCountValid(selectedIngredients));
+            SetConfirmInteractable(IsSelectionValid(selectedIngredients, out _));
             BindFocusedIngredientDetail();
         }
 
@@ -200,18 +200,17 @@ namespace Work.Cook.Code.Runtime.UI
             if (ingredient == null || flowRunner == null)
                 return;
 
-            if (ContainsIngredient(flowRunner.SelectedIngredients, ingredient))
-                flowRunner.RemoveDirectIngredient(ingredient);
-            else
-            {
-                if (CanSelectMore(flowRunner.SelectedIngredients) == false)
-                    return;
+            if (CanSelectMore(flowRunner.SelectedIngredients) == false)
+                return;
 
-                if (flowRunner.Controller.CurrentSession?.Mode == CookingMode.Recipe)
-                    flowRunner.AddRecipeIngredient(ingredient);
-                else
-                    flowRunner.AddDirectIngredient(ingredient);
-            }
+            int selectedQuantity = CountIngredientOccurrences(flowRunner.SelectedIngredients, ingredient);
+            if (selectedQuantity >= GetAvailableQuantity(ingredient))
+                return;
+
+            if (flowRunner.Controller.CurrentSession?.Mode == CookingMode.Recipe)
+                flowRunner.AddRecipeIngredient(ingredient);
+            else
+                flowRunner.AddDirectIngredient(ingredient);
 
             Refresh(false);
         }
@@ -239,7 +238,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         public void ConfirmSelection()
         {
-            if (IsSelectionCountValid(flowRunner?.SelectedIngredients) == false)
+            if (IsSelectionValid(flowRunner?.SelectedIngredients, out _) == false)
             {
                 Refresh(false);
                 return;
@@ -274,12 +273,15 @@ namespace Work.Cook.Code.Runtime.UI
                     continue;
 
                 int availableQuantity = GetAvailableQuantity(ingredient);
-                if (hideUnavailableIngredients == true && availableQuantity <= 0)
+                if (hideUnavailableIngredients == true
+                    && ResolveIngredientSource() is ICookingRecipePlanSource == false
+                    && availableQuantity <= 0)
                     continue;
 
-                bool selected = ContainsIngredient(selectedIngredients, ingredient);
-                bool interactable = selected == true
-                                    || (availableQuantity > 0 && CanSelectMore(selectedIngredients) == true);
+                int selectedQuantity = CountIngredientOccurrences(selectedIngredients, ingredient);
+                bool selected = selectedQuantity > 0;
+                bool interactable = selectedQuantity < availableQuantity
+                                    && CanSelectMore(selectedIngredients) == true;
                 Button button = CreateIngredientButton(
                     availableIngredientRoot,
                     ingredient,
@@ -413,6 +415,13 @@ namespace Work.Cook.Code.Runtime.UI
 
         private string BuildAvailableIngredientLabel(IngredientSO ingredient, int availableQuantity)
         {
+            ICookingRecipePlanSource planSource = ResolveIngredientSource() as ICookingRecipePlanSource;
+            if (planSource != null)
+            {
+                int required = planSource.GetRequiredIngredientQuantity(ingredient);
+                return $"{ingredient.DisplayName}  필요 {required} / 보유 {availableQuantity}";
+            }
+
             return CookingIngredientSelectionTextFormatter.BuildAvailableIngredientLabel(
                 ingredient,
                 availableQuantity,
@@ -582,6 +591,17 @@ namespace Work.Cook.Code.Runtime.UI
 
         private string BuildSelectionRuleText(int selectedCount)
         {
+            ICookingRecipePlanSource planSource = ResolveIngredientSource() as ICookingRecipePlanSource;
+            if (planSource != null)
+            {
+                bool valid = planSource.IsSelectionValid(
+                    flowRunner?.SelectedIngredients,
+                    gamePanel,
+                    flowRunner,
+                    out string reason);
+                return valid ? "레시피 슬롯과 보유 수량을 충족했습니다." : reason;
+            }
+
             return CookingIngredientSelectionTextFormatter.BuildSelectionRuleText(
                 selectedCount,
                 minSelectedIngredients,
@@ -664,6 +684,23 @@ namespace Work.Cook.Code.Runtime.UI
             return CookingIngredientSelectionRules.ContainsIngredient(ingredients, ingredient);
         }
 
+        private static int CountIngredientOccurrences(
+            IReadOnlyList<IngredientSO> ingredients,
+            IngredientSO ingredient)
+        {
+            if (ingredients == null || ingredient == null)
+                return 0;
+
+            int count = 0;
+            for (int i = 0; i < ingredients.Count; i++)
+            {
+                if (ingredients[i] == ingredient)
+                    count++;
+            }
+
+            return count;
+        }
+
         private int CountDisplayableIngredients(IReadOnlyList<IngredientSO> ingredients)
         {
             if (ingredients == null)
@@ -679,13 +716,28 @@ namespace Work.Cook.Code.Runtime.UI
                 if (MatchesSearch(ingredient) == false)
                     continue;
 
-                if (hideUnavailableIngredients == true && GetAvailableQuantity(ingredient) <= 0)
+                if (hideUnavailableIngredients == true
+                    && ResolveIngredientSource() is ICookingRecipePlanSource == false
+                    && GetAvailableQuantity(ingredient) <= 0)
                     continue;
 
                 count++;
             }
 
             return count;
+        }
+
+        private bool IsSelectionValid(
+            IReadOnlyList<IngredientSO> selectedIngredients,
+            out string reason)
+        {
+            ICookingRecipePlanSource planSource = ResolveIngredientSource() as ICookingRecipePlanSource;
+            if (planSource != null)
+                return planSource.IsSelectionValid(selectedIngredients, gamePanel, flowRunner, out reason);
+
+            bool valid = IsSelectionCountValid(selectedIngredients);
+            reason = valid ? string.Empty : BuildSelectionRuleText(selectedIngredients != null ? selectedIngredients.Count : 0);
+            return valid;
         }
 
         private static void ClearChildren(Transform root)

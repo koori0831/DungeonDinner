@@ -177,17 +177,21 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (preparationOptionCardPrefab != null)
             {
+                PlannedPreparation recommendation = flowRunner?.GetCurrentPreparationRecommendation();
+                bool isRecommended = recommendation?.PreparationOption == option;
+                bool isAllowed = flowRunner == null || flowRunner.IsCurrentPreparationAllowed(option);
                 CookingPreparationOptionCardView view = Instantiate(preparationOptionCardPrefab, cardRoot);
                 Sprite prefabIconSprite = GetOptionIconSprite(option);
                 view.Bind(
                     BuildOptionIconText(index, option),
                     prefabIconSprite,
                     option.DisplayName,
-                    BuildOptionDescription(option),
+                    BuildOptionDescription(option, isRecommended, isAllowed, recommendation?.Kind),
                     BuildKnownEffectText(ingredient, option),
                     "선택",
                     true,
                     () => SelectPreparation(ingredient, option));
+                view.SetSelected(isRecommended);
                 return;
             }
 
@@ -205,9 +209,6 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (flowRunner == null || ingredient == null)
                 return;
-
-            if (option != null)
-                LearnPreparationEffect(ingredient, option);
 
             flowRunner.SelectPreparation(ingredient, option);
             Refresh();
@@ -310,18 +311,43 @@ namespace Work.Cook.Code.Runtime.UI
             return "도마 위에 올려진 재료를 어떻게 손질할지 선택합니다.";
         }
 
-        private static string BuildOptionDescription(IngredientPreparationOption option)
+        private static string BuildOptionDescription(
+            IngredientPreparationOption option,
+            bool isRecommended,
+            bool isAllowed,
+            CookingPreparationRecommendationKind? recommendationKind)
         {
             if (option == null)
                 return string.Empty;
 
+            StringBuilder builder = new StringBuilder();
+            if (isRecommended)
+                builder.AppendLine(BuildRecommendationLabel(recommendationKind));
+            else if (isAllowed)
+                builder.AppendLine("레시피 허용");
+
             if (string.IsNullOrWhiteSpace(option.Description) == false)
-                return option.Description;
+                builder.Append(option.Description);
 
-            if (option.Method != null && string.IsNullOrWhiteSpace(option.Method.Description) == false)
-                return option.Method.Description;
+            else if (option.Method != null && string.IsNullOrWhiteSpace(option.Method.Description) == false)
+                builder.Append(option.Method.Description);
 
-            return "이 방식으로 재료를 손질합니다.";
+            else
+                builder.Append("이 방식으로 재료를 손질합니다.");
+            return builder.ToString();
+        }
+
+        private static string BuildRecommendationLabel(CookingPreparationRecommendationKind? kind)
+        {
+            switch (kind)
+            {
+                case CookingPreparationRecommendationKind.ReplayedVariant:
+                    return "추천 · 변형 기록";
+                case CookingPreparationRecommendationKind.KnownPerfect:
+                    return "추천 · 확인한 최적 손질";
+                default:
+                    return "추천 · 유일한 레시피 허용 손질";
+            }
         }
 
         private string BuildKnownEffectText(IngredientSO ingredient, IngredientPreparationOption option)
@@ -361,20 +387,6 @@ namespace Work.Cook.Code.Runtime.UI
                 return knowledgeStore.IsPreparationEffectKnown(ingredient, option);
 
             return _knownEffectKeys.Contains(BuildEffectKey(ingredient, option));
-        }
-
-        private void LearnPreparationEffect(IngredientSO ingredient, IngredientPreparationOption option)
-        {
-            if (option == null)
-                return;
-
-            if (knowledgeStore != null)
-            {
-                knowledgeStore.LearnPreparationEffect(ingredient, option);
-                return;
-            }
-
-            _knownEffectKeys.Add(BuildEffectKey(ingredient, option));
         }
 
         private static string BuildEffectKey(IngredientSO ingredient, IngredientPreparationOption option)

@@ -89,6 +89,7 @@ namespace Work.Cook.Code.Editor
                 IngredientRequirementDraft requirement = requirements[i];
                 property.InsertArrayElementAtIndex(property.arraySize);
                 SerializedProperty element = property.GetArrayElementAtIndex(property.arraySize - 1);
+                element.FindPropertyRelative("requirementId").stringValue = requirement.RequirementId ?? string.Empty;
                 element.FindPropertyRelative("ingredient").objectReferenceValue = requirement.Ingredient;
                 element.FindPropertyRelative("ingredientCategory").objectReferenceValue = requirement.IngredientCategory;
                 element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = null;
@@ -162,6 +163,7 @@ namespace Work.Cook.Code.Editor
                 PreparationOptionDraft option = options[i];
                 property.InsertArrayElementAtIndex(property.arraySize);
                 SerializedProperty element = property.GetArrayElementAtIndex(property.arraySize - 1);
+                element.FindPropertyRelative("preparationOptionId").stringValue = option.PreparationOptionId ?? string.Empty;
                 element.FindPropertyRelative("method").objectReferenceValue = option.Method;
                 element.FindPropertyRelative("displayNameOverride").stringValue = option.DisplayNameOverride ?? string.Empty;
                 element.FindPropertyRelative("description").stringValue = option.Description ?? string.Empty;
@@ -171,6 +173,31 @@ namespace Work.Cook.Code.Editor
                 element.FindPropertyRelative("causesDisgusting").boolValue = option.CausesDisgusting;
                 element.FindPropertyRelative("addsPoison").boolValue = option.AddsPoison;
                 element.FindPropertyRelative("resultNameModifier").stringValue = option.ResultNameModifier ?? string.Empty;
+                SetMiniGameFeedbackRules(element.FindPropertyRelative("miniGameFeedbackRules"), option.MiniGameFeedbackRules);
+            }
+        }
+
+        private static void SetMiniGameFeedbackRules(
+            SerializedProperty property,
+            IReadOnlyList<MiniGameFeedbackRuleDraft> rules)
+        {
+            if (property == null || property.isArray == false)
+                return;
+            property.ClearArray();
+            if (rules == null)
+                return;
+            for (int i = 0; i < rules.Count; i++)
+            {
+                MiniGameFeedbackRuleDraft rule = rules[i];
+                property.InsertArrayElementAtIndex(property.arraySize);
+                SerializedProperty element = property.GetArrayElementAtIndex(property.arraySize - 1);
+                element.FindPropertyRelative("grade").enumValueIndex = (int)rule.Grade;
+                element.FindPropertyRelative("variantEffectId").stringValue = rule.VariantEffectId ?? string.Empty;
+                element.FindPropertyRelative("qualityDelta").intValue = rule.QualityDelta;
+                SetRelativeObjectArray(element.FindPropertyRelative("addTags"), rule.AddTags);
+                SetRelativeObjectArray(element.FindPropertyRelative("removeTags"), rule.RemoveTags);
+                element.FindPropertyRelative("resultNameModifier").stringValue = rule.ResultNameModifier ?? string.Empty;
+                element.FindPropertyRelative("feedbackText").stringValue = rule.FeedbackText ?? string.Empty;
             }
         }
 

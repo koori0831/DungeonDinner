@@ -59,7 +59,7 @@ namespace Work.Cook.Code.Runtime.UI
         public string DishName { get; }
         public string RecipeName { get; }
         public string CategoryName { get; }
-        public DishQuality Quality { get; }
+        public DishCraftGrade CraftGrade { get; }
         public string QualityName { get; }
         public int QualityScore { get; }
         public IReadOnlyList<string> RepresentativeTags { get; }
@@ -82,7 +82,7 @@ namespace Work.Cook.Code.Runtime.UI
             string dishName,
             string recipeName,
             string categoryName,
-            DishQuality quality,
+            DishCraftGrade craftGrade,
             string qualityName,
             int qualityScore,
             IReadOnlyList<string> representativeTags,
@@ -104,7 +104,7 @@ namespace Work.Cook.Code.Runtime.UI
             DishName = dishName ?? string.Empty;
             RecipeName = recipeName ?? string.Empty;
             CategoryName = categoryName ?? string.Empty;
-            Quality = quality;
+            CraftGrade = craftGrade;
             QualityName = qualityName ?? string.Empty;
             QualityScore = qualityScore;
             RepresentativeTags = representativeTags ?? new List<string>();

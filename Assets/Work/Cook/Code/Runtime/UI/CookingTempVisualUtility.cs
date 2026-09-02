@@ -44,9 +44,9 @@ namespace Work.Cook.Code.Runtime.UI
                 return result.BaseRecipe.IconSprite;
 
             string key = string.IsNullOrWhiteSpace(result.RecipeId) == false ? result.RecipeId : result.DisplayName;
-            if (result.IsDisgusting == true)
+            if (result.IsBizarre == true)
             {
-                key = $"disgusting_{key}";
+                key = $"bizarre_{key}";
             }
 
             return ItemIconUtility.GetOrCreateTempIcon($"dish_{key}", result.DisplayName, 0.78f, 0.54f, 0.32f);

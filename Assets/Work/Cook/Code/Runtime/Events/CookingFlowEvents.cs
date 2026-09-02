@@ -81,7 +81,8 @@ namespace Work.Cook.Code.Runtime.Events
     /// </summary>
     /// <param name="Source">변경된 지식 저장소</param>
     public readonly record struct CookingKnowledgeChangedEvent(
-        CookingKnowledgeStore Source
+        CookingKnowledgeStore Source,
+        string VariantId = null
     ) : IEvent;
 
     /// <summary>
@@ -151,7 +152,8 @@ namespace Work.Cook.Code.Runtime.Events
     /// <param name="Recipe">확정할 레시피</param>
     public readonly record struct CookingRecipeConfirmRequestedEvent(
         CookingGamePanel Source,
-        RecipeSO Recipe
+        RecipeSO Recipe,
+        string VariantId = null
     ) : IEvent;
 
     /// <summary>

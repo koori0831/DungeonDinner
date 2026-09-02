@@ -6883,8 +6883,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Runtime.CookingRewardWallet
   startingBalance: 0
-  loadFromPlayerPrefsOnAwake: 0
-  saveToPlayerPrefs: 0
+  loadFromPlayerPrefsOnAwake: 1
+  saveToPlayerPrefs: 1
   playerPrefsKey: DungeonDinner.CookingRewardBalance
 --- !u!114 &1154906897
 MonoBehaviour:
@@ -6902,8 +6902,8 @@ MonoBehaviour:
   initialDiscoveredRecipes: []
   initialKnownRecipeTags: []
   initialKnownPreparationEffects: []
-  loadFromPlayerPrefsOnAwake: 0
-  saveToPlayerPrefs: 0
+  loadFromPlayerPrefsOnAwake: 1
+  saveToPlayerPrefs: 1
   playerPrefsKey: DungeonDinner.CookingKnowledge
 --- !u!114 &1154906898
 MonoBehaviour:
@@ -12614,8 +12614,8 @@ MonoBehaviour:
   uncategorizedCategoryDisplayName: "\uAE30\uD0C0"
   defaultCategoryIcon: {fileID: 21300000, guid: 39c80af7fc2e8094fa2607b984923b70, type: 3}
   recipeDisplayViewType: 7
-  showAllRecipeNamesInEncyclopedia: 1
-  showAllRecipesUntilKnowledgeStoreExists: 1
+  showAllRecipeNamesInEncyclopedia: 0
+  showAllRecipesUntilKnowledgeStoreExists: 0
   showBaseTagsAsKnownForTesting: 0
   discoveredRecipes: []
   knownRecipeTags: []

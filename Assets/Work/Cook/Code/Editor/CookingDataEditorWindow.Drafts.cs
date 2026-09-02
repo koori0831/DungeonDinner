@@ -42,6 +42,7 @@ namespace Work.Cook.Code.Editor
                     IngredientRequirementDraft requirement = new IngredientRequirementDraft();
                     if (source != null)
                     {
+                        requirement.RequirementId = source.RequirementId;
                         requirement.Ingredient = source.Ingredient;
                         requirement.IngredientCategory = source.IngredientCategory;
                         requirement.RequiredTags = new List<FoodTagSO>(source.RequiredTags);
@@ -201,6 +202,7 @@ namespace Work.Cook.Code.Editor
                         SerializedProperty element = options.GetArrayElementAtIndex(i);
                         draft.PreparationOptions.Add(new PreparationOptionDraft
                         {
+                            PreparationOptionId = ReadRelativeString(element, "preparationOptionId"),
                             Method = ReadRelativeObject<PreparationMethodSO>(element, "method"),
                             DisplayNameOverride = ReadRelativeString(element, "displayNameOverride"),
                             Description = ReadRelativeString(element, "description"),
@@ -209,7 +211,8 @@ namespace Work.Cook.Code.Editor
                             QualityDelta = ReadRelativeInt(element, "qualityDelta"),
                             CausesDisgusting = ReadRelativeBool(element, "causesDisgusting"),
                             AddsPoison = ReadRelativeBool(element, "addsPoison"),
-                            ResultNameModifier = ReadRelativeString(element, "resultNameModifier")
+                            ResultNameModifier = ReadRelativeString(element, "resultNameModifier"),
+                            MiniGameFeedbackRules = ReadFeedbackRules(element.FindPropertyRelative("miniGameFeedbackRules"))
                         });
                     }
                 }
@@ -220,6 +223,7 @@ namespace Work.Cook.Code.Editor
 
         private sealed class IngredientRequirementDraft
         {
+            public string RequirementId;
             public IngredientSO Ingredient;
             public IngredientCategorySO IngredientCategory;
             public List<FoodTagSO> RequiredTags = new List<FoodTagSO>();
@@ -247,6 +251,7 @@ namespace Work.Cook.Code.Editor
 
         private sealed class PreparationOptionDraft
         {
+            public string PreparationOptionId;
             public PreparationMethodSO Method;
             public string DisplayNameOverride;
             public string Description;
@@ -256,6 +261,40 @@ namespace Work.Cook.Code.Editor
             public bool CausesDisgusting;
             public bool AddsPoison;
             public string ResultNameModifier;
+            public List<MiniGameFeedbackRuleDraft> MiniGameFeedbackRules = new List<MiniGameFeedbackRuleDraft>();
+        }
+
+        private sealed class MiniGameFeedbackRuleDraft
+        {
+            public CookingMiniGameGrade Grade;
+            public string VariantEffectId;
+            public int QualityDelta;
+            public List<FoodTagSO> AddTags = new List<FoodTagSO>();
+            public List<FoodTagSO> RemoveTags = new List<FoodTagSO>();
+            public string ResultNameModifier;
+            public string FeedbackText;
+        }
+
+        private static List<MiniGameFeedbackRuleDraft> ReadFeedbackRules(SerializedProperty property)
+        {
+            List<MiniGameFeedbackRuleDraft> rules = new List<MiniGameFeedbackRuleDraft>();
+            if (property == null || property.isArray == false)
+                return rules;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                SerializedProperty element = property.GetArrayElementAtIndex(i);
+                rules.Add(new MiniGameFeedbackRuleDraft
+                {
+                    Grade = (CookingMiniGameGrade)element.FindPropertyRelative("grade").enumValueIndex,
+                    VariantEffectId = ReadRelativeString(element, "variantEffectId"),
+                    QualityDelta = ReadRelativeInt(element, "qualityDelta"),
+                    AddTags = ReadObjectArray<FoodTagSO>(element.FindPropertyRelative("addTags")),
+                    RemoveTags = ReadObjectArray<FoodTagSO>(element.FindPropertyRelative("removeTags")),
+                    ResultNameModifier = ReadRelativeString(element, "resultNameModifier"),
+                    FeedbackText = ReadRelativeString(element, "feedbackText")
+                });
+            }
+            return rules;
         }
     }
 }

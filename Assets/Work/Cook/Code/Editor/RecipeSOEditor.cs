@@ -57,9 +57,17 @@ namespace Work.Cook.Code.Editor
 
             RecipeSO recipe = (RecipeSO)target;
             EditorGUILayout.HelpBox(
-                "레시피는 선택 모드에서는 최종 음식으로 고정되고, 직접 재료 선택 모드에서는 손질 완료 결과로 매칭됩니다. " +
+                "선택한 레시피는 목표 정보일 뿐 결과를 고정하지 않습니다. 손질 완료 조합을 전체 카탈로그와 비교해 가장 높은 점수의 레시피를 판정합니다. " +
                 "필요 재료 슬롯에는 특정 재료, 재료 카테고리, 태그, 손질법, 개수 조건을 함께 지정할 수 있습니다.",
                 MessageType.Info);
+
+            if (GUILayout.Button("비어 있는 슬롯 ID 생성"))
+            {
+                serializedObject.ApplyModifiedProperties();
+                CookingDataIdGenerator.GenerateMissingIdsForRecipe(recipe);
+                AssetDatabase.SaveAssets();
+                serializedObject.Update();
+            }
 
             DrawValidationMessages(recipe);
             DrawBasicSection();
@@ -118,7 +126,7 @@ namespace Work.Cook.Code.Editor
             {
                 EditorGUILayout.HelpBox(
                     "각 슬롯은 특정 재료, 재료 카테고리, 필수 태그, 필수 손질법, 최소/최대 개수를 가질 수 있습니다. " +
-                    "레시피 선택 모드에서 필수 손질법이 있고 자동 적용이 켜져 있으면 손질 UI를 건너뛰고 해당 손질이 기록됩니다.",
+                    "필수 손질법은 허용 범위로 사용되며, 추천 손질은 UI에서만 강조되고 자동 적용되지 않습니다.",
                     MessageType.Info);
 
                 if (_requiredIngredients.arraySize == 0)
@@ -136,6 +144,7 @@ namespace Work.Cook.Code.Editor
         {
             SerializedProperty element = _requiredIngredients.GetArrayElementAtIndex(index);
             SerializedProperty ingredient = element.FindPropertyRelative("ingredient");
+            SerializedProperty requirementId = element.FindPropertyRelative("requirementId");
             SerializedProperty ingredientCategory = element.FindPropertyRelative("ingredientCategory");
             SerializedProperty requiredTags = element.FindPropertyRelative("requiredTags");
             SerializedProperty alternatives = element.FindPropertyRelative("alternatives");
@@ -145,7 +154,6 @@ namespace Work.Cook.Code.Editor
             SerializedProperty minCount = element.FindPropertyRelative("minCount");
             SerializedProperty maxCount = element.FindPropertyRelative("maxCount");
             SerializedProperty recipeDefining = element.FindPropertyRelative("recipeDefining");
-            SerializedProperty requireManualPreparation = element.FindPropertyRelative("requireManualPreparation");
 
             using (new EditorGUILayout.VerticalScope("box"))
             {
@@ -159,6 +167,7 @@ namespace Work.Cook.Code.Editor
                     }
                 }
 
+                EditorGUILayout.PropertyField(requirementId, new GUIContent("슬롯 ID"));
                 EditorGUILayout.PropertyField(ingredient, new GUIContent("기준 재료"));
                 EditorGUILayout.PropertyField(ingredientCategory, new GUIContent("재료군"));
                 DrawObjectReferenceArray(requiredTags, typeof(FoodTagSO), "필수 태그", "+ 필수 태그 추가", "필수 태그가 없습니다.");
@@ -167,14 +176,13 @@ namespace Work.Cook.Code.Editor
                 DrawObjectReferenceArray(requiredPreparationMethods, typeof(PreparationMethodSO), "필수 손질법", "+ 필수 손질법 추가", "필수 손질법 없음", 2);
 
                 EditorGUILayout.Space(4f);
-                EditorGUILayout.LabelField("손질/개수 조건", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("개수 조건", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(minCount, new GUIContent("최소 개수"));
                 EditorGUILayout.PropertyField(maxCount, new GUIContent("최대 개수 (0 = 제한 없음)"));
 
                 EditorGUILayout.Space(4f);
-                EditorGUILayout.LabelField("레시피 선택 모드 처리", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("매칭 처리", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(recipeDefining, new GUIContent("요리 결정 조건"));
-                EditorGUILayout.PropertyField(requireManualPreparation, new GUIContent("직접 손질 필요"));
             }
         }
 
@@ -217,12 +225,14 @@ namespace Work.Cook.Code.Editor
 
                 List<PreparedIngredientState> prepared = BuildTestPreparedIngredients();
                 bool ingredientOnlyMatch = recipe.MatchesIngredients(BuildTestIngredients());
-                bool preparedMatch = recipe.MatchesPreparedIngredients(prepared);
+                RecipePreparedMatchResult preparedMatch = recipe.MatchPreparedIngredients(prepared);
                 int score = recipe.CalculateMatchScore(prepared);
 
                 EditorGUILayout.Space(4f);
                 EditorGUILayout.LabelField($"재료만 매칭: {(ingredientOnlyMatch ? "성공" : "실패")}");
-                EditorGUILayout.LabelField($"손질 포함 매칭: {(preparedMatch ? "성공" : "실패")}");
+                EditorGUILayout.LabelField($"손질 포함 매칭: {preparedMatch.Status}");
+                if (string.IsNullOrWhiteSpace(preparedMatch.Reason) == false)
+                    EditorGUILayout.LabelField(preparedMatch.Reason, EditorStyles.wordWrappedLabel);
                 EditorGUILayout.LabelField($"매칭 점수: {score}");
             }
         }
@@ -339,6 +349,7 @@ namespace Work.Cook.Code.Editor
             _requiredIngredients.InsertArrayElementAtIndex(newIndex);
 
             SerializedProperty element = _requiredIngredients.GetArrayElementAtIndex(newIndex);
+            element.FindPropertyRelative("requirementId").stringValue = string.Empty;
             element.FindPropertyRelative("ingredient").objectReferenceValue = null;
             element.FindPropertyRelative("ingredientCategory").objectReferenceValue = null;
             element.FindPropertyRelative("requiredPreparationMethod").objectReferenceValue = null;
@@ -427,6 +438,23 @@ namespace Work.Cook.Code.Editor
 
         private static void DrawValidationMessages(RecipeSO recipe)
         {
+            CookingDataCatalogSO catalog = CookingEditorCatalogUtility.FindCatalogContaining(recipe);
+            if (catalog != null)
+            {
+                CookingDataValidationReport report = new CookingDataValidationService().ValidateRecipe(catalog, recipe);
+                for (int i = 0; i < report.Issues.Count; i++)
+                {
+                    CookingDataValidationIssue issue = report.Issues[i];
+                    MessageType type = issue.Severity == CookingDataValidationSeverity.Error
+                        ? MessageType.Error
+                        : issue.Severity == CookingDataValidationSeverity.Warning
+                            ? MessageType.Warning
+                            : MessageType.Info;
+                    EditorGUILayout.HelpBox($"{issue.Code}: {issue.Message}", type);
+                }
+                return;
+            }
+
             List<string> warnings = BuildValidationWarnings(recipe);
             if (warnings.Count == 0)
                 return;
@@ -543,9 +571,6 @@ namespace Work.Cook.Code.Editor
                 ? $"{requirement.MinCount}-{requirement.MaxCount}개"
                 : $"{requirement.MinCount}개 이상";
             parts.Add(count);
-
-            if (requirement.RequireManualPreparation)
-                parts.Add("직접 손질");
 
             return parts.Count > 0 ? string.Join(" / ", parts) : "조건 없음";
         }
