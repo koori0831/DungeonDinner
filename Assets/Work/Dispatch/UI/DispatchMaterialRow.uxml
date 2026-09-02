@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="material-row" class="list-row material-row">
+        <ui:VisualElement class="material-icon-frame">
+            <ui:Image name="material-icon" class="material-icon" />
+        </ui:VisualElement>
+        <ui:VisualElement class="row-text-group material-text">
+            <ui:Label name="material-name" text="재료" class="row-title" />
+            <ui:Label name="material-estimate" text="예상 0~0" class="row-subtitle" />
+        </ui:VisualElement>
+        <ui:VisualElement class="quantity-control">
+            <ui:Button name="decrease-button" text="−" class="quantity-button" />
+            <ui:Label name="quantity-label" text="0" class="quantity-label" />
+            <ui:Button name="increase-button" text="+" class="quantity-button" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

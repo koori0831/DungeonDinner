@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e765b4e9cb0f20459fa509592850f02, type: 3}
   m_Name: VolcanicZone
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Work.Adventure.Code.MapInfoSO
+  <RegionId>k__BackingField: Volcano
   <MapName>k__BackingField: "\uD654\uC0B0\uC9C0\uB300"
   <Description>k__BackingField: "\uB4F1\uC7A5 \uBAAC\uC2A4\uD130 : 000 , 000\\n\uB4F1\uC7A5
     \uCC44\uC9D1\uBB3C : 0000 , 000"

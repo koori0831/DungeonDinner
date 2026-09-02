@@ -5,6 +5,7 @@ using UnityEngine;
 using Work.Adventure.Code.UI;
 using Work.Core.EventBus;
 using Work.UtillUI.Code.Fade;
+using Work.TimeSystem;
 
 namespace Work.Adventure.Code
 {
@@ -20,14 +21,19 @@ namespace Work.Adventure.Code
         [SerializeField] private AdventureBackground background;
         [SerializeField] private AdventureDialogUI dialog;
         [SerializeField] private AdventureItemUI itemUI;
+        [SerializeField] private GameTimeService gameTimeService;
 
         [SerializeField] private List<AdventureEventSO> eventList = new List<AdventureEventSO>();
 
         private AdventureEventSO _currentEvent;
         private Dictionary<string, int> _adventureItemDic = new Dictionary<string, int>();
+        private bool _isAdventureRunning;
 
         public void Init()
         {
+            if (gameTimeService == null)
+                gameTimeService = FindFirstObjectByType<GameTimeService>();
+
             adventureMap.Init(StartAdventure);
             Bus<OnHaveItemEvent, BoolenReturnValue>.Events += HandleHaveItemCheckEvent;
             Bus<OnAddAdventureItemEvent>.Events += HandleAddAdventureItemEvent;
@@ -80,6 +86,10 @@ namespace Work.Adventure.Code
 
         public void StartAdventure()
         {
+            if (_isAdventureRunning)
+                return;
+
+            _isAdventureRunning = true;
             Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() =>
             {
                 itemUI.Enable();
@@ -100,6 +110,15 @@ namespace Work.Adventure.Code
 
         public void StopAdventure()
         {
+            if (_isAdventureRunning == false)
+                return;
+
+            _isAdventureRunning = false;
+            if (gameTimeService != null)
+                gameTimeService.AdvanceTime(1, GameTimeActivityType.Adventure);
+            else
+                Debug.LogError("GameTimeService가 없어 모험 시간을 반영하지 못했습니다.", this);
+
             Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() =>
             {
                 itemUI.Disable();

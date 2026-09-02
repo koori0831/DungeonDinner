@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Work.Core.EventBus;
 using Work.NPC.Code.Data;
@@ -7,8 +8,8 @@ using Work.NPC.Code.Runtime;
 using Work.Cook.Code.Runtime.Core;
 using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
-using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
+using Work.TimeSystem;
 
 namespace Work.Cook.Code.Runtime.Systems
 {
@@ -27,10 +28,10 @@ namespace Work.Cook.Code.Runtime.Systems
     ) : IEvent;
 
     /// <summary>
-    /// 영업 종료 후 다음날 진행을 요청하는 이벤트
+    /// 준비 화면에서 다음 음식점 운영을 시작하도록 요청하는 이벤트입니다.
+    /// 날짜는 GameTimeService의 누적 시간으로 자동 계산됩니다.
     /// </summary>
-    /// <param name="Target">대상 영업 흐름 컨트롤러, null이면 현재 종료 대기 중인 컨트롤러</param>
-    public readonly record struct CookingBusinessAdvanceDayRequestedEvent(
+    public readonly record struct CookingBusinessResumeRequestedEvent(
         CookingBusinessFlowController Target
     ) : IEvent;
     
@@ -39,7 +40,11 @@ namespace Work.Cook.Code.Runtime.Systems
         [SerializeField] private CookingGamePanel gamePanel;
         [SerializeField] private NpcEncounterDirector encounterDirector;
         [SerializeField] private NpcConversationRunner npcRunner;
+        [SerializeField] private GameTimeService gameTimeService;
         [SerializeField] private bool startFirstCustomerOnStart = true;
+        [SerializeField] private bool hideCookingTestPanelOnStart = true;
+        [FormerlySerializedAs("startNextCustomerAfterAdvancingDay")]
+        [SerializeField] private bool startNextCustomerAfterResuming = true;
         [SerializeField] private bool advanceDayWhenShopCloses = true;
         [SerializeField] private bool startNextCustomerAfterAdvancingDay = true;
         [SerializeField] private RectTransform actionRoot;
@@ -48,7 +53,8 @@ namespace Work.Cook.Code.Runtime.Systems
         [SerializeField] private Button closeShopButton;
         [SerializeField] private string waitingText = "손님을 기다리는 중입니다.";
         [SerializeField] private string completedText = "오늘 영업을 마감했습니다.";
-        [SerializeField] private string nextDayText = "내일 영업을 시작합니다.";
+        [FormerlySerializedAs("nextDayText")]
+        [SerializeField] private string resumedText = "다음 영업을 시작합니다.";
         private bool _dishHandedToCurrentCustomer;
         private bool _businessClosed;
         private CookingRewardGrant _lastRewardGrant;
@@ -122,6 +128,9 @@ namespace Work.Cook.Code.Runtime.Systems
 
         public void CloseShop()
         {
+            if (_businessClosed)
+                return;
+
             _businessClosed = true;
             _dishHandedToCurrentCustomer = false;
             _lastRewardGrant = null;
@@ -129,17 +138,22 @@ namespace Work.Cook.Code.Runtime.Systems
             SetStatus(completedText);
             if (gamePanel != null)
                 Bus<CookingViewsCloseRequestedEvent>.Raise(new CookingViewsCloseRequestedEvent(gamePanel));
+            if (gameTimeService != null)
+                gameTimeService.AdvanceTime(3, GameTimeActivityType.Restaurant);
+            else
+                Debug.LogError("GameTimeService가 없어 음식점 운영 시간을 반영하지 못했습니다.", this);
+
             RaiseBusinessClosed();
         }
 
-        private void HandleBusinessAdvanceDayRequested(CookingBusinessAdvanceDayRequestedEvent businessEvent)
+        private void HandleBusinessResumeRequested(CookingBusinessResumeRequestedEvent businessEvent)
         {
             if (businessEvent.Target != null && businessEvent.Target != this)
             {
                 return;
             }
 
-            if (advanceDayWhenShopCloses == false || encounterDirector == null)
+            if (encounterDirector == null)
             {
                 return;
             }
@@ -149,11 +163,10 @@ namespace Work.Cook.Code.Runtime.Systems
                 return;
             }
 
-            encounterDirector.AdvanceDay();
             _businessClosed = false;
-            SetStatus(nextDayText);
+            SetStatus(resumedText);
 
-            if (startNextCustomerAfterAdvancingDay == true)
+            if (startNextCustomerAfterResuming == true)
                 StartNextCustomer();
         }
 
@@ -290,6 +303,8 @@ namespace Work.Cook.Code.Runtime.Systems
                 encounterDirector = FindFirstObjectByType<NpcEncounterDirector>();
             if (npcRunner == null)
                 npcRunner = FindFirstObjectByType<NpcConversationRunner>();
+            if (gameTimeService == null)
+                gameTimeService = FindFirstObjectByType<GameTimeService>();
         }
 
         private void Subscribe()
@@ -301,7 +316,7 @@ namespace Work.Cook.Code.Runtime.Systems
             }
             if (npcRunner != null)
                 npcRunner.ConversationCompleted += HandleConversationCompleted;
-            Bus<CookingBusinessAdvanceDayRequestedEvent>.Events += HandleBusinessAdvanceDayRequested;
+            Bus<CookingBusinessResumeRequestedEvent>.Events += HandleBusinessResumeRequested;
         }
 
         private void Unsubscribe()
@@ -313,7 +328,7 @@ namespace Work.Cook.Code.Runtime.Systems
             }
             if (npcRunner != null)
                 npcRunner.ConversationCompleted -= HandleConversationCompleted;
-            Bus<CookingBusinessAdvanceDayRequestedEvent>.Events -= HandleBusinessAdvanceDayRequested;
+            Bus<CookingBusinessResumeRequestedEvent>.Events -= HandleBusinessResumeRequested;
         }
 
         private void BindButtons()
