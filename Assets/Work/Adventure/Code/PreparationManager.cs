@@ -3,6 +3,7 @@ using Work.Adventure.Code.UI;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
 using Work.Core.EventBus;
+using Work.Dispatch.Code.UI;
 
 namespace Work.Adventure.Code
 {
@@ -12,6 +13,7 @@ namespace Work.Adventure.Code
 
         [SerializeField] private PreparationMenu preparationMenuUI;
         [SerializeField] private MainUI mainUIroot;
+        [SerializeField] private DispatchScreenPresenter dispatchScreen;
 
         public void Awake()
         {
@@ -19,6 +21,10 @@ namespace Work.Adventure.Code
             Bus<OnSelectPreparationEvent>.Events += HandleSelectPreparationEvent;
             preparationMenuUI.Init(() => mainUIroot.HideUI(), () => mainUIroot.ShowUI());
             adventureManager.Init();
+            if (dispatchScreen == null)
+                dispatchScreen = FindFirstObjectByType<DispatchScreenPresenter>();
+            if (dispatchScreen != null)
+                dispatchScreen.Closed += ReturnFromDispatch;
         }
 
         private void HandleSelectPreparationEvent(OnSelectPreparationEvent evt)
@@ -29,7 +35,7 @@ namespace Work.Adventure.Code
                 Debug.Log("HandleSelectPreparationEvent: Adventure");
                 SelectAdventure();
             }
-            else if (evt.preparationType == PreparationEnum.Adventure)
+            else if (evt.preparationType == PreparationEnum.Dispatch)
             {
                 Debug.Log("HandleSelectPreparationEvent: Dispatch");
                 SelectDispatch();
@@ -40,6 +46,8 @@ namespace Work.Adventure.Code
         {
             Bus<CookingBusinessClosedEvent>.Events -= EndBusiness;
             Bus<OnSelectPreparationEvent>.Events -= HandleSelectPreparationEvent;
+            if (dispatchScreen != null)
+                dispatchScreen.Closed -= ReturnFromDispatch;
         }
 
         [ContextMenu("TestEndBusiness")]
@@ -68,7 +76,22 @@ namespace Work.Adventure.Code
 
         public void SelectDispatch()
         {
+            if (dispatchScreen == null)
+                dispatchScreen = FindFirstObjectByType<DispatchScreenPresenter>();
 
+            if (dispatchScreen != null)
+                dispatchScreen.Show();
+            else
+            {
+                Debug.LogError("파견 UI를 찾을 수 없습니다.", this);
+                ReturnFromDispatch();
+            }
+        }
+
+        private void ReturnFromDispatch()
+        {
+            preparationMenuUI.ShowUI();
+            mainUIroot.ShowUI();
         }
     }
 }

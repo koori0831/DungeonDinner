@@ -1,0 +1,92 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="project://database/Assets/Work/Dispatch/UI/DispatchScreen.uss" />
+    <ui:VisualElement name="dispatch-root" class="dispatch-screen is-hidden">
+        <ui:VisualElement class="screen-dim" />
+        <ui:VisualElement class="ledger">
+            <ui:VisualElement class="ledger-header">
+                <ui:VisualElement>
+                    <ui:Label text="길드 파견 장부" class="title" />
+                    <ui:Label text="믿을 수 있는 이에게 필요한 물자를 부탁하십시오." class="subtitle" />
+                </ui:VisualElement>
+                <ui:VisualElement class="time-block">
+                    <ui:Label name="day-label" text="1일 차" class="time-day" />
+                    <ui:Label name="time-label" text="시간 0 / 6" class="time-value" />
+                </ui:VisualElement>
+                <ui:Button name="close-button" text="×" class="close-button" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="tab-bar">
+                <ui:Button name="request-tab-button" text="파견 작성" class="tab-button is-selected" />
+                <ui:Button name="active-tab-button" text="진행 중" class="tab-button" />
+                <ui:Button name="report-tab-button" text="귀환 보고서" class="tab-button" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="request-page" class="page request-page">
+                <ui:VisualElement class="ledger-column roster-column">
+                    <ui:Label text="파견 인명부" class="section-title" />
+                    <ui:Label text="친밀도가 충분한 인물에게만 부탁할 수 있습니다." class="section-hint" />
+                    <ui:ListView name="npc-list" class="ledger-list npc-list" fixed-item-height="72" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="ledger-column request-column">
+                    <ui:Label text="목적지" class="section-title" />
+                    <ui:ListView name="region-list" class="ledger-list region-list" fixed-item-height="48" />
+                    <ui:Label text="요청 물자" class="section-title material-title" />
+                    <ui:Label text="한 번에 최대 세 종류까지 선택할 수 있습니다." class="section-hint" />
+                    <ui:ListView name="material-list" class="ledger-list material-list" fixed-item-height="68" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="ledger-column summary-column">
+                    <ui:Label text="의뢰 전표" class="section-title" />
+                    <ui:VisualElement class="summary-slip">
+                        <ui:Label text="파견자" class="summary-key" />
+                        <ui:Label name="summary-npc" text="선택되지 않음" class="summary-value" />
+                        <ui:Label text="목적지" class="summary-key" />
+                        <ui:Label name="summary-region" text="선택되지 않음" class="summary-value" />
+                        <ui:Label text="요청 내용" class="summary-key" />
+                        <ui:Label name="summary-materials" text="재료를 선택해 주세요." class="summary-value summary-materials" />
+                        <ui:VisualElement class="divider" />
+                        <ui:Label name="summary-duration" text="예상 시간 -" class="duration-label" />
+                        <ui:Label name="summary-return" text="귀환 예정 -" class="return-label" />
+                        <ui:Label name="summary-rare" text="" class="rare-hint" />
+                    </ui:VisualElement>
+                    <ui:Label name="request-message" text="NPC와 재료를 선택해 주세요." class="message-label" />
+                    <ui:Button name="dispatch-button" text="파견 보내기" class="primary-button" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="active-page" class="page single-page is-hidden">
+                <ui:VisualElement class="status-card">
+                    <ui:Label text="현재 파견" class="section-title centered" />
+                    <ui:Label name="active-npc" text="진행 중인 파견이 없습니다." class="active-title" />
+                    <ui:Label name="active-region" text="" class="active-region" />
+                    <ui:Label name="active-requests" text="" class="active-requests" />
+                    <ui:ProgressBar name="active-progress" title="경과 시간" low-value="0" high-value="1" value="0" class="dispatch-progress" />
+                    <ui:Label name="active-remaining" text="" class="remaining-label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="report-page" class="page single-page is-hidden">
+                <ui:VisualElement class="report-panel">
+                    <ui:Label text="귀환 보고서" class="section-title centered" />
+                    <ui:Label text="인벤토리에 공간이 부족하면 남은 물자는 장부에 보관됩니다." class="section-hint centered" />
+                    <ui:ListView name="report-list" class="ledger-list report-list" fixed-item-height="118" />
+                    <ui:Label name="report-empty-label" text="도착한 보고서가 없습니다." class="empty-label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:Label name="toast-label" text="" class="toast is-hidden" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="confirmation-modal" class="modal-layer is-hidden">
+            <ui:VisualElement class="modal-card">
+                <ui:Label text="파견 확인" class="modal-title" />
+                <ui:Label name="confirmation-text" text="이 내용으로 파견을 보낼까요?" class="modal-text" />
+                <ui:VisualElement class="modal-buttons">
+                    <ui:Button name="confirmation-cancel-button" text="취소" class="secondary-button" />
+                    <ui:Button name="confirmation-accept-button" text="파견 보내기" class="primary-button" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

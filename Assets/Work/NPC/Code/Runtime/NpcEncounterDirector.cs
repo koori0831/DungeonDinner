@@ -5,7 +5,9 @@ using System.Text;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
+using Work.Core.EventBus;
 using Work.NPC.Code.Data;
+using Work.TimeSystem;
 using Random = UnityEngine.Random;
 
 namespace Work.NPC.Code.Runtime
@@ -36,6 +38,8 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private bool avoidImmediateRepeat = true;
         [SerializeField, Min(0)] private int recentNpcRepeatBlockCount = 2;
         [SerializeField, Min(0)] private int recentEventRepeatBlockCount = 3;
+        [SerializeField] private GameTimeService gameTimeService;
+        [SerializeField] private MonoBehaviour externalAvailabilityRuleSource;
 
         [Header("Encounter Intro")]
         [SerializeField] private Transform npcRiseTarget;
@@ -68,6 +72,7 @@ namespace Work.NPC.Code.Runtime
         private bool _isStartingEncounter;
         private bool _isPlayingNpcReturn;
         private bool _shouldReturnNpcAfterResultConversation;
+        private INpcAvailabilityRule _externalAvailabilityRule;
 
         public event Action<NpcAffinityChangeContext> AffinityChanged;
         public event Action<NpcAffinityChangeContext> AffinityLevelChanged;
@@ -107,8 +112,17 @@ namespace Work.NPC.Code.Runtime
                 ? NpcEncounterHistory.Load(historySaveKey)
                 : NpcEncounterHistory.CreateUnsaved();
 
-            SyncCurrentDayFromHistory();
+            if (gameTimeService == null)
+                gameTimeService = FindFirstObjectByType<GameTimeService>();
+
+            if (gameTimeService != null)
+                SetCurrentDay(gameTimeService.CurrentDay);
+            else
+                SyncCurrentDayFromHistory();
+
+            ResolveExternalAvailabilityRule();
             ReconcileRequestStatesFromPlayedRequestEvents();
+            Bus<GameDayChangedEvent>.Events += HandleGameDayChanged;
 
             if (runner != null)
             {
@@ -120,6 +134,7 @@ namespace Work.NPC.Code.Runtime
 
         private void OnDestroy()
         {
+            Bus<GameDayChangedEvent>.Events -= HandleGameDayChanged;
             _npcRiseTween?.Kill();
             _npcRiseTween = null;
 
@@ -141,6 +156,50 @@ namespace Work.NPC.Code.Runtime
         {
             regionId = newRegionId;
             SyncDailySessionState();
+        }
+
+        public bool TryGetNpcData(string npcId, out NpcData npc)
+        {
+            if (_database == null || string.IsNullOrWhiteSpace(npcId))
+            {
+                npc = null;
+                return false;
+            }
+
+            return _database.Npcs.TryGetValue(npcId, out npc);
+        }
+
+        public IReadOnlyList<NpcData> GetAllNpcData()
+        {
+            if (_database == null)
+                return Array.Empty<NpcData>();
+
+            return _database.Npcs.Values
+                .OrderBy(npc => npc.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        public int GetNpcAffinity(string npcId)
+        {
+            return _history != null && string.IsNullOrWhiteSpace(npcId) == false
+                ? _history.GetNpcAffinity(npcId)
+                : 0;
+        }
+
+        public IReadOnlyList<string> GetNpcRegionIds(string npcId)
+        {
+            if (_database == null || string.IsNullOrWhiteSpace(npcId))
+                return Array.Empty<string>();
+
+            return _database.RegionPoolEntries
+                .Where(entry => string.Equals(entry.NpcId, npcId, StringComparison.OrdinalIgnoreCase)
+                                && string.IsNullOrWhiteSpace(entry.RegionId) == false
+                                && entry.RegionId != "*"
+                                && string.Equals(entry.RegionId, "Any", StringComparison.OrdinalIgnoreCase) == false)
+                .Select(entry => entry.RegionId)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         public void SetCurrentDay(int newCurrentDay)
@@ -676,6 +735,12 @@ namespace Work.NPC.Code.Runtime
 
             foreach (RegionPoolEntryData entry in poolEntries)
             {
+                if (IsNpcExternallyAvailable(entry.NpcId) == false)
+                {
+                    dayRepeatBlocked++;
+                    continue;
+                }
+
                 if (entry.MinDay > currentDay)
                 {
                     minDayBlocked++;
@@ -731,6 +796,40 @@ namespace Work.NPC.Code.Runtime
                 $"historyLastDate={NpcImperialCalendar.FormatDayIndex(lastEncounterDay)}");
         }
 
+        private void HandleGameDayChanged(GameDayChangedEvent gameEvent)
+        {
+            SetCurrentDay(gameEvent.CurrentDay);
+        }
+
+        private void ResolveExternalAvailabilityRule()
+        {
+            _externalAvailabilityRule = externalAvailabilityRuleSource as INpcAvailabilityRule;
+            if (_externalAvailabilityRule != null)
+                return;
+
+            MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None);
+
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is INpcAvailabilityRule availabilityRule && behaviours[i] != this)
+                {
+                    _externalAvailabilityRule = availabilityRule;
+                    externalAvailabilityRuleSource = behaviours[i];
+                    return;
+                }
+            }
+        }
+
+        private bool IsNpcExternallyAvailable(string npcId)
+        {
+            if (_externalAvailabilityRule == null)
+                ResolveExternalAvailabilityRule();
+
+            return _externalAvailabilityRule == null || _externalAvailabilityRule.IsNpcAvailable(npcId);
+        }
+
         private void SyncDailySessionState(bool force = false)
         {
             currentDay = Mathf.Max(1, currentDay);
@@ -754,6 +853,9 @@ namespace Work.NPC.Code.Runtime
 
             foreach (RegionPoolEntryData entry in poolEntries)
             {
+                if (IsNpcExternallyAvailable(entry.NpcId) == false)
+                    continue;
+
                 if (entry.MinDay > currentDay)
                     continue;
 
@@ -775,6 +877,9 @@ namespace Work.NPC.Code.Runtime
         private List<string> GetPoolEntryBlockers(RegionPoolEntryData entry)
         {
             List<string> blockers = new List<string>();
+
+            if (IsNpcExternallyAvailable(entry.NpcId) == false)
+                blockers.Add("npc unavailable");
 
             if (entry.MinDay > currentDay)
                 blockers.Add($"minDay {currentDay}/{entry.MinDay}");

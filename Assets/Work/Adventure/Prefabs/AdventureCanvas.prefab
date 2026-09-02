@@ -7153,7 +7153,7 @@ GameObject:
   - component: {fileID: 8694879873965061585}
   - component: {fileID: 2518939494634785858}
   m_Layer: 5
-  m_Name: GO_NextDay
+  m_Name: GO_NextBusiness
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7263,7 +7263,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8787173043361818422}
         m_TargetAssemblyTypeName: Work.Adventure.Code.UI.PreparationMenu, Assembly-CSharp
-        m_MethodName: SelectNextDay
+        m_MethodName: SelectNextBusiness
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7840,7 +7840,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB2E4\uC74C\uB0A0"
+  m_text: "\uB2E4\uC74C \uC601\uC5C5"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}

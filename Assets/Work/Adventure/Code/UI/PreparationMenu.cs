@@ -26,10 +26,8 @@ namespace Work.Adventure.Code.UI
         private Action _selectAfterAction;
         private Action _endAction;
 
-        private bool _isAdventureAlreadyDone = false;
         private bool _isCanAction = true;
         private const string ALREADY_DONE_TEXT = "가능";
-        private const string NOT_ALREADY_DONE_TEXT = "이미완료함";
         private const string NEXT_LINE = "\n";
 
         public void Init(Action selectAfterAction, Action endAction)
@@ -45,7 +43,7 @@ namespace Work.Adventure.Code.UI
             status += "가능"; // 나중에 파견쪽 만들어지면 추가
             status += NEXT_LINE;
             status += "모험 : ";
-            status += _isAdventureAlreadyDone ? NOT_ALREADY_DONE_TEXT : ALREADY_DONE_TEXT;
+            status += ALREADY_DONE_TEXT;
             status += NEXT_LINE;
 
             statusText.text = status;
@@ -72,7 +70,6 @@ namespace Work.Adventure.Code.UI
         {
             if (_isCanAction == false) return;
             SelectAction(PreparationEnum.Adventure);
-            _isAdventureAlreadyDone = true;
         }
 
         /// <summary>
@@ -99,13 +96,20 @@ namespace Work.Adventure.Code.UI
         }
 
         /// <summary>
-        /// 다음날 버튼 선택 
+        /// 준비를 마치고 다음 음식점 운영 시작
+        /// </summary>
+        public void SelectNextBusiness()
+        {
+            HideUI();
+            Bus<CookingBusinessResumeRequestedEvent>.Raise(new CookingBusinessResumeRequestedEvent());
+        }
+
+        /// <summary>
+        /// 기존 씬/프리팹 UnityEvent 호환용 진입점입니다.
         /// </summary>
         public void SelectNextDay()
         {
-            HideUI();
-            _isAdventureAlreadyDone = false;
-            Bus<CookingBusinessAdvanceDayRequestedEvent>.Raise(new CookingBusinessAdvanceDayRequestedEvent());
+            SelectNextBusiness();
         }
     }
 }
