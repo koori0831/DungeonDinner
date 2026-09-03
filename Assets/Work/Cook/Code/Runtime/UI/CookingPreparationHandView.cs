@@ -69,6 +69,7 @@ namespace Work.Cook.Code.Runtime.UI
             tooltipView?.Hide(null);
             KillLayoutTweens();
             _focusedIndex = -1;
+            ApplyFanLayout(true);
         }
 
         private void OnRectTransformDimensionsChange()
@@ -352,7 +353,8 @@ namespace Work.Cook.Code.Runtime.UI
                     presentationSettings != null ? presentationSettings.FanFocusLift : 68f,
                     presentationSettings != null ? presentationSettings.FanFocusScale : 1.08f,
                     presentationSettings != null ? presentationSettings.FanSelectedLift : 18f,
-                    presentationSettings != null ? presentationSettings.FanNeighborSpread : 36f);
+                    presentationSettings != null ? presentationSettings.FanNeighborSpread : 36f,
+                    presentationSettings != null ? presentationSettings.FanPeerDrop : 24f);
 
                 rect.DOKill(false);
                 if (immediate == true || Application.isPlaying == false)

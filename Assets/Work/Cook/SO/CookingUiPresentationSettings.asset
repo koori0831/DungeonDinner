@@ -42,6 +42,7 @@ MonoBehaviour:
   fanFocusScale: 1.08
   fanSelectedLift: 18
   fanNeighborSpread: 36
+  fanPeerDrop: 24
   fanTweenDuration: 0.16
   qualityVisuals:
   - quality: 3

@@ -152,6 +152,7 @@ namespace Work.Cook.Code.Data
         [SerializeField, Range(1f, 1.25f)] private float fanFocusScale = 1.08f;
         [SerializeField, Min(0f)] private float fanSelectedLift = 18f;
         [SerializeField, Min(0f)] private float fanNeighborSpread = 36f;
+        [SerializeField, Min(0f)] private float fanPeerDrop = 24f;
         [SerializeField, Min(0.01f)] private float fanTweenDuration = 0.16f;
 
         [Header("Visual Mappings")]
@@ -207,6 +208,7 @@ namespace Work.Cook.Code.Data
         public float FanFocusScale => Mathf.Clamp(fanFocusScale, 1f, 1.25f);
         public float FanSelectedLift => Mathf.Max(0f, fanSelectedLift);
         public float FanNeighborSpread => Mathf.Max(0f, fanNeighborSpread);
+        public float FanPeerDrop => Mathf.Max(0f, fanPeerDrop);
         public float FanTweenDuration => Mathf.Max(0.01f, fanTweenDuration);
         public Sprite RewardIcon => rewardIcon;
         public Sprite NpcPlaceholderIcon => npcPlaceholderIcon;
