@@ -231,7 +231,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.GoAndStopSelectUI
   root: {fileID: 5272691874856650998}
-  openHeight: 1080
   time: 0.3
   fadeValue: 0.5882353
   goButton: {fileID: 0}
@@ -773,7 +772,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD30C\uACAC : \uAC00\uB2A5\n\uBAA8\uD5D8 : \uAC00\uB2A5\n"
+  m_text: "1\uC77C\uCC28 \u00B7 \uC2DC\uAC04 0 / 6\n\uB2E4\uC74C \uC601\uC5C5 : \uAC00\uB2A5 \u00B7 \uC811\uB300 0/3\n\uD30C\uACAC : \uAC00\uB2A5\n\uBAA8\uD5D8 : \uAC00\uB2A5\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
@@ -800,8 +799,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18.07
-  m_fontSizeBase: 18.07
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -8029,7 +8028,6 @@ MonoBehaviour:
   root: {fileID: 4057981486247564516}
   fadeTime: 0.3
   openTime: 0.6
-  openSizeWidth: 1030
   mapButtons:
   - {fileID: 1337084528219870531}
   - {fileID: 6214942669516626173}

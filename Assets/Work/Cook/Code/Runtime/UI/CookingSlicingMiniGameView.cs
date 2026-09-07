@@ -28,6 +28,12 @@ namespace Work.Cook.Code.Runtime.UI
         private int _samples;
         private float _precisionSum;
 
+        public override void Initialize(CookingMiniGameOverlayHost host, CookingMiniGameOverlaySettingsSO settings)
+        {
+            base.Initialize(host, settings);
+            ApplySprite(knifeImage, settings != null ? settings.KnifeSprite : null);
+        }
+
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
             return miniGameType == CookingMiniGameType.Slicing;

@@ -68,4 +68,32 @@ namespace Work.TimeSystem
             CurrentTimeOfDay = currentTimeOfDay;
         }
     }
+
+    /// <summary>
+    /// uGUI와 UI Toolkit에서 동일한 날짜/시간 표기를 사용하기 위한 포맷터입니다.
+    /// </summary>
+    public static class GameTimeDisplayFormatter
+    {
+        public static string FormatDay(int currentDay)
+        {
+            return $"{Math.Max(1, currentDay)}일차";
+        }
+
+        public static string FormatTime(int currentTimeOfDay)
+        {
+            int time = Math.Clamp(currentTimeOfDay, 0, GameTimeState.TimeUnitsPerDay - 1);
+            return $"시간 {time} / {GameTimeState.TimeUnitsPerDay}";
+        }
+
+        public static string FormatCompact(int currentDay, int currentTimeOfDay)
+        {
+            return $"{FormatDay(currentDay)} · {FormatTime(currentTimeOfDay)}";
+        }
+
+        public static int GetTimeUntilNextDay(int currentTimeOfDay)
+        {
+            int time = Math.Clamp(currentTimeOfDay, 0, GameTimeState.TimeUnitsPerDay - 1);
+            return GameTimeState.TimeUnitsPerDay - time;
+        }
+    }
 }

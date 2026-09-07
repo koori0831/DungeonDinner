@@ -22,7 +22,8 @@ namespace Work.Dispatch.Code.Editor
 {
     public static class DispatchProjectSetup
     {
-        private const string ItemCatalogPath = "Assets/Work/Items/SO/ItemCatalog.asset";
+        private const string ItemCatalogPath = "Assets/Work/Items/SO/ProductionItemCatalog.asset";
+        private const string ProductionIngredientRoot = "Assets/Work/Items/SO/Ingredients";
         private const string DispatchDataFolder = "Assets/Work/Dispatch/Data";
         private const string DispatchRegionFolder = DispatchDataFolder + "/Regions";
         private const string DispatchCatalogPath = DispatchDataFolder + "/DispatchCatalog.asset";
@@ -97,7 +98,9 @@ namespace Work.Dispatch.Code.Editor
                 AssetDatabase.CreateAsset(catalog, ItemCatalogPath);
             }
 
-            string[] guids = AssetDatabase.FindAssets("t:ItemDataSO");
+            string[] guids = AssetDatabase.FindAssets(
+                "t:ItemDataSO",
+                new[] { ProductionIngredientRoot });
             List<ItemDataSO> items = new List<ItemDataSO>();
             for (int i = 0; i < guids.Length; i++)
             {

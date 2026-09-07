@@ -44562,10 +44562,7 @@ MonoBehaviour:
   npcRunner: {fileID: 1054664832}
   gameTimeService: {fileID: 888343389}
   startFirstCustomerOnStart: 1
-  hideCookingTestPanelOnStart: 1
   startNextCustomerAfterResuming: 1
-  advanceDayWhenShopCloses: 1
-  startNextCustomerAfterAdvancingDay: 1
   actionRoot: {fileID: 1964385963}
   statusField: {fileID: 1242732005}
   nextCustomerButton: {fileID: 481791554}

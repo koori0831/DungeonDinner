@@ -37,6 +37,28 @@ namespace Work.Cook.Code.Editor.Tests
         }
 
         [Test]
+        public void RewardWallet_TrySpendNeverOverdrawsBalance()
+        {
+            GameObject root = new GameObject("RewardWalletTest");
+            root.SetActive(false);
+            _createdObjects.Add(root);
+
+            CookingRewardWallet wallet = root.AddComponent<CookingRewardWallet>();
+            SetField(wallet, "loadFromPlayerPrefsOnAwake", false);
+            SetField(wallet, "saveToPlayerPrefs", false);
+            wallet.SetBalanceForDebug(100);
+
+            Assert.That(wallet.CanAfford(100), Is.True);
+            Assert.That(wallet.CanAfford(101), Is.False);
+            Assert.That(wallet.TrySpend(40), Is.True);
+            Assert.That(wallet.Balance, Is.EqualTo(60));
+            Assert.That(wallet.TrySpend(61), Is.False);
+            Assert.That(wallet.Balance, Is.EqualTo(60));
+            Assert.That(wallet.TrySpend(-1), Is.False);
+            Assert.That(wallet.TrySpend(0), Is.True);
+        }
+
+        [Test]
         public void PreparationFanLayout_HoverKeepsFocusLiftAndDropsEveryPeer()
         {
             const int cardCount = 7;

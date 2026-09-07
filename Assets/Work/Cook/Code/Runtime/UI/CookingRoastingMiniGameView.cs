@@ -21,6 +21,12 @@ namespace Work.Cook.Code.Runtime.UI
         private float _flipProgress;
         private bool _flipped;
 
+        public override void Initialize(CookingMiniGameOverlayHost host, CookingMiniGameOverlaySettingsSO settings)
+        {
+            base.Initialize(host, settings);
+            ApplySprite(flipIndicator, settings != null ? settings.FlipSprite : null);
+        }
+
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
             return miniGameType == CookingMiniGameType.Roasting || miniGameType == CookingMiniGameType.Burning;

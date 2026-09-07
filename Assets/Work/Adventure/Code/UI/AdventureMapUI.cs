@@ -16,7 +16,6 @@ namespace Work.Adventure.Code.UI
         [SerializeField] private RectTransform root;
         [SerializeField] private float fadeTime = 0.3f;
         [SerializeField] private float openTime = 0.6f;
-        [SerializeField] private float openSizeWidth = 1030f;
 
         [SerializeField] private List<MapSelectButton> mapButtons = new List<MapSelectButton>();
 

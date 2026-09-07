@@ -162,6 +162,9 @@ namespace Work.Cook.Code.Data
         [SerializeField] private Sprite rewardIcon;
         [SerializeField] private Sprite npcPlaceholderIcon;
 
+        [Header("Shared FX")]
+        [SerializeField] private Sprite cookingSparkleIcon;
+
         [Header("Shared UI Skin")]
         [SerializeField] private Sprite panelSprite;
         [SerializeField] private Sprite receiptSprite;
@@ -212,6 +215,7 @@ namespace Work.Cook.Code.Data
         public float FanTweenDuration => Mathf.Max(0.01f, fanTweenDuration);
         public Sprite RewardIcon => rewardIcon;
         public Sprite NpcPlaceholderIcon => npcPlaceholderIcon;
+        public Sprite CookingSparkleIcon => cookingSparkleIcon;
         public Sprite PanelSprite => panelSprite;
         public Sprite ReceiptSprite => receiptSprite;
         public Sprite CardSprite => cardSprite;
@@ -326,6 +330,11 @@ namespace Work.Cook.Code.Data
         {
             rewardIcon = reward;
             npcPlaceholderIcon = npcPlaceholder;
+        }
+
+        public void SetCookingSparkleIcon(Sprite value)
+        {
+            cookingSparkleIcon = value;
         }
 
         public void SetSharedUiSkin(

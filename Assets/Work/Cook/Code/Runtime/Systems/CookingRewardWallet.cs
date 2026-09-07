@@ -63,6 +63,35 @@ namespace Work.Cook.Code.Runtime.Systems
             return _balance;
         }
 
+        /// <summary>
+        /// 파견 비용이나 정기 유지비를 지불할 수 있는지 확인합니다.
+        /// 실제 미납 처리와 게임오버 판정은 청구 시스템이 담당합니다.
+        /// </summary>
+        public bool CanAfford(int amount)
+        {
+            EnsureInitialized();
+            return amount >= 0 && _balance >= amount;
+        }
+
+        /// <summary>
+        /// 잔액이 충분할 때만 비용을 차감하고 저장합니다.
+        /// 실패 시 잔액과 저장 데이터는 변경하지 않습니다.
+        /// </summary>
+        public bool TrySpend(int amount)
+        {
+            EnsureInitialized();
+
+            if (amount < 0 || _balance < amount)
+                return false;
+            if (amount == 0)
+                return true;
+
+            _balance -= amount;
+            Save();
+            NotifyBalanceChanged();
+            return true;
+        }
+
         public void SetBalanceForDebug(int value)
         {
             EnsureInitialized();

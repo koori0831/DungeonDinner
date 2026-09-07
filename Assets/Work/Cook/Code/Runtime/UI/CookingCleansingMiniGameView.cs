@@ -21,6 +21,12 @@ namespace Work.Cook.Code.Runtime.UI
         private int _wastedStreak;
         private Vector2 _lastPoint;
 
+        public override void Initialize(CookingMiniGameOverlayHost host, CookingMiniGameOverlaySettingsSO settings)
+        {
+            base.Initialize(host, settings);
+            ApplySprite(brushImage, settings != null ? settings.BrushSprite : null);
+        }
+
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
             return miniGameType == CookingMiniGameType.Cleansing;

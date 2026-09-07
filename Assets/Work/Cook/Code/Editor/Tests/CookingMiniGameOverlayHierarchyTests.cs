@@ -14,6 +14,7 @@ namespace DungeonDinner.Cook.EditorTests
         private const string IntegrationScenePath =
             "Assets/Work/Integration/Scene/DungeonDinnerScene.unity";
         private const string SettingsPath = "Assets/Work/Cook/SO/CookingMiniGameOverlaySettings.asset";
+        private const string MiniGameAssetFolder = "Assets/Work/Cook/Graphics/UIAsset/CookingMiniGame";
 
         [Test]
         public void OverlayPrefab_HasReadableActionFeedbackHierarchyAndBindings()
@@ -164,6 +165,85 @@ namespace DungeonDinner.Cook.EditorTests
             SerializedProperty dimColor = new SerializedObject(settings).FindProperty("focusDimColor");
             Assert.That(dimColor, Is.Not.Null);
             Assert.That(dimColor.colorValue.a, Is.GreaterThanOrEqualTo(0.45f));
+        }
+
+        [Test]
+        public void OverlaySettings_HasEveryGeneratedMiniGameSpriteAssigned()
+        {
+            Object settings = AssetDatabase.LoadAssetAtPath<Object>(SettingsPath);
+            Assert.That(settings, Is.Not.Null, "The cooking overlay settings asset is missing.");
+
+            SerializedObject serializedSettings = new SerializedObject(settings);
+            string[] spriteProperties =
+            {
+                "knifeSprite",
+                "brushSprite",
+                "panSprite",
+                "plateSprite",
+                "pestleSprite",
+                "pitcherSprite",
+                "mortarSprite",
+                "frostSprite",
+                "flipSprite",
+                "foamDiscardSprite"
+            };
+
+            foreach (string propertyName in spriteProperties)
+                AssertBound(serializedSettings, propertyName);
+        }
+
+        [Test]
+        public void Workbench_UsesGeneratedCuttingBoardBehindIngredient()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            Transform workbench = FindDeep(prefab.transform, "Workbench");
+            Assert.That(workbench, Is.Not.Null);
+            Image board = workbench.GetComponent<Image>();
+            Assert.That(board, Is.Not.Null);
+            Assert.That(board.sprite, Is.Not.Null);
+            Assert.That(AssetDatabase.GetAssetPath(board.sprite),
+                Is.EqualTo($"{MiniGameAssetFolder}/cook_tool_cutting_board.png"));
+            Assert.That(board.preserveAspect, Is.True);
+
+            Transform ingredientAnchor = FindDeep(workbench, "IngredientAnchor");
+            Assert.That(ingredientAnchor, Is.Not.Null);
+            Assert.That(ingredientAnchor.parent, Is.SameAs(workbench),
+                "The ingredient must stay a child rendered above the workbench's board image.");
+        }
+
+        [Test]
+        public void GeneratedMiniGameTextures_AreSingleTransparentSprites()
+        {
+            string[] filenames =
+            {
+                "cook_tool_knife.png",
+                "cook_tool_brush.png",
+                "cook_tool_pan.png",
+                "cook_tool_plate.png",
+                "cook_tool_pestle.png",
+                "cook_tool_pitcher.png",
+                "cook_tool_mortar.png",
+                "cook_interaction_frost.png",
+                "cook_interaction_flip.png",
+                "cook_interaction_foam_discard.png",
+                "cook_tool_cutting_board.png"
+            };
+
+            foreach (string filename in filenames)
+            {
+                string path = $"{MiniGameAssetFolder}/{filename}";
+                TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                Assert.That(importer, Is.Not.Null, $"Missing texture importer for {path}");
+                Assert.That(importer.textureType, Is.EqualTo(TextureImporterType.Sprite));
+                Assert.That(importer.spriteImportMode, Is.EqualTo(SpriteImportMode.Single));
+                SerializedProperty meshType = new SerializedObject(importer).FindProperty("m_SpriteMeshType");
+                Assert.That(meshType, Is.Not.Null);
+                Assert.That(meshType.intValue, Is.EqualTo((int)SpriteMeshType.FullRect));
+                Assert.That(importer.alphaIsTransparency, Is.True);
+                Assert.That(importer.mipmapEnabled, Is.False);
+            }
         }
 
         [Test]

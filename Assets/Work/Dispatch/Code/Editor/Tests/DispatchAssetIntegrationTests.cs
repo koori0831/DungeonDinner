@@ -1,5 +1,7 @@
 using System.Reflection;
+using Assets.Work.Adventure.Code;
 using NUnit.Framework;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -29,6 +31,57 @@ namespace Work.Dispatch.Code.Editor.Tests
             Assert.That(catalog.BuildValidationMessages(), Is.Empty);
             Assert.That(catalog.ItemCatalog, Is.Not.Null);
             Assert.That(catalog.ItemCatalog.BuildValidationMessages(), Is.Empty);
+            Assert.That(
+                AssetDatabase.GetAssetPath(catalog.ItemCatalog),
+                Is.EqualTo("Assets/Work/Items/SO/ProductionItemCatalog.asset"));
+
+            foreach (var item in catalog.ItemCatalog.Items)
+            {
+                Assert.That(item, Is.Not.Null);
+                Assert.That(item.name, Does.Not.StartWith("Test"));
+            }
+        }
+
+        [Test]
+        public void AdventureMaps_HaveProductionFacingIdsAndDescriptions()
+        {
+            string[] paths =
+            {
+                "Assets/Work/Adventure/SO/Map/Badlands.asset",
+                "Assets/Work/Adventure/SO/Map/Champaign.asset",
+                "Assets/Work/Adventure/SO/Map/CrystalCave.asset",
+                "Assets/Work/Adventure/SO/Map/MossCave.asset",
+                "Assets/Work/Adventure/SO/Map/VolcanicZone.asset",
+                "Assets/Work/Adventure/SO/Map/WorldTree.asset"
+            };
+
+            foreach (string path in paths)
+            {
+                MapInfoSO map = AssetDatabase.LoadAssetAtPath<MapInfoSO>(path);
+                Assert.That(map, Is.Not.Null, path);
+                Assert.That(map.RegionId, Is.Not.Empty, path);
+                Assert.That(map.Description, Is.Not.Empty, path);
+                Assert.That(map.Description, Does.Not.Contain("000"), path);
+            }
+        }
+
+        [Test]
+        public void PreparationStatus_PreviewsDayTimeAndBusinessAvailability()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/Work/Adventure/Prefabs/AdventureCanvas.prefab");
+            Assert.That(prefab, Is.Not.Null);
+
+            PreparationMenu menu = prefab.GetComponentInChildren<PreparationMenu>(true);
+            Assert.That(menu, Is.Not.Null);
+
+            SerializedObject serializedMenu = new SerializedObject(menu);
+            TextMeshProUGUI statusText = serializedMenu.FindProperty("statusText").objectReferenceValue
+                as TextMeshProUGUI;
+            Assert.That(statusText, Is.Not.Null);
+            Assert.That(statusText.text, Does.Contain("일차"));
+            Assert.That(statusText.text, Does.Contain("시간"));
+            Assert.That(statusText.text, Does.Contain("다음 영업"));
         }
 
         [Test]

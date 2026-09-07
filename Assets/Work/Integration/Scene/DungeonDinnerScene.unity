@@ -4325,7 +4325,7 @@ GameObject:
   - component: {fileID: 752288111}
   - component: {fileID: 752288113}
   m_Layer: 0
-  m_Name: Cooking Test UI
+  m_Name: CookingEnvironment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7383,7 +7383,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1156181641}
   m_Layer: 0
-  m_Name: ========NPC Test========
+  m_Name: NpcSystems
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7839,7 +7839,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1215905499}
   m_Layer: 0
-  m_Name: ========Adventure Test====
+  m_Name: AdventureSystems
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9807,7 +9807,7 @@ GameObject:
   - component: {fileID: 1478277791}
   - component: {fileID: 1478277790}
   m_Layer: 0
-  m_Name: TemporaryIngredientSelectionView
+  m_Name: IngredientSelectionView
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

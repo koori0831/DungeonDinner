@@ -98,12 +98,16 @@ MonoBehaviour:
   guideColor: {r: 1, g: 0.86, b: 0.35, a: 0.9}
   successColor: {r: 0.38, g: 0.9, b: 0.45, a: 0.95}
   mistakeColor: {r: 1, g: 0.3, b: 0.2, a: 0.95}
-  knifeSprite: {fileID: 0}
-  brushSprite: {fileID: 0}
-  panSprite: {fileID: 0}
-  plateSprite: {fileID: 0}
-  pestleSprite: {fileID: 0}
-  pitcherSprite: {fileID: 0}
+  knifeSprite: {fileID: 21300000, guid: 6e249a5d06604b20bc2e80e3304dbc4c, type: 3}
+  brushSprite: {fileID: 21300000, guid: 2086edf7d59d4009a88793f6a3d3d09e, type: 3}
+  panSprite: {fileID: 21300000, guid: 973c942aa9bf4ee4ba09411d6e39a9dd, type: 3}
+  plateSprite: {fileID: 21300000, guid: cbd1e2914e124b60a173a06d81f852da, type: 3}
+  pestleSprite: {fileID: 21300000, guid: c4bfbae48184493481187ce61df24bc8, type: 3}
+  pitcherSprite: {fileID: 21300000, guid: 876e96d122b54ab4b73756645d6e3253, type: 3}
+  mortarSprite: {fileID: 21300000, guid: 93d61567e0994527bc35887fb5a5c32e, type: 3}
+  frostSprite: {fileID: 21300000, guid: d7426f4b9974470a8b12e3ae6b1bec67, type: 3}
+  flipSprite: {fileID: 21300000, guid: 19a8fb7042624b24a995b1fce601b7c2, type: 3}
+  foamDiscardSprite: {fileID: 21300000, guid: 2dbc37324ccd4eaeb2881c4befb670fc, type: 3}
   actionClip: {fileID: 0}
   successClip: {fileID: 0}
   mistakeClip: {fileID: 0}

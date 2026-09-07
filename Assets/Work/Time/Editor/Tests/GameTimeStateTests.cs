@@ -37,5 +37,26 @@ namespace Work.TimeSystem.Editor.Tests
             Assert.That(() => state.Advance(0), Throws.TypeOf<System.ArgumentOutOfRangeException>());
             Assert.That(() => state.Advance(-1), Throws.TypeOf<System.ArgumentOutOfRangeException>());
         }
+
+        [Test]
+        public void DisplayFormatter_UsesOneSharedDayAndTimeFormat()
+        {
+            Assert.That(GameTimeDisplayFormatter.FormatDay(2), Is.EqualTo("2일차"));
+            Assert.That(GameTimeDisplayFormatter.FormatTime(3), Is.EqualTo("시간 3 / 6"));
+            Assert.That(
+                GameTimeDisplayFormatter.FormatCompact(2, 3),
+                Is.EqualTo("2일차 · 시간 3 / 6"));
+        }
+
+        [TestCase(0, 6)]
+        [TestCase(1, 5)]
+        [TestCase(3, 3)]
+        [TestCase(5, 1)]
+        public void DisplayFormatter_CalculatesTimeUntilNextDay(int currentTime, int expected)
+        {
+            Assert.That(
+                GameTimeDisplayFormatter.GetTimeUntilNextDay(currentTime),
+                Is.EqualTo(expected));
+        }
     }
 }

@@ -2805,7 +2805,7 @@ MonoBehaviour:
   - {fileID: 7318380557789245977}
   - {fileID: 4375485069869988869}
   handIndicator: {fileID: 6056178061233924138}
-  frostColor: {r: 0.55, g: 0.9, b: 1, a: 0.82}
+  frostColor: {r: 1, g: 1, b: 1, a: 0.82}
 --- !u!1 &4320966471391709932
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,7 +8,7 @@ namespace Work.Adventure.Code.UI
     public class GoAndStopSelectUI : MonoBehaviour
     {
         [SerializeField] private Image root;
-        [SerializeField] private float openHeight = 1080, time = 0.3f;
+        [SerializeField] private float time = 0.3f;
 
         [SerializeField] private float fadeValue = 0.5882353f;
         [SerializeField] private Button goButton, stopButton;

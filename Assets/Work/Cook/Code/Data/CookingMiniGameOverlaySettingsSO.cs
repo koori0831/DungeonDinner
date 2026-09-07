@@ -85,13 +85,17 @@ namespace Work.Cook.Code.Data
         [SerializeField] private Color successColor = new Color(0.38f, 0.9f, 0.45f, 0.95f);
         [SerializeField] private Color mistakeColor = new Color(1f, 0.3f, 0.2f, 0.95f);
 
-        [Header("Optional Tool Sprites")]
+        [Header("Optional Tool and Interaction Sprites")]
         [SerializeField] private Sprite knifeSprite;
         [SerializeField] private Sprite brushSprite;
         [SerializeField] private Sprite panSprite;
         [SerializeField] private Sprite plateSprite;
         [SerializeField] private Sprite pestleSprite;
         [SerializeField] private Sprite pitcherSprite;
+        [SerializeField] private Sprite mortarSprite;
+        [SerializeField] private Sprite frostSprite;
+        [SerializeField] private Sprite flipSprite;
+        [SerializeField] private Sprite foamDiscardSprite;
 
         [Header("Optional Feedback")]
         [SerializeField] private AudioClip actionClip;
@@ -110,6 +114,10 @@ namespace Work.Cook.Code.Data
         public Sprite PlateSprite => plateSprite;
         public Sprite PestleSprite => pestleSprite;
         public Sprite PitcherSprite => pitcherSprite;
+        public Sprite MortarSprite => mortarSprite;
+        public Sprite FrostSprite => frostSprite;
+        public Sprite FlipSprite => flipSprite;
+        public Sprite FoamDiscardSprite => foamDiscardSprite;
         public AudioClip ActionClip => actionClip;
         public AudioClip SuccessClip => successClip;
         public AudioClip MistakeClip => mistakeClip;

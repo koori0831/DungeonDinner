@@ -305,8 +305,8 @@ namespace Work.Dispatch.Code.UI
             if (gameTimeService == null)
                 return;
 
-            _dayLabel.text = $"{gameTimeService.CurrentDay}일 차";
-            _timeLabel.text = $"시간 {gameTimeService.CurrentTimeOfDay} / {GameTimeState.TimeUnitsPerDay}";
+            _dayLabel.text = GameTimeDisplayFormatter.FormatDay(gameTimeService.CurrentDay);
+            _timeLabel.text = GameTimeDisplayFormatter.FormatTime(gameTimeService.CurrentTimeOfDay);
         }
 
         private void RefreshNpcRows()
