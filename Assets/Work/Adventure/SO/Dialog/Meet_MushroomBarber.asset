@@ -1,0 +1,142 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c017245360f0bc546a567e1840070efd, type: 3}
+  m_Name: Meet_MushroomBarber
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
+  <dialogDatas>k__BackingField:
+  - <Context>k__BackingField: "머쉬룸맨이 다가와 자기 갓의 가장자리를 가리킨다."
+    method:
+    - rid: 1001
+    - rid: 1002
+  - <Context>k__BackingField: "너무 자란 갓이 눈을 가려, 걸을 때마다 벽에 부딪히는 모양이다."
+    method: []
+  - <Context>k__BackingField: "머쉬룸맨은 손가락으로 가위질을 흉내 낸다."
+    method: []
+  - <Context>k__BackingField: "\"싸우자는 게 아니라… 이발해 달라는 거야?\""
+    method: []
+  options:
+  - rid: 1007
+  - rid: 1012
+  - rid: 1014
+  references:
+    version: 2
+    RefIds:
+    - rid: 1001
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1002
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 5dcdee1f5fe2f144b8c22686a8da7c44, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1003
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 3b3858c376a94420afed3190905d141d, type: 2}
+        amount: 1
+    - rid: 1004
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1005
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 1e907fc6786ae384792cfc8c6c9ae71a, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1006
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1007
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "칼로 가장자리를 다듬는다"
+        <OptionTooltip>k__BackingField: "칼로 삐죽하게 자란 갓 끝을 다듬습니다. 칼이 필요합니다."
+        <RewardDescription>k__BackingField: "버섯 갓 1개 획득 · 칼 유지"
+        rewardMethod:
+        - rid: 1003
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "머쉬룸맨이 고개를 숙인다. 늘어진 갓의 가장자리만 잘라냈다."
+          method: []
+        - <Context>k__BackingField: "잘라낸 갓 조각을 받자 머쉬룸맨은 기쁘게 손을 흔들었다."
+          method:
+          - rid: 1004
+          - rid: 1005
+        - <Context>k__BackingField: "\"손님, 다음에도 이 길로 오세요.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1006
+        <LockTooltip>k__BackingField: "칼이 필요합니다."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1008
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 4d12c1c6cd2345e9a96bfd7d88e8dc17, type: 2}
+        amount: 1
+    - rid: 1009
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1010
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 05834041d8f6987438e0fead5912a0b8, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1011
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1012
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "망치로 갓 끝을 살짝 누른다"
+        <OptionTooltip>k__BackingField: "망치로 튀어나온 갓 끝을 살짝 누릅니다. 망치가 필요합니다."
+        <RewardDescription>k__BackingField: "납작버섯 1개 획득 · 망치 유지"
+        rewardMethod:
+        - rid: 1008
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "머쉬룸맨이 돌 위에 갓 끝을 올린다. 아주 살짝 두드렸다."
+          method: []
+        - <Context>k__BackingField: "눌려 떨어진 갓 조각은 훌륭한 납작버섯이 되었다."
+          method:
+          - rid: 1009
+          - rid: 1010
+        - <Context>k__BackingField: "\"이발을 부탁했는데… 다림질을 해버렸네.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1011
+        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1013
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1014
+      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "부딪히지 않게 길을 안내한다"
+        <OptionTooltip>k__BackingField: "버섯 인간에게 길을 알려주고 떠납니다."
+        <RewardDescription>k__BackingField: "보상 없음"
+        rewardMethod: []
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "머쉬룸맨을 넓은 길까지 안내했다."
+          method: []
+        - <Context>k__BackingField: "머쉬룸맨은 고맙다는 듯 고개를 끄덕이고 천천히 떠났다."
+          method: []
+        - <Context>k__BackingField: "\"다음엔 미용 도구를 챙겨 와야겠어.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1013

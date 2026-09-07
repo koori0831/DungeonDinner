@@ -1,0 +1,136 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c017245360f0bc546a567e1840070efd, type: 3}
+  m_Name: Find_CoconutCrab
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
+  <dialogDatas>k__BackingField:
+  - <Context>k__BackingField: "길가에서 커다란 코코넛이 움직인다."
+    method:
+    - rid: 1001
+    - rid: 1002
+  - <Context>k__BackingField: "\"코코넛도 도망가는 던전이라니.\""
+    method: []
+  - <Context>k__BackingField: "가까이 보니 코코넛 껍질을 집 삼은 게다. 단단한 껍질 사이로 작은 틈이 보인다."
+    method: []
+  options:
+  - rid: 1007
+  - rid: 1012
+  - rid: 1014
+  references:
+    version: 2
+    RefIds:
+    - rid: 1001
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1002
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 4a5da9f3c6956e7bc4a4841ff6cc0cee, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1003
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: b4dfe77f0a903ffba66faf1141848d7f, type: 2}
+        amount: 2
+    - rid: 1004
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1005
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 101b433257d5188d8fb68d2659d93008, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1006
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1007
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "망치로 껍질을 깨뜨린다"
+        <OptionTooltip>k__BackingField: "망치로 단단한 껍질을 내려칩니다. 망치가 필요합니다."
+        <RewardDescription>k__BackingField: "코코넛 게살 2개 획득 · 망치 유지"
+        rewardMethod:
+        - rid: 1003
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "껍질을 겨냥해 망치를 내리쳤다."
+          method: []
+        - <Context>k__BackingField: "게가 빛으로 사라지고 코코넛 향이 나는 살이 남았다."
+          method:
+          - rid: 1004
+          - rid: 1005
+        - <Context>k__BackingField: "\"과일 코너에 둬야 하나, 해산물 코너에 둬야 하나.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1006
+        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1008
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: b4dfe77f0a903ffba66faf1141848d7f, type: 2}
+        amount: 1
+    - rid: 1009
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1010
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 101b433257d5188d8fb68d2659d93008, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1011
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1012
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "칼로 껍질 틈을 공략한다"
+        <OptionTooltip>k__BackingField: "칼끝을 껍질 틈에 넣어 공략합니다. 칼이 필요합니다."
+        <RewardDescription>k__BackingField: "코코넛 게살 1개 획득 · 칼 유지"
+        rewardMethod:
+        - rid: 1008
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "집게를 피해 껍질 사이의 틈을 찔렀다."
+          method: []
+        - <Context>k__BackingField: "게가 사라졌다. 좁은 틈에서 꺼낼 수 있는 살만 챙겼다."
+          method:
+          - rid: 1009
+          - rid: 1010
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1011
+        <LockTooltip>k__BackingField: "칼이 필요합니다."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1013
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1014
+      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "길을 비켜준다"
+        <OptionTooltip>k__BackingField: "코코넛 게가 지나가도록 길을 비켜줍니다."
+        <RewardDescription>k__BackingField: "보상 없음"
+        rewardMethod: []
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "한 걸음 물러서자 게는 집게를 내리고 천천히 지나갔다."
+          method: []
+        - <Context>k__BackingField: "\"잘 가라, 걸어 다니는 도시락.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1013

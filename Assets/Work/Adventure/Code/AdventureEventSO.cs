@@ -4,9 +4,33 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Work.Adventure.Code.UI;
+using Work.Cook.Code.Data;
+using Work.Players.Code.Inventory;
 
 namespace Work.Adventure.Code
 {
+    [Serializable]
+    public class IngredientLockedOption : Options
+    {
+        [field: SerializeField] public IngredientItemDataSO RequiredIngredient { get; private set; }
+        [field: SerializeField, Min(1)] public int RequiredAmount { get; private set; } = 1;
+        [field: SerializeField] public string LockTooltip { get; private set; }
+
+        public bool CanSelect(PlayerInventoryModule inventory)
+        {
+            return inventory != null && RequiredIngredient != null && RequiredAmount > 0
+                && inventory.GetItemAmount(RequiredIngredient) >= RequiredAmount;
+        }
+
+        public bool TryConsume(PlayerInventoryModule inventory)
+        {
+            if (!CanSelect(inventory))
+                return false;
+
+            return inventory.RemoveItem(RequiredIngredient, RequiredAmount) == RequiredAmount;
+        }
+    }
+
     [Serializable]
     public abstract class AdventureReward 
     {

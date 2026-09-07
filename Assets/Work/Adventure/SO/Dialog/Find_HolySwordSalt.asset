@@ -1,0 +1,156 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c017245360f0bc546a567e1840070efd, type: 3}
+  m_Name: Find_HolySwordSalt
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
+  <dialogDatas>k__BackingField:
+  - <Context>k__BackingField: "길 한가운데, 돌 받침대에 꽂힌 성검을 발견했다."
+    method:
+    - rid: 1001
+    - rid: 1002
+  - <Context>k__BackingField: "「선택받은 자만이 이 검을 뽑으리라.」"
+    method: []
+  - <Context>k__BackingField: "받침대 틈에 하얀 결정이 반짝인다. 자세히 보니 익숙한 암염이다."
+    method: []
+  - <Context>k__BackingField: "\"검도 검인데… 밑에 이거 소금 아닌가?\""
+    method: []
+  options:
+  - rid: 1004
+  - rid: 1009
+  - rid: 1016
+  references:
+    version: 2
+    RefIds:
+    - rid: 1001
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1002
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 078fba7586ab2bd49b36c77c8d4733be, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1003
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1004
+      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "성검을 뽑아본다"
+        <OptionTooltip>k__BackingField: "검의 손잡이를 잡고 힘껏 당겨봅니다."
+        <RewardDescription>k__BackingField: "보상 없음"
+        rewardMethod: []
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "양손으로 손잡이를 잡고 온 힘을 다해 당겼다."
+          method: []
+        - <Context>k__BackingField: "성검은 꿈쩍도 하지 않았다."
+          method: []
+        - <Context>k__BackingField: "\"선택받기 전에 허리부터 나가겠네.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1003
+    - rid: 1005
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 07f6ea565ce24a5798f3fd36ccbd6b32, type: 2}
+        amount: 1
+    - rid: 1006
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1007
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 67bfa9bb4e4448f49b87f8e62a28ab7a, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1008
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1009
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "칼로 결정을 긁어낸다"
+        <OptionTooltip>k__BackingField: "칼로 검 주변의 결정을 조심스럽게 긁어냅니다. 칼이 필요합니다."
+        <RewardDescription>k__BackingField: "암염 1개 획득 · 칼 유지"
+        rewardMethod:
+        - rid: 1005
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "검을 건드리지 않고 받침대 틈의 결정만 조심스럽게 긁어냈다."
+          method: []
+        - <Context>k__BackingField: "한 끼 간을 맞출 만큼의 암염을 챙겼다."
+          method:
+          - rid: 1006
+          - rid: 1007
+        - <Context>k__BackingField: "\"용사는 다른 사람이 하면 되지.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1008
+        <LockTooltip>k__BackingField: "칼이 필요합니다."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1010
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 07f6ea565ce24a5798f3fd36ccbd6b32, type: 2}
+        amount: 2
+    - rid: 1011
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1012
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: e464ad50f7de0d046aea99e658b9fa1d, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1013
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1014
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 67bfa9bb4e4448f49b87f8e62a28ab7a, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1015
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1016
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "망치로 받침대를 부순다"
+        <OptionTooltip>k__BackingField: "망치로 검을 둘러싼 바위를 내려칩니다. 망치가 필요합니다."
+        <RewardDescription>k__BackingField: "암염 2개 획득 · 성검 파손 · 망치 유지"
+        rewardMethod:
+        - rid: 1010
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "\"받침대를 부수면 검도 뽑히고 소금도 얻겠는데?\""
+          method: []
+        - <Context>k__BackingField: "<size=70>쾅!!"
+          method: []
+        - <Context>k__BackingField: "받침대가 무너졌다. 떨어진 성검도 함께 부러졌다."
+          method:
+          - rid: 1011
+          - rid: 1012
+        - <Context>k__BackingField: "부서진 받침대에서 암염을 골라 챙겼다."
+          method:
+          - rid: 1013
+          - rid: 1014
+        - <Context>k__BackingField: "\"전설은 끝났지만, 간은 맞출 수 있겠다.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1015
+        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3

@@ -37,7 +37,7 @@ MonoBehaviour:
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "\uBC84\uC12F\uC744 \uAC00\uC838\uAC04\uB2E4."
-        <OptionTooltip>k__BackingField: "\uBC84\uC12F\uC744 \uC5BB\uC744 \uC218 \uC788\uB2E4."
+        <OptionTooltip>k__BackingField: "버섯을 손으로 잡고 뽑아봅니다."
         <RewardDescription>k__BackingField: "\uBC84\uC12F\uC744 \uC5BB\uB294\uB2E4."
         rewardMethod:
         - rid: 3674030389440807017
@@ -49,8 +49,7 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "\uBC84\uC12F\uC744 \uC790\uB978\uB2E4."
-        <OptionTooltip>k__BackingField: "\uCE7C\uC774 \uC788\uC73C\uBA74 \uC790\uB97C
-          \uC218 \uC788\uC744\uAC70 \uAC19\uB2E4."
+        <OptionTooltip>k__BackingField: "칼로 버섯의 밑동을 자릅니다. 칼이 필요합니다."
         <RewardDescription>k__BackingField: "\uC790\uB978 \uBC84\uC12F\uC744 \uC5BB\uB294\uB2E4."
         rewardMethod:
         - rid: 3674030389440807018

@@ -769,6 +769,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &26657808
 MonoBehaviour:
@@ -4198,6 +4199,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &142055179
 MonoBehaviour:
@@ -8306,6 +8308,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &316970361
 MonoBehaviour:
@@ -11800,6 +11803,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &485774186
 MonoBehaviour:
@@ -17353,6 +17357,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &790665051
 MonoBehaviour:
@@ -19495,6 +19500,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &858409437
 MonoBehaviour:
@@ -19722,16 +19728,24 @@ MonoBehaviour:
   gameTimeService: {fileID: 888343389}
   eventList:
   - {fileID: 11400000, guid: 7d2cb2a882a7d2d48bb88bdd32184d39, type: 2}
+  - {fileID: 11400000, guid: 741f602d591f623eb632350b09dc6f4a, type: 2}
+  - {fileID: 11400000, guid: 3db546bf76f94935f142d42b07a42d54, type: 2}
+  - {fileID: 11400000, guid: 010592e504f0dad8d5e27a3d270917de, type: 2}
   - {fileID: 11400000, guid: 7846e778677f8a641bec2bbcd3fef8f3, type: 2}
+  - {fileID: 11400000, guid: bbe891c8f8bedc0f0c1653e445fff7e9, type: 2}
   - {fileID: 11400000, guid: b56aa1fe3d21dcb4b8148331ff5351c4, type: 2}
   - {fileID: 11400000, guid: 5298b10ab79e0984884bcf05625d7f23, type: 2}
   - {fileID: 11400000, guid: 4abbd978d55cea24c946882149864a03, type: 2}
   - {fileID: 11400000, guid: f1dc77503b69ac64584cb106b4c8e8a5, type: 2}
   - {fileID: 11400000, guid: 61142ce062a4da1469dac78b8980bd49, type: 2}
   - {fileID: 11400000, guid: 2e165faea1609654d94acb0104ceec2f, type: 2}
+  - {fileID: 11400000, guid: 3d4eee3b8cd322bec8de57631cef744b, type: 2}
   - {fileID: 11400000, guid: 081e0f251a4954b46b1fd144f19d4f21, type: 2}
   - {fileID: 11400000, guid: 285dee0f067185f4ba424981fd8256f1, type: 2}
+  - {fileID: 11400000, guid: 439d3dbe7ac86b8d013d7336c23b87c6, type: 2}
+  - {fileID: 11400000, guid: 3275f304c5e13a1b0b2edbb439c50863, type: 2}
   - {fileID: 11400000, guid: 26a11b9bb245d8b4bb63bc58b1f968fc, type: 2}
+  - {fileID: 11400000, guid: 0780740d97c1048d2de0380a8ed9b01b, type: 2}
 --- !u!1 &860598365
 GameObject:
   m_ObjectHideFlags: 0
@@ -24380,6 +24394,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &1040761651
 MonoBehaviour:
@@ -24848,6 +24863,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &1062159566
 MonoBehaviour:
@@ -27431,7 +27447,6 @@ MonoBehaviour:
   rewardCalculator: {fileID: 1154906895}
   autoCreateRewardSystems: 1
   businessFlowController: {fileID: 1857075145}
-  preparationVisualDirector: {fileID: 0}
   miniGameView: {fileID: 1330565253}
   npcConversationView: {fileID: 1269012764}
   recipeSelectionView: {fileID: 2041527735}
@@ -27458,7 +27473,7 @@ MonoBehaviour:
   correctReward: 18
   perfectReward: 30
   perfectDishBonus: 5
-  alteredDishBonus: 0
+  goodDishBonus: 0
   normalDishBonus: 0
   qualityScoreBonusPerPoint: 2
   qualityScorePenaltyPerPoint: 2
@@ -30201,6 +30216,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &1249000551
 MonoBehaviour:
@@ -44556,6 +44572,8 @@ MonoBehaviour:
   startFirstCustomerOnStart: 1
   hideCookingTestPanelOnStart: 1
   startNextCustomerAfterResuming: 1
+  advanceDayWhenShopCloses: 1
+  startNextCustomerAfterAdvancingDay: 1
   actionRoot: {fileID: 1964385963}
   statusField: {fileID: 1242732005}
   nextCustomerButton: {fileID: 481791554}
@@ -49533,6 +49551,7 @@ MonoBehaviour:
   confirmRecipeText: "\uB808\uC2DC\uD53C \uD655\uC815"
   directSelectionText: "\uC7AC\uB8CC \uC9C1\uC811 \uC120\uD0DD"
   gamePanel: {fileID: 0}
+  knowledgeStore: {fileID: 0}
   showConfirmButtonForDirectSelection: 1
 --- !u!114 &2135449302
 MonoBehaviour:

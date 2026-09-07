@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e35af9bf42e164f89a6daed38d3a54, type: 3}
+  m_Name: coconut_crab_meat
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.IngredientSO
+  ingredientId: coconut_crab_meat
+  displayName: "코코넛 게살"
+  iconSprite: {fileID: 21300000, guid: 651289c4fe90c3c46b52ad17fcbe79a3, type: 3}
+  description: "코코넛 껍질을 집 삼아 사는 게의 살. 은은한 단맛과 고소한 풍미가 난다."
+  category: {fileID: 11400000, guid: 2ebea30b32e91544cbb497bb3dffbead, type: 2}
+  modelPrefab: {fileID: 0}
+  baseTags:
+  - {fileID: 11400000, guid: 3b481dff6be21cf49bccc4590786d902, type: 2}
+  - {fileID: 11400000, guid: 5b122f10b24af134fa18da0d725c4921, type: 2}
+  preparationOptions:
+  - preparationOptionId: just
+    method: {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
+    displayNameOverride: "그대로 사용하기"
+    description: "게살 본연의 풍미를 살린다."
+    addTags: []
+    removeTags: []
+    qualityDelta: 0
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 
+    miniGameFeedbackRules: []
+  - preparationOptionId: roast
+    method: {fileID: 11400000, guid: 3123a5c0376a3ed4dad2b40fbb0c357b, type: 2}
+    displayNameOverride: "노릇하게 굽기"
+    description: "게살을 구워 고소한 풍미를 끌어낸다."
+    addTags: []
+    removeTags: []
+    qualityDelta: 0
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 
+    miniGameFeedbackRules: []
+  - preparationOptionId: parboil
+    method: {fileID: 11400000, guid: 2f52066121feea8429d367cc15a502ae, type: 2}
+    displayNameOverride: "살짝 데치기"
+    description: "게살을 짧게 데쳐 부드럽게 손질한다."
+    addTags: []
+    removeTags: []
+    qualityDelta: 0
+    causesDisgusting: 0
+    addsPoison: 0
+    resultNameModifier: 
+    miniGameFeedbackRules: []

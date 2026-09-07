@@ -1,0 +1,158 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c017245360f0bc546a567e1840070efd, type: 3}
+  m_Name: Find_BrokenGoddessRepair
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
+  <dialogDatas>k__BackingField:
+  - <Context>k__BackingField: "길가에 부서진 여신상이 놓여 있다."
+    method:
+    - rid: 1001
+    - rid: 1002
+  - <Context>k__BackingField: "조각들은 주변에 고스란히 남아 있고, 받침대 뒤에는 작은 공물 상자가 보인다."
+    method: []
+  - <Context>k__BackingField: "\"끈끈한 슬라임 점액이 있으면 조각들을 붙일 수 있겠는데.\""
+    method: []
+  options:
+  - rid: 1011
+  - rid: 1016
+  - rid: 1018
+  references:
+    version: 2
+    RefIds:
+    - rid: 1001
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1002
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 177c8239c178d9f4aa0bca8ecb91f20f, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1003
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 80ebcfd6da9b0cc4c81498ec6b1ca26a, type: 2}
+        amount: 2
+    - rid: 1004
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 3b3858c376a94420afed3190905d141d, type: 2}
+        amount: 1
+    - rid: 1005
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1006
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 69afa95851f2ba64b9b1e8fb8001486b, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1007
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1008
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 4ba0d3eda9ba2614bb6bc2865ef05dc8, type: 3}
+        position: {x: -220, y: 0}
+    - rid: 1009
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 1e907fc6786ae384792cfc8c6c9ae71a, type: 3}
+        position: {x: 220, y: 0}
+    - rid: 1010
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1011
+      type: {class: IngredientLockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "슬라임 점액으로 조각을 붙인다"
+        <OptionTooltip>k__BackingField: "점액을 접착제 삼아 여신상의 조각을 붙입니다. 슬라임 점액 1개가 소모됩니다."
+        <RewardDescription>k__BackingField: "슬라임 점액 1개 소모 → 콘치즈 2개 + 버섯 갓 1개"
+        rewardMethod:
+        - rid: 1003
+        - rid: 1004
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "점액을 얇게 바르고 조각들을 하나씩 제자리에 붙였다."
+          method: []
+        - <Context>k__BackingField: "마지막 조각이 맞춰지자 여신상이 은은하게 빛났다."
+          method:
+          - rid: 1005
+          - rid: 1006
+        - <Context>k__BackingField: "받침대 뒤 공물 상자가 열렸다. 복구에 대한 선물인 듯하다."
+          method:
+          - rid: 1007
+          - rid: 1008
+          - rid: 1009
+        - <Context>k__BackingField: "\"접착제로 쓸지 요리에 쓸지, 늘 고민되겠네.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1010
+        <RequiredIngredient>k__BackingField: {fileID: 11400000, guid: 50f56f458c6a45dbb85feddecd3b2fb1, type: 2}
+        <RequiredAmount>k__BackingField: 1
+        <LockTooltip>k__BackingField: "슬라임 점액 1개가 필요합니다. 사용 시 소모됩니다."
+    - rid: 1012
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 07f6ea565ce24a5798f3fd36ccbd6b32, type: 2}
+        amount: 1
+    - rid: 1013
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1014
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 67bfa9bb4e4448f49b87f8e62a28ab7a, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1015
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1016
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "망치로 잔해를 잘게 정리한다"
+        <OptionTooltip>k__BackingField: "망치로 여신상의 잔해를 잘게 정리합니다. 망치가 필요합니다."
+        <RewardDescription>k__BackingField: "암염 1개 획득 · 망치 유지"
+        rewardMethod:
+        - rid: 1012
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "길을 막은 잔해를 작게 부수고 한쪽에 모았다."
+          method: []
+        - <Context>k__BackingField: "그중 깨끗한 암염 한 조각을 챙겼다."
+          method:
+          - rid: 1013
+          - rid: 1014
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1015
+        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1017
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1018
+      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "조각들을 모아두고 떠난다"
+        <OptionTooltip>k__BackingField: "흩어진 조각을 한곳에 모아두고 떠납니다."
+        <RewardDescription>k__BackingField: "보상 없음"
+        rewardMethod: []
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "누군가 다시 세울 수 있도록 흩어진 조각을 받침대 옆에 모아두었다."
+          method: []
+        - <Context>k__BackingField: "\"다음에 점액을 구하면 도와드릴게요.\""
+          method: []
+        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+          method:
+          - rid: 1017
