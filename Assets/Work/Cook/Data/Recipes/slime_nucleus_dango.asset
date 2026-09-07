@@ -15,14 +15,12 @@ MonoBehaviour:
   recipeId: slime_nucleus_dango
   displayName: "\uC2AC\uB77C\uC784 \uD575 \uB2F9\uACE0"
   iconSprite: {fileID: 21300000, guid: 3fd978d9940047444ae02dc2fc07f4bc, type: 3}
-  description: "\uC2AC\uB77C\uC784\uC758 \uB2EC\uB2EC\uD55C \uD575\uC744 \uC774\uC6A9\uD574
-    \uB9CC\uB4E4\uC5B4\uB0B8 \uC870\uD654\uB85C\uC6B4 \uB2E8\uC9E0\uB2E8\uC9E0\uC744
-    \uAC00\uC9C4 \uC2AC\uB77C\uC784 \uD575 \uB2F9\uACE0 "
+  description: "달콤한 슬라임 핵을 슬라임 점액으로 엮고 암염으로 짭짤함을 더한 당고. 핵과 점액의 손질에 따라 촉촉함, 온도, 끈적함이 달라진다."
   revealNameByDefault: 0
   hiddenDisplayName: ???
-  undiscoveredDescription: 
-  hintDescription: 
-  discoveredDescription: 
+  undiscoveredDescription: "슬라임 핵으로 만드는 단짠 간식. 핵을 묶어 줄 재료와 간을 더할 재료를 찾아보자."
+  hintDescription: "슬라임 핵, 슬라임 점액, 암염을 하나씩 사용한다. 핵은 씻기·그을리기·삶기, 점액은 끓이기·그대로·얼리기를 시도할 수 있다."
+  discoveredDescription: "슬라임 핵·슬라임 점액·암염을 하나씩 조합한다. 특정 손질만 정답으로 고정되지 않으므로 손님의 식감과 온도 취향에 맞춘다."
   category: {fileID: 11400000, guid: 469f91dc912b6cf4aaff04b5739775d6, type: 2}
   priority: 0
   baseTags:

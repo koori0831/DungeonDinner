@@ -48,16 +48,8 @@ namespace DungeonDinner.Npc.PlayModeTests
             return MeasureScene("Assets/Work/Integration/Scene/DungeonDinnerScene.unity");
         }
 
-        [TearDown]
-        public void RestoreLogAssertionState()
-        {
-            LogAssert.ignoreFailingMessages = false;
-        }
-
         private static IEnumerator MeasureScene(string scenePath)
         {
-            LogAssert.ignoreFailingMessages = true;
-
             int buildIndex = SceneUtility.GetBuildIndexByScenePath(scenePath);
             Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), scenePath + " is not enabled in Build Settings.");
 

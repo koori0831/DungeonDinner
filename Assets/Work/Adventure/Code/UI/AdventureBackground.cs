@@ -16,6 +16,9 @@ namespace Work.Adventure.Code.UI
         [SerializeField] private float fadeTime = 0.4f;
 
         private float _defaultScale;
+        private Sequence _walkSequence;
+        private Tween _defaultFadeTween;
+        private Tween _moveFadeTween;
 
 
         private void Awake()
@@ -25,10 +28,10 @@ namespace Work.Adventure.Code.UI
 
         public void Walking(Action callback = null)
         {
-            defaultBackground.DOFade(0, fadeTime);
-            moveBackground.DOFade(1, fadeTime);
+            KillAllTweens();
 
-            Sequence moveSequence = DOTween.Sequence();
+            Sequence moveSequence = DOTween.Sequence()
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
 
             for (int i = 1; i <= 3; i++)
             {
@@ -45,20 +48,20 @@ namespace Work.Adventure.Code.UI
             }
 
             // 4. 모든 루프가 끝난 후 Idle() 실행
-            moveSequence.OnComplete(() =>
+            moveSequence.Insert(0f, defaultBackground.DOFade(0, fadeTime));
+            moveSequence.Insert(0f, moveBackground.DOFade(1, fadeTime));
+            _walkSequence = moveSequence.OnComplete(() =>
             {
-                Idle();
+                _walkSequence = null;
+                StartIdleVisuals();
                 callback?.Invoke();
             });
         }    
 
         public void Idle()
         {
-            defaultBackground.DOFade(1, fadeTime);
-            moveBackground.DOFade(0, fadeTime);
-
-            moveBackground.rectTransform.localScale = new Vector3(_defaultScale, _defaultScale, _defaultScale);
-            moveBackground.rectTransform.anchoredPosition = new Vector2(0, 0);
+            KillAllTweens();
+            StartIdleVisuals();
         }
 
         public void Enable()
@@ -69,7 +72,38 @@ namespace Work.Adventure.Code.UI
 
         public void Disable()
         {
+            KillAllTweens();
             root.gameObject.SetActive(false);
+        }
+
+        private void OnDisable()
+        {
+            KillAllTweens();
+        }
+
+        private void StartIdleVisuals()
+        {
+            _defaultFadeTween = defaultBackground.DOFade(1, fadeTime)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
+            _moveFadeTween = moveBackground.DOFade(0, fadeTime)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
+
+            moveBackground.rectTransform.localScale = new Vector3(_defaultScale, _defaultScale, _defaultScale);
+            moveBackground.rectTransform.anchoredPosition = Vector2.zero;
+        }
+
+        private void KillAllTweens()
+        {
+            _walkSequence?.Kill(false);
+            _walkSequence = null;
+            _defaultFadeTween?.Kill(false);
+            _defaultFadeTween = null;
+            _moveFadeTween?.Kill(false);
+            _moveFadeTween = null;
+            defaultBackground?.DOKill(false);
+            moveBackground?.DOKill(false);
+            if (moveBackground != null)
+                moveBackground.rectTransform.DOKill(false);
         }
     }
 }

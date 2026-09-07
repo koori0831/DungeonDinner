@@ -22,7 +22,6 @@ namespace DungeonDinner.Npc.PlayModeTests
         public void BeginLogCapture()
         {
             _runtimeErrors.Clear();
-            LogAssert.ignoreFailingMessages = true;
             Application.logMessageReceived += HandleLog;
         }
 
@@ -30,7 +29,6 @@ namespace DungeonDinner.Npc.PlayModeTests
         public void EndLogCapture()
         {
             Application.logMessageReceived -= HandleLog;
-            LogAssert.ignoreFailingMessages = false;
         }
 
         [UnityTest]
@@ -183,6 +181,151 @@ namespace DungeonDinner.Npc.PlayModeTests
             };
             WriteDispatchResult(result);
             Debug.Log("DISPATCH_INTEGRATION_SMOKE " + JsonUtility.ToJson(result));
+        }
+
+        [UnityTest]
+        [Category("LoopRegression")]
+        public IEnumerator DungeonDinner_DispatchStatusRefreshesAfterStartReturnAndClaim()
+        {
+            int buildIndex = SceneUtility.GetBuildIndexByScenePath(ScenePath);
+            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), ScenePath + " is not enabled in Build Settings.");
+
+            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
+            Assert.That(loadOperation, Is.Not.Null);
+            while (loadOperation.isDone == false)
+                yield return null;
+
+            yield return null;
+            yield return new WaitForSecondsRealtime(0.5f);
+
+            Scene scene = SceneManager.GetActiveScene();
+            DisableBehaviour(scene, "Work.Cook.Code.Runtime.Systems.CookingBusinessFlowController");
+            DisableBehaviour(scene, "Work.NPC.Code.Runtime.NpcConversationRunner");
+
+            MonoBehaviour dispatchManager = FindBehaviour(scene, "Work.Dispatch.Code.Runtime.DispatchManager");
+            MonoBehaviour gameTime = FindBehaviour(scene, "Work.TimeSystem.GameTimeService");
+            MonoBehaviour preparation = FindBehaviour(scene, "Work.Adventure.Code.PreparationManager");
+            Assert.That(dispatchManager, Is.Not.Null);
+            Assert.That(gameTime, Is.Not.Null);
+            Assert.That(preparation, Is.Not.Null);
+
+            MonoBehaviour preparationMenu = GetInstanceField(preparation, "preparationMenuUI") as MonoBehaviour;
+            Assert.That(preparationMenu, Is.Not.Null);
+
+            SetInstanceField(dispatchManager, "persistDispatch", false);
+            SetInstanceField(gameTime, "persistTime", false);
+            ResetRuntimeState(dispatchManager, "Work.Dispatch.Code.Runtime.DispatchRuntimeState");
+            ResetRuntimeState(gameTime, "Work.TimeSystem.GameTimeState", 0);
+
+            InvokePublic(preparationMenu, "ShowUI", null);
+            yield return null;
+            AssertDispatchStatus(preparationMenu, "파견 : 가능");
+
+            object job = StartFirstConfiguredDispatch(dispatchManager);
+            Assert.That(job, Is.Not.Null, "테스트용 파견을 시작하지 못했습니다.");
+            InvokePublic(preparationMenu, "ShowUI", null);
+            yield return null;
+            AssertDispatchStatus(preparationMenu, "파견 : 진행 중");
+
+            int requiredTime = (int)job.GetType().GetField("RequiredTime").GetValue(job);
+            AdvanceGameTime(gameTime, requiredTime);
+            yield return null;
+            InvokePublic(preparationMenu, "ShowUI", null);
+            yield return null;
+            AssertDispatchStatus(preparationMenu, "파견 : 보고서 1건");
+
+            string jobId = (string)job.GetType().GetField("JobId").GetValue(job);
+            MethodInfo claimMethod = dispatchManager.GetType().GetMethod("ClaimReport", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(claimMethod, Is.Not.Null);
+            object claimResult = claimMethod.Invoke(dispatchManager, new object[] { jobId });
+            Assert.That(GetPublicValue<bool>(claimResult, "IsFullyClaimed"), Is.True);
+
+            InvokePublic(preparationMenu, "ShowUI", null);
+            yield return null;
+            AssertDispatchStatus(preparationMenu, "파견 : 가능");
+            Assert.That(_runtimeErrors, Is.Empty, string.Join("\n", _runtimeErrors));
+        }
+
+        [UnityTest]
+        [Category("LoopRegression")]
+        public IEnumerator DungeonDinner_BusinessActionsNeverOverlapResultActionsAtSupportedResolutions()
+        {
+            int buildIndex = SceneUtility.GetBuildIndexByScenePath(ScenePath);
+            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), ScenePath + " is not enabled in Build Settings.");
+
+            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
+            Assert.That(loadOperation, Is.Not.Null);
+            while (loadOperation.isDone == false)
+                yield return null;
+
+            int originalWidth = Screen.width;
+            int originalHeight = Screen.height;
+            Vector2Int[] resolutions =
+            {
+                new Vector2Int(1920, 1080),
+                new Vector2Int(1280, 720)
+            };
+
+            for (int i = 0; i < resolutions.Length; i++)
+            {
+                Screen.SetResolution(resolutions[i].x, resolutions[i].y, false);
+                yield return null;
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+
+                Scene scene = SceneManager.GetActiveScene();
+                RectTransform businessPanel = FindNamedRectTransform(scene, "BusinessActionPanel");
+                RectTransform resultActions = FindNamedRectTransform(scene, "ResultActions");
+                Assert.That(businessPanel, Is.Not.Null);
+                Assert.That(resultActions, Is.Not.Null);
+
+                Canvas canvas = businessPanel.GetComponentInParent<Canvas>(true);
+                RectTransform canvasRect = canvas != null ? canvas.rootCanvas.transform as RectTransform : null;
+                Rect businessRect = ToCanvasRect(businessPanel, canvasRect);
+                Rect resultRect = ToCanvasRect(resultActions, canvasRect);
+                Assert.That(
+                    IntersectionArea(businessRect, resultRect),
+                    Is.EqualTo(0f).Within(0.01f),
+                    resolutions[i] + "에서 영업 상태 패널과 결과 버튼 영역이 겹칩니다.");
+            }
+
+            Screen.SetResolution(originalWidth, originalHeight, false);
+            Assert.That(_runtimeErrors, Is.Empty, string.Join("\n", _runtimeErrors));
+        }
+
+        [UnityTest]
+        [Category("LoopRegression")]
+        public IEnumerator DungeonDinner_TwoConsecutiveLoadsHaveOneListenerAndNoTransitionTargetErrors()
+        {
+            int buildIndex = SceneUtility.GetBuildIndexByScenePath(ScenePath);
+            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), ScenePath + " is not enabled in Build Settings.");
+
+            for (int loadIndex = 0; loadIndex < 2; loadIndex++)
+            {
+                AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
+                Assert.That(loadOperation, Is.Not.Null);
+                while (loadOperation.isDone == false)
+                    yield return null;
+
+                yield return null;
+                yield return new WaitForSecondsRealtime(0.75f);
+
+                Scene scene = SceneManager.GetActiveScene();
+                AudioListener[] listeners = UnityEngine.Object.FindObjectsByType<AudioListener>(
+                    FindObjectsInactive.Exclude,
+                    FindObjectsSortMode.None);
+                int activeSceneListenerCount = 0;
+                for (int i = 0; i < listeners.Length; i++)
+                {
+                    if (listeners[i] != null && listeners[i].gameObject.scene == scene && listeners[i].isActiveAndEnabled)
+                        activeSceneListenerCount++;
+                }
+
+                Assert.That(activeSceneListenerCount, Is.EqualTo(1),
+                    "통합 씬에는 활성 AudioListener가 정확히 하나 있어야 합니다.");
+            }
+
+            Assert.That(_runtimeErrors, Is.Empty, string.Join("\n", _runtimeErrors));
         }
 
         private GeometryResult MeasureRecipeGeometry(
@@ -376,6 +519,21 @@ namespace DungeonDinner.Npc.PlayModeTests
             return count;
         }
 
+        private static RectTransform FindNamedRectTransform(Scene scene, string objectName)
+        {
+            GameObject[] roots = scene.GetRootGameObjects();
+            for (int i = 0; i < roots.Length; i++)
+            {
+                Transform[] transforms = roots[i].GetComponentsInChildren<Transform>(true);
+                for (int j = 0; j < transforms.Length; j++)
+                {
+                    if (string.Equals(transforms[j].name, objectName, StringComparison.Ordinal))
+                        return transforms[j] as RectTransform;
+                }
+            }
+            return null;
+        }
+
         private static void InvokePublic(object owner, string methodName)
         {
             InvokeInstance(owner, methodName, BindingFlags.Instance | BindingFlags.Public);
@@ -419,6 +577,89 @@ namespace DungeonDinner.Npc.PlayModeTests
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             Assert.That(field, Is.Not.Null, owner.GetType().Name + "." + fieldName + " was not found.");
             return field.GetValue(owner);
+        }
+
+        private static void ResetRuntimeState(MonoBehaviour owner, string stateTypeName, params object[] arguments)
+        {
+            Type stateType = owner.GetType().Assembly.GetType(stateTypeName);
+            Assert.That(stateType, Is.Not.Null, stateTypeName);
+            object state = Activator.CreateInstance(stateType, arguments.Length == 0 ? new object[] { null } : arguments);
+            SetInstanceField(owner, "_state", state);
+        }
+
+        private static object StartFirstConfiguredDispatch(MonoBehaviour dispatchManager)
+        {
+            object catalog = GetPublicValue<object>(dispatchManager, "Catalog");
+            Assert.That(catalog, Is.Not.Null);
+
+            object region = First(GetPublicValue<object>(catalog, "Regions") as IEnumerable);
+            object npcRule = First(GetPublicValue<object>(catalog, "NpcRules") as IEnumerable);
+            Assert.That(region, Is.Not.Null);
+            Assert.That(npcRule, Is.Not.Null);
+
+            object materialRule = First(GetPublicValue<object>(region, "Materials") as IEnumerable);
+            Assert.That(materialRule, Is.Not.Null);
+
+            string regionId = GetPublicValue<string>(region, "RegionId");
+            string npcId = GetPublicValue<string>(npcRule, "NpcId");
+            string itemId = GetPublicValue<string>(materialRule, "ItemId");
+
+            Assembly assembly = dispatchManager.GetType().Assembly;
+            Type draftType = assembly.GetType("Work.Dispatch.Code.Runtime.DispatchDraft");
+            Type requestType = assembly.GetType("Work.Dispatch.Code.Runtime.DispatchDraftRequest");
+            Type eligibilityType = assembly.GetType("Work.Dispatch.Code.Runtime.DispatchNpcEligibility");
+            Assert.That(draftType, Is.Not.Null);
+            Assert.That(requestType, Is.Not.Null);
+            Assert.That(eligibilityType, Is.Not.Null);
+
+            object draft = Activator.CreateInstance(draftType);
+            draftType.GetField("NpcId").SetValue(draft, npcId);
+            draftType.GetField("RegionId").SetValue(draft, regionId);
+            IList requests = draftType.GetField("Requests").GetValue(draft) as IList;
+            Assert.That(requests, Is.Not.Null);
+            requests.Add(Activator.CreateInstance(requestType, itemId, 1));
+
+            object eligibility = Activator.CreateInstance(
+                eligibilityType,
+                true,
+                int.MaxValue,
+                new List<string> { regionId });
+            MethodInfo startMethod = dispatchManager.GetType().GetMethod(
+                "TryStartDispatch",
+                BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(startMethod, Is.Not.Null);
+
+            object[] startArguments = { draft, eligibility, null, null };
+            bool started = (bool)startMethod.Invoke(dispatchManager, startArguments);
+            Assert.That(started, Is.True, startArguments[3]?.ToString());
+            return startArguments[2];
+        }
+
+        private static object First(IEnumerable values)
+        {
+            if (values == null)
+                return null;
+
+            IEnumerator enumerator = values.GetEnumerator();
+            return enumerator.MoveNext() ? enumerator.Current : null;
+        }
+
+        private static void AdvanceGameTime(MonoBehaviour gameTime, int amount)
+        {
+            Type activityType = gameTime.GetType().Assembly.GetType("Work.TimeSystem.GameTimeActivityType");
+            Assert.That(activityType, Is.Not.Null);
+            object activity = Enum.Parse(activityType, "Restaurant");
+            MethodInfo advanceMethod = gameTime.GetType().GetMethod("AdvanceTime", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(advanceMethod, Is.Not.Null);
+            advanceMethod.Invoke(gameTime, new[] { (object)amount, activity });
+        }
+
+        private static void AssertDispatchStatus(MonoBehaviour preparationMenu, string expected)
+        {
+            object statusText = GetInstanceField(preparationMenu, "statusText");
+            Assert.That(statusText, Is.Not.Null);
+            string textValue = GetPublicValue<string>(statusText, "text");
+            Assert.That(textValue, Does.Contain(expected));
         }
 
         private static void SetInstanceField(object owner, string fieldName, object value)
@@ -489,15 +730,24 @@ namespace DungeonDinner.Npc.PlayModeTests
 
         private void HandleLog(string condition, string stackTrace, LogType type)
         {
-            if (type != LogType.Error && type != LogType.Exception && type != LogType.Assert)
-                return;
             string text = (condition ?? string.Empty) + "\n" + (stackTrace ?? string.Empty);
+            bool isFailure = type == LogType.Error || type == LogType.Exception || type == LogType.Assert;
+            bool isDotweenTargetWarning = type == LogType.Warning
+                && text.IndexOf("DOTWEEN", StringComparison.OrdinalIgnoreCase) >= 0
+                && (text.IndexOf("SAFE MODE", StringComparison.OrdinalIgnoreCase) >= 0
+                    || text.IndexOf("target", StringComparison.OrdinalIgnoreCase) >= 0
+                    || text.IndexOf("destroyed", StringComparison.OrdinalIgnoreCase) >= 0
+                    || text.IndexOf("null", StringComparison.OrdinalIgnoreCase) >= 0);
+            if (isFailure == false && isDotweenTargetWarning == false)
+                return;
+
             if (text.Contains("Work.Cook", StringComparison.Ordinal)
                 || text.Contains("Work.NPC", StringComparison.Ordinal)
                 || text.Contains("Work.Adventure", StringComparison.Ordinal)
                 || text.Contains("Work.Dispatch", StringComparison.Ordinal)
                 || text.Contains("Work.TimeSystem", StringComparison.Ordinal)
-                || text.Contains("CookingGamePanel", StringComparison.Ordinal))
+                || text.Contains("CookingGamePanel", StringComparison.Ordinal)
+                || isDotweenTargetWarning)
             {
                 _runtimeErrors.Add("[" + type + "] " + condition + "\n" + stackTrace);
             }

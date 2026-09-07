@@ -145,6 +145,7 @@ namespace Work.Cook.Code.Editor.Tests
             const string prefabPath = "Assets/Work/Cook/Prefabs/UI/CookingPresentationRoot.prefab";
             const float focusLift = 68f;
             const float peerDrop = 24f;
+            int selectionCount = 0;
 
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             Assert.That(prefab, Is.Not.Null);
@@ -164,33 +165,41 @@ namespace Work.Cook.Code.Editor.Tests
                 CreateOption("third", CreateMethod("third_method"))
             };
             IngredientSO ingredient = CreateIngredient("hover_test", options);
-            hand.Rebuild(ingredient, options, (_, _) => { });
+            hand.Rebuild(ingredient, options, (_, _) => selectionCount++);
 
             CookingPreparationOptionCardView[] cards =
                 hand.GetComponentsInChildren<CookingPreparationOptionCardView>(true);
             Assert.That(cards.Length, Is.EqualTo(options.Length));
 
-            Dictionary<CookingPreparationOptionCardView, float> baseY =
-                new Dictionary<CookingPreparationOptionCardView, float>();
+            Dictionary<CookingPreparationOptionCardView, Vector2> basePositions =
+                new Dictionary<CookingPreparationOptionCardView, Vector2>();
             for (int i = 0; i < cards.Length; i++)
-                baseY[cards[i]] = cards[i].LayoutRoot.anchoredPosition.y;
+                basePositions[cards[i]] = cards[i].LayoutRoot.anchoredPosition;
 
             CookingPreparationOptionCardView first = cards[0];
             CookingPreparationOptionCardView second = cards[1];
 
             first.OnPointerEnter(null);
-            AssertHandHoverPose(cards, baseY, first, focusLift, peerDrop);
+            AssertHandHoverPose(cards, basePositions, first, focusLift, peerDrop);
 
             second.OnPointerEnter(null);
             first.OnPointerExit(null);
-            AssertHandHoverPose(cards, baseY, second, focusLift, peerDrop);
+            AssertHandHoverPose(cards, basePositions, second, focusLift, peerDrop);
 
             second.OnPointerExit(null);
-            AssertHandBasePose(cards, baseY);
+            AssertHandBasePose(cards, basePositions);
 
             first.OnPointerEnter(null);
             InvokePrivateLifecycle(hand, "OnDisable");
-            AssertHandBasePose(cards, baseY);
+            AssertHandBasePose(cards, basePositions);
+
+            Assert.That(first.SelectButton, Is.Not.Null);
+            Assert.That(first.SelectButton.transform, Is.SameAs(first.LayoutRoot),
+                "포인터 입력 Button은 움직이지 않는 LayoutRoot에 있어야 합니다.");
+            first.OnPointerEnter(null);
+            Assert.That(first.LayoutRoot.anchoredPosition, Is.EqualTo(basePositions[first]));
+            first.SelectButton.onClick.Invoke();
+            Assert.That(selectionCount, Is.EqualTo(1), "첫 클릭은 선택 콜백을 정확히 한 번 호출해야 합니다.");
         }
 
         private static void InvokePrivateLifecycle(MonoBehaviour target, string methodName)
@@ -204,7 +213,7 @@ namespace Work.Cook.Code.Editor.Tests
 
         private static void AssertHandHoverPose(
             IReadOnlyList<CookingPreparationOptionCardView> cards,
-            IReadOnlyDictionary<CookingPreparationOptionCardView, float> baseY,
+            IReadOnlyDictionary<CookingPreparationOptionCardView, Vector2> basePositions,
             CookingPreparationOptionCardView focused,
             float focusLift,
             float peerDrop)
@@ -212,21 +221,25 @@ namespace Work.Cook.Code.Editor.Tests
             for (int i = 0; i < cards.Count; i++)
             {
                 CookingPreparationOptionCardView card = cards[i];
-                float expectedY = baseY[card] + (card == focused ? focusLift : -peerDrop);
-                Assert.That(card.LayoutRoot.anchoredPosition.y, Is.EqualTo(expectedY).Within(0.001f));
+                Assert.That(card.LayoutRoot.anchoredPosition, Is.EqualTo(basePositions[card]),
+                    "호버 중에도 입력 루트 위치는 고정되어야 합니다.");
+                float expectedVisualY = card == focused ? focusLift : -peerDrop;
+                Assert.That(card.HoverVisualRoot.anchoredPosition.y,
+                    Is.EqualTo(expectedVisualY).Within(0.001f));
             }
         }
 
         private static void AssertHandBasePose(
             IReadOnlyList<CookingPreparationOptionCardView> cards,
-            IReadOnlyDictionary<CookingPreparationOptionCardView, float> baseY)
+            IReadOnlyDictionary<CookingPreparationOptionCardView, Vector2> basePositions)
         {
             for (int i = 0; i < cards.Count; i++)
             {
                 CookingPreparationOptionCardView card = cards[i];
                 Assert.That(
-                    card.LayoutRoot.anchoredPosition.y,
-                    Is.EqualTo(baseY[card]).Within(0.001f));
+                    card.LayoutRoot.anchoredPosition,
+                    Is.EqualTo(basePositions[card]));
+                Assert.That(card.HoverVisualRoot.anchoredPosition, Is.EqualTo(Vector2.zero));
             }
         }
 

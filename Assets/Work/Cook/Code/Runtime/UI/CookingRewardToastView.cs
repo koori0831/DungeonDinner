@@ -153,7 +153,9 @@ namespace Work.Cook.Code.Runtime.UI
                 visualRoot.localScale = new Vector3(0.94f, 0.94f, 1f);
             }
 
-            Sequence sequence = DOTween.Sequence().SetUpdate(true);
+            Sequence sequence = DOTween.Sequence()
+                .SetUpdate(true)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
             if (canvasGroup != null)
                 sequence.Join(canvasGroup.DOFade(1f, enterDuration));
             if (visualRoot != null)
@@ -177,13 +179,16 @@ namespace Work.Cook.Code.Runtime.UI
                     _accumulatedAmount,
                     countDuration)
                 .SetEase(Ease.OutCubic)
-                .SetUpdate(true);
+                .SetUpdate(true)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
 
             Sequence hideSequence;
             if (appended || _activeSequence == null)
             {
                 _activeSequence?.Kill(false);
-                hideSequence = DOTween.Sequence().SetUpdate(true);
+                hideSequence = DOTween.Sequence()
+                    .SetUpdate(true)
+                    .SetLink(gameObject, LinkBehaviour.KillOnDisable);
             }
             else
             {

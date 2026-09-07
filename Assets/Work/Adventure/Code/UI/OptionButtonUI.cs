@@ -21,6 +21,7 @@ namespace Work.Adventure.Code.UI
         private float _defaultWidth;
 
         private Options _currentOption;
+        private Tween _sizeTween;
 
         public void Init(Options optionInfo, Action<Options> resultDialog)
         {
@@ -28,7 +29,8 @@ namespace Work.Adventure.Code.UI
             nameField.text = optionInfo.OptionName;
             _defaultWidth = root.sizeDelta.x;
             root.sizeDelta = new Vector2(0, root.sizeDelta.y);
-            root.DOSizeDelta(new Vector2(_defaultWidth, root.sizeDelta.y), time);
+            AnimateWidth(_defaultWidth);
+            button.onClick.RemoveAllListeners();
 
             if (optionInfo is LockedOption lockedOption)
             {
@@ -58,7 +60,7 @@ namespace Work.Adventure.Code.UI
                     Bus<OnEnableTooltipEvent>.Raise(new OnEnableTooltipEvent(lockedOption.LockTooltip));
                 return;
             }
-            root.DOSizeDelta(new Vector2(_defaultWidth + widthOffset, root.sizeDelta.y), time);
+            AnimateWidth(_defaultWidth + widthOffset);
 
         }
 
@@ -69,14 +71,37 @@ namespace Work.Adventure.Code.UI
             {
                 return;
             }
-            root.DOSizeDelta(new Vector2(_defaultWidth, root.sizeDelta.y), time);
+            AnimateWidth(_defaultWidth);
             //Bus<OnDisableTooltipEvent>.Raise(new OnDisableTooltipEvent());
         }
 
         private void OnDestroy()
         {
+            KillSizeTween();
             button.onClick.RemoveAllListeners();
             Bus<OnDisableTooltipEvent>.Raise(new OnDisableTooltipEvent());
+        }
+
+        private void OnDisable()
+        {
+            KillSizeTween();
+        }
+
+        private void AnimateWidth(float width)
+        {
+            if (root == null)
+                return;
+
+            KillSizeTween();
+            _sizeTween = root.DOSizeDelta(new Vector2(width, root.sizeDelta.y), time)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
+        }
+
+        private void KillSizeTween()
+        {
+            _sizeTween?.Kill(false);
+            _sizeTween = null;
+            root?.DOKill(false);
         }
     }
 }

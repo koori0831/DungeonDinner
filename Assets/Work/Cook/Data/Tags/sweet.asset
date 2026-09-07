@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodTagSO
   tagId: sweet
   displayName: "\uB2EC\uCF64\uD568"
-  description: "NPC \uC8FC\uBB38 \uD3C9\uAC00\uC5D0 \uC0AC\uC6A9\uB418\uB294 \uD0DC\uADF8
-    'sweet'\uC785\uB2C8\uB2E4."
+  description: "입안에 단맛이 느껴지는 특성입니다."

@@ -1473,6 +1473,7 @@ MonoBehaviour:
   preparationMenuUI: {fileID: 6251132199307130589}
   mainUIroot: {fileID: 1172723162}
   dispatchScreen: {fileID: 888343387}
+  dispatchManager: {fileID: 888343388}
 --- !u!1 &248735764
 GameObject:
   m_ObjectHideFlags: 0
@@ -8269,7 +8270,7 @@ MonoBehaviour:
   regionId: MossCave
   playOnStart: 0
   currentDay: 1
-  persistHistory: 0
+  persistHistory: 1
   historySaveKey: DungeonDinner.NpcEncounterHistory
   continueDayFromHistoryOnLoad: 0
   ignoreNpcCooldownWhenPoolIsEmpty: 0
@@ -12476,6 +12477,7 @@ GameObject:
   - component: {fileID: 1886920502}
   - component: {fileID: 1886920501}
   - component: {fileID: 1886920503}
+  - component: {fileID: 1886920504}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -12593,6 +12595,14 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!81 &1886920504
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1886920500}
+  m_Enabled: 1
 --- !u!1 &1909454983
 GameObject:
   m_ObjectHideFlags: 0

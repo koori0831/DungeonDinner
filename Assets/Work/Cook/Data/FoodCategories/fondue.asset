@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76b1b495e1c43e44d9d215ab90c425a0, type: 3}
-  m_Name: soup
+  m_Name: fondue
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.FoodCategorySO
-  categoryId: soup
-  displayName: "\uC218\uD504"
+  categoryId: fondue
+  displayName: "퐁듀"
   icon: {fileID: 0}
-  description: "국물과 재료를 함께 떠먹는 음식입니다."
+  description: "녹인 치즈를 바탕으로 재료를 곁들여 먹는 음식입니다."

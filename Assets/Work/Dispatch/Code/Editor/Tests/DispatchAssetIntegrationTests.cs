@@ -1,3 +1,4 @@
+using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -5,6 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Work.Adventure.Code;
+using Work.Adventure.Code.UI;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
 using Work.Dispatch.Code.Data;
@@ -67,6 +69,61 @@ namespace Work.Dispatch.Code.Editor.Tests
             Assert.That(adventureCanvas, Is.Not.Null);
             Assert.That(document.sortingOrder, Is.LessThan(adventureCanvas.sortingOrder),
                 "파견 UI가 기존 페이드 Canvas보다 앞에 오면 화면 전환이 가려집니다.");
+        }
+
+        [Test]
+        public void AdventureMapButtons_HaveAllRequiredSerializedReferences()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/Work/Adventure/Prefabs/AdventureCanvas.prefab");
+            Assert.That(prefab, Is.Not.Null);
+
+            MapSelectButton[] mapButtons = prefab.GetComponentsInChildren<MapSelectButton>(true);
+            Assert.That(mapButtons, Is.Not.Empty);
+            for (int i = 0; i < mapButtons.Length; i++)
+            {
+                AssertSerializedReference(mapButtons[i], "buttonImage");
+                AssertSerializedReference(mapButtons[i], "button");
+                AssertSerializedReference(mapButtons[i], "buttonText");
+            }
+        }
+
+        [TestCase(false, 0, "가능")]
+        [TestCase(true, 0, "진행 중")]
+        [TestCase(false, 2, "보고서 2건")]
+        [TestCase(true, 2, "진행 중 · 보고서 2건")]
+        public void PreparationDispatchStatus_FormatsAllRuntimeStates(
+            bool hasActiveJob,
+            int reportCount,
+            string expected)
+        {
+            MethodInfo formatter = typeof(PreparationManager).GetMethod(
+                "FormatDispatchStatus",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(formatter, Is.Not.Null);
+            Assert.That(formatter.Invoke(null, new object[] { hasActiveJob, reportCount }), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void CookingBusinessActionPanel_IsAboveResultActionsAndDoesNotBlockBackgroundRaycasts()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/Work/Cook/Prefabs/UI/CookingPresentationRoot.prefab");
+            Assert.That(prefab, Is.Not.Null);
+
+            RectTransform businessPanel = FindNamedTransform(prefab, "BusinessActionPanel") as RectTransform;
+            RectTransform resultActions = FindNamedTransform(prefab, "ResultActions") as RectTransform;
+            Assert.That(businessPanel, Is.Not.Null);
+            Assert.That(resultActions, Is.Not.Null);
+            Assert.That(businessPanel.anchoredPosition.y, Is.EqualTo(126f).Within(0.01f));
+            Assert.That(businessPanel.sizeDelta.y, Is.EqualTo(66f).Within(0.01f));
+            Assert.That(
+                businessPanel.anchoredPosition.y - resultActions.anchoredPosition.y - resultActions.sizeDelta.y,
+                Is.GreaterThanOrEqualTo(16f));
+
+            UnityEngine.UI.Image background = businessPanel.GetComponent<UnityEngine.UI.Image>();
+            Assert.That(background, Is.Not.Null);
+            Assert.That(background.raycastTarget, Is.False);
         }
 
         [TestCase("Assets/Work/Adventure/Scene/AdventureTestScene.unity")]
@@ -136,6 +193,23 @@ namespace Work.Dispatch.Code.Editor.Tests
                 dispatchRoot.GetComponent<GameTimeService>());
         }
 
+        [Test]
+        public void RuntimeIntegrationScene_HasExactlyOneActiveAudioListener()
+        {
+            Scene scene = EditorSceneManager.OpenScene(
+                AdventureSceneIntegrationSetup.IntegrationScenePath,
+                OpenSceneMode.Single);
+            AudioListener[] listeners = FindSceneComponents<AudioListener>(scene);
+            int activeCount = 0;
+            for (int i = 0; i < listeners.Length; i++)
+            {
+                if (listeners[i].isActiveAndEnabled)
+                    activeCount++;
+            }
+
+            Assert.That(activeCount, Is.EqualTo(1));
+        }
+
         private static void AssertSerializedReference(Object target, string propertyName)
         {
             Assert.That(target, Is.Not.Null, $"{propertyName} 참조를 검사할 대상이 없습니다.");
@@ -181,6 +255,17 @@ namespace Work.Dispatch.Code.Editor.Tests
             for (int i = 0; i < roots.Length; i++)
                 results.AddRange(roots[i].GetComponentsInChildren<T>(true));
             return results.ToArray();
+        }
+
+        private static Transform FindNamedTransform(GameObject root, string objectName)
+        {
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                if (string.Equals(transforms[i].name, objectName, System.StringComparison.Ordinal))
+                    return transforms[i];
+            }
+            return null;
         }
 
         private static GameObject[] FindPrefabInstanceRoots(Scene scene, string prefabPath)

@@ -15,6 +15,7 @@ MonoBehaviour:
   categories:
   - {fileID: 11400000, guid: 469f91dc912b6cf4aaff04b5739775d6, type: 2}
   - {fileID: 11400000, guid: 1b2952f03915ffb4983759a8c2a89117, type: 2}
+  - {fileID: 11400000, guid: 0e1957886ffc4574b85dc06d0a10b081, type: 2}
   ingredientCategories:
   - {fileID: 11400000, guid: 249342fcec40afd49865c30f96f8117b, type: 2}
   - {fileID: 11400000, guid: 21754ad6520e1dd4bb7abc7711bda745, type: 2}
@@ -51,3 +52,4 @@ MonoBehaviour:
   recipes:
   - {fileID: 11400000, guid: e96f7cf5c4f6b4d44b472112d8b9cc83, type: 2}
   - {fileID: 11400000, guid: 6f77fb8f8080a3842863fa2fe413a52f, type: 2}
+  - {fileID: 11400000, guid: 30bc5c0dca3d452090d13fa91c58dab8, type: 2}

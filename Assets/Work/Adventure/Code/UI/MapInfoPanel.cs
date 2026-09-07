@@ -19,17 +19,19 @@ namespace Work.Adventure.Code.UI
         [SerializeField] private float openXPos = -15.5f;
         [SerializeField] private float time = 0.5f;
 
+        private Tween _moveTween;
 
         public void Open(MapInfoSO info, bool isCanAdventure)
         {
             SetText(info, isCanAdventure);
             SetStartAdventureButton(isCanAdventure);
-            root.DOAnchorPos(new Vector2(openXPos, root.anchoredPosition.y), time);
+            MoveTo(openXPos);
         }
 
         public void Close()
         {
-            root.DOAnchorPos(new Vector2(root.sizeDelta.x, root.anchoredPosition.y), time);
+            if (root != null)
+                MoveTo(root.sizeDelta.x);
         }
 
         public void SetStartAdventureButton(bool isCanAdventure)
@@ -47,6 +49,28 @@ namespace Work.Adventure.Code.UI
             {
                 description.text = "<color=red>진입불가지역</color>";
             }
+        }
+
+        private void OnDisable()
+        {
+            KillMoveTween();
+        }
+
+        private void MoveTo(float x)
+        {
+            if (root == null)
+                return;
+
+            KillMoveTween();
+            _moveTween = root.DOAnchorPos(new Vector2(x, root.anchoredPosition.y), time)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
+        }
+
+        private void KillMoveTween()
+        {
+            _moveTween?.Kill(false);
+            _moveTween = null;
+            root?.DOKill(false);
         }
     }
 }

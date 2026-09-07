@@ -21,7 +21,9 @@ namespace Work.Cook.Code.Runtime.Systems
 
             try
             {
-                return JsonUtility.FromJson<CookingKnowledgeSaveData>(json);
+                CookingKnowledgeSaveData data = JsonUtility.FromJson<CookingKnowledgeSaveData>(json);
+                CookingRecipeIdMigration.Apply(data);
+                return data;
             }
             catch (ArgumentException exception)
             {

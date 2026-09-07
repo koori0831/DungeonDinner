@@ -19,6 +19,7 @@ namespace Work.Adventure.Code.UI
         [SerializeField] private float characterInterval = 0.05f;
 
         private Tween _typingTween;
+        private Tween _panelTween;
         private AdventureEventSO _currentEvent;
         private Options _selectOption;
         private List<AdventrueDialogData> _currentDialogDatas;
@@ -65,18 +66,26 @@ namespace Work.Adventure.Code.UI
 
         public void OpenDialogPanel()
         {
-            dialogPanel.DOSizeDelta(new Vector2(dialogPanel.sizeDelta.x, panelMovePosY), time).OnComplete(() =>
-            {
-                _isCanWriteText = true;
-                NextDialog();
-            });
+            KillPanelTween();
+            _panelTween = dialogPanel
+                .DOSizeDelta(new Vector2(dialogPanel.sizeDelta.x, panelMovePosY), time)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable)
+                .OnComplete(() =>
+                {
+                    _isCanWriteText = true;
+                    NextDialog();
+                });
         }
 
         public void CloseDialogPanel()
         {
             dialogText.text = " ";
             nextObject.gameObject.SetActive(false);
-            dialogPanel.DOSizeDelta(new Vector2(dialogPanel.sizeDelta.x, 0), time).OnComplete(() => _isCanWriteText = false);
+            KillPanelTween();
+            _panelTween = dialogPanel
+                .DOSizeDelta(new Vector2(dialogPanel.sizeDelta.x, 0), time)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable)
+                .OnComplete(() => _isCanWriteText = false);
         }
 
         public void NextDialog()
@@ -132,11 +141,27 @@ namespace Work.Adventure.Code.UI
                 count,
                 count * characterInterval)
                 .SetEase(Ease.Linear)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable)
                 .OnComplete(() =>
                 {
                     _isCanWriteText = true;
                     nextObject.gameObject.SetActive(true);
                 });
+        }
+
+        private void OnDisable()
+        {
+            _isCanWriteText = false;
+            _typingTween?.Kill(false);
+            _typingTween = null;
+            KillPanelTween();
+        }
+
+        private void KillPanelTween()
+        {
+            _panelTween?.Kill(false);
+            _panelTween = null;
+            dialogPanel?.DOKill(false);
         }
     }
 }
