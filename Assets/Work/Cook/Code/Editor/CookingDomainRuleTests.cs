@@ -37,6 +37,262 @@ namespace Work.Cook.Code.Editor.Tests
         }
 
         [Test]
+        public void RewardWallet_TrySpendNeverOverdrawsBalance()
+        {
+            GameObject root = new GameObject("RewardWalletTest");
+            root.SetActive(false);
+            _createdObjects.Add(root);
+
+            CookingRewardWallet wallet = root.AddComponent<CookingRewardWallet>();
+            SetField(wallet, "loadFromPlayerPrefsOnAwake", false);
+            SetField(wallet, "saveToPlayerPrefs", false);
+            wallet.SetBalanceForDebug(100);
+
+            Assert.That(wallet.CanAfford(100), Is.True);
+            Assert.That(wallet.CanAfford(101), Is.False);
+            Assert.That(wallet.TrySpend(40), Is.True);
+            Assert.That(wallet.Balance, Is.EqualTo(60));
+            Assert.That(wallet.TrySpend(61), Is.False);
+            Assert.That(wallet.Balance, Is.EqualTo(60));
+            Assert.That(wallet.TrySpend(-1), Is.False);
+            Assert.That(wallet.TrySpend(0), Is.True);
+        }
+
+        [Test]
+        public void PreparationFanLayout_HoverKeepsFocusLiftAndDropsEveryPeer()
+        {
+            const int cardCount = 7;
+            const int focusedIndex = 3;
+            const float focusLift = 68f;
+            const float focusScale = 1.08f;
+            const float peerDrop = 24f;
+
+            for (int index = 0; index < cardCount; index++)
+            {
+                CookingPreparationFanLayout.CardPose basePose = CalculateFanPose(
+                    index,
+                    cardCount,
+                    -1,
+                    focusLift,
+                    focusScale,
+                    peerDrop);
+                CookingPreparationFanLayout.CardPose hoveredPose = CalculateFanPose(
+                    index,
+                    cardCount,
+                    focusedIndex,
+                    focusLift,
+                    focusScale,
+                    peerDrop);
+
+                if (index == focusedIndex)
+                {
+                    Assert.That(
+                        hoveredPose.AnchoredPosition.y,
+                        Is.EqualTo(basePose.AnchoredPosition.y + focusLift).Within(0.001f));
+                    Assert.That(hoveredPose.Scale, Is.EqualTo(focusScale).Within(0.001f));
+                    Assert.That(hoveredPose.Rotation, Is.EqualTo(0f).Within(0.001f));
+                }
+                else
+                {
+                    Assert.That(
+                        hoveredPose.AnchoredPosition.y,
+                        Is.EqualTo(basePose.AnchoredPosition.y - peerDrop).Within(0.001f));
+                    Assert.That(hoveredPose.Scale, Is.EqualTo(basePose.Scale).Within(0.001f));
+                    Assert.That(hoveredPose.Rotation, Is.EqualTo(basePose.Rotation).Within(0.001f));
+                }
+            }
+        }
+
+        [Test]
+        public void PreparationFanLayout_HoverExitRestoresOneToSevenCardHands()
+        {
+            const float focusLift = 68f;
+            const float focusScale = 1.08f;
+            const float peerDrop = 24f;
+
+            for (int cardCount = 1; cardCount <= 7; cardCount++)
+            {
+                int focusedIndex = cardCount / 2;
+                for (int index = 0; index < cardCount; index++)
+                {
+                    CookingPreparationFanLayout.CardPose expectedBase = CalculateFanPose(
+                        index,
+                        cardCount,
+                        -1,
+                        focusLift,
+                        focusScale,
+                        0f);
+                    CookingPreparationFanLayout.CardPose restoredPose = CalculateFanPose(
+                        index,
+                        cardCount,
+                        -1,
+                        focusLift,
+                        focusScale,
+                        peerDrop);
+
+                    Assert.That(restoredPose.AnchoredPosition, Is.EqualTo(expectedBase.AnchoredPosition));
+                    Assert.That(restoredPose.Scale, Is.EqualTo(expectedBase.Scale));
+                    Assert.That(restoredPose.Rotation, Is.EqualTo(expectedBase.Rotation));
+
+                    CookingPreparationFanLayout.CardPose hoveredPose = CalculateFanPose(
+                        index,
+                        cardCount,
+                        focusedIndex,
+                        focusLift,
+                        focusScale,
+                        peerDrop);
+                    Assert.That(
+                        hoveredPose.AnchoredPosition.y,
+                        Is.EqualTo(index == focusedIndex
+                            ? expectedBase.AnchoredPosition.y + focusLift
+                            : expectedBase.AnchoredPosition.y - peerDrop).Within(0.001f));
+                }
+            }
+        }
+
+        [Test]
+        public void PreparationFanLayout_InvalidFocusDoesNotMoveCards()
+        {
+            CookingPreparationFanLayout.CardPose basePose = CalculateFanPose(0, 3, -1, 68f, 1.08f, 24f);
+            CookingPreparationFanLayout.CardPose invalidFocusPose = CalculateFanPose(0, 3, 3, 68f, 1.08f, 24f);
+
+            Assert.That(invalidFocusPose.AnchoredPosition, Is.EqualTo(basePose.AnchoredPosition));
+            Assert.That(invalidFocusPose.Scale, Is.EqualTo(basePose.Scale));
+            Assert.That(invalidFocusPose.Rotation, Is.EqualTo(basePose.Rotation));
+        }
+
+        [Test]
+        public void PreparationHand_HoverSwitchExitAndDisableRestoreExpectedPoses()
+        {
+            const string prefabPath = "Assets/Work/Cook/Prefabs/UI/CookingPresentationRoot.prefab";
+            const float focusLift = 68f;
+            const float peerDrop = 24f;
+            int selectionCount = 0;
+
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            GameObject instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            Assert.That(instance, Is.Not.Null);
+            _createdObjects.Add(instance);
+
+            CookingPreparationHandView hand = instance.GetComponentInChildren<CookingPreparationHandView>(true);
+            Assert.That(hand, Is.Not.Null);
+            hand.gameObject.SetActive(true);
+
+            IngredientPreparationOption[] options =
+            {
+                CreateOption("first", CreateMethod("first_method")),
+                CreateOption("second", CreateMethod("second_method")),
+                CreateOption("third", CreateMethod("third_method"))
+            };
+            IngredientSO ingredient = CreateIngredient("hover_test", options);
+            hand.Rebuild(ingredient, options, (_, _) => selectionCount++);
+
+            CookingPreparationOptionCardView[] cards =
+                hand.GetComponentsInChildren<CookingPreparationOptionCardView>(true);
+            Assert.That(cards.Length, Is.EqualTo(options.Length));
+
+            Dictionary<CookingPreparationOptionCardView, Vector2> basePositions =
+                new Dictionary<CookingPreparationOptionCardView, Vector2>();
+            for (int i = 0; i < cards.Length; i++)
+                basePositions[cards[i]] = cards[i].LayoutRoot.anchoredPosition;
+
+            CookingPreparationOptionCardView first = cards[0];
+            CookingPreparationOptionCardView second = cards[1];
+
+            first.OnPointerEnter(null);
+            AssertHandHoverPose(cards, basePositions, first, focusLift, peerDrop);
+
+            second.OnPointerEnter(null);
+            first.OnPointerExit(null);
+            AssertHandHoverPose(cards, basePositions, second, focusLift, peerDrop);
+
+            second.OnPointerExit(null);
+            AssertHandBasePose(cards, basePositions);
+
+            first.OnPointerEnter(null);
+            InvokePrivateLifecycle(hand, "OnDisable");
+            AssertHandBasePose(cards, basePositions);
+
+            Assert.That(first.SelectButton, Is.Not.Null);
+            Assert.That(first.SelectButton.transform, Is.SameAs(first.LayoutRoot),
+                "포인터 입력 Button은 움직이지 않는 LayoutRoot에 있어야 합니다.");
+            first.OnPointerEnter(null);
+            Assert.That(first.LayoutRoot.anchoredPosition, Is.EqualTo(basePositions[first]));
+            first.SelectButton.onClick.Invoke();
+            Assert.That(selectionCount, Is.EqualTo(1), "첫 클릭은 선택 콜백을 정확히 한 번 호출해야 합니다.");
+        }
+
+        private static void InvokePrivateLifecycle(MonoBehaviour target, string methodName)
+        {
+            MethodInfo method = target.GetType().GetMethod(
+                methodName,
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null);
+            method.Invoke(target, null);
+        }
+
+        private static void AssertHandHoverPose(
+            IReadOnlyList<CookingPreparationOptionCardView> cards,
+            IReadOnlyDictionary<CookingPreparationOptionCardView, Vector2> basePositions,
+            CookingPreparationOptionCardView focused,
+            float focusLift,
+            float peerDrop)
+        {
+            for (int i = 0; i < cards.Count; i++)
+            {
+                CookingPreparationOptionCardView card = cards[i];
+                Assert.That(card.LayoutRoot.anchoredPosition, Is.EqualTo(basePositions[card]),
+                    "호버 중에도 입력 루트 위치는 고정되어야 합니다.");
+                float expectedVisualY = card == focused ? focusLift : -peerDrop;
+                Assert.That(card.HoverVisualRoot.anchoredPosition.y,
+                    Is.EqualTo(expectedVisualY).Within(0.001f));
+            }
+        }
+
+        private static void AssertHandBasePose(
+            IReadOnlyList<CookingPreparationOptionCardView> cards,
+            IReadOnlyDictionary<CookingPreparationOptionCardView, Vector2> basePositions)
+        {
+            for (int i = 0; i < cards.Count; i++)
+            {
+                CookingPreparationOptionCardView card = cards[i];
+                Assert.That(
+                    card.LayoutRoot.anchoredPosition,
+                    Is.EqualTo(basePositions[card]));
+                Assert.That(card.HoverVisualRoot.anchoredPosition, Is.EqualTo(Vector2.zero));
+            }
+        }
+
+        private static CookingPreparationFanLayout.CardPose CalculateFanPose(
+            int index,
+            int cardCount,
+            int focusedIndex,
+            float focusLift,
+            float focusScale,
+            float peerDrop)
+        {
+            return CookingPreparationFanLayout.Calculate(
+                index,
+                cardCount,
+                1500f,
+                296f,
+                13f,
+                132f,
+                220f,
+                0.86f,
+                70f,
+                focusedIndex,
+                -1,
+                focusLift,
+                focusScale,
+                18f,
+                36f,
+                peerDrop);
+        }
+
+        [Test]
         public void SelectedRecipe_DoesNotOverrideActualPreparedIngredients()
         {
             IngredientSO required = CreateIngredient("required");
@@ -421,6 +677,7 @@ namespace Work.Cook.Code.Editor.Tests
 
         [TestCase("Assets/Work/Cook/Scene/CookTestScene.unity")]
         [TestCase("Assets/Work/Adventure/Scene/AdventureTestScene.unity")]
+        [TestCase("Assets/Work/Integration/Scene/DungeonDinnerScene.unity")]
         public void CookingScenes_LoadWithRequiredFlowComponentsAndNoMissingScripts(string scenePath)
         {
             Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
@@ -456,6 +713,12 @@ namespace Work.Cook.Code.Editor.Tests
         public IEnumerator AdventureTestScene_PlayModeCookingFlowInitializes()
         {
             return VerifyCookingSceneInPlayMode("Assets/Work/Adventure/Scene/AdventureTestScene.unity");
+        }
+
+        [UnityTest]
+        public IEnumerator DungeonDinnerScene_PlayModeCookingFlowInitializes()
+        {
+            return VerifyCookingSceneInPlayMode("Assets/Work/Integration/Scene/DungeonDinnerScene.unity");
         }
 
         [Test]

@@ -9,7 +9,12 @@ namespace DungeonDinner.Cook.EditorTests
     public sealed class CookingMiniGameOverlayHierarchyTests
     {
         private const string PrefabPath = "Assets/Work/Cook/Prefabs/UI/CookingPresentationRoot.prefab";
+        private const string StandaloneOverlayPrefabPath =
+            "Assets/Work/Cook/Prefabs/UI/CookingMiniGameOverlayRoot.prefab";
+        private const string IntegrationScenePath =
+            "Assets/Work/Integration/Scene/DungeonDinnerScene.unity";
         private const string SettingsPath = "Assets/Work/Cook/SO/CookingMiniGameOverlaySettings.asset";
+        private const string MiniGameAssetFolder = "Assets/Work/Cook/Graphics/UIAsset/CookingMiniGame";
 
         [Test]
         public void OverlayPrefab_HasReadableActionFeedbackHierarchyAndBindings()
@@ -78,14 +83,73 @@ namespace DungeonDinner.Cook.EditorTests
                 Assert.That(cutLine.GetComponent<Image>(), Is.Not.Null);
             }
 
+            Assert.That(FindDeep(overlay, "IngredientClickGuide"), Is.Not.Null,
+                "Roasting must keep a visible click/flip guide over the stationary ingredient.");
+            Assert.That(FindDeep(overlay, "PlateZone"), Is.Null,
+                "Transport destination zones must not remain after click interaction migration.");
+            Assert.That(FindDeep(overlay, "LadleGuide"), Is.Null,
+                "The boiling drag tool must not remain after click interaction migration.");
+
             MonoBehaviour[] temporaryLabels = overlay.GetComponentsInChildren<MonoBehaviour>(true)
                 .Where(component => component != null
                     && component.name == "TemporaryLabel"
                     && component.GetType().Name == "TextMeshProUGUI")
                 .ToArray();
-            Assert.That(temporaryLabels.Length, Is.GreaterThanOrEqualTo(12),
-                "Temporary tool and zone labels must remain available until final art replaces them.");
             Assert.That(temporaryLabels.All(HasNonEmptyText), Is.True);
+        }
+
+        [Test]
+        public void BoilingScore_UsesOnlyCookingTiming()
+        {
+            System.Type scoringType = System.Type.GetType(
+                "Work.Cook.Code.Runtime.UI.CookingMiniGameScoring, Assembly-CSharp");
+            Assert.That(scoringType, Is.Not.Null);
+
+            System.Reflection.MethodInfo method = scoringType.GetMethod(
+                "ScoreBoiling",
+                new[] { typeof(float), typeof(float), typeof(float) });
+            Assert.That(method, Is.Not.Null,
+                "Boiling scoring must expose the three-argument timing-only signature.");
+
+            float early = (float)method.Invoke(null, new object[] { 0.2f, 0.52f, 0.7f });
+            float centered = (float)method.Invoke(null, new object[] { 0.61f, 0.52f, 0.7f });
+            float late = (float)method.Invoke(null, new object[] { 0.95f, 0.52f, 0.7f });
+            Assert.That(centered, Is.GreaterThan(early));
+            Assert.That(centered, Is.GreaterThan(late));
+        }
+
+        [TestCase(PrefabPath)]
+        [TestCase(StandaloneOverlayPrefabPath)]
+        public void ClickInteractionPrefabs_DoNotKeepTransportDragObjects(string prefabPath)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            Assert.That(prefab, Is.Not.Null, $"The cooking UI prefab is missing: {prefabPath}");
+
+            Transform overlay = prefab.name == "CookingMiniGameOverlayRoot"
+                ? prefab.transform
+                : FindDeep(prefab.transform, "CookingMiniGameOverlayRoot");
+            Assert.That(overlay, Is.Not.Null);
+            Assert.That(FindDeep(overlay, "IngredientClickGuide"), Is.Not.Null);
+            Assert.That(FindDeep(overlay, "PlateZone"), Is.Null);
+            Assert.That(FindDeep(overlay, "LadleGuide"), Is.Null);
+            Assert.That(FindDeep(overlay, "FlipAndDragGuide"), Is.Null);
+        }
+
+        [Test]
+        public void DungeonDinnerScene_UsesClickInteractionPresentationPrefab()
+        {
+            SceneAsset scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(IntegrationScenePath);
+            Assert.That(scene, Is.Not.Null, "The integration scene is missing.");
+
+            string[] dependencies = AssetDatabase.GetDependencies(IntegrationScenePath, true);
+            Assert.That(dependencies, Does.Contain(PrefabPath),
+                "DungeonDinnerScene must use the updated cooking presentation prefab.");
+
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            Transform overlay = FindDeep(prefab.transform, "CookingMiniGameOverlayRoot");
+            Assert.That(FindDeep(overlay, "IngredientClickGuide"), Is.Not.Null);
+            Assert.That(FindDeep(overlay, "PlateZone"), Is.Null);
+            Assert.That(FindDeep(overlay, "LadleGuide"), Is.Null);
         }
 
         [Test]
@@ -101,6 +165,85 @@ namespace DungeonDinner.Cook.EditorTests
             SerializedProperty dimColor = new SerializedObject(settings).FindProperty("focusDimColor");
             Assert.That(dimColor, Is.Not.Null);
             Assert.That(dimColor.colorValue.a, Is.GreaterThanOrEqualTo(0.45f));
+        }
+
+        [Test]
+        public void OverlaySettings_HasEveryGeneratedMiniGameSpriteAssigned()
+        {
+            Object settings = AssetDatabase.LoadAssetAtPath<Object>(SettingsPath);
+            Assert.That(settings, Is.Not.Null, "The cooking overlay settings asset is missing.");
+
+            SerializedObject serializedSettings = new SerializedObject(settings);
+            string[] spriteProperties =
+            {
+                "knifeSprite",
+                "brushSprite",
+                "panSprite",
+                "plateSprite",
+                "pestleSprite",
+                "pitcherSprite",
+                "mortarSprite",
+                "frostSprite",
+                "flipSprite",
+                "foamDiscardSprite"
+            };
+
+            foreach (string propertyName in spriteProperties)
+                AssertBound(serializedSettings, propertyName);
+        }
+
+        [Test]
+        public void Workbench_UsesGeneratedCuttingBoardBehindIngredient()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            Transform workbench = FindDeep(prefab.transform, "Workbench");
+            Assert.That(workbench, Is.Not.Null);
+            Image board = workbench.GetComponent<Image>();
+            Assert.That(board, Is.Not.Null);
+            Assert.That(board.sprite, Is.Not.Null);
+            Assert.That(AssetDatabase.GetAssetPath(board.sprite),
+                Is.EqualTo($"{MiniGameAssetFolder}/cook_tool_cutting_board.png"));
+            Assert.That(board.preserveAspect, Is.True);
+
+            Transform ingredientAnchor = FindDeep(workbench, "IngredientAnchor");
+            Assert.That(ingredientAnchor, Is.Not.Null);
+            Assert.That(ingredientAnchor.parent, Is.SameAs(workbench),
+                "The ingredient must stay a child rendered above the workbench's board image.");
+        }
+
+        [Test]
+        public void GeneratedMiniGameTextures_AreSingleTransparentSprites()
+        {
+            string[] filenames =
+            {
+                "cook_tool_knife.png",
+                "cook_tool_brush.png",
+                "cook_tool_pan.png",
+                "cook_tool_plate.png",
+                "cook_tool_pestle.png",
+                "cook_tool_pitcher.png",
+                "cook_tool_mortar.png",
+                "cook_interaction_frost.png",
+                "cook_interaction_flip.png",
+                "cook_interaction_foam_discard.png",
+                "cook_tool_cutting_board.png"
+            };
+
+            foreach (string filename in filenames)
+            {
+                string path = $"{MiniGameAssetFolder}/{filename}";
+                TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                Assert.That(importer, Is.Not.Null, $"Missing texture importer for {path}");
+                Assert.That(importer.textureType, Is.EqualTo(TextureImporterType.Sprite));
+                Assert.That(importer.spriteImportMode, Is.EqualTo(SpriteImportMode.Single));
+                SerializedProperty meshType = new SerializedObject(importer).FindProperty("m_SpriteMeshType");
+                Assert.That(meshType, Is.Not.Null);
+                Assert.That(meshType.intValue, Is.EqualTo((int)SpriteMeshType.FullRect));
+                Assert.That(importer.alphaIsTransparency, Is.True);
+                Assert.That(importer.mipmapEnabled, Is.False);
+            }
         }
 
         [Test]

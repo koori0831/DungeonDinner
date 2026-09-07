@@ -3,6 +3,7 @@ using Work.Adventure.Code.UI;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Cook.Code.Runtime.UI;
 using Work.Core.EventBus;
+using Work.Dispatch.Code.Runtime;
 using Work.Dispatch.Code.UI;
 
 namespace Work.Adventure.Code
@@ -14,15 +15,22 @@ namespace Work.Adventure.Code
         [SerializeField] private PreparationMenu preparationMenuUI;
         [SerializeField] private MainUI mainUIroot;
         [SerializeField] private DispatchScreenPresenter dispatchScreen;
+        [SerializeField] private DispatchManager dispatchManager;
 
         public void Awake()
         {
             Bus<CookingBusinessClosedEvent>.Events += EndBusiness;
             Bus<OnSelectPreparationEvent>.Events += HandleSelectPreparationEvent;
-            preparationMenuUI.Init(() => mainUIroot.HideUI(), () => mainUIroot.ShowUI());
-            adventureManager.Init();
             if (dispatchScreen == null)
                 dispatchScreen = FindFirstObjectByType<DispatchScreenPresenter>();
+            if (dispatchManager == null)
+                dispatchManager = FindFirstObjectByType<DispatchManager>();
+
+            preparationMenuUI.Init(
+                () => mainUIroot.HideUI(),
+                () => mainUIroot.ShowUI(),
+                BuildDispatchStatus);
+            adventureManager.Init();
             if (dispatchScreen != null)
                 dispatchScreen.Closed += ReturnFromDispatch;
         }
@@ -92,6 +100,27 @@ namespace Work.Adventure.Code
         {
             preparationMenuUI.ShowUI();
             mainUIroot.ShowUI();
+        }
+
+        private string BuildDispatchStatus()
+        {
+            if (dispatchManager == null)
+                dispatchManager = FindFirstObjectByType<DispatchManager>();
+
+            if (dispatchManager == null)
+                return "이용 불가";
+
+            int reportCount = dispatchManager.ReturnedReports?.Count ?? 0;
+            return FormatDispatchStatus(dispatchManager.HasActiveJob, reportCount);
+        }
+
+        private static string FormatDispatchStatus(bool hasActiveJob, int reportCount)
+        {
+            reportCount = Mathf.Max(0, reportCount);
+            if (hasActiveJob)
+                return reportCount > 0 ? $"진행 중 · 보고서 {reportCount}건" : "진행 중";
+
+            return reportCount > 0 ? $"보고서 {reportCount}건" : "가능";
         }
     }
 }

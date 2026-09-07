@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,6 +10,7 @@ namespace DungeonDinner.Cook.EditorTests
     public sealed class CookingIngredientSelectionHierarchyTests
     {
         private const string CookScenePath = "Assets/Work/Cook/Scene/CookTestScene.unity";
+        private const string RecipeScrollPrefabPath = "Assets/Work/Cook/Prefabs/UI/Scroll View.prefab";
         private const float LayoutTolerance = 0.5f;
 
         [TearDown]
@@ -51,6 +53,34 @@ namespace DungeonDinner.Cook.EditorTests
 
                 AssertRectIsContainedBy(buttonRect, selectionRect);
             }
+        }
+
+        [Test]
+        public void RecipeScrollPrefab_CentersIncompleteThreeColumnRows()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RecipeScrollPrefabPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            GridLayoutGroup grid = prefab.GetComponentInChildren<GridLayoutGroup>(true);
+            Assert.That(grid, Is.Not.Null);
+            Assert.That(grid.childAlignment, Is.EqualTo(TextAnchor.UpperCenter));
+            Assert.That(grid.padding.left, Is.EqualTo(34));
+            Assert.That(grid.padding.right, Is.EqualTo(34));
+
+            MonoBehaviour field = null;
+            foreach (MonoBehaviour candidate in prefab.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (candidate != null && candidate.GetType().Name == "InfoDictionaryScrollViewField")
+                {
+                    field = candidate;
+                    break;
+                }
+            }
+
+            Assert.That(field, Is.Not.Null);
+            SerializedObject serializedField = new SerializedObject(field);
+            Assert.That(serializedField.FindProperty("columnsPerRow").intValue, Is.EqualTo(3));
+            Assert.That(serializedField.FindProperty("centeredHorizontalPadding").intValue, Is.EqualTo(34));
         }
 
         private static Transform FindTransform(Scene scene, string objectName)

@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
 
@@ -44,6 +45,33 @@ namespace Work.Cook.Code.Runtime.UI
         {
             Completion = null;
             ActivePointerId = int.MinValue;
+        }
+
+        protected static void ApplySprite(Image image, Sprite sprite, bool preserveColor = false)
+        {
+            if (image == null || sprite == null)
+                return;
+
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            if (preserveColor == false)
+                image.color = Color.white;
+        }
+
+        protected Image FindChildImage(string childName)
+        {
+            if (string.IsNullOrWhiteSpace(childName))
+                return null;
+
+            Image[] images = GetComponentsInChildren<Image>(true);
+            for (int i = 0; i < images.Length; i++)
+            {
+                Image image = images[i];
+                if (image != null && image.name == childName)
+                    return image;
+            }
+
+            return null;
         }
 
         protected bool Begin(

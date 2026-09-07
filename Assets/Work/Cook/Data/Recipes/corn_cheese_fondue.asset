@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: corn_cheese_fondue
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: corn_cheese_fondue
+  displayName: "콘치즈 퐁듀"
+  iconSprite: {fileID: 21300000, guid: b5d8bfa5a00f99244ad1419f206f8a4e, type: 3}
+  description: "옥수수 모양 치즈인 콘치즈를 녹이고, 한입 크기로 썬 납작버섯과 끓인 슬라임 점액을 곁들인 따뜻한 퐁듀."
+  revealNameByDefault: 0
+  hiddenDisplayName: ???
+  undiscoveredDescription: "옥수수처럼 생긴 치즈로 만드는 따뜻한 음식. 버섯 조각과 부드러운 바탕이 필요하다."
+  hintDescription: "콘치즈는 불에 녹이고, 납작버섯은 한입 크기로 썬다. 슬라임 점액을 끓여 끈적함을 줄인다."
+  discoveredDescription: "녹인 콘치즈, 한입 크기로 썬 납작버섯, 끓인 슬라임 점액을 하나씩 사용한다. 세 재료의 손질이 모두 맞아야 콘치즈 퐁듀가 완성된다."
+  category: {fileID: 11400000, guid: 0e1957886ffc4574b85dc06d0a10b081, type: 2}
+  priority: 0
+  baseTags:
+  - {fileID: 11400000, guid: 1620f2a3b70a2a84ebdb18e8ecc4bd3e, type: 2}
+  - {fileID: 11400000, guid: f73414f9cae048d47bcb30ad6215c784, type: 2}
+  - {fileID: 11400000, guid: 5b122f10b24af134fa18da0d725c4921, type: 2}
+  requiredIngredients:
+  - requirementId: slot_30000001
+    ingredient: {fileID: 11400000, guid: 8cec7b909ae7ef04d88c301ac7ae8435, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods:
+    - {fileID: 11400000, guid: 3123a5c0376a3ed4dad2b40fbb0c357b, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 1
+  - requirementId: slot_30000002
+    ingredient: {fileID: 11400000, guid: 09db9e234bdaac645977b8020c1fd84e, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods:
+    - {fileID: 11400000, guid: 04676038e45c8fe4ab12e5097dce2760, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 1
+  - requirementId: slot_30000003
+    ingredient: {fileID: 11400000, guid: 8047bb3271861f147a23403c44b5c7fc, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods:
+    - {fileID: 11400000, guid: 54425d125cda1aa4ca2ae94606707622, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 1
+  perfectPreparationRules: []

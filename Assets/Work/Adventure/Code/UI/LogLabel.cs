@@ -53,24 +53,26 @@ namespace Work.Adventure.Code.UI
         [SerializeField] private float offset = 62.03997f;
         [SerializeField] private float time = 0.3f;
 
+        private Sequence _lifetimeSequence;
 
         public void Init(ItemLogData data)
         {
             SetIcon(data.IconImage);
             Vector2 vec = SetText(data.ItemName + " " + data.ConvertString());
 
-            root.DOSizeDelta(vec, time).OnComplete(() =>
-            {
-                icon.gameObject.SetActive(true);
-                DOVirtual.DelayedCall(5f, () =>
+            KillLifetimeTween();
+            _lifetimeSequence = DOTween.Sequence()
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable)
+                .Append(root.DOSizeDelta(vec, time))
+                .AppendCallback(() => icon.gameObject.SetActive(true))
+                .AppendInterval(5f)
+                .AppendCallback(() => icon.gameObject.SetActive(false))
+                .Append(root.DOSizeDelta(new Vector2(0, vec.y), time))
+                .OnComplete(() =>
                 {
-                    icon.gameObject.SetActive(false);
-                    root.DOSizeDelta(new Vector2(0, vec.y), time).OnComplete(() =>
-                    {
-                        Destroy(gameObject);
-                    });
+                    _lifetimeSequence = null;
+                    Destroy(gameObject);
                 });
-            });
         }
 
         public void SetIcon(Sprite iconSprite)
@@ -88,6 +90,18 @@ namespace Work.Adventure.Code.UI
             Vector2 size = root.sizeDelta;
             size.x = textSize.x + offset; // 좌우 여백
             return size;
+        }
+
+        private void OnDisable()
+        {
+            KillLifetimeTween();
+        }
+
+        private void KillLifetimeTween()
+        {
+            _lifetimeSequence?.Kill(false);
+            _lifetimeSequence = null;
+            root?.DOKill(false);
         }
     }
 }

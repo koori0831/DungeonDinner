@@ -71,6 +71,12 @@ namespace Work.NPC.Code.Runtime
             KillEnterSequence(false);
         }
 
+        private void OnDisable()
+        {
+            CancelAnimation();
+            KillEnterSequence(false);
+        }
+
         public void ResetForConversation(string eventId = "", string npcId = "")
         {
             CancelAnimation();
@@ -174,6 +180,7 @@ namespace Work.NPC.Code.Runtime
 
             Sequence sequence = DOTween.Sequence();
             sequence.SetTarget(this);
+            sequence.SetLink(gameObject, LinkBehaviour.KillOnDisable);
             sequence.Join(_rectTransform.DOAnchorPos(_defaultAnchoredPosition, enterDuration).SetEase(enterEase));
 
             if (enterFadeDuration > 0f)

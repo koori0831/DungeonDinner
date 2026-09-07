@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7457ac3bd14f92348babc24badfe68ed, type: 3}
   m_Name: DispatchCatalog
   m_EditorClassIdentifier: Assembly-CSharp::Work.Dispatch.Code.Data.DispatchCatalogSO
-  itemCatalog: {fileID: 11400000, guid: 3e230ac9e1c55c3438d284b467471d67, type: 2}
+  itemCatalog: {fileID: 11400000, guid: d33ea73c4f0f498a8c8480ca2f6a7b3e, type: 2}
   regions:
   - {fileID: 11400000, guid: e022af5a9feff6b4faee31e422cd7576, type: 2}
   - {fileID: 11400000, guid: 89a2f9e1f43ee3045a4ce0238a3d0e99, type: 2}

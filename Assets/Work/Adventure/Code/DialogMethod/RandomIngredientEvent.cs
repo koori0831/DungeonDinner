@@ -34,6 +34,9 @@ namespace Work.Adventure.Code.DialogMethod
         {
             if (randomItemList == null || randomItemList.Count == 0)
                 return;
+            // TODO(ADVENTURE-REWARD-001): 선택된 IngredientItemDataSO를
+            // InventoryItemAddRequestedEvent로 전달해 실제 인벤토리 보상으로 확정한다.
+            // 현재는 기존 프로토타입 동작을 보존하기 위해 획득 연출과 로그만 생성한다.
             int randomCount = UnityEngine.Random.Range(2, 6);
             List<ImageAndItem> tempList = new List<ImageAndItem>();
 

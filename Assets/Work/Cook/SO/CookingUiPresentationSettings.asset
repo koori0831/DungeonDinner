@@ -42,71 +42,73 @@ MonoBehaviour:
   fanFocusScale: 1.08
   fanSelectedLift: 18
   fanNeighborSpread: 36
+  fanPeerDrop: 24
   fanTweenDuration: 0.16
   qualityVisuals:
   - quality: 3
     displayName: "\uC644\uBCBD"
     color: {r: 1, g: 0.77, b: 0.24, a: 1}
-    icon: {fileID: 1450859241877649334, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 3009b3494c754ebb8984266c7869eb3c, type: 3}
   - quality: 1
     displayName: "\uBCF4\uD1B5"
     color: {r: 0.83, g: 0.75, b: 0.58, a: 1}
-    icon: {fileID: -1626410434662498960, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 68e6026045a74744b6b61ef1965cc602, type: 3}
   - quality: 2
     displayName: "\uC88B\uC74C"
     color: {r: 0.7, g: 0.48, b: 0.87, a: 1}
-    icon: {fileID: 9102559019757446376, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 862bfee873e24fafba35df781cb2820c, type: 3}
   - quality: 0
     displayName: "\uBBF8\uD761"
     color: {r: 0.67, g: 0.2, b: 0.16, a: 1}
-    icon: {fileID: 7110396538980612230, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 9e13c698fddf4365b939f6a76471edcc, type: 3}
   reactionVisuals:
   - result: 4
     displayName: "\uD669\uD640\uD568"
     summary: "\uC190\uB2D8\uC758 \uCDE8\uD5A5\uC744 \uC815\uD655\uD788 \uC0AC\uB85C\uC7A1\uC558\uC2B5\uB2C8\uB2E4."
     color: {r: 1, g: 0.76, b: 0.24, a: 1}
-    icon: {fileID: 8321548092223479237, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 5a7bfca974524d41b9850869bb31904f, type: 3}
   - result: 3
     displayName: "\uB9CC\uC871"
     summary: "\uC8FC\uBB38\uC758 \uD575\uC2EC\uC744 \uCDA9\uC2E4\uD788 \uCC44\uC6E0\uC2B5\uB2C8\uB2E4."
     color: {r: 0.46, g: 0.78, b: 0.42, a: 1}
-    icon: {fileID: 494217524744282257, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 0a73ddba8b6c4bc381df8500a0323682, type: 3}
   - result: 2
     displayName: "\uD765\uBBF8"
     summary: "\uC870\uAE08 \uB2E4\uB974\uC9C0\uB9CC \uC190\uB2D8\uC774 \uAD00\uC2EC\uC744
       \uBCF4\uC785\uB2C8\uB2E4."
     color: {r: 0.5, g: 0.67, b: 0.86, a: 1}
-    icon: {fileID: 8654245744821994365, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 55e1d9ffd0ad4e8dab70171945d19f5c, type: 3}
   - result: 1
     displayName: "\uC544\uC26C\uC6C0"
     summary: "\uC8FC\uBB38\uC758 \uC911\uC694\uD55C \uB2E8\uC11C\uAC00 \uB9DE\uC9C0
       \uC54A\uC2B5\uB2C8\uB2E4."
     color: {r: 0.62, g: 0.46, b: 0.36, a: 1}
-    icon: {fileID: 39315059023051176, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 6c38ffa0cd5d4a00bcdbb9b0505cddb6, type: 3}
   - result: 0
     displayName: "\uAC70\uBD80\uAC10"
     summary: "\uC704\uD5D8\uD55C \uC7AC\uB8CC\uB098 \uC870\uD569\uC774 \uAC10\uC9C0\uB418\uC5C8\uC2B5\uB2C8\uB2E4."
     color: {r: 0.64, g: 0.18, b: 0.14, a: 1}
-    icon: {fileID: -406084831328552583, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: c699ef1d748244be995870e9a8365e9b, type: 3}
   tagVisuals:
   - kind: 0
     displayName: "\uD544\uC218"
     color: {r: 0.78, g: 0.62, b: 0.3, a: 1}
-    icon: {fileID: -3943066415849207586, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 47ddd6e084574e19b0d6c087fbcd3fb6, type: 3}
   - kind: 1
     displayName: "\uC120\uD638"
     color: {r: 0.48, g: 0.72, b: 0.42, a: 1}
-    icon: {fileID: -4803949087142010968, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 8c548f79f9e343dcb64729cf4f1dc8a9, type: 3}
   - kind: 2
     displayName: "\uD68C\uD53C"
     color: {r: 0.76, g: 0.4, b: 0.28, a: 1}
-    icon: {fileID: -1390592185924098617, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 86c1b1da3f5f49fcb978bb8b7a9da4cc, type: 3}
   - kind: 3
     displayName: "\uC704\uD5D8"
     color: {r: 0.68, g: 0.18, b: 0.14, a: 1}
-    icon: {fileID: -8216002544955327984, guid: 65de1d0776db4db428703a71744c2506, type: 3}
-  rewardIcon: {fileID: -9171434313606170189, guid: 65de1d0776db4db428703a71744c2506, type: 3}
-  npcPlaceholderIcon: {fileID: 8648425401481382574, guid: 65de1d0776db4db428703a71744c2506, type: 3}
+    icon: {fileID: 21300000, guid: 06ee082ebb6543579d8fcfb87bc0abf0, type: 3}
+  rewardIcon: {fileID: 21300000, guid: 928fc71f8cd2466ebc558f2aafea7e7f, type: 3}
+  npcPlaceholderIcon: {fileID: 21300000, guid: c2d6bdfc7f6542eeb91f1074974442c0, type: 3}
+  cookingSparkleIcon: {fileID: 21300000, guid: a8be26ddaf5a4a548b6c67c0686d06cc, type: 3}
   panelSprite: {fileID: 21300000, guid: cc51a4e9bbeb9ee488f5cf09bcf5e214, type: 3}
   receiptSprite: {fileID: 21300000, guid: 208374d4bc54c81479635f11a2a787af, type: 3}
   cardSprite: {fileID: 21300000, guid: 9c6326e84237b5a4293a33fa4209ff3c, type: 3}

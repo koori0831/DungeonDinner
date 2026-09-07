@@ -408,6 +408,24 @@ namespace Work.Cook.Code.Info
             {
                 _bockmarksByCategory.TryGetValue(state.CategoryDisplayName, out InfoBockmarkBtn bockmark);
                 EnableScrollView(view, bockmark, state.CategoryDisplayName);
+                return;
+            }
+
+            for (int i = 0; i < categories.Count; i++)
+            {
+                InfoDictionaryCategoryData category = categories[i];
+                if (category == null
+                    || string.IsNullOrWhiteSpace(category.DisplayName)
+                    || _scrollViewsByCategory.TryGetValue(
+                        category.DisplayName,
+                        out InfoDictionaryScrollViewField firstView) == false)
+                {
+                    continue;
+                }
+
+                _bockmarksByCategory.TryGetValue(category.DisplayName, out InfoBockmarkBtn firstBockmark);
+                EnableScrollView(firstView, firstBockmark, category.DisplayName);
+                return;
             }
         }
 

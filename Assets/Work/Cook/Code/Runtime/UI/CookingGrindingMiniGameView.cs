@@ -22,6 +22,13 @@ namespace Work.Cook.Code.Runtime.UI
         private int _insideSamples;
         private int _totalSamples;
 
+        public override void Initialize(CookingMiniGameOverlayHost host, CookingMiniGameOverlaySettingsSO settings)
+        {
+            base.Initialize(host, settings);
+            ApplySprite(pestleImage, settings != null ? settings.PestleSprite : null);
+            ApplySprite(FindChildImage("MortarGuide"), settings != null ? settings.MortarSprite : null);
+        }
+
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
             return miniGameType == CookingMiniGameType.Grinding;

@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Work/Title/Scene/TitleScene.unity
     guid: 682a691a3f006c3489dbfa1122bcb203
   - enabled: 1
+    path: Assets/Work/Integration/Scene/DungeonDinnerScene.unity
+    guid: 20f25129196dfd94b8fd477f74250872
+  - enabled: 1
     path: Assets/Work/Adventure/Scene/AdventureTestScene.unity
     guid: 32edfc98794c2fd49adbc97d718de5bb
   - enabled: 1

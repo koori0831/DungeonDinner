@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -15,6 +16,8 @@ namespace Work.Cook.Code.Runtime.UI
     public sealed class CookingPreparationOptionCardView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         [SerializeField] private Button selectButton;
+        [SerializeField] private TextMeshProUGUI buttonLabelField;
+        [SerializeField] private Image selectionTintImage;
         [SerializeField] private Image iconImage;
         [SerializeField] private TextMeshProUGUI iconTextField;
         [SerializeField] private TextMeshProUGUI nameField;
@@ -41,6 +44,7 @@ namespace Work.Cook.Code.Runtime.UI
         // Fan 배치는 카드 프리팹 루트에 직렬화된 크기를 기준으로 해야 한다.
         // VisualRoot는 stretch 자식이므로 여기에 anchor/pivot을 덮어쓰면 크기가 0이 된다.
         public RectTransform LayoutRoot => transform as RectTransform;
+        public Button SelectButton => selectButton;
         public event Action<CookingPreparationOptionCardView, bool> HoverChanged;
 
         private void Awake()
@@ -50,7 +54,13 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void OnDisable()
         {
+            hoverVisualRoot?.DOKill(false);
             _tooltipView?.Hide(this);
+        }
+
+        private void OnValidate()
+        {
+            EnsureReferences();
         }
 
         public void SetPresentation(
@@ -102,7 +112,6 @@ namespace Work.Cook.Code.Runtime.UI
                 selectButton.onClick.RemoveAllListeners();
                 selectButton.onClick.AddListener(HandleSelectClicked);
 
-                TextMeshProUGUI buttonLabelField = selectButton.GetComponentInChildren<TextMeshProUGUI>(true);
                 if (buttonLabelField != null)
                 {
                     buttonLabelField.text = buttonLabel ?? string.Empty;
@@ -128,14 +137,14 @@ namespace Work.Cook.Code.Runtime.UI
             if (selectedOutline != null)
                 selectedOutline.enabled = selected;
 
-            if (selectButton?.image == null)
+            if (selectionTintImage == null)
                 return;
 
             CacheDefaultButtonColor();
             Color accent = presentationSettings != null
                 ? presentationSettings.PositiveColor
                 : new Color(0.95f, 0.74f, 0.27f, 1f);
-            selectButton.image.color = selected
+            selectionTintImage.color = selected
                 ? Color.Lerp(_defaultButtonColor, accent, 0.22f)
                 : _defaultButtonColor;
         }
@@ -177,10 +186,10 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void CacheDefaultButtonColor()
         {
-            if (_defaultButtonColorCached == true || selectButton?.image == null)
+            if (_defaultButtonColorCached == true || selectionTintImage == null)
                 return;
 
-            _defaultButtonColor = selectButton.image.color;
+            _defaultButtonColor = selectionTintImage.color;
             _defaultButtonColorCached = true;
         }
 
@@ -214,8 +223,18 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (selectButton == null)
             {
-                selectButton = GetComponentInChildren<Button>(true);
+                selectButton = GetComponent<Button>();
+                if (selectButton == null)
+                    selectButton = GetComponentInChildren<Button>(true);
             }
+
+            if (buttonLabelField == null && selectButton != null)
+                buttonLabelField = selectButton.GetComponentInChildren<TextMeshProUGUI>(true);
+
+            if (selectionTintImage == null && selectedOutline != null)
+                selectionTintImage = selectedOutline.GetComponent<Image>();
+            if (selectionTintImage == null && selectButton != null)
+                selectionTintImage = selectButton.targetGraphic as Image;
 
             if (hoverVisualRoot == null)
                 hoverVisualRoot = transform as RectTransform;

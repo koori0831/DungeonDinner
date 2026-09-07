@@ -231,8 +231,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.GoAndStopSelectUI
   root: {fileID: 5272691874856650998}
-  openHeight: 1080
   time: 0.3
+  fadeValue: 0.5882353
+  goButton: {fileID: 0}
+  stopButton: {fileID: 0}
 --- !u!1 &415357275378252832
 GameObject:
   m_ObjectHideFlags: 0
@@ -770,7 +772,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD30C\uACAC : \uAC00\uB2A5\n\uBAA8\uD5D8 : \uAC00\uB2A5\n"
+  m_text: "1\uC77C\uCC28 \u00B7 \uC2DC\uAC04 0 / 6\n\uB2E4\uC74C \uC601\uC5C5 : \uAC00\uB2A5 \u00B7 \uC811\uB300 0/3\n\uD30C\uACAC : \uAC00\uB2A5\n\uBAA8\uD5D8 : \uAC00\uB2A5\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
@@ -797,8 +799,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18.07
-  m_fontSizeBase: 18.07
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1279,6 +1281,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.MapSelectButton
   mapInfo: {fileID: 11400000, guid: bb8b615652a92f441a9660d8876d638f, type: 2}
+  buttonImage: {fileID: 3816644023786586636}
+  button: {fileID: 3579961996754593528}
+  buttonText: {fileID: 6801697250333553242}
   _isCanAdventure: 0
 --- !u!1 &1638299315864775751
 GameObject:
@@ -3210,6 +3215,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.MapSelectButton
   mapInfo: {fileID: 11400000, guid: fe33547d246e22643b6ee23a7f0d3f9c, type: 2}
+  buttonImage: {fileID: 843413522137755832}
+  button: {fileID: 6942669900534504437}
+  buttonText: {fileID: 1865527316398131598}
   _isCanAdventure: 0
 --- !u!1 &3203856072536344586
 GameObject:
@@ -5285,6 +5293,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.MapSelectButton
   mapInfo: {fileID: 11400000, guid: bb8954476b78eca4fb7bc66438331bd3, type: 2}
+  buttonImage: {fileID: 7175297682501368428}
+  button: {fileID: 4718062851076336923}
+  buttonText: {fileID: 4004875018400516678}
   _isCanAdventure: 0
 --- !u!1 &6147015739140382545
 GameObject:
@@ -5974,6 +5985,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.MapSelectButton
   mapInfo: {fileID: 11400000, guid: 4f8839c85d837934db14103049cbdd40, type: 2}
+  buttonImage: {fileID: 5379148342944370289}
+  button: {fileID: 4171992522114125607}
+  buttonText: {fileID: 1783206108343304335}
   _isCanAdventure: 0
 --- !u!1 &6860331135917278638
 GameObject:
@@ -6412,6 +6426,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.MapSelectButton
   mapInfo: {fileID: 11400000, guid: 9fe7131529782344082e822bac6f93c2, type: 2}
+  buttonImage: {fileID: 7620747053787926676}
+  button: {fileID: 2619876233193545905}
+  buttonText: {fileID: 5189680088094461386}
   _isCanAdventure: 1
 --- !u!1 &6990745258850630508
 GameObject:
@@ -6850,6 +6867,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.UI.MapSelectButton
   mapInfo: {fileID: 11400000, guid: 2d6f6286309489249b069dcf84a3aa26, type: 2}
+  buttonImage: {fileID: 8266603702405392808}
+  button: {fileID: 8645772424529657185}
+  buttonText: {fileID: 7784635509726769109}
   _isCanAdventure: 0
 --- !u!1 &7484888047658064618
 GameObject:
@@ -8004,11 +8024,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AdventureMapUI
   background: {fileID: 5060689263410512069}
   infoPanel: {fileID: 5955036695971832917}
-  mapRoot: {fileID: 6042598391157626216}
+  mapImage: {fileID: 0}
   root: {fileID: 4057981486247564516}
   fadeTime: 0.3
   openTime: 0.6
-  openSizeWidth: 1030
   mapButtons:
   - {fileID: 1337084528219870531}
   - {fileID: 6214942669516626173}

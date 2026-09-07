@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8f14b6e2a934d7095b8e1c4f6273a90, type: 3}
+  m_Name: MushroomCapIngredientItem
+  m_EditorClassIdentifier: 
+  itemId: Cooking_mushroom_cap
+  displayName: "\uBC84\uC12F \uAC13"
+  description: "커다란 버섯에서 잘라낸 향긋하고 부드러운 갓입니다."
+  icon: {fileID: 21300000, guid: eaf24aeb6f1447b42a0b8669f822fd9b, type: 3}
+  category: {fileID: 11400000, guid: f2b58d9e3f104c6ba7d8e90123f45a6b, type: 2}
+  worldLootPoolItem: {fileID: 0}
+  isStackable: 1
+  maxStackAmount: 99
+  ingredient: {fileID: 11400000, guid: 52c2c5f32ce29d6479ae5892c99e56c6, type: 2}

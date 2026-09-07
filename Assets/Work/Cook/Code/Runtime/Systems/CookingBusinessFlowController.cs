@@ -42,11 +42,8 @@ namespace Work.Cook.Code.Runtime.Systems
         [SerializeField] private NpcConversationRunner npcRunner;
         [SerializeField] private GameTimeService gameTimeService;
         [SerializeField] private bool startFirstCustomerOnStart = true;
-        [SerializeField] private bool hideCookingTestPanelOnStart = true;
         [FormerlySerializedAs("startNextCustomerAfterAdvancingDay")]
         [SerializeField] private bool startNextCustomerAfterResuming = true;
-        [SerializeField] private bool advanceDayWhenShopCloses = true;
-        [SerializeField] private bool startNextCustomerAfterAdvancingDay = true;
         [SerializeField] private RectTransform actionRoot;
         [SerializeField] private TextMeshProUGUI statusField;
         [SerializeField] private Button nextCustomerButton;

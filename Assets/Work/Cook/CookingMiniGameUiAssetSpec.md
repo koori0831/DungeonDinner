@@ -75,7 +75,7 @@
 | 같은 설정 | `action/success/mistakeClip` 3개가 비어 있음 | 런타임 생성 톤 사용 | 공통 입력/성공/실수 효과음 |
 | `CookingPresentationRoot.prefab` | `useTemporaryFeedbackAudio = true` | 최종 사운드가 없어 판정 질감이 임시 상태 | 최종 오디오 연결 후 `false` 전환 |
 | `CookingUiPresentationSettings.asset` | `dishReveal/qualityStamp/rewardCountClip` 3개가 비어 있음 | 요리 결과 연출 사운드가 없음 | 결과 공개/도장/보상 카운트 효과음 |
-| 생성 재료 SO 2개 | `NewRecipe_ingredient`, `slime_nucleus_dango_ingredient`에 `iconSprite` 없음 | 런타임 텍스트 아이콘 사용 | 재료 아이콘 2종 또는 공식 Unknown 아이콘 |
+| 과거 생성 재료 SO 2개 | 2026-09-06 실제 데이터 정리 시 Assets 밖으로 아카이브 | 정식 카탈로그에서 사용하지 않음 | 제작 대상에서 제외 |
 | 결과 요리 | 결과 아이콘 소스가 없으면 `dish_missing`/런타임 텍스트 아이콘 사용 | 결과 화면의 완성도 저하 | 공식 미완성 요리/Unknown Dish 아이콘 |
 | 미니게임 가이드 | 다수 `Image.m_Sprite = null` + 단색 채움 | 기능은 동작하나 재료와 세계관 표현이 분리됨 | 목표선, 게이지, 드롭존, 방향 가이드, FX |
 
@@ -120,7 +120,7 @@
 | 공통 HUD 패널 | 3종 | ActionDock, MistakeToast, ResultBadge 바탕 | 9-slice PNG, 1024×256, Border 24~40 px |
 | 결과 배지 | 4종 | Perfect, Good, Normal, Bad | 투명 PNG, 512×256. 색과 서로 다른 외곽 실루엣 병행 |
 | 공통 피드백 FX | 4종 | Target Pulse, Hit, Mistake, Complete | 투명 Sprite Sheet, 프레임당 256×256, 12~24 fps |
-| 생성 재료 아이콘 | 2종 | `NewRecipe`, `slime_nucleus_dango` | 투명 PNG, 512×512, 재료 실루엣 안전 여백 10~12% |
+| 콘치즈 퐁듀 완성 음식 아이콘 | 1종 | `corn_cheese_fondue` (현재 콘치즈 재료 아이콘 공유) | 투명 PNG, 512×512, 안전 여백 10~12% |
 | 공식 대체 아이콘 | 2종 | Unknown Ingredient, Unknown/Incomplete Dish | 투명 PNG, 512×512, 문자 없이 식별 가능한 실루엣 |
 | 카테고리 대체 아이콘 | 1종 이상 | 현재 `bone head 512 px.png` 교체 | 투명 PNG, 256×256 또는 512×512 |
 | 공통 미니게임 SFX | 3종 | Action, Success, Mistake | WAV, 48 kHz, 24-bit, mono |

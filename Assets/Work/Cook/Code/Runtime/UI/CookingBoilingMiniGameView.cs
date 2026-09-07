@@ -8,18 +8,13 @@ using Work.Cook.Code.Runtime.Core;
 namespace Work.Cook.Code.Runtime.UI
 {
     public sealed class CookingBoilingMiniGameView : CookingOverlayMiniGameController,
-        IPointerDownHandler, IDragHandler, IPointerUpHandler
+        IPointerClickHandler
     {
-        [SerializeField] private Image toolImage;
-        [SerializeField] private Image plateZone;
         [SerializeField] private Image[] bubbleImages;
         [SerializeField] private Image cookTint;
 
         private CookingMiniGameOverlayProfile _profile;
         private float _startedTime;
-        private Vector2 _dragStart;
-        private Vector2 _lastPoint;
-        private float _pathLength;
 
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
@@ -36,11 +31,9 @@ namespace Work.Cook.Code.Runtime.UI
 
             _profile = GetProfile(CookingMiniGameType.Boiling);
             _startedTime = Time.unscaledTime;
-            if (toolImage != null)
-                toolImage.gameObject.SetActive(false);
-            Host.SetInstruction("기포와 색을 보고 알맞게 익으면 국자를 오른쪽 접시까지 드래그하세요.");
+            Host.SetInstruction("기포와 색을 보고 알맞게 익으면 재료를 클릭해 건지세요.");
             Host.SetStatus("익힘 상태를 지켜보세요");
-            ConfigureHud("적정 구간에서 국자를 접시로 드래그 →", false, true, true);
+            ConfigureHud("적정 구간에서 중앙 재료를 클릭", false, true, true);
             SetTargetState(0f, _profile.TargetMin, _profile.TargetMax, "덜 익음");
             float maximumDuration = Mathf.Max(_profile.Duration, _profile.MaximumDuration);
             SetTimer(maximumDuration, maximumDuration);
@@ -59,68 +52,29 @@ namespace Work.Cook.Code.Runtime.UI
             float maximumDuration = Mathf.Max(_profile.Duration, _profile.MaximumDuration);
             string label = doneness < _profile.TargetMin
                 ? "덜 익음"
-                : doneness <= _profile.TargetMax ? "적정 · 지금 건지세요" : "과열 위험 · 바로 건지세요";
+                : doneness <= _profile.TargetMax ? "적정 · 지금 재료를 클릭하세요" : "과열 위험 · 바로 재료를 클릭하세요";
             SetTargetState(doneness, _profile.TargetMin, _profile.TargetMax, label);
             SetTimer(Mathf.Max(0f, maximumDuration - elapsed), maximumDuration);
             if (elapsed >= maximumDuration)
                 Finish(CookingMiniGameType.Boiling, 0.12f, "재료를 제때 건져내지 못했습니다.");
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData)
         {
-            if (Completion == null || TryCapturePointer(eventData) == false
-                || TryGetLocalPosition(eventData, out _dragStart) == false)
+            if (Completion == null)
+                return;
+
+            if (Host.IsIngredientHit(eventData) == false)
             {
-                ReleasePointer();
+                RegisterMistake("재료를 눌러주세요.");
                 return;
             }
 
-            _lastPoint = _dragStart;
-            _pathLength = 0f;
-            MoveTool(_dragStart);
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (IsActivePointer(eventData) == false || TryGetLocalPosition(eventData, out Vector2 point) == false)
-                return;
-            _pathLength += Vector2.Distance(_lastPoint, point);
-            _lastPoint = point;
-            MoveTool(point);
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (IsActivePointer(eventData) == false)
-                return;
-
-            TryGetLocalPosition(eventData, out Vector2 end);
-            ReleasePointer();
-            if (toolImage != null)
-                toolImage.gameObject.SetActive(false);
-
-            bool onPlate = plateZone != null
-                && RectTransformUtility.RectangleContainsScreenPoint(plateZone.rectTransform, eventData.position, eventData.pressEventCamera);
-            if (onPlate == false)
-            {
-                RegisterMistake("국자를 오른쪽 접시 영역까지 드래그하세요.");
-                return;
-            }
-
-            float straightDistance = Vector2.Distance(_dragStart, end);
-            float extractionAccuracy = Mathf.Clamp01(straightDistance / Mathf.Max(straightDistance, _pathLength));
+            Host.PlayIngredientClickFeedback();
             float doneness = Mathf.Clamp01((Time.unscaledTime - _startedTime) / _profile.Duration);
             float score = CookingMiniGameScoring.ScoreBoiling(
-                doneness, _profile.TargetMin, _profile.TargetMax, extractionAccuracy);
+                doneness, _profile.TargetMin, _profile.TargetMax);
             Finish(CookingMiniGameType.Boiling, score, "재료를 알맞게 삶아 안정적으로 건져냈습니다.");
-        }
-
-        private void MoveTool(Vector2 point)
-        {
-            if (toolImage == null)
-                return;
-            toolImage.gameObject.SetActive(true);
-            toolImage.rectTransform.anchoredPosition = point;
         }
 
         private void RefreshVisual(float doneness)

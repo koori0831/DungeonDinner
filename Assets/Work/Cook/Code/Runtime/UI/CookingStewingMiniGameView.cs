@@ -22,6 +22,12 @@ namespace Work.Cook.Code.Runtime.UI
         private bool _stepAdvancedDuringDrag;
         private CookingMiniGameOverlayProfile _profile;
 
+        public override void Initialize(CookingMiniGameOverlayHost host, CookingMiniGameOverlaySettingsSO settings)
+        {
+            base.Initialize(host, settings);
+            ApplySprite(actionIndicator, settings != null ? settings.FoamDiscardSprite : null);
+        }
+
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
             return miniGameType == CookingMiniGameType.Stewing;

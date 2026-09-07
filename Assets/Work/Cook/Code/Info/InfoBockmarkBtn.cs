@@ -14,6 +14,7 @@ namespace Work.Cook.Code.Info
         private float _expandedXValue;
         private bool _isSelected;
         private bool _isPointerInside;
+        private Tween _moveTween;
 
         public RectTransform Rect => gameObject != null ? transform as RectTransform : null;
 
@@ -87,6 +88,16 @@ namespace Work.Cook.Code.Info
             ApplyCurrentState(false);
         }
 
+        private void OnDisable()
+        {
+            KillMoveTween();
+        }
+
+        private void OnDestroy()
+        {
+            KillMoveTween();
+        }
+
         private float GetSelectedX()
         {
             return _expandedXValue;
@@ -105,7 +116,8 @@ namespace Work.Cook.Code.Info
             if (rect == null)
                 return;
 
-            rect.DOKill();
+            KillMoveTween();
+            rect.DOKill(false);
 
             if (instant == true)
             {
@@ -113,7 +125,18 @@ namespace Work.Cook.Code.Info
                 return;
             }
 
-            rect.DOAnchorPosX(targetX, moveTime);
+            _moveTween = rect
+                .DOAnchorPosX(targetX, moveTime)
+                .SetTarget(rect)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable)
+                .OnKill(() => _moveTween = null);
+        }
+
+        private void KillMoveTween()
+        {
+            if (_moveTween != null && _moveTween.IsActive())
+                _moveTween.Kill(false);
+            _moveTween = null;
         }
 
         private void ResizeLengthToFitText()

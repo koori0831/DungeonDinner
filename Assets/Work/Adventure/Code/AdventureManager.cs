@@ -28,6 +28,8 @@ namespace Work.Adventure.Code
         private AdventureEventSO _currentEvent;
         private Dictionary<string, int> _adventureItemDic = new Dictionary<string, int>();
         private bool _isAdventureRunning;
+        private Tween _startTransitionDelay;
+        private Tween _stopTransitionDelay;
 
         public void Init()
         {
@@ -42,6 +44,7 @@ namespace Work.Adventure.Code
 
         private void OnDestroy()
         {
+            KillTransitionDelays();
             Bus<OnAddAdventureItemEvent>.Events -= HandleAddAdventureItemEvent;
             Bus<OnRemoveAdventureItemEvent>.Events -= HandleUseAdventureItemEvent;
             Bus<OnHaveItemEvent, BoolenReturnValue>.Events -= HandleHaveItemCheckEvent;
@@ -95,7 +98,11 @@ namespace Work.Adventure.Code
                 itemUI.Enable();
                 adventureMap.CloseMap();
                 background.Enable();
-                DOVirtual.DelayedCall(0.5f, () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent(ProgressAdventure)));
+                _startTransitionDelay?.Kill(false);
+                _startTransitionDelay = DOVirtual.DelayedCall(
+                        0.5f,
+                        () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent(ProgressAdventure)))
+                    .SetLink(gameObject, LinkBehaviour.KillOnDisable);
             }));
         }
 
@@ -125,8 +132,25 @@ namespace Work.Adventure.Code
                 adventureMap.CloseMap();
                 background.Disable();
                 preparationManager.StopAdventure();
-                DOVirtual.DelayedCall(0.5f, () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent()));
+                _stopTransitionDelay?.Kill(false);
+                _stopTransitionDelay = DOVirtual.DelayedCall(
+                        0.5f,
+                        () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent()))
+                    .SetLink(gameObject, LinkBehaviour.KillOnDisable);
             }));
+        }
+
+        private void OnDisable()
+        {
+            KillTransitionDelays();
+        }
+
+        private void KillTransitionDelays()
+        {
+            _startTransitionDelay?.Kill(false);
+            _startTransitionDelay = null;
+            _stopTransitionDelay?.Kill(false);
+            _stopTransitionDelay = null;
         }
     }
 }

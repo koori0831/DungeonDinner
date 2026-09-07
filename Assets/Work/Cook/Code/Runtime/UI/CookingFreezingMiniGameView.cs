@@ -12,12 +12,23 @@ namespace Work.Cook.Code.Runtime.UI
     {
         [SerializeField] private Image[] frostCells;
         [SerializeField] private Image handIndicator;
-        [SerializeField] private Color frostColor = new Color(0.55f, 0.9f, 1f, 0.82f);
+        [SerializeField] private Color frostColor = new Color(1f, 1f, 1f, 0.82f);
 
         private CookingMiniGameOverlayProfile _profile;
         private float[] _cells;
         private float _startedTime;
         private Vector2 _lastPoint;
+
+        public override void Initialize(CookingMiniGameOverlayHost host, CookingMiniGameOverlaySettingsSO settings)
+        {
+            base.Initialize(host, settings);
+            if (frostCells == null)
+                return;
+
+            Sprite frostSprite = settings != null ? settings.FrostSprite : null;
+            for (int i = 0; i < frostCells.Length; i++)
+                ApplySprite(frostCells[i], frostSprite, true);
+        }
 
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {

@@ -31,6 +31,7 @@ namespace Work.UtillUI.Code.Fade
         [SerializeField] private float fadeTime = 0.5f;
         [SerializeField] private FadeState startFadeState = FadeState.FillFromLeft;
         private FadeState _currentState = FadeState.FillFromLeft;
+        private Sequence _transition;
 
         private void Awake()
         {
@@ -42,47 +43,79 @@ namespace Work.UtillUI.Code.Fade
 
         private void OnDestroy()
         {
+            KillTransition();
             Bus<OnFadeOutEvent>.Events -= Clear;
             Bus<OnFadeInEvent>.Events -= Fill;
+        }
+
+        private void OnDisable()
+        {
+            KillTransition();
         }
 
         public void Fill(OnFadeInEvent evt)
         {
             if (_currentState == FadeState.FillFromRight || _currentState == FadeState.FillFromLeft)
                 return;
-
-            root.DOAnchorPos(new Vector2(fillInfo.xPos, root.anchoredPosition.y), fadeTime);
-            root.DOSizeDelta(new Vector2(fillInfo.width, root.sizeDelta.y), fadeTime).OnComplete(() =>
-            { 
-                _currentState = _currentState == FadeState.Left ? FadeState.FillFromLeft : FadeState.FillFromRight ;
+            if (root == null)
+            {
                 evt.callback?.Invoke();
-            });
+                return;
+            }
+
+            KillTransition();
+            _transition = DOTween.Sequence()
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable)
+                .Join(root.DOAnchorPos(new Vector2(fillInfo.xPos, root.anchoredPosition.y), fadeTime))
+                .Join(root.DOSizeDelta(new Vector2(fillInfo.width, root.sizeDelta.y), fadeTime))
+                .OnComplete(() =>
+                {
+                    _currentState = _currentState == FadeState.Left ? FadeState.FillFromLeft : FadeState.FillFromRight;
+                    evt.callback?.Invoke();
+                });
         }
 
         public void Clear(OnFadeOutEvent evt)
         {
             if (_currentState == FadeState.Right || _currentState == FadeState.Left)
                 return;
+            if (root == null)
+            {
+                evt.callback?.Invoke();
+                return;
+            }
+
+            KillTransition();
 
             if (_currentState == FadeState.FillFromRight)
             {
-                root.DOAnchorPos(new Vector2(leftInfo.xPos, root.anchoredPosition.y), fadeTime);
-                root.DOSizeDelta(new Vector2(leftInfo.width, root.sizeDelta.y), fadeTime).OnComplete(() =>
-                {
-                    _currentState = FadeState.Left;
-                    evt.callback?.Invoke();
-                });
+                _transition = BuildClearSequence(leftInfo, FadeState.Left, evt.callback);
 
             }
             else if (_currentState == FadeState.FillFromLeft)
             {
-                root.DOAnchorPos(new Vector2(rightInfo.xPos, root.anchoredPosition.y), fadeTime);
-                root.DOSizeDelta(new Vector2(rightInfo.width, root.sizeDelta.y), fadeTime).OnComplete(() =>
-                {
-                    _currentState = FadeState.Right;
-                    evt.callback?.Invoke();
-                });
+                _transition = BuildClearSequence(rightInfo, FadeState.Right, evt.callback);
             }
+        }
+
+        private Sequence BuildClearSequence(FadeObjectPosInfo target, FadeState completedState, Action callback)
+        {
+            return DOTween.Sequence()
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable)
+                .Join(root.DOAnchorPos(new Vector2(target.xPos, root.anchoredPosition.y), fadeTime))
+                .Join(root.DOSizeDelta(new Vector2(target.width, root.sizeDelta.y), fadeTime))
+                .OnComplete(() =>
+                {
+                    _currentState = completedState;
+                    callback?.Invoke();
+                });
+        }
+
+        private void KillTransition()
+        {
+            _transition?.Kill(false);
+            _transition = null;
+            root?.DOKill(false);
         }
     }
 }

@@ -21,8 +21,8 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private Image readyFrameImage;
         [SerializeField] private TextMeshProUGUI ingredientNameField;
         [SerializeField] private TextMeshProUGUI instructionField;
-        [SerializeField] private Color boardIdleColor = new Color(0.45f, 0.26f, 0.13f, 1f);
-        [SerializeField] private Color boardCommittedColor = new Color(0.62f, 0.36f, 0.16f, 1f);
+        [SerializeField] private Color boardIdleColor = new Color(0.95f, 0.92f, 0.84f, 1f);
+        [SerializeField] private Color boardCommittedColor = new Color(1f, 0.9f, 0.68f, 1f);
 
         private UnityAction _ingredientAction;
 

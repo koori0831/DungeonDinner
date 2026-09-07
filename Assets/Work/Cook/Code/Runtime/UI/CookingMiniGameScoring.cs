@@ -31,11 +31,9 @@ namespace Work.Cook.Code.Runtime.UI
             return Mathf.Clamp01(finalState * 0.6f + flipTiming * 0.2f + evenness * 0.2f);
         }
 
-        public static float ScoreBoiling(float doneness, float targetMin, float targetMax, float extractionAccuracy)
+        public static float ScoreBoiling(float doneness, float targetMin, float targetMax)
         {
-            return Mathf.Clamp01(
-                ScoreTarget(doneness, targetMin, targetMax) * 0.75f
-                + Mathf.Clamp01(extractionAccuracy) * 0.25f);
+            return ScoreTarget(doneness, targetMin, targetMax);
         }
 
         public static float ScoreFreezing(float[] cells, float targetMin, float targetMax)

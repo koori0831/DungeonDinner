@@ -23,6 +23,12 @@ namespace Work.Cook.Code.Runtime.UI
         private Vector2 _pitcherHome;
         private float _startedTime;
 
+        public override void Initialize(CookingMiniGameOverlayHost host, CookingMiniGameOverlaySettingsSO settings)
+        {
+            base.Initialize(host, settings);
+            ApplySprite(pitcherImage, settings != null ? settings.PitcherSprite : null);
+        }
+
         public override bool CanPlay(CookingMiniGameType miniGameType)
         {
             return miniGameType == CookingMiniGameType.Diluting;

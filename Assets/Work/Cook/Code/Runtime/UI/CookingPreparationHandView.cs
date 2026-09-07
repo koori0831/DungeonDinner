@@ -40,6 +40,8 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private string knownEffectTitleText = "확인한 효과";
 
         private readonly List<CookingPreparationOptionCardView> _cards = new List<CookingPreparationOptionCardView>();
+        private readonly Dictionary<CookingPreparationOptionCardView, Sequence> _layoutTweens =
+            new Dictionary<CookingPreparationOptionCardView, Sequence>();
         private CookingKnowledgeStore _knowledgeStore;
         private CookingPreparationHandState _state = CookingPreparationHandState.Interactive;
         private int _focusedIndex = -1;
@@ -69,6 +71,7 @@ namespace Work.Cook.Code.Runtime.UI
             tooltipView?.Hide(null);
             KillLayoutTweens();
             _focusedIndex = -1;
+            ApplyFanLayout(true);
         }
 
         private void OnRectTransformDimensionsChange()
@@ -337,7 +340,25 @@ namespace Work.Cook.Code.Runtime.UI
                 if (rect == null)
                     continue;
 
-                CookingPreparationFanLayout.CardPose pose = CookingPreparationFanLayout.Calculate(
+                CookingPreparationFanLayout.CardPose basePose = CookingPreparationFanLayout.Calculate(
+                    i,
+                    count,
+                    availableWidth,
+                    cardWidth,
+                    presentationSettings != null ? presentationSettings.MaxFanAngle : 13f,
+                    presentationSettings != null ? presentationSettings.MinFanCardSpacing : 132f,
+                    presentationSettings != null ? presentationSettings.MaxFanCardSpacing : 220f,
+                    presentationSettings != null ? presentationSettings.MinFanCardScale : 0.86f,
+                    presentationSettings != null ? presentationSettings.FanArcHeight : 70f,
+                    -1,
+                    _selectedIndex,
+                    presentationSettings != null ? presentationSettings.FanFocusLift : 68f,
+                    presentationSettings != null ? presentationSettings.FanFocusScale : 1.08f,
+                    presentationSettings != null ? presentationSettings.FanSelectedLift : 18f,
+                    presentationSettings != null ? presentationSettings.FanNeighborSpread : 36f,
+                    presentationSettings != null ? presentationSettings.FanPeerDrop : 24f);
+
+                CookingPreparationFanLayout.CardPose visualPose = CookingPreparationFanLayout.Calculate(
                     i,
                     count,
                     availableWidth,
@@ -352,22 +373,44 @@ namespace Work.Cook.Code.Runtime.UI
                     presentationSettings != null ? presentationSettings.FanFocusLift : 68f,
                     presentationSettings != null ? presentationSettings.FanFocusScale : 1.08f,
                     presentationSettings != null ? presentationSettings.FanSelectedLift : 18f,
-                    presentationSettings != null ? presentationSettings.FanNeighborSpread : 36f);
+                    presentationSettings != null ? presentationSettings.FanNeighborSpread : 36f,
+                    presentationSettings != null ? presentationSettings.FanPeerDrop : 24f);
 
-                rect.DOKill(false);
+                RectTransform visualRoot = card.HoverVisualRoot;
+                KillLayoutTween(card);
                 if (immediate == true || Application.isPlaying == false)
                 {
-                    rect.anchoredPosition = pose.AnchoredPosition;
-                    rect.localRotation = Quaternion.Euler(0f, 0f, pose.Rotation);
-                    rect.localScale = Vector3.one * pose.Scale;
+                    ApplyPoseImmediate(rect, visualRoot, basePose, visualPose);
                     continue;
                 }
 
                 float duration = presentationSettings != null ? presentationSettings.FanTweenDuration : 0.16f;
-                Sequence sequence = DOTween.Sequence().SetUpdate(true).SetTarget(rect);
-                sequence.Join(rect.DOAnchorPos(pose.AnchoredPosition, duration).SetEase(Ease.OutQuad));
-                sequence.Join(rect.DOLocalRotate(new Vector3(0f, 0f, pose.Rotation), duration).SetEase(Ease.OutQuad));
-                sequence.Join(rect.DOScale(pose.Scale, duration).SetEase(Ease.OutQuad));
+                Sequence sequence = DOTween.Sequence()
+                    .SetUpdate(true)
+                    .SetTarget(rect)
+                    .SetLink(card.gameObject, LinkBehaviour.KillOnDisable);
+
+                if (visualRoot == null || visualRoot == rect)
+                {
+                    sequence.Join(rect.DOAnchorPos(visualPose.AnchoredPosition, duration).SetEase(Ease.OutQuad));
+                    sequence.Join(rect.DOLocalRotate(new Vector3(0f, 0f, visualPose.Rotation), duration).SetEase(Ease.OutQuad));
+                    sequence.Join(rect.DOScale(visualPose.Scale, duration).SetEase(Ease.OutQuad));
+                }
+                else
+                {
+                    Vector2 visualOffset = visualPose.AnchoredPosition - basePose.AnchoredPosition;
+                    float visualRotation = visualPose.Rotation - basePose.Rotation;
+                    float visualScale = basePose.Scale > Mathf.Epsilon ? visualPose.Scale / basePose.Scale : 1f;
+
+                    sequence.Join(rect.DOAnchorPos(basePose.AnchoredPosition, duration).SetEase(Ease.OutQuad));
+                    sequence.Join(rect.DOLocalRotate(new Vector3(0f, 0f, basePose.Rotation), duration).SetEase(Ease.OutQuad));
+                    sequence.Join(rect.DOScale(basePose.Scale, duration).SetEase(Ease.OutQuad));
+                    sequence.Join(visualRoot.DOAnchorPos(visualOffset, duration).SetEase(Ease.OutQuad));
+                    sequence.Join(visualRoot.DOLocalRotate(new Vector3(0f, 0f, visualRotation), duration).SetEase(Ease.OutQuad));
+                    sequence.Join(visualRoot.DOScale(visualScale, duration).SetEase(Ease.OutQuad));
+                }
+
+                _layoutTweens[card] = sequence;
             }
 
             ApplySiblingOrder();
@@ -538,10 +581,51 @@ namespace Work.Cook.Code.Runtime.UI
         {
             for (int i = 0; i < _cards.Count; i++)
             {
-                RectTransform rect = _cards[i] != null ? _cards[i].LayoutRoot : null;
+                CookingPreparationOptionCardView card = _cards[i];
+                KillLayoutTween(card);
+                RectTransform rect = card != null ? card.LayoutRoot : null;
                 if (rect != null)
                     rect.DOKill(false);
+                RectTransform visualRoot = card != null ? card.HoverVisualRoot : null;
+                if (visualRoot != null && visualRoot != rect)
+                    visualRoot.DOKill(false);
             }
+
+            _layoutTweens.Clear();
+        }
+
+        private void KillLayoutTween(CookingPreparationOptionCardView card)
+        {
+            if (card == null || _layoutTweens.TryGetValue(card, out Sequence sequence) == false)
+                return;
+
+            if (sequence != null && sequence.IsActive())
+                sequence.Kill(false);
+            _layoutTweens.Remove(card);
+        }
+
+        private static void ApplyPoseImmediate(
+            RectTransform layoutRoot,
+            RectTransform visualRoot,
+            CookingPreparationFanLayout.CardPose basePose,
+            CookingPreparationFanLayout.CardPose visualPose)
+        {
+            if (visualRoot == null || visualRoot == layoutRoot)
+            {
+                layoutRoot.anchoredPosition = visualPose.AnchoredPosition;
+                layoutRoot.localRotation = Quaternion.Euler(0f, 0f, visualPose.Rotation);
+                layoutRoot.localScale = Vector3.one * visualPose.Scale;
+                return;
+            }
+
+            layoutRoot.anchoredPosition = basePose.AnchoredPosition;
+            layoutRoot.localRotation = Quaternion.Euler(0f, 0f, basePose.Rotation);
+            layoutRoot.localScale = Vector3.one * basePose.Scale;
+
+            visualRoot.anchoredPosition = visualPose.AnchoredPosition - basePose.AnchoredPosition;
+            visualRoot.localRotation = Quaternion.Euler(0f, 0f, visualPose.Rotation - basePose.Rotation);
+            float visualScale = basePose.Scale > Mathf.Epsilon ? visualPose.Scale / basePose.Scale : 1f;
+            visualRoot.localScale = Vector3.one * visualScale;
         }
 
         private void ClearCards()

@@ -11,6 +11,7 @@ namespace Work.Cook.Code.Info
         [SerializeField] private Transform content;
         [SerializeField] private RectTransform contentResizeTarget;
         [SerializeField] private int columnsPerRow = 3;
+        [SerializeField] private int centeredHorizontalPadding = 34;
 
         private readonly List<InfoSelectBtn> _selectButtons = new List<InfoSelectBtn>();
         private ScrollRect _scrollRect;
@@ -140,6 +141,10 @@ namespace Work.Cook.Code.Info
             }
 
             int columnCount = Mathf.Max(1, columnsPerRow);
+            int horizontalPadding = Mathf.Max(0, centeredHorizontalPadding);
+            gridLayout.padding.left = horizontalPadding;
+            gridLayout.padding.right = horizontalPadding;
+            gridLayout.childAlignment = TextAnchor.UpperCenter;
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             gridLayout.constraintCount = columnCount;
 

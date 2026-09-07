@@ -24,6 +24,7 @@
 .idea/
 /output/
 /tmp/
+/AGENTS.md
 
 # Unity crash/recovery scenes must not be versioned
 /Assets/_Recovery/
@@ -117,3 +118,15 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Local NPC authoring materials and generated verification artifacts
+/Docs/NPCSystem/Dialogue_Generation_Prompt.md
+/Docs/NPCSystem/Dialogue_Generation_Reference.md
+/Docs/NPCSystem/Data_Registration_Report.md
+/Docs/NPCSystem/Production/
+/Docs/NPCSystem/Archive/
+/Docs/NPCSystem/build_*.py
+/Docs/NPCSystem/build_*.mjs
+/Docs/NPCSystem/outputs/
+/Tools/NpcAuthoring/
+/TestResults/

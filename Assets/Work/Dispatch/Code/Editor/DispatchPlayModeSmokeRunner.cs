@@ -7,6 +7,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Work.Adventure.Code;
+using Work.Cook.Code.Runtime.UI;
 using Work.Dispatch.Code.Runtime;
 using Work.Dispatch.Code.UI;
 using Work.TimeSystem;
@@ -14,7 +15,7 @@ using Work.TimeSystem;
 namespace Work.Dispatch.Code.Editor
 {
     /// <summary>
-    /// CI/명령줄에서 실제 Adventure 씬을 잠시 실행해 파견 UI 초기화를 검증합니다.
+    /// CI/명령줄에서 실제 통합 씬을 잠시 실행해 파견 UI 초기화를 검증합니다.
     /// 결과는 Temp/DispatchPlayModeSmoke.txt에 기록됩니다.
     /// </summary>
     [InitializeOnLoad]
@@ -22,7 +23,7 @@ namespace Work.Dispatch.Code.Editor
     {
         private const string RunningKey = "DungeonDinner.DispatchPlayModeSmoke.Running";
         private const string ExitCodeKey = "DungeonDinner.DispatchPlayModeSmoke.ExitCode";
-        private const string ScenePath = "Assets/Work/Adventure/Scene/AdventureTestScene.unity";
+        private const string ScenePath = AdventureSceneIntegrationSetup.IntegrationScenePath;
         private static readonly List<string> RuntimeErrors = new List<string>();
 
         private static double _checkAt;
@@ -137,13 +138,38 @@ namespace Work.Dispatch.Code.Editor
                 closeMethod.Invoke(presenter, null);
                 Require(presenter.IsVisible == false, "파견 화면 닫기 후 UI가 남아 있습니다.");
 
+                CookingGamePanel cookingPanel = UnityEngine.Object.FindFirstObjectByType<CookingGamePanel>(
+                    FindObjectsInactive.Include);
+                Require(cookingPanel != null, "CookingGamePanel이 없습니다.");
+                Require(cookingPanel.PreparationView != null, "최신 조리 뷰 참조가 없습니다.");
+                Require(
+                    cookingPanel.PreparationView.GetComponent<CookingView>() != null,
+                    "PreparationView가 최신 CookingView를 사용하지 않습니다.");
+
+                cookingPanel.OpenRecipeSelection();
+                Require(
+                    cookingPanel.RecipeSelectionView != null
+                    && cookingPanel.RecipeSelectionView.activeInHierarchy,
+                    "레시피 선택 화면을 열지 못했습니다.");
+
+                cookingPanel.OpenPreparation();
+                Require(
+                    cookingPanel.PreparationView.activeInHierarchy,
+                    "조리 준비 화면을 열지 못했습니다.");
+                RectTransform preparationRect = cookingPanel.PreparationView.transform as RectTransform;
+                Require(
+                    preparationRect != null
+                    && preparationRect.rect.width > 0f
+                    && preparationRect.rect.height > 0f,
+                    "조리 준비 화면의 실제 크기가 0입니다.");
+
                 if (RuntimeErrors.Count > 0)
                 {
                     throw new InvalidOperationException(
                         "실행 중 오류 로그가 발생했습니다.\n" + string.Join("\n", RuntimeErrors));
                 }
 
-                Finish(true, "PASS: Adventure 씬 파견 UI 열기/닫기 및 런타임 초기화 성공");
+                Finish(true, "PASS: 통합 씬 파견 UI 열기/닫기 및 런타임 초기화 성공");
             }
             catch (Exception exception)
             {
@@ -165,6 +191,8 @@ namespace Work.Dispatch.Code.Editor
             string text = (condition ?? string.Empty) + "\n" + (stackTrace ?? string.Empty);
             return text.Contains("Work.Dispatch", StringComparison.Ordinal)
                    || text.Contains("Work.TimeSystem", StringComparison.Ordinal)
+                   || text.Contains("Work.Cook", StringComparison.Ordinal)
+                   || text.Contains("Work.NPC", StringComparison.Ordinal)
                    || text.Contains("PreparationManager", StringComparison.Ordinal)
                    || text.Contains("AdventureManager", StringComparison.Ordinal)
                    || text.Contains("CookingBusinessFlowController", StringComparison.Ordinal)

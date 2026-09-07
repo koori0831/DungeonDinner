@@ -37,7 +37,8 @@ namespace Work.Cook.Code.Runtime.UI
             float focusLift,
             float focusScale,
             float selectedLift,
-            float neighborSpread)
+            float neighborSpread,
+            float peerDrop)
         {
             int safeCount = Mathf.Max(1, cardCount);
             int safeIndex = Mathf.Clamp(index, 0, safeCount - 1);
@@ -55,7 +56,8 @@ namespace Work.Cook.Code.Runtime.UI
             if (selectedIndex == safeIndex)
                 y += Mathf.Max(0f, selectedLift);
 
-            if (focusedIndex >= 0)
+            bool hasValidFocus = focusedIndex >= 0 && focusedIndex < safeCount;
+            if (hasValidFocus)
             {
                 if (safeIndex == focusedIndex)
                 {
@@ -65,6 +67,7 @@ namespace Work.Cook.Code.Runtime.UI
                 }
                 else
                 {
+                    y -= Mathf.Max(0f, peerDrop);
                     int relative = safeIndex - focusedIndex;
                     if (relative != 0)
                         x += Mathf.Sign(relative) * Mathf.Max(0f, neighborSpread) / Mathf.Max(1f, Mathf.Abs(relative));

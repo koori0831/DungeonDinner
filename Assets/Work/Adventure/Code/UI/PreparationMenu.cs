@@ -4,6 +4,8 @@ using TMPro;
 using UnityEngine;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Core.EventBus;
+using Work.NPC.Code.Runtime;
+using Work.TimeSystem;
 using Work.UtillUI.Code.Fade;
 
 namespace Work.Adventure.Code.UI
@@ -20,47 +22,101 @@ namespace Work.Adventure.Code.UI
     {
         [SerializeField] private RectTransform root;
         [SerializeField] private TextMeshProUGUI statusText;
+        [SerializeField] private GameTimeService gameTimeService;
+        [SerializeField] private NpcEncounterDirector encounterDirector;
         [SerializeField] private float offset_x = -5;
 
         private float _hide_x = 0f;
         private Action _selectAfterAction;
         private Action _endAction;
+        private Func<string> _dispatchStatusProvider;
+        private Tween _moveTween;
+        private Tween _fadeDelayTween;
+        private bool _isSubscribedToTime;
 
         private bool _isCanAction = true;
         private const string ALREADY_DONE_TEXT = "가능";
         private const string NEXT_LINE = "\n";
 
-        public void Init(Action selectAfterAction, Action endAction)
+        public void Init(
+            Action selectAfterAction,
+            Action endAction,
+            Func<string> dispatchStatusProvider = null)
         {
             _selectAfterAction = selectAfterAction;
             _endAction = endAction;
-            _hide_x = root.anchoredPosition.x;
+            _dispatchStatusProvider = dispatchStatusProvider;
+            if (root != null)
+                _hide_x = root.anchoredPosition.x;
+
+            ResolveTimeReferences();
+            SetStatusText();
         }
 
         public void SetStatusText()
         {
-            string status = "파견 : ";
-            status += "가능"; // 나중에 파견쪽 만들어지면 추가
+            ResolveTimeReferences();
+
+            string status = gameTimeService != null
+                ? GameTimeDisplayFormatter.FormatCompact(
+                    gameTimeService.CurrentDay,
+                    gameTimeService.CurrentTimeOfDay)
+                : "날짜/시간 : 이용 불가";
+            status += NEXT_LINE;
+            status += "다음 영업 : ";
+            status += BuildNextBusinessStatus();
+            status += NEXT_LINE;
+            status += "파견 : ";
+            string dispatchStatus = _dispatchStatusProvider?.Invoke();
+            status += string.IsNullOrWhiteSpace(dispatchStatus) ? ALREADY_DONE_TEXT : dispatchStatus;
             status += NEXT_LINE;
             status += "모험 : ";
             status += ALREADY_DONE_TEXT;
             status += NEXT_LINE;
 
-            statusText.text = status;
+            if (statusText != null)
+                statusText.text = status;
+        }
+
+        private void OnEnable()
+        {
+            ResolveTimeReferences();
+            SubscribeTimeEvents();
+            SetStatusText();
         }
 
         public void ShowUI(Action callback = null)
         {
             _isCanAction = true;
             SetStatusText();
-            root.DOAnchorPos(new Vector2(0 + offset_x, root.anchoredPosition.y), 0.5f).OnComplete(() => callback?.Invoke()).SetEase(Ease.OutBack);
+            if (root == null)
+            {
+                callback?.Invoke();
+                return;
+            }
+
+            KillMoveTween();
+            _moveTween = root.DOAnchorPos(new Vector2(offset_x, root.anchoredPosition.y), 0.5f)
+                .SetEase(Ease.OutBack)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable)
+                .OnComplete(() => callback?.Invoke());
         }
 
         public void HideUI(Action callback = null)
         {
             _isCanAction = false;
             SetStatusText();
-            root.DOAnchorPos(new Vector2(_hide_x, root.anchoredPosition.y), 0.5f).OnComplete(() => callback?.Invoke()).SetEase(Ease.OutBack);
+            if (root == null)
+            {
+                callback?.Invoke();
+                return;
+            }
+
+            KillMoveTween();
+            _moveTween = root.DOAnchorPos(new Vector2(_hide_x, root.anchoredPosition.y), 0.5f)
+                .SetEase(Ease.OutBack)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable)
+                .OnComplete(() => callback?.Invoke());
         }
 
         /// <summary>
@@ -89,7 +145,10 @@ namespace Work.Adventure.Code.UI
                 Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() =>
                 {
                     Bus<OnSelectPreparationEvent>.Raise(new OnSelectPreparationEvent(preparationType));
-                    DOVirtual.DelayedCall(1, () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent()));
+                    _fadeDelayTween?.Kill(false);
+                    _fadeDelayTween = DOVirtual.DelayedCall(1, () =>
+                            Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent()))
+                        .SetLink(gameObject, LinkBehaviour.KillOnDisable);
                 }));
             });
 
@@ -110,6 +169,74 @@ namespace Work.Adventure.Code.UI
         public void SelectNextDay()
         {
             SelectNextBusiness();
+        }
+
+        private void OnDisable()
+        {
+            KillMoveTween();
+            _fadeDelayTween?.Kill(false);
+            _fadeDelayTween = null;
+            UnsubscribeTimeEvents();
+        }
+
+        private string BuildNextBusinessStatus()
+        {
+            if (encounterDirector == null)
+                return "상태 확인 필요";
+
+            int encountersStarted = encounterDirector.EncountersStartedToday;
+            int maxEncounters = encounterDirector.MaxEncountersPerDay;
+            string progress = $"접대 {encountersStarted}/{maxEncounters}";
+
+            if (encounterDirector.CanStartEncounter())
+                return $"가능 · {progress}";
+
+            if (encounterDirector.IsBusinessDayComplete && gameTimeService != null)
+            {
+                int remainingTime = GameTimeDisplayFormatter.GetTimeUntilNextDay(
+                    gameTimeService.CurrentTimeOfDay);
+                return $"{remainingTime}시간 후 · {progress}";
+            }
+
+            return $"손님 조건 확인 필요 · {progress}";
+        }
+
+        private void ResolveTimeReferences()
+        {
+            if (gameTimeService == null)
+                gameTimeService = FindFirstObjectByType<GameTimeService>();
+            if (encounterDirector == null)
+                encounterDirector = FindFirstObjectByType<NpcEncounterDirector>();
+        }
+
+        private void SubscribeTimeEvents()
+        {
+            if (_isSubscribedToTime)
+                return;
+
+            Bus<GameTimeAdvancedEvent>.Events += HandleTimeAdvanced;
+            _isSubscribedToTime = true;
+        }
+
+        private void UnsubscribeTimeEvents()
+        {
+            if (_isSubscribedToTime == false)
+                return;
+
+            Bus<GameTimeAdvancedEvent>.Events -= HandleTimeAdvanced;
+            _isSubscribedToTime = false;
+        }
+
+        private void HandleTimeAdvanced(GameTimeAdvancedEvent _)
+        {
+            SetStatusText();
+        }
+
+        private void KillMoveTween()
+        {
+            _moveTween?.Kill(false);
+            _moveTween = null;
+            root?.DOKill(false);
         }
     }
 }

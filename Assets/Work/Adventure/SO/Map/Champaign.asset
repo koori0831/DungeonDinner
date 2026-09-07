@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e765b4e9cb0f20459fa509592850f02, type: 3}
   m_Name: Champaign
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Work.Adventure.Code.MapInfoSO
+  <RegionId>k__BackingField: Plains
   <MapName>k__BackingField: "\uD3C9\uC57C"
-  <Description>k__BackingField: "\uB4F1\uC7A5 \uBAAC\uC2A4\uD130 : 000 , 000\\n\uB4F1\uC7A5
-    \uCC44\uC9D1\uBB3C : 0000 , 000"
+  <Description>k__BackingField: "탐사 준비 중입니다. 상세 정보는 지역 개방 후 공개됩니다."
