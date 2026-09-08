@@ -99,6 +99,45 @@ namespace Work.NPC.Code.Editor.Tests
             }
         }
 
+        [Test]
+        public void PortraitCatalog_MapsEveryProductionNpcToTransparentSingleSprite()
+        {
+            const string catalogPath = "Assets/Resources/NPCData/NpcPortraitCatalog.asset";
+            var catalog = AssetDatabase.LoadAssetAtPath<NpcPortraitCatalogSO>(catalogPath);
+            Assert.That(catalog, Is.Not.Null, catalogPath);
+
+            var expectedPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Odin"] = "Assets/Work/Cook/Graphics/UIAsset/NPCPortraits/npc_portrait_odin.png",
+                ["Nari"] = "Assets/Work/Cook/Graphics/UIAsset/NPCPortraits/npc_portrait_nari.png",
+                ["Boram"] = "Assets/Work/Cook/Graphics/UIAsset/NPCPortraits/npc_portrait_boram.png",
+                ["Rook"] = "Assets/Work/Cook/Graphics/UIAsset/NPCPortraits/npc_portrait_rook.png"
+            };
+
+            foreach (KeyValuePair<string, string> expected in expectedPaths)
+            {
+                Sprite portrait = catalog.GetPortrait(expected.Key.ToLowerInvariant());
+                Assert.That(portrait, Is.Not.Null, expected.Key);
+                Assert.That(AssetDatabase.GetAssetPath(portrait), Is.EqualTo(expected.Value));
+
+                TextureImporter importer = AssetImporter.GetAtPath(expected.Value) as TextureImporter;
+                Assert.That(importer, Is.Not.Null, expected.Value);
+                Assert.That(importer.textureType, Is.EqualTo(TextureImporterType.Sprite));
+                Assert.That(importer.spriteImportMode, Is.EqualTo(SpriteImportMode.Single));
+                Assert.That(importer.maxTextureSize, Is.EqualTo(512));
+                Assert.That(importer.mipmapEnabled, Is.False);
+                Assert.That(importer.alphaIsTransparency, Is.True);
+                Assert.That(importer.DoesSourceTextureHaveAlpha(), Is.True, expected.Value);
+
+                TextureImporterSettings settings = new TextureImporterSettings();
+                importer.ReadTextureSettings(settings);
+                Assert.That(settings.spriteMeshType, Is.EqualTo(SpriteMeshType.FullRect));
+                Assert.That(settings.spritePivot, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+            }
+
+            Assert.That(catalog.GetPortrait("missing-npc"), Is.EqualTo(catalog.FallbackPortrait));
+        }
+
         [Serializable]
         private sealed class ProfileFile { public Profile[] profiles; }
         [Serializable]
