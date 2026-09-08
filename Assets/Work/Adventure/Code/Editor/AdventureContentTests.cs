@@ -24,7 +24,8 @@ namespace Work.Adventure.Code.Editor
         private static readonly string[] EventNames =
         {
             "Find_HolySwordSalt", "Meet_MushroomBarber", "Meet_AdventurerTrade", "Find_BoxSlime",
-            "Find_SaltGoddess", "Find_BrokenGoddessRepair", "Find_CoconutCrab", "Meet_SproutSlime"
+            "Find_SaltGoddess", "Find_BrokenGoddessRepair", "Find_CoconutCrab", "Meet_SproutSlime",
+            "Find_RopeCache", "Meet_LanternKeeper", "Find_CookKit", "Meet_SupplyPorter", "Meet_RopeWeaver", "Meet_BottleTrader", "Find_LedgePantry", "Meet_PitAdventurer", "Find_DarkNest", "Find_HotSpringBasket", "Find_StickyPool", "Find_RootCellar", "Find_HangingPantry", "Find_MossyStair", "Meet_LostMushroomChild", "Find_CrackedStoreroom", "Find_CrabSnare", "Find_TiltedSaltCart", "Find_ThornLunchbox", "Meet_CaughtApron", "Find_SeepingSaltWell", "Meet_LeakingPack", "Find_SlimeCurtain", "Meet_MushroomWaterer", "Find_SleepingCrab", "Find_CollapsedShelf", "Meet_SootyCook", "Find_GlowingCrack", "Find_DewMushrooms", "Meet_StatueCaretaker", "Find_SlimeTracks", "Find_SaltDrips", "Find_CrabMolting", "Find_StickyLatch", "Meet_MushroomSplinter", "Find_SlimePicnic"
         };
 
         [MenuItem("Tools/Dungeon Dinner/Adventure/Validate Added Events %#F8")]
@@ -40,8 +41,30 @@ namespace Work.Adventure.Code.Editor
             tests.Repair_RejectsInsufficientQuantityWithoutPartialConsumption();
             tests.RandomBoxReward_AddsExactlyTheLoggedIngredients();
             tests.CoconutCrab_IsRegisteredCookingIngredient();
-            File.WriteAllText("Temp/AdventureEditModeValidation.txt", DateTime.Now.ToString("O") + "\nPASS: all 7 AdventureContentTests checks in Unity Editor.\n");
-            Debug.Log("Adventure validation passed: 8 events, 24 choices, references, costs, inventory rewards and crab ingredient.");
+            tests.EquipmentExpansion_HasAcquisitionsAndMultipleUses();
+            File.WriteAllText("Temp/AdventureEditModeValidation.txt", DateTime.Now.ToString("O") + "\nPASS: all 8 AdventureContentTests checks in Unity Editor.\n");
+            Debug.Log("Adventure validation passed: 44 added events including nested choices, references, costs, inventory rewards and crab ingredient.");
+        }
+
+
+        [Test]
+        public void EquipmentExpansion_HasAcquisitionsAndMultipleUses()
+        {
+            var events = EventNames.Select(LoadEvent).ToArray();
+            foreach (var name in new[] { "Rope", "Lantern", "Tongs", "CollectingBottle" })
+            {
+                var item = AssetDatabase.LoadAssetAtPath<AdventureItemSO>("Assets/Work/Adventure/SO/AdventureItem/" + name + ".asset");
+                Assert.That(item, Is.Not.Null, name);
+                Assert.That(item.ItemIcon, Is.Not.Null, name);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Work/Adventure/Prefabs/Item/" + name + ".prefab");
+                Assert.That(prefab.GetComponent<Image>().sprite, Is.EqualTo(item.ItemIcon), name);
+                int acquisitions = events.Sum(e => e.options.Sum(o => o.rewardMethod
+                    .OfType<Work.Adventure.Code.Rewards.AdventureItemReward>()
+                    .Count(r => (AdventureItemSO)r.GetType().GetField("itemSO", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(r) == item)));
+                int uses = events.Count(e => e.options.OfType<LockedOption>().Any(o => o.KeyItem == item));
+                Assert.That(acquisitions, Is.GreaterThanOrEqualTo(2), name + ": acquisition paths");
+                Assert.That(uses, Is.GreaterThanOrEqualTo(2), name + ": usable encounters");
+            }
         }
 
         [Test]
@@ -50,15 +73,16 @@ namespace Work.Adventure.Code.Editor
             foreach (string name in EventNames)
             {
                 AdventureEventSO asset = LoadEvent(name);
-                Assert.That(asset.options.Count, Is.EqualTo(3), name);
+                Assert.That(asset.options.Count, Is.GreaterThan(0), name);
                 Assert.That(asset.dialogDatas.Count, Is.GreaterThan(0), name);
                 ValidateLines(asset.dialogDatas);
-                foreach (Options option in asset.options)
+                foreach (Options option in AdventureFlowTests.Paths(asset.options).SelectMany(p => p).Distinct())
                 {
                     Assert.That(option, Is.Not.Null, name);
                     Assert.That(option.OptionName, Is.Not.Empty, name);
                     ValidateLines(option.ResultdialogDatas);
-                    Assert.That(option.ResultdialogDatas.Last().method.OfType<DeleteAllImageEvent>().Any(), Is.True, name);
+                    if (option.followUpOptions == null || option.followUpOptions.Count == 0)
+                        Assert.That(option.ResultdialogDatas.Last().method.OfType<DeleteAllImageEvent>().Any(), Is.True, name);
                     foreach (AdventureReward reward in option.rewardMethod)
                         Assert.That(reward, Is.Not.Null, name);
                     if (option is LockedOption locked)
@@ -94,7 +118,7 @@ namespace Work.Adventure.Code.Editor
             AdventureEventSO trade = LoadEvent("Meet_AdventurerTrade");
             for (int i = 0; i < 2; i++)
             {
-                var option = trade.options[i] as LockedOption;
+                var option = AdventureFlowTests.Paths(trade.options).Select(p => p.Last()).OfType<LockedOption>().ToArray()[i];
                 Assert.That(option, Is.Not.Null);
                 Assert.That(option.IsUseItemOption, Is.True);
                 Assert.That(option.IsUnLockOption, Is.False);
@@ -134,7 +158,7 @@ namespace Work.Adventure.Code.Editor
         public void Repair_RejectsInsufficientQuantityWithoutPartialConsumption()
         {
             var option = new IngredientLockedOption();
-            var ingredient = AssetDatabase.LoadAssetAtPath<IngredientItemDataSO>(ItemPath + "TempCookingTest/TempSlimeMucusIngredientItem.asset");
+            var ingredient = AssetDatabase.LoadAssetAtPath<IngredientItemDataSO>(ItemPath + "Ingredients/SlimeMucusIngredientItem.asset");
             SetField(option, "<RequiredIngredient>k__BackingField", ingredient);
             SetField(option, "<RequiredAmount>k__BackingField", 2);
             var owner = new GameObject("Adventure inventory quantity test");
@@ -154,7 +178,7 @@ namespace Work.Adventure.Code.Editor
         [Test]
         public void RandomBoxReward_AddsExactlyTheLoggedIngredients()
         {
-            var ingredient = AssetDatabase.LoadAssetAtPath<IngredientItemDataSO>(ItemPath + "TempCookingTest/TempSlimeMucusIngredientItem.asset");
+            var ingredient = AssetDatabase.LoadAssetAtPath<IngredientItemDataSO>(ItemPath + "Ingredients/SlimeMucusIngredientItem.asset");
             var root = new GameObject("Random reward test", typeof(RectTransform));
             var template = new GameObject("Reward image", typeof(RectTransform), typeof(Image));
             int added = 0, logged = 0;

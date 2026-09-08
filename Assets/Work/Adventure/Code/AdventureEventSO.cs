@@ -54,6 +54,8 @@ namespace Work.Adventure.Code
         [field:SerializeField] public string RewardDescription { get; protected set; }
         [SerializeReference] public List<AdventureReward> rewardMethod = new List<AdventureReward>();
         [field: SerializeField] public List<AdventrueDialogData> ResultdialogDatas { get; private set; } = new List<AdventrueDialogData>();
+        [SerializeReference, Tooltip("결과 대사와 보상 처리 후 표시할 선택지. 비어 있으면 이벤트가 끝납니다.")]
+        public List<Options> followUpOptions = new List<Options>();
     }
     [Serializable]
     public class LockedOption : Options

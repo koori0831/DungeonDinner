@@ -13,19 +13,16 @@ MonoBehaviour:
   m_Name: Find_Mushroom
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "\uB358\uC804 \uAE38\uBAA9\uC5D0\uC11C \uBC84\uC12F\uC744
-      \uBC1C\uACAC\uD588\uB2E4."
+  - <Context>k__BackingField: "던전 길목에서 버섯을 발견했다."
     method:
     - rid: 3674030402256765096
-  - <Context>k__BackingField: "\uC0C9\uC740 \uBE68\uAC04\uC0C9\uC5D0 \uD770\uC0C9
-      \uC810\uBC15\uC774\uAC00 \uC788\uB294 \uBC84\uC12F\uC774\uB2E4."
+  - <Context>k__BackingField: "빨간 갓에 하얀 반점이 박혀 있다."
     method: []
-  - <Context>k__BackingField: "\uBC84\uC12F\uC744 \uD55C\uC785 \uBCA0\uC5B4\uBB3C\uC5C8\uB2E4."
+  - <Context>k__BackingField: "버섯을 가까이에서 살펴보았다."
     method: []
-  - <Context>k__BackingField: "\"\uC74C.. \uC0DD\uAC01\uBCF4\uB2E4. \uB9DB\uC788\uB294\uB370?
-      \""
+  - <Context>k__BackingField: "\"갓이 제법 튼튼한데?\""
     method: []
-  - <Context>k__BackingField: "\"\uC774\uAC78 \uC5B4\uB5BB\uAC8C \uD558\uC9C0...\""
+  - <Context>k__BackingField: "\"어떻게 손질할까?\""
     method: []
   options:
   - rid: 3674030357021720966
@@ -36,37 +33,35 @@ MonoBehaviour:
     - rid: 3674030357021720966
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "\uBC84\uC12F\uC744 \uAC00\uC838\uAC04\uB2E4."
-        <OptionTooltip>k__BackingField: "버섯을 손으로 잡고 뽑아봅니다."
+        <OptionName>k__BackingField: "버섯을 가져간다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "\uBC84\uC12F\uC744 \uC5BB\uB294\uB2E4."
         rewardMethod:
         - rid: 3674030389440807017
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\uBC84\uC12F\uC744 \uCC59\uACBC\uB2E4."
+        - <Context>k__BackingField: "버섯을 뽑아 챙겼다."
           method:
           - rid: 3674030402256765097
     - rid: 3674030357021720968
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "\uBC84\uC12F\uC744 \uC790\uB978\uB2E4."
-        <OptionTooltip>k__BackingField: "칼로 버섯의 밑동을 자릅니다. 칼이 필요합니다."
+        <OptionName>k__BackingField: "버섯을 자른다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <RewardDescription>k__BackingField: "\uC790\uB978 \uBC84\uC12F\uC744 \uC5BB\uB294\uB2E4."
         rewardMethod:
         - rid: 3674030389440807018
         - rid: 3674030402256765161
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\uBC84\uC12F\uC744 \uBA38\uB9AC\uC640 \uBAB8\uD1B5\uC744
-            \uAE30\uC900\uC73C\uB85C \uC798\uB790\uB2E4."
+        - <Context>k__BackingField: "칼로 버섯의 갓과 줄기를 잘라 나눴다."
           method:
           - rid: 3674030402256765098
-        - <Context>k__BackingField: "\uBAB8\uD1B5\uBD80\uBD84\uC740 \uBE5B\uC73C\uB85C
-            \uBCC0\uD558\uB354\uB2C8 \uC0AC\uB77C\uC84C\uB2E4."
+        - <Context>k__BackingField: "줄기는 빛으로 변하더니 사라졌다."
           method:
           - rid: 3674030402256765099
-        - <Context>k__BackingField: "\uBA38\uB9AC\uBD80\uBD84\uC744 \uCC59\uAE34\uB2E4."
+        - <Context>k__BackingField: "남은 버섯 갓을 챙겼다."
           method:
           - rid: 3674030402256765100
-        <LockTooltip>k__BackingField: "\uCE7C\uC774 \uD544\uC694\uD569\uB2C8\uB2E4."
+        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0

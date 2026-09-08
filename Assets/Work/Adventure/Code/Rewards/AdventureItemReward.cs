@@ -9,6 +9,7 @@ namespace Work.Adventure.Code.Rewards
     public class AdventureItemReward : AdventureReward
     {
         [SerializeField] private AdventureItemSO itemSO;
+        public AdventureItemSO Item => itemSO;
 
         public override void GetReward()
         {

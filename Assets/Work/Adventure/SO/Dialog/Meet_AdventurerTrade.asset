@@ -25,8 +25,7 @@ MonoBehaviour:
   - <Context>k__BackingField: "도구를 넘기면 재료를 주겠다고 한다. 앞으로의 채집에 쓸 도구를 여기서 바꿔도 될까?"
     method: []
   options:
-  - rid: 1010
-  - rid: 1017
+  - rid: 900000000000000001
   - rid: 1019
   references:
     version: 2
@@ -73,8 +72,8 @@ MonoBehaviour:
     - rid: 1010
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "칼을 주고 식재료를 받는다"
-        <OptionTooltip>k__BackingField: "칼을 건네고 모험가와 거래합니다. 칼 1개가 소모됩니다."
+        <OptionName>k__BackingField: "칼을 건넨다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개. 선택 시 1개 소모됩니다."
         <RewardDescription>k__BackingField: "칼 1개 소모 → 콘치즈 2개 + 버섯 갓 1개"
         rewardMethod:
         - rid: 1004
@@ -89,10 +88,10 @@ MonoBehaviour:
           - rid: 1006
           - rid: 1007
           - rid: 1008
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1009
-        <LockTooltip>k__BackingField: "칼이 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개. 선택 시 1개 소모됩니다."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 1
@@ -126,14 +125,14 @@ MonoBehaviour:
     - rid: 1017
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "망치를 주고 식재료를 받는다"
-        <OptionTooltip>k__BackingField: "망치를 건네고 모험가와 거래합니다. 망치 1개가 소모됩니다."
+        <OptionName>k__BackingField: "망치를 건넨다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개. 선택 시 1개 소모됩니다."
         <RewardDescription>k__BackingField: "망치 1개 소모 → 암염 2개 + 납작버섯 1개"
         rewardMethod:
         - rid: 1011
         - rid: 1012
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "망치를 넘겨주자 모험가가 큼직한 암염을 두드려 본다."
+        - <Context>k__BackingField: "망치를 넘겨주자 모험가가 큼직한 암염을 두드려 보았다."
           method: []
         - <Context>k__BackingField: "\"좋아. 이 정도면 충분하겠어.\""
           method: []
@@ -142,10 +141,10 @@ MonoBehaviour:
           - rid: 1013
           - rid: 1014
           - rid: 1015
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1016
-        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개. 선택 시 1개 소모됩니다."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 1
@@ -157,14 +156,30 @@ MonoBehaviour:
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "도구는 계속 쓰기로 한다"
-        <OptionTooltip>k__BackingField: "거래 제안을 정중히 거절합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "거래하지 않음"
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
         - <Context>k__BackingField: "\"아직 더 돌아다녀야 해서요.\""
           method: []
-        - <Context>k__BackingField: "모험가는 고개를 끄덕이고 다음 행인을 기다린다."
+        - <Context>k__BackingField: "모험가는 고개를 끄덕이고 다음 행인을 기다렸다."
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1018
+    - rid: 900000000000000001
+      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "거래 조건을 묻는다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
+        <RewardDescription>k__BackingField: ""
+        rewardMethod: []
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "모험가가 내 짐을 보며 공구를 가리켰다."
+          method: []
+        - <Context>k__BackingField: "\"칼이나 망치가 필요해. 내줄 수 있는 물건이 있나?\""
+          method: []
+        followUpOptions:
+        - rid: 1010
+        - rid: 1017
+        - rid: 1019

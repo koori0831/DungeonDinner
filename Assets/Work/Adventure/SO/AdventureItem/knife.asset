@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: knife
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureItemSO
   <ItemName>k__BackingField: "\uCE7C"
-  <ItemIcon>k__BackingField: {fileID: 21300000, guid: 52d18648d0583ba46bd7ca4f6e904e75, type: 3}
+  <ItemIcon>k__BackingField: {fileID: 21300000, guid: 1dc844e3a026c5e42953adcbdccf0d36, type: 3}

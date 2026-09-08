@@ -13,16 +13,14 @@ MonoBehaviour:
   m_Name: Meet_OldMan
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "\uAE38\uC744 \uC9C0\uB098\uAC00\uB358 \uB3C4\uC911
-      \uB204\uAD70\uAC00\uAC00 \uB9D0\uC744 \uAC78\uC5B4\uC654\uB2E4."
+  - <Context>k__BackingField: "길을 가던 중 노인이 말을 걸어왔다."
     method: []
-  - <Context>k__BackingField: "\"\uAC70\uAE30 \uCCAD\uB144..\""
+  - <Context>k__BackingField: "\"거기, 청년.\""
     method:
     - rid: 3674030402256765138
-  - <Context>k__BackingField: "\"\uB0B4\uAC00 \uC9C0\uAE08 \uB204\uAD70\uAC00\uC5D0\uAC8C\uC11C
-      \uB3C4\uB9DD\uCE58\uB294 \uC911\uC778\uB370\""
+  - <Context>k__BackingField: "\"지금 누군가에게 쫓기는 중이라네.\""
     method: []
-  - <Context>k__BackingField: "\"\uB098\uC880 \uB3C4\uC640\uC904 \uC218 \uC788\uB098...?\""
+  - <Context>k__BackingField: "\"잠시 숨겨 줄 수 있겠나?\""
     method: []
   options:
   - rid: 3674030402256765139
@@ -38,70 +36,60 @@ MonoBehaviour:
     - rid: 3674030402256765139
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "\"\uC81C\uAC00 \uC870\uAE08 \uBC14\uBE60\uC11C\uC694;;\""
-        <OptionTooltip>k__BackingField: 
+        <OptionName>k__BackingField: "도움을 거절한다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"\uC544... \uADF8\uB7F0\uAC00..\""
+        - <Context>k__BackingField: "\"아, 그런가...\""
           method: []
-        - <Context>k__BackingField: "\"\uBBF8\uC548\uD558\uB124..\""
+        - <Context>k__BackingField: "\"붙잡아서 미안하네.\""
           method: []
-        - <Context>k__BackingField: "\uB178\uC778\uC744 \uB4A4\uB85C\uD558\uACE0
-            \uAC00\uB358\uAE38\uC744 \uB098\uC544\uAC04\uB2E4."
+        - <Context>k__BackingField: "노인에게 인사하고 길을 나섰다."
           method:
           - rid: 3674030402256765143
     - rid: 3674030402256765140
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "\"\uC228\uACA8\uB4DC\uB9B4\uAC8C\uC694\""
-        <OptionTooltip>k__BackingField: 
+        <OptionName>k__BackingField: "노인을 숨겨 준다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: 
         rewardMethod:
         - rid: 3674030402256765142
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"\uC815\uB9D0 \uACE0\uB9D9\uB124.\""
+        - <Context>k__BackingField: "\"정말 고맙네.\""
           method:
           - rid: 3674030402256765152
-        - <Context>k__BackingField: "\uB178\uC778\uC744 \uC228\uACA8\uC900 \uC774\uD6C4
-            \uC5BC\uB9C8 \uC9C0\uB098\uC9C0\uC54A\uC544 \uD5D8\uC0C1\uAD82\uC740
-            \uC5BC\uAD74\uC744 \uAC00\uC9C4 \uC0AC\uB0B4\uAC00 \uB9D0\uC744 \uAC78\uC5B4\uC654\uB2E4. "
+        - <Context>k__BackingField: "노인을 숨겨 준 뒤, 얼마 지나지 않아 험상궂은 사내가 다가왔다."
           method: []
-        - <Context>k__BackingField: "\"\uC5EC\uAE30 \uC9C0\uB098\uAC00\uB358 \uB178\uC778\uD55C\uBA85
-            \uBABB\uBD24\uB098.\""
+        - <Context>k__BackingField: "\"이쪽으로 지나간 노인 못 봤나?\""
           method:
           - rid: 3674030402256765156
-        - <Context>k__BackingField: "\"\uB178\uC778\uC774\uC694? \uC774 \uAE38\uB85C\uB294
-            \uC544\uBB34\uB3C4 \uC9C0\uB098\uAC00\uC9C0 \uC54A\uC558\uC5B4\uC694.\""
+        - <Context>k__BackingField: "\"노인이요? 이 길로는 아무도 지나가지 않았어요.\""
           method: []
-        - <Context>k__BackingField: "\"\uADF8\uB798?\""
+        - <Context>k__BackingField: "\"그래?\""
           method: []
-        - <Context>k__BackingField: "\"\uC54C\uB824\uC918\uC11C \uACE0\uB9D9\uAD70.\""
+        - <Context>k__BackingField: "\"알려 줘서 고맙군.\""
           method: []
-        - <Context>k__BackingField: ...
+        - <Context>k__BackingField: "사내는 잠시 주변을 둘러보았다."
           method:
           - rid: 3674030402256765150
-        - <Context>k__BackingField: "\uC0AC\uB0B4\uAC00 \uB5A0\uB09C\uB4A4, \uC870\uAE08
-            \uC9C0\uB098\uACE0.. "
+        - <Context>k__BackingField: "사내가 멀어질 때까지 기다렸다."
           method: []
-        - <Context>k__BackingField: "\"\uC774\uC81C \uB098\uC624\uC154\uB3C4 \uB420\uAC70\uAC19\uC544\uC694.\""
+        - <Context>k__BackingField: "\"이제 나오셔도 될 것 같아요.\""
           method: []
-        - <Context>k__BackingField: "\uB178\uC778\uC774 \uB9D0\uD588\uB2E4."
+        - <Context>k__BackingField: "숨어 있던 노인이 조심스럽게 걸어 나왔다."
           method:
           - rid: 3674030402256765146
-        - <Context>k__BackingField: "\"\uC815\uB9D0 \uACE0\uB9D9\uB124..\""
+        - <Context>k__BackingField: "\"덕분에 무사했네.\""
           method: []
-        - <Context>k__BackingField: "\"\uB0B4\uAC00 \uB530\uB85C \uAC00\uC9C4\uAC83\uC740
-            \uC5C6\uACE0.. \uC774 \uB9DD\uCE58\uB77C\uB3C4 \uC8FC\uACA0\uB124.\""
+        - <Context>k__BackingField: "\"가진 게 많지는 않지만, 이 망치를 받아 주게.\""
           method:
           - rid: 3674030402256765147
-        - <Context>k__BackingField: "\"\uC5EC\uB7EC \uBAAC\uC2A4\uD130\uB97C \uC0AC\uB0E5\uD558\uB294\uB370
-            \uB3C4\uC6C0\uC774 \uB420\uAC78\uC138\""
+        - <Context>k__BackingField: "\"여행하다 보면 쓸 일이 있을 걸세.\""
           method:
           - rid: 3674030402256765155
-        - <Context>k__BackingField: "\uB9DD\uCE58\uB97C \uB118\uACA8\uC900 \uB178\uC778\uC740
-            \uAC00\uC57C\uD558\uB294 \uACF3\uC774 \uC788\uB2E4\uBA70 \uACE0\uB9D9\uB2E4\uB294
-            \uB9D0\uC744 \uB0A8\uAE30\uACE0 \uB5A0\uB0AC\uB2E4."
+        - <Context>k__BackingField: "노인은 망치를 건네고 거듭 인사한 뒤 길을 떠났다."
           method:
           - rid: 3674030402256765149
     - rid: 3674030402256765142

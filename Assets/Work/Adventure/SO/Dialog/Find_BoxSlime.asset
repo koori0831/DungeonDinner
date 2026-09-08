@@ -74,7 +74,7 @@ MonoBehaviour:
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "상자를 기울여 슬라임을 내보낸다"
-        <OptionTooltip>k__BackingField: "상자 안의 슬라임을 밖으로 유인합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "슬라임 점액 1개 획득"
         rewardMethod:
         - rid: 1006
@@ -85,7 +85,7 @@ MonoBehaviour:
           method:
           - rid: 1007
           - rid: 1008
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1009
     - rid: 1011
@@ -108,7 +108,7 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "칼로 멀쩡한 줄기만 자른다"
-        <OptionTooltip>k__BackingField: "칼로 상자 안의 멀쩡한 줄기만 조심스럽게 자릅니다. 칼이 필요합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <RewardDescription>k__BackingField: "콘치즈 1개 획득 · 칼 유지"
         rewardMethod:
         - rid: 1011
@@ -121,10 +121,10 @@ MonoBehaviour:
           - rid: 1013
         - <Context>k__BackingField: "\"상자 사용료는 안 받을게.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1014
-        <LockTooltip>k__BackingField: "칼이 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -157,25 +157,25 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "망치로 상자를 내려친다"
-        <OptionTooltip>k__BackingField: "망치로 상자를 내려칩니다. 망치가 필요합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <RewardDescription>k__BackingField: "슬라임 점액 2개 획득 · 콘치즈 손상 · 망치 유지"
         rewardMethod:
         - rid: 1016
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "<size=70>쾅!!"
+        - <Context>k__BackingField: "<size=70>쾅!!</size>"
           method: []
         - <Context>k__BackingField: "상자가 부서지며 슬라임은 빛으로 사라졌다."
           method:
           - rid: 1017
           - rid: 1018
-        - <Context>k__BackingField: "콘치즈는 나무 파편과 뒤섞여 못 쓰게 되었다. 점액만 챙긴다."
+        - <Context>k__BackingField: "콘치즈는 나무 파편과 뒤섞여 못 쓰게 되었다. 점액만 챙겼다."
           method:
           - rid: 1019
           - rid: 1020
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1021
-        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0

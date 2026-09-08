@@ -58,12 +58,12 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "칼로 가장자리를 다듬는다"
-        <OptionTooltip>k__BackingField: "칼로 삐죽하게 자란 갓 끝을 다듬습니다. 칼이 필요합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <RewardDescription>k__BackingField: "버섯 갓 1개 획득 · 칼 유지"
         rewardMethod:
         - rid: 1003
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "머쉬룸맨이 고개를 숙인다. 늘어진 갓의 가장자리만 잘라냈다."
+        - <Context>k__BackingField: "머쉬룸맨이 고개를 숙였다. 늘어진 갓의 가장자리만 잘라냈다."
           method: []
         - <Context>k__BackingField: "잘라낸 갓 조각을 받자 머쉬룸맨은 기쁘게 손을 흔들었다."
           method:
@@ -71,10 +71,10 @@ MonoBehaviour:
           - rid: 1005
         - <Context>k__BackingField: "\"손님, 다음에도 이 길로 오세요.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1006
-        <LockTooltip>k__BackingField: "칼이 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -99,12 +99,12 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "망치로 갓 끝을 살짝 누른다"
-        <OptionTooltip>k__BackingField: "망치로 튀어나온 갓 끝을 살짝 누릅니다. 망치가 필요합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <RewardDescription>k__BackingField: "납작버섯 1개 획득 · 망치 유지"
         rewardMethod:
         - rid: 1008
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "머쉬룸맨이 돌 위에 갓 끝을 올린다. 아주 살짝 두드렸다."
+        - <Context>k__BackingField: "머쉬룸맨이 돌 위에 갓 끝을 올렸다. 아주 살짝 두드렸다."
           method: []
         - <Context>k__BackingField: "눌려 떨어진 갓 조각은 훌륭한 납작버섯이 되었다."
           method:
@@ -112,10 +112,10 @@ MonoBehaviour:
           - rid: 1010
         - <Context>k__BackingField: "\"이발을 부탁했는데… 다림질을 해버렸네.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1011
-        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -127,7 +127,7 @@ MonoBehaviour:
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "부딪히지 않게 길을 안내한다"
-        <OptionTooltip>k__BackingField: "버섯 인간에게 길을 알려주고 떠납니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "보상 없음"
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
@@ -137,6 +137,6 @@ MonoBehaviour:
           method: []
         - <Context>k__BackingField: "\"다음엔 미용 도구를 챙겨 와야겠어.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1013

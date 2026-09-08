@@ -6,6 +6,7 @@ using Work.Adventure.Code.UI;
 using Work.Core.EventBus;
 using Work.UtillUI.Code.Fade;
 using Work.TimeSystem;
+using Work.Players.Code.Inventory;
 
 namespace Work.Adventure.Code
 {
@@ -24,6 +25,10 @@ namespace Work.Adventure.Code
         [SerializeField] private GameTimeService gameTimeService;
 
         [SerializeField] private List<AdventureEventSO> eventList = new List<AdventureEventSO>();
+        [SerializeField, Range(0f, 1f)] private float supplyEventChance = 0.35f;
+        [SerializeField, Min(1)] private int maxEventsWithoutSupply = 3;
+        [SerializeField, Min(1f)] private float missingToolWeight = 2f;
+        private readonly AdventureEventSelector _eventSelector = new AdventureEventSelector();
 
         private AdventureEventSO _currentEvent;
         private Dictionary<string, int> _adventureItemDic = new Dictionary<string, int>();
@@ -52,7 +57,7 @@ namespace Work.Adventure.Code
 
         private void HandleUseAdventureItemEvent(OnRemoveAdventureItemEvent item)
         {
-            if (_adventureItemDic.ContainsKey(item.itemSO.ItemName))
+            if (_adventureItemDic.TryGetValue(item.itemSO.ItemName, out int count) && count > 0)
             {
                 _adventureItemDic[item.itemSO.ItemName] -= 1;
                 Bus<OnRemoveAdventureItemAfterEvent>.Raise(new OnRemoveAdventureItemAfterEvent(item.itemSO, _adventureItemDic[item.itemSO.ItemName]));
@@ -110,7 +115,21 @@ namespace Work.Adventure.Code
         {
             background.Walking(() =>
             {
-                _currentEvent = _currentEvent != null ? eventList.Where(x => x != _currentEvent).ToList()[Random.Range(0, eventList.Count - 1)] : eventList[Random.Range(0, eventList.Count)];
+                var inventory = FindFirstObjectByType<PlayerInventoryModule>();
+                bool HasItem(AdventureItemSO item) => item != null
+                    && _adventureItemDic.TryGetValue(item.ItemName, out int count) && count > 0;
+                bool CanSelect(Options option) => option is LockedOption locked
+                    ? locked.KeyItem != null && HasItem(locked.KeyItem) != locked.IsUnLockOption
+                    : !(option is IngredientLockedOption ingredient) || ingredient.CanSelect(inventory);
+                _currentEvent = _eventSelector.Select(eventList, _currentEvent,
+                    _adventureItemDic.Values.Any(count => count > 0), HasItem, CanSelect,
+                    supplyEventChance, maxEventsWithoutSupply, missingToolWeight, () => Random.value);
+                if (_currentEvent == null)
+                {
+                    Debug.LogWarning("진행할 어드벤처 이벤트가 없습니다.", this);
+                    StopAdventure();
+                    return;
+                }
                 dialog.StartDialog(_currentEvent);
             });
         }

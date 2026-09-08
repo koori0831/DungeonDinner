@@ -61,6 +61,7 @@ namespace Work.NPC.Code.Runtime
 
         private NpcConversationDatabase _database;
         private NpcEncounterHistory _history;
+        private bool _isEncounterDataInitialized;
         private int _activeEncounterDay = 1;
         private string _activeEventId;
         private int _sessionDay;
@@ -87,6 +88,7 @@ namespace Work.NPC.Code.Runtime
         {
             get
             {
+                EnsureEncounterDataInitialized();
                 SyncDailySessionState();
                 return _encountersStartedToday;
             }
@@ -102,26 +104,11 @@ namespace Work.NPC.Code.Runtime
 
         private void Awake()
         {
-            currentDay = Mathf.Max(1, currentDay);
-
             if (runner == null)
                 runner = FindFirstObjectByType<NpcConversationRunner>();
 
-            _database = NpcConversationDatabase.LoadFromResources(resourceFolder);
-            _history = persistHistory
-                ? NpcEncounterHistory.Load(historySaveKey)
-                : NpcEncounterHistory.CreateUnsaved();
-
-            if (gameTimeService == null)
-                gameTimeService = FindFirstObjectByType<GameTimeService>();
-
-            if (gameTimeService != null)
-                SetCurrentDay(gameTimeService.CurrentDay);
-            else
-                SyncCurrentDayFromHistory();
-
+            EnsureEncounterDataInitialized();
             ResolveExternalAvailabilityRule();
-            ReconcileRequestStatesFromPlayedRequestEvents();
             Bus<GameDayChangedEvent>.Events += HandleGameDayChanged;
 
             if (runner != null)
@@ -130,6 +117,32 @@ namespace Work.NPC.Code.Runtime
                 runner.ResultDialogueStarted += HandleResultDialogueStarted;
                 runner.ConversationCompleted += HandleConversationCompleted;
             }
+        }
+
+        private void EnsureEncounterDataInitialized()
+        {
+            if (_isEncounterDataInitialized)
+                return;
+
+            // Preparation UI can query this component before its Awake runs.
+            currentDay = Mathf.Max(1, currentDay);
+            _database ??= NpcConversationDatabase.LoadFromResources(resourceFolder);
+            _history ??= persistHistory
+                ? NpcEncounterHistory.Load(historySaveKey)
+                : NpcEncounterHistory.CreateUnsaved();
+
+            if (gameTimeService == null)
+                gameTimeService = FindFirstObjectByType<GameTimeService>();
+
+            if (gameTimeService != null)
+                currentDay = Mathf.Max(1, gameTimeService.CurrentDay);
+            else
+                SyncCurrentDayFromHistory();
+
+            ReconcileRequestStatesFromPlayedRequestEvents();
+            // Earlier calls may have cached the same day and region without history.
+            SyncDailySessionState(true);
+            _isEncounterDataInitialized = true;
         }
 
         private void OnDestroy()
@@ -553,6 +566,8 @@ namespace Work.NPC.Code.Runtime
 
         public bool CanStartEncounter()
         {
+            EnsureEncounterDataInitialized();
+
             if (runner == null)
                 runner = FindFirstObjectByType<NpcConversationRunner>();
 
@@ -665,6 +680,7 @@ namespace Work.NPC.Code.Runtime
 
         public bool TryPickVisitEvent(string targetRegionId, out VisitEventData visitEvent)
         {
+            EnsureEncounterDataInitialized();
             visitEvent = null;
             currentDay = Mathf.Max(1, currentDay);
             SyncDailySessionState();

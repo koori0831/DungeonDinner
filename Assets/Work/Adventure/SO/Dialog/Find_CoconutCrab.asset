@@ -56,7 +56,7 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "망치로 껍질을 깨뜨린다"
-        <OptionTooltip>k__BackingField: "망치로 단단한 껍질을 내려칩니다. 망치가 필요합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <RewardDescription>k__BackingField: "코코넛 게살 2개 획득 · 망치 유지"
         rewardMethod:
         - rid: 1003
@@ -69,10 +69,10 @@ MonoBehaviour:
           - rid: 1005
         - <Context>k__BackingField: "\"과일 코너에 둬야 하나, 해산물 코너에 둬야 하나.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1006
-        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -97,7 +97,7 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "칼로 껍질 틈을 공략한다"
-        <OptionTooltip>k__BackingField: "칼끝을 껍질 틈에 넣어 공략합니다. 칼이 필요합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <RewardDescription>k__BackingField: "코코넛 게살 1개 획득 · 칼 유지"
         rewardMethod:
         - rid: 1008
@@ -108,10 +108,10 @@ MonoBehaviour:
           method:
           - rid: 1009
           - rid: 1010
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1011
-        <LockTooltip>k__BackingField: "칼이 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -122,8 +122,8 @@ MonoBehaviour:
     - rid: 1014
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "길을 비켜준다"
-        <OptionTooltip>k__BackingField: "코코넛 게가 지나가도록 길을 비켜줍니다."
+        <OptionName>k__BackingField: "길을 비켜 준다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "보상 없음"
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
@@ -131,6 +131,6 @@ MonoBehaviour:
           method: []
         - <Context>k__BackingField: "\"잘 가라, 걸어 다니는 도시락.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1013

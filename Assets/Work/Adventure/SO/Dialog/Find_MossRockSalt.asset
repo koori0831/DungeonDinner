@@ -13,15 +13,14 @@ MonoBehaviour:
   m_Name: Find_MossRockSalt
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "\uAE38\uC744 \uC9C0\uB098\uAC00\uB2E4 \uC774\uB07C\uAC00
-      \uB080 \uC554\uC5FC\uC744 \uBC1C\uACAC\uD588\uB2E4."
+  - <Context>k__BackingField: "길가에서 이끼가 낀 암염을 발견했다."
     method:
     - rid: 3674030483535822915
-  - <Context>k__BackingField: "\"\uC554\uC5FC\uC5D0\uB3C4 \uC774\uB07C\uAC00 \uD53C\uB098...?\""
+  - <Context>k__BackingField: "\"암염에도 이끼가 끼는구나.\""
     method: []
-  - <Context>k__BackingField: "\"\uC774\uAC70 \uCE7C\uB85C \uAE01\uC5B4\uB0B4\uBA74..\""
+  - <Context>k__BackingField: "\"칼로 겉을 긁어 내면...\""
     method: []
-  - <Context>k__BackingField: "\"\uC4F8\uC218 \uC788\uACA0\uB294\uB370?\""
+  - <Context>k__BackingField: "\"안쪽을 살펴볼 수 있겠는데?\""
     method: []
   options:
   - rid: 2964834660221190229
@@ -32,36 +31,33 @@ MonoBehaviour:
     - rid: 2964834660221190229
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "\uC9C0\uB098\uAC04\uB2E4. "
-        <OptionTooltip>k__BackingField: 
+        <OptionName>k__BackingField: "그냥 지나간다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\uADF8\uB0E5 \uC9C0\uB098\uAC04\uB2E4."
+        - <Context>k__BackingField: "암염을 그대로 두고 길을 나섰다."
           method:
           - rid: 2964834660221190238
     - rid: 2964834660221190232
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "\uCE7C\uB85C \uAE01\uC5B4\uBCF8\uB2E4."
-        <OptionTooltip>k__BackingField: 
+        <OptionName>k__BackingField: "칼로 이끼를 긁어 낸다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <RewardDescription>k__BackingField: 
         rewardMethod:
         - rid: 2964834660221190233
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\uAC00\uC9C0\uACE0 \uC788\uB358 \uCE7C\uB85C
-            \uC774\uB07C\uB97C \uAE01\uC5B4\uB0B8\uB2E4."
+        - <Context>k__BackingField: "칼로 암염 표면의 이끼를 긁어 냈다."
           method:
           - rid: 2964834660221190235
           - rid: 2964834660221190236
-        - <Context>k__BackingField: "\"\uCE7C\uB85C \uAE01\uC5B4\uB0B4\uB2C8 \uADF8\uB0E5
-            \uC0AC\uC6A9\uD560\uB9CC \uD558\uACA0\uB294\uB370?\""
+        - <Context>k__BackingField: "\"안쪽은 깨끗하네.\""
           method: []
-        - <Context>k__BackingField: "\uC774\uB07C\uAC00 \uAC77\uC5B4\uC9C4 \uC554\uC5FC\uC744
-            \uCC59\uAE34\uB2E4."
+        - <Context>k__BackingField: "이끼를 걷어 낸 암염을 챙겼다."
           method:
           - rid: 2964834660221190234
-        <LockTooltip>k__BackingField: 
+        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0

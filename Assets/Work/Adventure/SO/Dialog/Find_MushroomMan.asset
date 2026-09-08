@@ -13,14 +13,12 @@ MonoBehaviour:
   m_Name: Find_MushroomMan
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: " \uAE38\uC744 \uAC00\uB358\uB3C4\uC911 \uBA40\uB9AC
-      \uBA38\uC26C\uB8F8\uB9E8\uC744 \uBC1C\uACAC\uD588\uB2E4."
+  - <Context>k__BackingField: "멀리서 머쉬룸맨을 발견했다."
     method:
     - rid: 3674030402256765110
-  - <Context>k__BackingField: "\"\uC544\uC9C1 \uB098\uB97C \uBC1C\uACAC\uD55C\uAC70
-      \uAC19\uC9C0\uB294 \uC54A\uC740\uB370...\""
+  - <Context>k__BackingField: "\"아직 나를 발견하지는 못한 것 같아.\""
     method: []
-  - <Context>k__BackingField: "\"\uACF5\uACA9\uD574\uC57C\uD558\uB098..\""
+  - <Context>k__BackingField: "\"다가가 볼까?\""
     method: []
   options:
   - rid: 3674030402256765111
@@ -37,59 +35,49 @@ MonoBehaviour:
     - rid: 3674030402256765111
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "\uB2E4\uB978\uAE38\uB85C \uD53C\uD574\uAC04\uB2E4."
-        <OptionTooltip>k__BackingField: 
+        <OptionName>k__BackingField: "옆길로 돌아간다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"\uADF8\uB0E5 \uD53C\uD574\uAC00\uC790.\""
+        - <Context>k__BackingField: "\"옆길로 돌아가자.\""
           method:
           - rid: 3674030402256765128
-        - <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC744 \uD53C\uD574\uC11C
-            \uC606\uAE38\uB85C \uB3CC\uC544\uAC11\uB2C8\uB2E4."
+        - <Context>k__BackingField: "머쉬룸맨을 피해 옆길로 돌아갔다."
           method: []
     - rid: 3674030402256765113
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "\uCE7C\uB85C \uACF5\uACA9\uD55C\uB2E4."
-        <OptionTooltip>k__BackingField: 
+        <OptionName>k__BackingField: "칼로 공격한다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <RewardDescription>k__BackingField: 
         rewardMethod:
         - rid: 3674030402256765120
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\uACF5\uACA9\uD558\uAE30 \uC704\uD574\uC11C
-            \uAC00\uAE4C\uC774 \uB2E4\uAC00\uAC14\uC2B5\uB2C8\uB2E4."
+        - <Context>k__BackingField: "발소리를 죽이고 머쉬룸맨에게 다가갔다."
           method:
           - rid: 3674030402256765129
-        - <Context>k__BackingField: "\uAC00\uAE4C\uC774\uC11C \uD655\uC778\uD574\uBCF4\uB2C8
-            \uAE30\uC2B5\uC744 \uD1B5\uD574 \uD55C\uBC88\uC5D0 \uCC98\uB9AC\uAC00
-            \uAC00\uB2A5\uD574 \uBCF4\uC785\uB2C8\uB2E4."
+        - <Context>k__BackingField: "머쉬룸맨은 다른 곳을 보느라 이쪽을 눈치채지 못했다."
           method:
           - rid: 3674030402256765130
-        - <Context>k__BackingField: "\"\uADF8\uB798..! \uD55C\uBC88 \uD574\uBCF4\uC790.\""
+        - <Context>k__BackingField: "\"지금이야.\""
           method: []
-        - <Context>k__BackingField: "\uBC29\uC2EC\uD55C \uBA38\uC26C\uB8F8\uB9E8\uC758
-            \uBAA9\uC5D0 \uCE7C\uC744 \uAE4A\uC219\uD788 \uCC14\uB7EC \uB123\uC5C8\uC2B5\uB2C8\uB2E4."
+        - <Context>k__BackingField: "칼을 뻗어 머쉬룸맨을 공격했다."
           method: []
-        - <Context>k__BackingField: "\uD55C\uC21C\uAC04\uC5D0 \uBA38\uC26C\uB8F8\uB9E8\uC740
-            \uBE5B\uC774\uB418\uC5B4 \uC0AC\uB77C\uC84C\uC2B5\uB2C8\uB2E4."
+        - <Context>k__BackingField: "머쉬룸맨은 빛으로 변해 사라졌다."
           method:
           - rid: 3674030402256765117
-        - <Context>k__BackingField: "\"\uD734... \uC131\uACF5\uD588\uB2E4!\""
+        - <Context>k__BackingField: "\"휴, 성공했네.\""
           method: []
-        - <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC774 \uC788\uB358
-            \uC790\uB9AC\uC5D0 \uBA38\uC26C\uB8F8\uB9E8\uC758 \uBA38\uB9AC\uB9CC
-            \uB0A8\uC544\uC788\uC5C8\uB2E4."
+        - <Context>k__BackingField: "머쉬룸맨이 있던 자리에 갓만 남았다."
           method:
           - rid: 3674030402256765122
-        - <Context>k__BackingField: "\"\uC774\uAC74 \uB098\uC911\uC5D0 \uC694\uB9AC\uC5D0
-            \uC4F8 \uC218 \uC788\uACA0\uB294\uB370, \uCC59\uACA8\uC57C\uACA0\uB2E4.\""
+        - <Context>k__BackingField: "\"이건 요리에 쓸 수 있겠어.\""
           method: []
-        - <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC758 \uBA38\uB9AC\uB97C
-            \uCC59\uAE41\uB2C8\uB2E4."
+        - <Context>k__BackingField: "남은 버섯 갓을 챙겼다."
           method:
           - rid: 3674030402256765116
-        <LockTooltip>k__BackingField: "\uCE7C\uC774 \uD544\uC694\uD569\uB2C8\uB2E4."
+        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -103,46 +91,36 @@ MonoBehaviour:
     - rid: 3674030402256765119
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "\uB9DD\uCE58\uB85C \uACF5\uACA9\uD569\uB2C8\uB2E4."
-        <OptionTooltip>k__BackingField: 
+        <OptionName>k__BackingField: "망치로 공격한다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <RewardDescription>k__BackingField: 
         rewardMethod:
         - rid: 3674030402256765121
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\uACF5\uACA9\uD558\uAE30 \uC704\uD574\uC11C
-            \uAC00\uAE4C\uC774 \uB2E4\uAC00\uAC14\uC2B5\uB2C8\uB2E4."
+        - <Context>k__BackingField: "발소리를 죽이고 머쉬룸맨에게 다가갔다."
           method:
           - rid: 3674030402256765131
-        - <Context>k__BackingField: "\uAC00\uAE4C\uC774\uC11C \uD655\uC778\uD574\uBCF4\uB2C8
-            \uAE30\uC2B5\uC744 \uD1B5\uD574 \uD55C\uBC88\uC5D0 \uCC98\uB9AC\uAC00
-            \uAC00\uB2A5\uD574 \uBCF4\uC785\uB2C8\uB2E4."
+        - <Context>k__BackingField: "머쉬룸맨은 다른 곳을 보느라 이쪽을 눈치채지 못했다."
           method:
           - rid: 3674030402256765132
-        - <Context>k__BackingField: "\"\uADF8\uB798..! \uD55C\uBC88 \uD574\uBCF4\uC790.\""
+        - <Context>k__BackingField: "\"지금이야.\""
           method: []
-        - <Context>k__BackingField: "\uBC29\uC2EC\uD55C \uBA38\uC26C\uB8F8\uB9E8\uC758
-            \uBA38\uB9AC\uC704\uC5D0\uC11C \uC544\uB798\uB85C \uB9DD\uCE58\uB97C
-            \uD718\uB458\uB800\uC2B5\uB2C8\uB2E4."
+        - <Context>k__BackingField: "망치를 들어 머쉬룸맨을 내리쳤다."
           method: []
-        - <Context>k__BackingField: "\uD55C\uC21C\uAC04\uC5D0 \uBA38\uC26C\uB8F8\uB9E8\uC740
-            \uBE5B\uC774\uB418\uC5B4 \uC0AC\uB77C\uC84C\uC2B5\uB2C8\uB2E4."
+        - <Context>k__BackingField: "머쉬룸맨은 빛으로 변해 사라졌다."
           method:
           - rid: 3674030402256765126
-        - <Context>k__BackingField: "\"\uD734... \uC131\uACF5\uD588\uB2E4!\""
+        - <Context>k__BackingField: "\"휴, 성공했네.\""
           method: []
-        - <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC774 \uC788\uB358
-            \uC790\uB9AC\uC5D0 \uBA38\uC26C\uB8F8\uB9E8\uC758 \uB0A9\uC791\uD574\uC9C4
-            \uBA38\uB9AC\uB9CC \uB0A8\uC544\uC788\uC5C8\uB2E4."
+        - <Context>k__BackingField: "머쉬룸맨이 있던 자리에 납작해진 갓만 남았다."
           method:
           - rid: 3674030402256765123
-        - <Context>k__BackingField: "\"\uC774\uAC74 \uB098\uC911\uC5D0 \uC694\uB9AC\uC5D0
-            \uC4F8 \uC218 \uC788\uACA0\uB294\uB370, \uCC59\uACA8\uC57C\uACA0\uB2E4.\""
+        - <Context>k__BackingField: "\"모양은 달라도 요리에는 쓸 수 있겠어.\""
           method: []
-        - <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC758 \uB0A9\uC791\uD574\uC9C4
-            \uBA38\uB9AC\uB97C \uCC59\uAE41\uB2C8\uB2E4."
+        - <Context>k__BackingField: "납작해진 버섯 갓을 챙겼다."
           method:
           - rid: 3674030402256765135
-        <LockTooltip>k__BackingField: "\uB9DD\uCE58\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4."
+        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0

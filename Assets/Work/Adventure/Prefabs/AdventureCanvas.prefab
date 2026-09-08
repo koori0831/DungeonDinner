@@ -772,7 +772,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "1\uC77C\uCC28 \u00B7 \uC2DC\uAC04 0 / 6\n\uB2E4\uC74C \uC601\uC5C5 : \uAC00\uB2A5 \u00B7 \uC811\uB300 0/3\n\uD30C\uACAC : \uAC00\uB2A5\n\uBAA8\uD5D8 : \uAC00\uB2A5\n"
+  m_text: "1\uC77C\uCC28 \xB7 \uC2DC\uAC04 0 / 6\n\uB2E4\uC74C \uC601\uC5C5 : \uAC00\uB2A5
+    \xB7 \uC811\uB300 0/3\n\uD30C\uACAC : \uAC00\uB2A5\n\uBAA8\uD5D8 : \uAC00\uB2A5\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
   m_sharedMaterial: {fileID: -6827637094199512089, guid: 531357f713c2a904caa4acb7ebfcef48, type: 2}
@@ -1377,6 +1378,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PreparationMenu
   root: {fileID: 4766691042437564640}
   statusText: {fileID: 2374569141171838679}
+  gameTimeService: {fileID: 0}
+  encounterDirector: {fileID: 0}
   offset_x: -5
 --- !u!1 &1663935699761957396
 GameObject:
@@ -1752,9 +1755,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 5955036695971832917}
-        m_TargetAssemblyTypeName: Work.Adventure.Code.UI.MapInfoPanel, Assembly-CSharp
-        m_MethodName: Close
+      - m_Target: {fileID: 3233635074916808110}
+        m_TargetAssemblyTypeName: Work.Adventure.Code.UI.AdventureMapUI, Assembly-CSharp
+        m_MethodName: CloseInfoPanel
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2766,8 +2769,8 @@ RectTransform:
   m_Children:
   - {fileID: 5673775449247207104}
   - {fileID: 8287778705520403881}
-  - {fileID: 5485203424711982565}
   - {fileID: 7726311951010242031}
+  - {fileID: 5485203424711982565}
   - {fileID: 2602414793775430080}
   - {fileID: 5272691874856650998}
   - {fileID: 8204252476265614707}
@@ -8024,7 +8027,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AdventureMapUI
   background: {fileID: 5060689263410512069}
   infoPanel: {fileID: 5955036695971832917}
-  mapImage: {fileID: 0}
+  mapImage: {fileID: 6268274317608082085}
   root: {fileID: 4057981486247564516}
   fadeTime: 0.3
   openTime: 0.6

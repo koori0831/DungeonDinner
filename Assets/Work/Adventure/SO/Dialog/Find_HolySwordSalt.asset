@@ -17,7 +17,7 @@ MonoBehaviour:
     method:
     - rid: 1001
     - rid: 1002
-  - <Context>k__BackingField: "「선택받은 자만이 이 검을 뽑으리라.」"
+  - <Context>k__BackingField: "[선택받은 자만이 이 검을 뽑으리라.]"
     method: []
   - <Context>k__BackingField: "받침대 틈에 하얀 결정이 반짝인다. 자세히 보니 익숙한 암염이다."
     method: []
@@ -44,8 +44,8 @@ MonoBehaviour:
     - rid: 1004
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "성검을 뽑아본다"
-        <OptionTooltip>k__BackingField: "검의 손잡이를 잡고 힘껏 당겨봅니다."
+        <OptionName>k__BackingField: "성검을 뽑아 본다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "보상 없음"
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
@@ -55,7 +55,7 @@ MonoBehaviour:
           method: []
         - <Context>k__BackingField: "\"선택받기 전에 허리부터 나가겠네.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1003
     - rid: 1005
@@ -78,7 +78,7 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "칼로 결정을 긁어낸다"
-        <OptionTooltip>k__BackingField: "칼로 검 주변의 결정을 조심스럽게 긁어냅니다. 칼이 필요합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <RewardDescription>k__BackingField: "암염 1개 획득 · 칼 유지"
         rewardMethod:
         - rid: 1005
@@ -91,10 +91,10 @@ MonoBehaviour:
           - rid: 1007
         - <Context>k__BackingField: "\"용사는 다른 사람이 하면 되지.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1008
-        <LockTooltip>k__BackingField: "칼이 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -127,14 +127,14 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "망치로 받침대를 부순다"
-        <OptionTooltip>k__BackingField: "망치로 검을 둘러싼 바위를 내려칩니다. 망치가 필요합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <RewardDescription>k__BackingField: "암염 2개 획득 · 성검 파손 · 망치 유지"
         rewardMethod:
         - rid: 1010
         <ResultdialogDatas>k__BackingField:
         - <Context>k__BackingField: "\"받침대를 부수면 검도 뽑히고 소금도 얻겠는데?\""
           method: []
-        - <Context>k__BackingField: "<size=70>쾅!!"
+        - <Context>k__BackingField: "<size=70>쾅!!</size>"
           method: []
         - <Context>k__BackingField: "받침대가 무너졌다. 떨어진 성검도 함께 부러졌다."
           method:
@@ -146,10 +146,10 @@ MonoBehaviour:
           - rid: 1014
         - <Context>k__BackingField: "\"전설은 끝났지만, 간은 맞출 수 있겠다.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1015
-        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0

@@ -22,15 +22,31 @@ namespace Work.Adventure.Code.UI
         private Action _callback;
         private Sequence _visibilityTween;
         private Tween _mapPositionTween;
+        private void Awake()
+        {
+            BindMapButtons();
+        }
+
         public void Init(Action callback = null)
         {
             _callback = callback;
+            BindMapButtons();
 
             mapButtons.ForEach(item =>
             {
-                item.Init(OpenInfoPanel);
-                item.CloseMap();
+                if (item != null)
+                    item.CloseMap();
             });
+        }
+
+        private void BindMapButtons()
+        {
+            // Map selection must also work when preparation initialization is interrupted.
+            foreach (MapSelectButton item in mapButtons)
+            {
+                if (item != null)
+                    item.Init(OpenInfoPanel);
+            }
         }
 
         private void OpenInfoPanel(MapInfoSO info,bool isCanAdventure)

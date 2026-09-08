@@ -1,0 +1,126 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c017245360f0bc546a567e1840070efd, type: 3}
+  m_Name: Find_CollapsedShelf
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
+  <dialogDatas>k__BackingField:
+  - <Context>k__BackingField: "무너진 선반 아래에서 반짝이는 것이 보인다."
+    method:
+    - rid: 1001
+    - rid: 1002
+  - <Context>k__BackingField: "손을 넣기에는 틈이 좁고 안쪽이 어둡다."
+    method: []
+  options:
+  - rid: 1007
+  - rid: 1012
+  - rid: 1014
+  references:
+    version: 2
+    RefIds:
+    - rid: 1001
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1002
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 686b38c900f1e2142b896a415168f3c5, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1003
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 07f6ea565ce24a5798f3fd36ccbd6b32, type: 2}
+        amount: 2
+    - rid: 1004
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1005
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 67bfa9bb4e4448f49b87f8e62a28ab7a, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1006
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1007
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "선반 아래를 비춘다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 탐험 등불 1개."
+        <RewardDescription>k__BackingField: "등불로 잔해 아래의 빈 공간을 찾습니다. 필요한 도구: 탐험 등불."
+        rewardMethod:
+        - rid: 1003
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "빠진 판자 사이로 손을 넣어 암염 두 덩이를 꺼냈다."
+          method:
+          - rid: 1004
+          - rid: 1005
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+          method:
+          - rid: 1006
+        <LockTooltip>k__BackingField: "필요한 아이템: 탐험 등불 1개."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: 3c5d959612ee74621763ca91143ffc23, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1008
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 4d12c1c6cd2345e9a96bfd7d88e8dc17, type: 2}
+        amount: 1
+    - rid: 1009
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1010
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 05834041d8f6987438e0fead5912a0b8, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1011
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1012
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "집게로 틈을 더듬는다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 긴 집게 1개."
+        <RewardDescription>k__BackingField: "긴 집게로 잔해 사이를 살핍니다. 필요한 도구: 긴 집게."
+        rewardMethod:
+        - rid: 1008
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "끝에 걸린 납작버섯 하나를 부서지지 않게 당겨 꺼냈다."
+          method:
+          - rid: 1009
+          - rid: 1010
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+          method:
+          - rid: 1011
+        <LockTooltip>k__BackingField: "필요한 아이템: 긴 집게 1개."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: 7f7cb47adad0c380eebdd2a95025b92e, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1013
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1014
+      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "다음 길로 향한다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
+        <RewardDescription>k__BackingField: "주변을 건드리지 않고 길을 이어갑니다."
+        rewardMethod: []
+        <ResultdialogDatas>k__BackingField:
+        - <Context>k__BackingField: "주변 지형을 기억해 두었다."
+          method: []
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+          method:
+          - rid: 1013

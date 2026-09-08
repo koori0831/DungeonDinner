@@ -25,39 +25,38 @@ namespace Work.Adventure.Code.UI
         private List<AdventrueDialogData> _currentDialogDatas;
         private int _currentDialogIndex = 0;
         private bool _isCanWriteText;
+        private bool _dialogActive;
+        private bool _awaitingChoice;
+        private List<Options> _currentOptions;
 
         public void StartDialog(AdventureEventSO eventSo)
         {
+            _typingTween?.Kill(false);
+            optionUI.DestroyAllButton();
+            selectUI.Disable();
+            _dialogActive = true;
+            _awaitingChoice = false;
+            _isCanWriteText = false;
+            _currentDialogIndex = 0;
+            _selectOption = null;
             _currentEvent = eventSo;
+            _currentOptions = eventSo.options;
             _currentDialogDatas = eventSo.dialogDatas;
-            eventSo.dialogDatas.ForEach(item =>
-            {
-                item.method.ForEach(method =>
-                {
-                    method.Init(root);
-                });
-            });
-
-            eventSo.options.ForEach(item =>
-            {
-                item.ResultdialogDatas.ForEach(data =>
-                {
-                    data.method.ForEach(method =>
-                    {
-                        method.Init(root);
-                    });
-                });
-            });
-
-
+            InitLines();
             OpenDialogPanel();
+        }
+
+        private void InitLines()
+        {
+            foreach (var line in _currentDialogDatas)
+                foreach (var method in line.method) method.Init(root);
         }
 
         private void Update()
         {
             if (_isCanWriteText)
             {
-                if (Mouse.current.leftButton.wasPressedThisFrame)
+                if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
                 {
                     NextDialog();
                 }
@@ -90,20 +89,31 @@ namespace Work.Adventure.Code.UI
 
         public void NextDialog()
         {
+            if (!_dialogActive || _awaitingChoice) return;
             if (_currentDialogDatas.Count <= _currentDialogIndex)
             {
                 _isCanWriteText = false;
                 _currentDialogIndex = 0;
+                nextObject.gameObject.SetActive(false);
                 if (_currentEvent == null)
                 {
-                    _selectOption.rewardMethod.ForEach(x => x.GetReward());
-                    Debug.Log(_selectOption.RewardDescription);
-                    CloseDialogPanel();
-                    selectUI.Enable();
-                    //_selectOption.RewardDescription; 보상부분 띄워줄때 
+                    var completed = _selectOption;
+                    _selectOption = null;
+                    _currentOptions = completed.followUpOptions;
+                    completed.rewardMethod.ForEach(x => x.GetReward());
+                    Debug.Log(completed.RewardDescription);
+                }
+                if (_currentOptions != null && _currentOptions.Count > 0)
+                {
+                    _awaitingChoice = true;
+                    optionUI.Enable(_currentOptions, ResultDialog);
                 }
                 else
-                    optionUI.Enable(_currentEvent.options, ResultDialog);
+                {
+                    _dialogActive = false;
+                    CloseDialogPanel();
+                    selectUI.Enable();
+                }
                 return;
             }
 
@@ -115,11 +125,14 @@ namespace Work.Adventure.Code.UI
 
         public void ResultDialog(Options option)
         {
-            // 이후 다이얼로그 받았고 어떤 옵션 선택했는지도 받았음
+            if (!_dialogActive || !_awaitingChoice || !_currentOptions.Contains(option)) return;
+            _awaitingChoice = false;
             _isCanWriteText = true;
             _selectOption = option;
             _currentEvent = null;
             _currentDialogDatas = _selectOption.ResultdialogDatas;
+            _currentDialogIndex = 0;
+            InitLines();
             NextDialog();
         }
 
@@ -151,6 +164,8 @@ namespace Work.Adventure.Code.UI
 
         private void OnDisable()
         {
+            _dialogActive = false;
+            _awaitingChoice = false;
             _isCanWriteText = false;
             _typingTween?.Kill(false);
             _typingTween = null;

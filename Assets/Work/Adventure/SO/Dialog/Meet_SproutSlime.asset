@@ -56,7 +56,7 @@ MonoBehaviour:
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "조용히 따라간다"
-        <OptionTooltip>k__BackingField: "슬라임을 놀라게 하지 않도록 조용히 뒤따라갑니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "콘치즈 2개 획득"
         rewardMethod:
         - rid: 1003
@@ -69,7 +69,7 @@ MonoBehaviour:
           method: []
         - <Context>k__BackingField: "\"채집 도우미였구나. 고마워!\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1006
     - rid: 1008
@@ -92,7 +92,7 @@ MonoBehaviour:
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "주먹으로 공격한다"
-        <OptionTooltip>k__BackingField: "슬라임을 주먹으로 공격합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "슬라임 점액 1개 획득"
         rewardMethod:
         - rid: 1008
@@ -103,7 +103,7 @@ MonoBehaviour:
           method:
           - rid: 1009
           - rid: 1010
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1011
     - rid: 1013
@@ -113,7 +113,7 @@ MonoBehaviour:
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "새싹을 구경하고 지나간다"
-        <OptionTooltip>k__BackingField: "슬라임의 새싹을 잠시 구경하고 지나갑니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "보상 없음"
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
@@ -121,6 +121,6 @@ MonoBehaviour:
           method: []
         - <Context>k__BackingField: "슬라임은 혼자 모퉁이 너머로 사라졌다."
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1013

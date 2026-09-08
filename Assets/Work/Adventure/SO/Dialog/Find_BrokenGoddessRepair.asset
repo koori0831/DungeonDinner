@@ -74,7 +74,7 @@ MonoBehaviour:
       type: {class: IngredientLockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "슬라임 점액으로 조각을 붙인다"
-        <OptionTooltip>k__BackingField: "점액을 접착제 삼아 여신상의 조각을 붙입니다. 슬라임 점액 1개가 소모됩니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 슬라임 점액 1개. 선택 시 1개 소모됩니다."
         <RewardDescription>k__BackingField: "슬라임 점액 1개 소모 → 콘치즈 2개 + 버섯 갓 1개"
         rewardMethod:
         - rid: 1003
@@ -86,19 +86,19 @@ MonoBehaviour:
           method:
           - rid: 1005
           - rid: 1006
-        - <Context>k__BackingField: "받침대 뒤 공물 상자가 열렸다. 복구에 대한 선물인 듯하다."
+        - <Context>k__BackingField: "받침대 뒤 공물 상자가 열렸다. 복구에 대한 선물인 듯했다."
           method:
           - rid: 1007
           - rid: 1008
           - rid: 1009
         - <Context>k__BackingField: "\"접착제로 쓸지 요리에 쓸지, 늘 고민되겠네.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1010
         <RequiredIngredient>k__BackingField: {fileID: 11400000, guid: 50f56f458c6a45dbb85feddecd3b2fb1, type: 2}
         <RequiredAmount>k__BackingField: 1
-        <LockTooltip>k__BackingField: "슬라임 점액 1개가 필요합니다. 사용 시 소모됩니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 슬라임 점액 1개. 선택 시 1개 소모됩니다."
     - rid: 1012
       type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
       data:
@@ -119,7 +119,7 @@ MonoBehaviour:
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
         <OptionName>k__BackingField: "망치로 잔해를 잘게 정리한다"
-        <OptionTooltip>k__BackingField: "망치로 여신상의 잔해를 잘게 정리합니다. 망치가 필요합니다."
+        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <RewardDescription>k__BackingField: "암염 1개 획득 · 망치 유지"
         rewardMethod:
         - rid: 1012
@@ -130,10 +130,10 @@ MonoBehaviour:
           method:
           - rid: 1013
           - rid: 1014
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1015
-        <LockTooltip>k__BackingField: "망치가 필요합니다."
+        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -144,8 +144,8 @@ MonoBehaviour:
     - rid: 1018
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "조각들을 모아두고 떠난다"
-        <OptionTooltip>k__BackingField: "흩어진 조각을 한곳에 모아두고 떠납니다."
+        <OptionName>k__BackingField: "조각들을 모아 두고 떠난다"
+        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
         <RewardDescription>k__BackingField: "보상 없음"
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
@@ -153,6 +153,6 @@ MonoBehaviour:
           method: []
         - <Context>k__BackingField: "\"다음에 점액을 구하면 도와드릴게요.\""
           method: []
-        - <Context>k__BackingField: "재료와 짐을 정리하고 다시 길을 나선다."
+        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
           method:
           - rid: 1017

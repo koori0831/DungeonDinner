@@ -12,6 +12,7 @@ namespace Work.Adventure.Code.UI
         private Action<Options> _resultDialog;
         public void Enable(List<Options> options, Action<Options> resultDialog)
         {
+            DestroyAllButton();
             _resultDialog = resultDialog;
 
             options.ForEach(x =>
@@ -24,14 +25,17 @@ namespace Work.Adventure.Code.UI
 
         public void SelectOption(Options option)
         {
-            _resultDialog?.Invoke(option);
+            var callback = _resultDialog;
+            _resultDialog = null;
             DestroyAllButton();
+            callback?.Invoke(option);
         }
 
         public void DestroyAllButton()
         {
             for(int i = buttons.Count - 1; i >= 0; i--)
             {
+                buttons[i].gameObject.SetActive(false);
                 Destroy(buttons[i].gameObject);
             }
 
