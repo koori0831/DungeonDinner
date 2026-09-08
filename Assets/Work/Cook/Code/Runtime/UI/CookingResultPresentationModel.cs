@@ -63,6 +63,7 @@ namespace Work.Cook.Code.Runtime.UI
         public string QualityName { get; }
         public int QualityScore { get; }
         public IReadOnlyList<string> RepresentativeTags { get; }
+        public string NpcId { get; }
         public string NpcName { get; }
         public NpcConversationResult Reaction { get; }
         public string ReactionName { get; }
@@ -86,6 +87,7 @@ namespace Work.Cook.Code.Runtime.UI
             string qualityName,
             int qualityScore,
             IReadOnlyList<string> representativeTags,
+            string npcId,
             string npcName,
             NpcConversationResult reaction,
             string reactionName,
@@ -108,6 +110,7 @@ namespace Work.Cook.Code.Runtime.UI
             QualityName = qualityName ?? string.Empty;
             QualityScore = qualityScore;
             RepresentativeTags = representativeTags ?? new List<string>();
+            NpcId = npcId ?? string.Empty;
             NpcName = npcName ?? string.Empty;
             Reaction = reaction;
             ReactionName = reactionName ?? string.Empty;

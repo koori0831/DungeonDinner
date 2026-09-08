@@ -48,6 +48,57 @@ namespace DungeonDinner.Npc.PlayModeTests
             return MeasureScene("Assets/Work/Integration/Scene/DungeonDinnerScene.unity");
         }
 
+        [UnityTest]
+        [Category(CategoryName)]
+        public IEnumerator CookTestScene_OdinPortraitSlidesIntoConversationUi()
+        {
+            const string scenePath = "Assets/Work/Cook/Scene/CookTestScene.unity";
+            int buildIndex = SceneUtility.GetBuildIndexByScenePath(scenePath);
+            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), scenePath + " is not enabled in Build Settings.");
+
+            // CookTestScene currently emits this unrelated PreparationMenu/NpcEncounterDirector startup exception.
+            LogAssert.Expect(LogType.Exception, "NullReferenceException: Object reference not set to an instance of an object");
+            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
+            Assert.That(loadOperation, Is.Not.Null);
+            while (loadOperation.isDone == false)
+                yield return null;
+
+            yield return null;
+
+            Scene scene = SceneManager.GetActiveScene();
+            MonoBehaviour runner = FindBehaviour(scene, "Work.NPC.Code.Runtime.NpcConversationRunner");
+            MonoBehaviour view = FindBehaviour(scene, "Work.NPC.Code.Runtime.NpcConversationView");
+            Assert.That(runner, Is.Not.Null);
+            Assert.That(view, Is.Not.Null);
+
+            MethodInfo playStartEvent = runner.GetType().GetMethod("PlayStartEvent", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(playStartEvent, Is.Not.Null);
+            playStartEvent.Invoke(runner, null);
+
+            yield return new WaitForSecondsRealtime(0.45f);
+            Canvas.ForceUpdateCanvases();
+
+            Image portraitImage = GetFieldValue<Image>(view, "portraitImage");
+            CanvasGroup portraitGroup = GetFieldValue<CanvasGroup>(view, "portraitCanvasGroup");
+            RectTransform portraitRoot = GetFieldValue<RectTransform>(view, "portraitRoot");
+            Assert.That(portraitImage, Is.Not.Null);
+            Assert.That(portraitImage.sprite, Is.Not.Null);
+            Assert.That(portraitImage.sprite.name, Is.EqualTo("npc_portrait_odin"));
+            Assert.That(portraitGroup, Is.Not.Null);
+            Assert.That(portraitGroup.alpha, Is.EqualTo(1f).Within(0.02f));
+            Assert.That(portraitGroup.blocksRaycasts, Is.False);
+            Assert.That(portraitRoot, Is.Not.Null);
+            Assert.That(portraitRoot.anchoredPosition.x, Is.EqualTo(18f).Within(0.5f));
+            Assert.That(portraitRoot.localScale.x, Is.EqualTo(1f).Within(0.02f));
+
+            LayoutElement layoutElement = portraitRoot.GetComponent<LayoutElement>();
+            Assert.That(layoutElement, Is.Not.Null);
+            Assert.That(layoutElement.ignoreLayout, Is.True);
+
+            runner.StopAllCoroutines();
+            runner.enabled = false;
+        }
+
         private static IEnumerator MeasureScene(string scenePath)
         {
             int buildIndex = SceneUtility.GetBuildIndexByScenePath(scenePath);

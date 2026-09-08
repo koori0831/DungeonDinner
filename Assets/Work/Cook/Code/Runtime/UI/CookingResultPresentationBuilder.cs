@@ -53,6 +53,7 @@ namespace Work.Cook.Code.Runtime.UI
                 BuildCraftGradeName(result.CraftGrade),
                 result.QualityScore,
                 hasNpcReport ? BuildRevealedRepresentativeTags(result.Tags, report) : new List<string>(),
+                npcId,
                 npcName,
                 reaction,
                 hasNpcReport

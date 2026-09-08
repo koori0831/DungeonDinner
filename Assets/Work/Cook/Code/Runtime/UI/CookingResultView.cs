@@ -12,6 +12,7 @@ using Work.Cook.Code.Runtime.Core;
 using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Systems;
 using Work.Core.EventBus;
+using Work.NPC.Code.Data;
 using Work.NPC.Code.Runtime;
 
 namespace Work.Cook.Code.Runtime.UI
@@ -27,6 +28,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         [Header("Presentation")]
         [SerializeField] private CookingUiPresentationSettingsSO presentationSettings;
+        [SerializeField] private NpcPortraitCatalogSO npcPortraitCatalog;
         [SerializeField] private TMP_FontAsset fontAsset;
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private CanvasGroup backdropGroup;
@@ -295,7 +297,10 @@ namespace Work.Cook.Code.Runtime.UI
             SetActive(tagComparisonRoot != null ? tagComparisonRoot.gameObject : null, true);
 
             CookingReactionVisual reactionVisual = presentationSettings?.GetReactionVisual(model.Reaction);
-            BindImage(npcIconImage, presentationSettings?.NpcPlaceholderIcon);
+            Sprite npcPortrait = npcPortraitCatalog != null
+                ? npcPortraitCatalog.GetPortrait(model.NpcId)
+                : presentationSettings?.NpcPlaceholderIcon;
+            BindImage(npcIconImage, npcPortrait);
             BindImage(reactionIconImage, reactionVisual?.Icon);
             BindImage(rewardIconImage, presentationSettings?.RewardIcon);
             SetText(npcNameField, model.NpcName);
@@ -517,6 +522,8 @@ namespace Work.Cook.Code.Runtime.UI
                 flowRunner = gamePanel != null ? gamePanel.FlowRunner : GetComponentInParent<CookingFlowRunner>();
             if (audioSource == null)
                 audioSource = GetComponent<AudioSource>();
+            if (npcPortraitCatalog == null)
+                npcPortraitCatalog = NpcPortraitCatalogSO.LoadDefault();
         }
 
         private void SubscribePanelEvents()
