@@ -9,6 +9,7 @@ namespace Work.NPC.Code.Runtime
     [Serializable]
     public sealed class NpcEncounterHistory
     {
+        public const string DefaultSaveKey = "DungeonDinner.NpcEncounterHistory";
         private const int MaxRecentEncounterRecords = 20;
 
         [SerializeField] private List<NpcHistoryRecord> npcRecords = new List<NpcHistoryRecord>();

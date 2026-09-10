@@ -1,7 +1,7 @@
 {
-  "events": 55,
-  "choices": 159,
-  "lines": 609,
+  "events": 67,
+  "choices": 195,
+  "lines": 705,
   "changed": 0,
   "report": [
     {
@@ -52,6 +52,21 @@
     {
       "event": "Find_BrokenGoddessRepair",
       "option": "조각들을 모아 두고 떠난다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
+      "event": "Find_BubblingCrevice",
+      "option": "결정을 집어 낸다",
+      "tooltip": "필요한 아이템: 긴 집게 1개."
+    },
+    {
+      "event": "Find_BubblingCrevice",
+      "option": "식은 점액을 받는다",
+      "tooltip": "필요한 아이템: 채집병 1개."
+    },
+    {
+      "event": "Find_BubblingCrevice",
+      "option": "다음 길로 향한다",
       "tooltip": "필요한 아이템: 없음."
     },
     {
@@ -181,6 +196,21 @@
     },
     {
       "event": "Find_DewMushrooms",
+      "option": "다음 길로 향한다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
+      "event": "Find_EchoCabinet",
+      "option": "뒤판을 가볍게 두드린다",
+      "tooltip": "필요한 아이템: 망치 1개."
+    },
+    {
+      "event": "Find_EchoCabinet",
+      "option": "판자 사이를 비춘다",
+      "tooltip": "필요한 아이템: 탐험 등불 1개."
+    },
+    {
+      "event": "Find_EchoCabinet",
       "option": "다음 길로 향한다",
       "tooltip": "필요한 아이템: 없음."
     },
@@ -320,6 +350,21 @@
       "tooltip": "필요한 아이템: 망치 1개."
     },
     {
+      "event": "Find_ResinFruit",
+      "option": "줄기 주변을 잘라 낸다",
+      "tooltip": "필요한 아이템: 칼 1개."
+    },
+    {
+      "event": "Find_ResinFruit",
+      "option": "흐르는 점액을 모은다",
+      "tooltip": "필요한 아이템: 채집병 1개."
+    },
+    {
+      "event": "Find_ResinFruit",
+      "option": "다음 길로 향한다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
       "event": "Find_RockSalt",
       "option": "그냥 지나간다",
       "tooltip": "필요한 아이템: 없음."
@@ -398,6 +443,21 @@
       "event": "Find_SaltGoddess",
       "option": "망치로 조각상을 부순다",
       "tooltip": "필요한 아이템: 망치 1개."
+    },
+    {
+      "event": "Find_SealedSaltJar",
+      "option": "밀랍을 잘라 낸다",
+      "tooltip": "필요한 아이템: 칼 1개."
+    },
+    {
+      "event": "Find_SealedSaltJar",
+      "option": "뚜껑 가장자리를 두드린다",
+      "tooltip": "필요한 아이템: 망치 1개."
+    },
+    {
+      "event": "Find_SealedSaltJar",
+      "option": "다음 길로 향한다",
+      "tooltip": "필요한 아이템: 없음."
     },
     {
       "event": "Find_SeepingSaltWell",
@@ -590,6 +650,36 @@
       "tooltip": "필요한 아이템: 없음."
     },
     {
+      "event": "Meet_BridgeWatch",
+      "option": "난간에 밧줄을 설치한다",
+      "tooltip": "필요한 아이템: 밧줄 1개. 선택 시 1개 소모됩니다."
+    },
+    {
+      "event": "Meet_BridgeWatch",
+      "option": "다리 아래를 비춘다",
+      "tooltip": "필요한 아이템: 탐험 등불 1개."
+    },
+    {
+      "event": "Meet_BridgeWatch",
+      "option": "다음 길로 향한다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
+      "event": "Meet_CampCarver",
+      "option": "작업용 칼을 건넨다",
+      "tooltip": "필요한 아이템: 칼 1개. 선택 시 1개 소모됩니다."
+    },
+    {
+      "event": "Meet_CampCarver",
+      "option": "말뚝을 박아 준다",
+      "tooltip": "필요한 아이템: 망치 1개."
+    },
+    {
+      "event": "Meet_CampCarver",
+      "option": "다음 길로 향한다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
       "event": "Meet_CaughtApron",
       "option": "선반을 들어 묶는다",
       "tooltip": "필요한 아이템: 밧줄 1개."
@@ -601,6 +691,36 @@
     },
     {
       "event": "Meet_CaughtApron",
+      "option": "다음 길로 향한다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
+      "event": "Meet_CaveMedic",
+      "option": "등불을 걸어 두고 간다",
+      "tooltip": "필요한 아이템: 탐험 등불 1개. 선택 시 1개 소모됩니다."
+    },
+    {
+      "event": "Meet_CaveMedic",
+      "option": "병으로 물을 나른다",
+      "tooltip": "필요한 아이템: 채집병 1개."
+    },
+    {
+      "event": "Meet_CaveMedic",
+      "option": "다음 길로 향한다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
+      "event": "Meet_CrabKeeper",
+      "option": "먹이용 집게를 건넨다",
+      "tooltip": "필요한 아이템: 긴 집게 1개. 선택 시 1개 소모됩니다."
+    },
+    {
+      "event": "Meet_CrabKeeper",
+      "option": "우리 문을 잠시 고정한다",
+      "tooltip": "필요한 아이템: 밧줄 1개."
+    },
+    {
+      "event": "Meet_CrabKeeper",
       "option": "다음 길로 향한다",
       "tooltip": "필요한 아이템: 없음."
     },
@@ -695,6 +815,21 @@
       "tooltip": "필요한 아이템: 없음."
     },
     {
+      "event": "Meet_NightGatherer",
+      "option": "탐험 등불을 건넨다",
+      "tooltip": "필요한 아이템: 탐험 등불 1개. 선택 시 1개 소모됩니다."
+    },
+    {
+      "event": "Meet_NightGatherer",
+      "option": "짐을 아래로 내려 준다",
+      "tooltip": "필요한 아이템: 밧줄 1개."
+    },
+    {
+      "event": "Meet_NightGatherer",
+      "option": "다음 길로 향한다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
       "event": "Meet_OldMan",
       "option": "도움을 거절한다",
       "tooltip": "필요한 아이템: 없음."
@@ -702,6 +837,21 @@
     {
       "event": "Meet_OldMan",
       "option": "노인을 숨겨 준다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
+      "event": "Meet_PicklingCook",
+      "option": "보관할 병을 건넨다",
+      "tooltip": "필요한 아이템: 채집병 1개. 선택 시 1개 소모됩니다."
+    },
+    {
+      "event": "Meet_PicklingCook",
+      "option": "냄비 속 재료를 건진다",
+      "tooltip": "필요한 아이템: 긴 집게 1개."
+    },
+    {
+      "event": "Meet_PicklingCook",
+      "option": "다음 길로 향한다",
       "tooltip": "필요한 아이템: 없음."
     },
     {
@@ -722,6 +872,21 @@
     {
       "event": "Meet_PitAdventurer",
       "option": "구덩이 아래에 말을 건다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
+      "event": "Meet_RootClimber",
+      "option": "새 포장 끈을 묶어 준다",
+      "tooltip": "필요한 아이템: 밧줄 1개. 선택 시 1개 소모됩니다."
+    },
+    {
+      "event": "Meet_RootClimber",
+      "option": "걸린 끈을 자른다",
+      "tooltip": "필요한 아이템: 칼 1개."
+    },
+    {
+      "event": "Meet_RootClimber",
+      "option": "다음 길로 향한다",
       "tooltip": "필요한 아이템: 없음."
     },
     {
@@ -781,6 +946,21 @@
     },
     {
       "event": "Meet_StatueCaretaker",
+      "option": "다음 길로 향한다",
+      "tooltip": "필요한 아이템: 없음."
+    },
+    {
+      "event": "Meet_StoneKitchen",
+      "option": "수리용 망치를 건넨다",
+      "tooltip": "필요한 아이템: 망치 1개. 선택 시 1개 소모됩니다."
+    },
+    {
+      "event": "Meet_StoneKitchen",
+      "option": "숯을 꺼내 옮긴다",
+      "tooltip": "필요한 아이템: 긴 집게 1개."
+    },
+    {
+      "event": "Meet_StoneKitchen",
       "option": "다음 길로 향한다",
       "tooltip": "필요한 아이템: 없음."
     },

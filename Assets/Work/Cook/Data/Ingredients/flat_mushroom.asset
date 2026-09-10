@@ -15,7 +15,7 @@ MonoBehaviour:
   ingredientId: flat_mushroom
   displayName: "\uB0A9\uC791\uBC84\uC12F"
   iconSprite: {fileID: 21300000, guid: ac055dd5fa876c745becdbbb09028c0a, type: 3}
-  description: "\uB0A9\uC791\uD558\uAC8C \uC0DD\uAE34 \uBC84\uC12F\uC785\uB2C8\uB2E4."
+  description: "넓고 납작한 갓을 가진 던전 버섯. 통째로 쓰기에도, 한입 크기로 썰거나 잘게 다지기에도 알맞은 재료다."
   category: {fileID: 11400000, guid: c09afd2ec0fc6144db663cb0e38a7b70, type: 2}
   modelPrefab: {fileID: 6455492533640896604, guid: f615f31b098d23848a2eb1deb5cbb1f2, type: 3}
   baseTags: []

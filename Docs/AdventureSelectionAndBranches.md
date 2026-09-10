@@ -1,5 +1,7 @@
 # 도구 획득 빈도와 단계형 이벤트
 
+> 2026-09-09: 아래 최초 추첨 설계는 보유 수량별 보정으로 변경되었다. 현재 확률과 추가 사용 이벤트는 [AdventureStockBalance.md](AdventureStockBalance.md)를 따른다. 단계형 선택지 작성 방식은 그대로 유지한다.
+
 ## 이벤트 추첨
 
 `AdventureManager`에서 다음 값을 조절한다.

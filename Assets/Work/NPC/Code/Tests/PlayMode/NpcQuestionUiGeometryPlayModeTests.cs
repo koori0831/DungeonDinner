@@ -88,12 +88,20 @@ namespace DungeonDinner.Npc.PlayModeTests
             Assert.That(portraitGroup.alpha, Is.EqualTo(1f).Within(0.02f));
             Assert.That(portraitGroup.blocksRaycasts, Is.False);
             Assert.That(portraitRoot, Is.Not.Null);
-            Assert.That(portraitRoot.anchoredPosition.x, Is.EqualTo(18f).Within(0.5f));
-            Assert.That(portraitRoot.localScale.x, Is.EqualTo(1f).Within(0.02f));
+            Assert.That(portraitImage.rectTransform.anchoredPosition.x, Is.EqualTo(18f).Within(0.5f));
+            Assert.That(portraitImage.rectTransform.anchoredPosition.y, Is.EqualTo(0f).Within(0.5f));
+            Assert.That(portraitImage.rectTransform.localScale.x, Is.EqualTo(1f).Within(0.02f));
 
             LayoutElement layoutElement = portraitRoot.GetComponent<LayoutElement>();
             Assert.That(layoutElement, Is.Not.Null);
-            Assert.That(layoutElement.ignoreLayout, Is.True);
+            Assert.That(layoutElement.ignoreLayout, Is.False);
+
+            var portraitCorners = new Vector3[4];
+            var imageCorners = new Vector3[4];
+            portraitRoot.GetWorldCorners(portraitCorners);
+            portraitImage.rectTransform.GetWorldCorners(imageCorners);
+            Assert.That(imageCorners[0].y, Is.EqualTo(portraitCorners[0].y).Within(0.5f));
+            Assert.That(portraitImage.rectTransform.pivot.y, Is.Zero);
 
             runner.StopAllCoroutines();
             runner.enabled = false;

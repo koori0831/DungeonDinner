@@ -11,6 +11,7 @@ namespace Work.Cook.Code.Runtime.UI
         IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         [SerializeField] private Image knifeImage;
+        [SerializeField] private float knifeArtworkAngle = -35f;
         [SerializeField] private Image[] cutLineImages;
         [SerializeField] private Color inactiveColor = new Color(1f, 1f, 1f, 0.12f);
         [SerializeField] private Color pendingColor = new Color(1f, 0.86f, 0.35f, 1f);
@@ -270,7 +271,7 @@ namespace Work.Cook.Code.Runtime.UI
             knifeImage.gameObject.SetActive(true);
             knifeImage.rectTransform.anchoredPosition = start;
             knifeImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f,
-                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f);
+                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - knifeArtworkAngle);
             knifeImage.rectTransform.localScale = Vector3.one;
         }
 
@@ -297,7 +298,7 @@ namespace Work.Cook.Code.Runtime.UI
                 knifeImage.rectTransform.anchoredPosition = point;
                 knifeImage.rectTransform.localScale = Vector3.one;
                 knifeImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f,
-                    Mathf.Atan2(line.y, line.x) * Mathf.Rad2Deg - 90f);
+                    Mathf.Atan2(line.y, line.x) * Mathf.Rad2Deg - knifeArtworkAngle);
             }
         }
     }

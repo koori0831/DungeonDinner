@@ -30,7 +30,7 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private bool playOnStart;
         [SerializeField, Min(1)] private int currentDay = 1;
         [SerializeField] private bool persistHistory = true;
-        [SerializeField] private string historySaveKey = "DungeonDinner.NpcEncounterHistory";
+        [SerializeField] private string historySaveKey = NpcEncounterHistory.DefaultSaveKey;
         [SerializeField] private bool continueDayFromHistoryOnLoad = true;
         [SerializeField] private bool ignoreNpcCooldownWhenPoolIsEmpty;
         [SerializeField, Min(1)] private int maxEncountersPerDay = 3;

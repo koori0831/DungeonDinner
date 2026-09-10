@@ -56,6 +56,11 @@ namespace Work.NPC.Code.Runtime
         private Sequence _portraitSequence;
         private string _visiblePortraitNpcId;
         private bool _portraitIsVisible;
+        private RectTransform _generatedPortraitMotionRoot;
+
+        private RectTransform PortraitMotionRoot => _generatedPortraitMotionRoot != null
+            ? _generatedPortraitMotionRoot
+            : portraitRoot;
 
         public bool IsVisible => _visible;
 
@@ -331,7 +336,9 @@ namespace Work.NPC.Code.Runtime
             portraitRoot.SetAsLastSibling();
 
             LayoutElement layoutElement = rootObject.GetComponent<LayoutElement>();
-            layoutElement.ignoreLayout = true;
+            layoutElement.ignoreLayout = false;
+            layoutElement.preferredWidth = portraitSize.x;
+            layoutElement.preferredHeight = portraitSize.y;
             portraitCanvasGroup = rootObject.GetComponent<CanvasGroup>();
             portraitCanvasGroup.interactable = false;
             portraitCanvasGroup.blocksRaycasts = false;
@@ -342,8 +349,11 @@ namespace Work.NPC.Code.Runtime
             imageRect.SetParent(portraitRoot, false);
             imageRect.anchorMin = Vector2.zero;
             imageRect.anchorMax = Vector2.one;
+            imageRect.pivot = new Vector2(0.5f, 0f);
             imageRect.offsetMin = Vector2.zero;
             imageRect.offsetMax = Vector2.zero;
+            // Animate the image so the parent layout can keep positioning its slot.
+            _generatedPortraitMotionRoot = imageRect;
 
             portraitImage = imageObject.GetComponent<Image>();
             portraitImage.raycastTarget = false;
@@ -388,19 +398,19 @@ namespace Work.NPC.Code.Runtime
             KillPortraitSequence();
             _portraitIsVisible = true;
             portraitRoot.gameObject.SetActive(true);
-            portraitRoot.anchoredPosition = portraitRestingPosition + Vector2.left * portraitSlideDistance;
-            portraitRoot.localScale = new Vector3(portraitEntranceScale, portraitEntranceScale, 1f);
+            PortraitMotionRoot.anchoredPosition = portraitRestingPosition + Vector2.left * portraitSlideDistance;
+            PortraitMotionRoot.localScale = new Vector3(portraitEntranceScale, portraitEntranceScale, 1f);
             portraitCanvasGroup.alpha = 0f;
 
             _portraitSequence = DOTween.Sequence()
                 .SetUpdate(true)
                 .SetLink(gameObject, LinkBehaviour.KillOnDisable);
             _portraitSequence.Join(
-                portraitRoot.DOAnchorPos(portraitRestingPosition, portraitEntranceDuration)
+                PortraitMotionRoot.DOAnchorPos(portraitRestingPosition, portraitEntranceDuration)
                     .SetEase(Ease.OutCubic));
             _portraitSequence.Join(portraitCanvasGroup.DOFade(1f, portraitEntranceDuration));
             _portraitSequence.Join(
-                portraitRoot.DOScale(Vector3.one, portraitEntranceDuration)
+                PortraitMotionRoot.DOScale(Vector3.one, portraitEntranceDuration)
                     .SetEase(Ease.OutBack));
             _portraitSequence.OnComplete(() => _portraitSequence = null);
         }
@@ -422,13 +432,13 @@ namespace Work.NPC.Code.Runtime
                 .SetUpdate(true)
                 .SetLink(gameObject, LinkBehaviour.KillOnDisable);
             _portraitSequence.Join(
-                portraitRoot.DOAnchorPos(
+                PortraitMotionRoot.DOAnchorPos(
                         portraitRestingPosition + Vector2.left * portraitSlideDistance,
                         portraitExitDuration)
                     .SetEase(Ease.InCubic));
             _portraitSequence.Join(portraitCanvasGroup.DOFade(0f, portraitExitDuration));
             _portraitSequence.Join(
-                portraitRoot.DOScale(
+                PortraitMotionRoot.DOScale(
                         new Vector3(portraitEntranceScale, portraitEntranceScale, 1f),
                         portraitExitDuration)
                     .SetEase(Ease.InCubic));
@@ -445,8 +455,8 @@ namespace Work.NPC.Code.Runtime
             portraitCanvasGroup.alpha = 0f;
             portraitCanvasGroup.interactable = false;
             portraitCanvasGroup.blocksRaycasts = false;
-            portraitRoot.anchoredPosition = portraitRestingPosition + Vector2.left * portraitSlideDistance;
-            portraitRoot.localScale = new Vector3(portraitEntranceScale, portraitEntranceScale, 1f);
+            PortraitMotionRoot.anchoredPosition = portraitRestingPosition + Vector2.left * portraitSlideDistance;
+            PortraitMotionRoot.localScale = new Vector3(portraitEntranceScale, portraitEntranceScale, 1f);
         }
 
         private void KillPortraitSequence()

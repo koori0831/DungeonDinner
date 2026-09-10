@@ -37,8 +37,9 @@ namespace Work.Adventure.Code.Editor
             tests.Selection_BoostsEmptyInventoryAndGuaranteesSupply();
             tests.Selection_RejectsUnavailableSupplyAndHandlesSparseLists();
             tests.Selection_UsesPoolChanceAndMissingToolWeights();
+            tests.Selection_ReducesSuppliesWithStockAndPrefersUsableTools();
             File.WriteAllText("Temp/AdventureFlowValidation.txt", DateTime.Now.ToString("O")
-                + "\nPASS: all 55 events, 159 terminal paths, branch graph and tooltips; empty inventory, drought guarantee, unavailable costs, null/duplicate/single entries, 35% pool probability and missing-tool weighting.\n");
+                + "\nPASS: all 67 events, 195 terminal paths, branch graph and tooltips; empty inventory, drought guarantee, unavailable costs, null/duplicate/single entries, stock-dependent probability, disabled guarantees for stocked inventories, usable/consumptive event weights and missing-tool weighting.\n");
             Debug.Log("Adventure selection and branch validation passed.");
         }
 
@@ -47,7 +48,7 @@ namespace Work.Adventure.Code.Editor
         {
             var events = AssetDatabase.FindAssets("t:AdventureEventSO", new[] { "Assets/Work/Adventure/SO/Dialog" })
                 .Select(g => AssetDatabase.LoadAssetAtPath<AdventureEventSO>(AssetDatabase.GUIDToAssetPath(g))).ToArray();
-            Assert.That(events.Length, Is.EqualTo(55));
+            Assert.That(events.Length, Is.EqualTo(67));
             int count = 0;
             foreach (var e in events)
             {
@@ -76,10 +77,41 @@ namespace Work.Adventure.Code.Editor
                         Assert.That(option.rewardMethod, Is.Empty, "Current inquiry branches must not award items");
                 }
             }
-            Assert.That(count, Is.EqualTo(159));
+            Assert.That(count, Is.EqualTo(195));
         }
 
         private readonly List<Object> created = new List<Object>();
+
+        [Test]
+        public void Selection_ReducesSuppliesWithStockAndPrefersUsableTools()
+        {
+            try
+            {
+                float last = 1.01f;
+                foreach (int count in new[] { 0, 1, 2, 3, 4, 5, 6 })
+                {
+                    float chance = AdventureEventSelector.SupplyProbability(count, 0.35f);
+                    Assert.That(chance, Is.LessThan(last)); last = chance;
+                }
+                Assert.That(last, Is.EqualTo(0.0245f).Within(0.00001f));
+                var supply = Event(true, Item()); var ordinary = Event(false, null);
+                var selector = new AdventureEventSelector();
+                for (int i = 0; i < 100; i++)
+                    Assert.That(selector.Select(new[] { supply, ordinary }, null, 6, _ => true, _ => true,
+                        0.35f, 3, 2, () => 0.99f), Is.SameAs(ordinary), "Stocked inventory must not force supplies");
+                Assert.That(selector.Select(new[] { supply, ordinary }, null, 0, _ => false, _ => true,
+                    0.35f, 3, 2, () => 0.99f), Is.SameAs(supply), "Replenish when stock is depleted");
+                var use = Event(false, null, true);
+                var locked = (LockedOption)use.options[0];
+                typeof(LockedOption).GetField("<IsUseItemOption>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(locked, true);
+                // At 50% of the weighted pool, ordinary:1 / consumptive:3 selects the consumptive event.
+                Assert.That(selector.Select(new[] { ordinary, use }, null, 6, _ => true, _ => true,
+                    0, 3, 2, () => 0.4f), Is.SameAs(use));
+                Assert.That(selector.Select(new[] { ordinary, use }, null, 6, _ => true, o => !(o is LockedOption),
+                    0, 3, 2, () => 0.4f), Is.SameAs(ordinary), "Unavailable use must not receive weight");
+            }
+            finally { Cleanup(); }
+        }
         private AdventureEventSO Event(bool supply, AdventureItemSO item, bool locked = false)
         {
             var e = ScriptableObject.CreateInstance<AdventureEventSO>(); created.Add(e);
@@ -104,10 +136,10 @@ namespace Work.Adventure.Code.Editor
                 var supply = Event(true, Item()); var ordinary = Event(false, null);
                 var selector = new AdventureEventSelector();
                 var pool = new[] { ordinary, supply };
-                Assert.That(selector.Select(pool, null, false, _ => false, _ => true, 0, 3, 2, () => 0.99f), Is.SameAs(supply));
-                for (int i = 0; i < 3; i++)
-                    Assert.That(selector.Select(pool, null, true, _ => true, _ => true, 0, 3, 2, () => 0.99f), Is.SameAs(ordinary));
-                Assert.That(selector.Select(pool, null, true, _ => true, _ => true, 0, 3, 2, () => 0.99f), Is.SameAs(supply));
+                Assert.That(selector.Select(pool, null, 0, _ => false, _ => true, 0, 3, 2, () => 0.99f), Is.SameAs(supply));
+                for (int i = 0; i < 6; i++)
+                    Assert.That(selector.Select(pool, null, 1, _ => true, _ => true, 0, 3, 2, () => 0.99f), Is.SameAs(ordinary));
+                Assert.That(selector.Select(pool, null, 1, _ => true, _ => true, 0, 3, 2, () => 0.99f), Is.SameAs(supply));
                 Assert.That(selector.EventsWithoutSupply, Is.Zero);
             }
             finally { Cleanup(); }
@@ -121,9 +153,9 @@ namespace Work.Adventure.Code.Editor
                 var locked = Event(true, Item(), true); var ordinary = Event(false, null);
                 Assert.That(AdventureEventSelector.AvailableItems(locked, o => !(o is LockedOption)), Is.Empty);
                 var selector = new AdventureEventSelector();
-                Assert.That(selector.Select(new AdventureEventSO[] { null }, null, false, _ => false, _ => true, 1, 3, 2, () => 1), Is.Null);
-                Assert.That(selector.Select(new[] { null, ordinary, ordinary }, ordinary, false, _ => false, _ => true, 1, 3, 2, () => 1), Is.SameAs(ordinary));
-                Assert.That(selector.Select(new[] { locked, ordinary }, locked, true, _ => false, _ => true, 1, 3, 2, () => 1), Is.SameAs(ordinary));
+                Assert.That(selector.Select(new AdventureEventSO[] { null }, null, 0, _ => false, _ => true, 1, 3, 2, () => 1), Is.Null);
+                Assert.That(selector.Select(new[] { null, ordinary, ordinary }, ordinary, 0, _ => false, _ => true, 1, 3, 2, () => 1), Is.SameAs(ordinary));
+                Assert.That(selector.Select(new[] { locked, ordinary }, locked, 1, _ => false, _ => true, 1, 3, 2, () => 1), Is.SameAs(ordinary));
                 var parent = new Options(); parent.followUpOptions.Add(locked.options[0]); locked.options.Clear(); locked.options.Add(parent);
                 Assert.That(AdventureEventSelector.AvailableItems(locked, o => !(o is LockedOption)), Is.Empty);
                 Assert.That(AdventureEventSelector.AvailableItems(locked, _ => true).Count, Is.EqualTo(1));
@@ -142,8 +174,8 @@ namespace Work.Adventure.Code.Editor
                 for (int i = 0; i < 20000; i++)
                 {
                     // Fresh history isolates the base probability from the separate drought guarantee.
-                    var selected = new AdventureEventSelector().Select(new[] { a, b, ordinary }, null, true,
-                        item => item == owned, _ => true, 0.35f, 3, 2, () => (float)rng.NextDouble());
+                    var selected = new AdventureEventSelector().Select(new[] { a, b, ordinary }, null, 1,
+                        item => item == owned, _ => true, 0.5f, 3, 2, () => (float)rng.NextDouble());
                     if (selected != ordinary) supplyCount++;
                     if (selected == a) missingCount++;
                 }

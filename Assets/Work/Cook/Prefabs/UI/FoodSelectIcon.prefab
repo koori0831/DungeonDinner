@@ -111,7 +111,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 12.5}
+  m_AnchoredPosition: {x: 0, y: 22}
   m_SizeDelta: {x: 78.25, y: 83}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3316193614003786147
@@ -302,6 +302,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 3974447744592300765}
+  entryIcon: {fileID: 2257264751478177633}
 --- !u!1 &8853028053239958164
 GameObject:
   m_ObjectHideFlags: 0
@@ -334,10 +335,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 8574677057494375968}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -44}
-  m_SizeDelta: {x: 78.9, y: 25}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 30}
+  m_SizeDelta: {x: -16, y: 44}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2180602920514329787
 CanvasRenderer:

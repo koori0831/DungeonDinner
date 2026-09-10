@@ -35,6 +35,7 @@ namespace Work.Cook.Code.Info
         Ingredient,
         Monster,
         Recipe,
+        Item,
 
     }
 

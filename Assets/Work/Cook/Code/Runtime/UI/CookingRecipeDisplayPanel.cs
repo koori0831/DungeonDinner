@@ -17,6 +17,7 @@ namespace Work.Cook.Code.Runtime.UI
 {
     public sealed class CookingRecipeDisplayPanel : InfoDisplayPanel
     {
+        protected override bool UseFieldGuideLayout => false;
         [Header("Recipe Fields")]
         [SerializeField] private TextMeshProUGUI requiredIngredientsField;
         [SerializeField] private TextMeshProUGUI knownEffectiveTagsField;
@@ -385,7 +386,7 @@ namespace Work.Cook.Code.Runtime.UI
             return builder.ToString();
         }
 
-        private static string BuildRequirementText(RecipeIngredientRequirement requirement)
+        internal static string BuildRequirementText(RecipeIngredientRequirement requirement)
         {
             if (requirement == null)
                 return string.Empty;

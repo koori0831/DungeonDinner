@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using Work.Core.EventBus;
+using Work.Title;
 using Work.UtillUI.Code.Fade;
 using Work.UtillUI.Code.Settings;
 
@@ -16,7 +17,7 @@ public class TitleUIManager : MonoBehaviour
 
     [Header("Start Action")]
     [SerializeField] private bool loadSceneOnStart = true;
-    [SerializeField] private string startSceneName = "DungeonDinnerScene";
+    [SerializeField] private string startSceneName = "MainScene";
 
     [Header("Settings Action")]
     [SerializeField] private GameObject settingsPanel;
@@ -170,12 +171,14 @@ public class TitleUIManager : MonoBehaviour
         AsyncOperation loadOperation = SceneManager.LoadSceneAsync(sceneName);
         loadOperation.allowSceneActivation = false;
 
-        bool fadeCompleted = false;
+        bool fadeCompleted = Bus<OnFadeInEvent>.Events == null;
         Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() => fadeCompleted = true));
 
         while (loadOperation.progress < 0.9f || fadeCompleted == false)
             yield return null;
 
+        // Awake/OnEnable in MainScene must see a fresh session, including its visit limit.
+        NewGameProgress.ResetSavedProgress();
         loadOperation.allowSceneActivation = true;
 
         while (loadOperation.isDone == false)
@@ -332,7 +335,7 @@ public class TitleUIManager : MonoBehaviour
             ? currentBuildIndex + 1
             : 0;
 
-        SceneManager.LoadScene(nextBuildIndex);
+        StartCoroutine(LoadStartSceneAsync(SceneUtility.GetScenePathByBuildIndex(nextBuildIndex)));
     }
 
     private static Camera GetCanvasCamera(RectTransform rectTransform)

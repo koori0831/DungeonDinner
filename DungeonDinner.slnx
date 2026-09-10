@@ -8,4 +8,5 @@
   <Project Path="Cook.EditorTests.csproj" />
   <Project Path="ObjectPool.RuntimeAssembly.csproj" />
   <Project Path="ObjectPool.EditorAssembly.csproj" />
+  <Project Path="DungeonDinner.Adventure.Ui.PlayModeTests.csproj" />
 </Solution>

@@ -62,6 +62,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private CookingWorkbenchView synchronizedWorkbenchView;
         [SerializeField] private CookingPreparationHandView synchronizedHandView;
         [SerializeField] private CookingActivePreparationSlotView synchronizedActiveSlotView;
+        [SerializeField] private GameObject[] preparationTextObjects;
 
         private CookingGamePanel _owner;
         private CookingWorkbenchView _workbenchView;
@@ -87,6 +88,14 @@ namespace Work.Cook.Code.Runtime.UI
         private int _presentationSyncFramesRemaining;
         private float _lastActionFeedbackTime = float.MinValue;
         private float _lastMistakeFeedbackTime = float.MinValue;
+        private bool[] _preparationTextWasActive;
+        private bool _preparationTextHidden;
+        private bool _hudLayoutDirty = true;
+        private RectTransform _shiftedWorkbench;
+        private Vector2 _workbenchOriginalPosition;
+
+        private const float PanelPadding = 16f;
+        private const float ScreenPadding = 24f;
 
         private const float ActionFeedbackCooldown = 0.08f;
         private const float MistakeFeedbackCooldown = 0.18f;
@@ -139,6 +148,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         public void SetFontAsset(TMP_FontAsset fontAsset)
         {
+            _hudLayoutDirty = true;
             if (fontAsset == null)
                 return;
 
@@ -181,6 +191,7 @@ namespace Work.Cook.Code.Runtime.UI
             _activeOption = option;
             _presentationSyncFramesRemaining = 2;
             ResolvePresentationPeers();
+            SetPreparationTextHidden(true);
             CacheTargetFrameLayout();
             ResetIngredientTransform();
             ResetTargetFrame();
@@ -385,12 +396,15 @@ namespace Work.Cook.Code.Runtime.UI
             ResetActionHud();
             ResetTargetFrame();
             SetIngredientVisible(false);
+            RestoreWorkbenchPosition();
+            SetPreparationTextHidden(false);
         }
 
         private void OnEnable()
         {
             if (_isRunning == true)
             {
+                SetPreparationTextHidden(true);
                 SynchronizePreparationPresentation();
                 RefreshFocusLayout();
             }
@@ -399,6 +413,8 @@ namespace Work.Cook.Code.Runtime.UI
         private void OnDisable()
         {
             ResetIngredientTransform();
+            RestoreWorkbenchPosition();
+            SetPreparationTextHidden(false);
         }
 
         private void LateUpdate()
@@ -493,6 +509,8 @@ namespace Work.Cook.Code.Runtime.UI
             ResetTargetFrame();
             SetIngredientVisible(false);
             _resultRoutine = null;
+            RestoreWorkbenchPosition();
+            SetPreparationTextHidden(false);
             completed?.Invoke();
         }
 
@@ -532,6 +550,48 @@ namespace Work.Cook.Code.Runtime.UI
             _workbenchView?.ShowInteractionStarted(_activeIngredient, _activeOption);
             _activeSlotView?.BindInProgress(_activeOption);
             _preparationHandView?.ShowMiniGameState();
+        }
+
+        private void SetPreparationTextHidden(bool hidden)
+        {
+            if (_preparationTextHidden == hidden)
+                return;
+
+            if (hidden)
+            {
+                if ((preparationTextObjects == null || preparationTextObjects.Length == 0) && _workbenchView != null)
+                {
+                    Transform workbench = _workbenchView.transform;
+                    preparationTextObjects = new[]
+                    {
+                        workbench.Find("IngredientName")?.gameObject,
+                        workbench.Find("Instruction")?.gameObject,
+                        workbench.parent != null ? workbench.parent.Find("Title")?.gameObject : null
+                    };
+                }
+
+                if (preparationTextObjects == null)
+                    return;
+                _preparationTextWasActive = new bool[preparationTextObjects.Length];
+            }
+
+            for (int i = 0; i < preparationTextObjects.Length; i++)
+            {
+                GameObject textObject = preparationTextObjects[i];
+                if (textObject == null)
+                    continue;
+                if (hidden)
+                    _preparationTextWasActive[i] = textObject.activeSelf;
+                textObject.SetActive(hidden == false && _preparationTextWasActive[i]);
+            }
+            _preparationTextHidden = hidden;
+        }
+
+        private void RestoreWorkbenchPosition()
+        {
+            if (_shiftedWorkbench != null)
+                _shiftedWorkbench.anchoredPosition = _workbenchOriginalPosition;
+            _shiftedWorkbench = null;
         }
 
         private void AlignTargetFrameToIngredientAnchor()
@@ -663,6 +723,54 @@ namespace Work.Cook.Code.Runtime.UI
             if (overlayRoot == null || targetFrame == null || maskImage == null)
                 return;
 
+            if (_hudLayoutDirty)
+            {
+                RefreshHudTextLayout();
+                _hudLayoutDirty = false;
+            }
+
+            Rect workBounds = GetWorkBounds();
+            float headerHeight = hudRoot != null ? hudRoot.rect.height : 0f;
+            float actionHeight = actionHudRoot != null ? actionHudRoot.rect.height : 0f;
+            RectTransform mistakeRoot = mistakeCanvasGroup != null
+                ? mistakeCanvasGroup.transform as RectTransform : null;
+            float toastHeight = mistakeRoot != null ? mistakeRoot.rect.height * 1.04f : 0f;
+            float minimumCenter = overlayRoot.rect.yMin + ScreenPadding + actionHudGap
+                                  + actionHeight + PanelPadding + toastHeight + workBounds.height * 0.5f;
+            float maximumCenter = overlayRoot.rect.yMax - ScreenPadding - actionHudGap
+                                  - headerHeight - workBounds.height * 0.5f;
+
+            // Translate the workbench only when needed; its size and all input tolerances stay unchanged.
+            if (minimumCenter <= maximumCenter)
+            {
+                float shift = Mathf.Clamp(workBounds.center.y, minimumCenter, maximumCenter) - workBounds.center.y;
+                if (Mathf.Abs(shift) > 0.01f)
+                {
+                    RectTransform workbench = _workbenchView != null ? _workbenchView.transform as RectTransform : null;
+                    if (workbench != null)
+                    {
+                        if (_shiftedWorkbench == null)
+                        {
+                            _shiftedWorkbench = workbench;
+                            _workbenchOriginalPosition = workbench.anchoredPosition;
+                        }
+                        workbench.position += overlayRoot.TransformVector(new Vector3(0f, shift));
+                        AlignTargetFrameToIngredientAnchor();
+                    }
+                    else if (ingredientAnchor == null)
+                        targetFrame.position += overlayRoot.TransformVector(new Vector3(0f, shift));
+                    workBounds = GetWorkBounds();
+                }
+            }
+
+            if (hudRoot != null)
+                PlacePanel(hudRoot, workBounds.center.x, workBounds.yMax + actionHudGap + headerHeight * 0.5f);
+            if (actionHudRoot != null)
+                PlacePanel(actionHudRoot, workBounds.center.x, workBounds.yMin - actionHudGap - actionHeight * 0.5f);
+            if (mistakeRoot != null)
+                PlacePanel(mistakeRoot, workBounds.center.x,
+                    workBounds.yMin - actionHudGap - actionHeight - PanelPadding - toastHeight * 0.5f);
+
             Vector3[] worldCorners = new Vector3[4];
             if (GetDisplayedIngredientWorldCorners(worldCorners) == false)
                 return;
@@ -670,36 +778,110 @@ namespace Work.Cook.Code.Runtime.UI
             Vector3 bottomLeft = overlayRoot.InverseTransformPoint(worldCorners[0]);
             Vector3 topRight = overlayRoot.InverseTransformPoint(worldCorners[2]);
 
-            Vector3[] targetWorldCorners = new Vector3[4];
-            targetFrame.GetWorldCorners(targetWorldCorners);
-            Vector2 targetBottomLeft = overlayRoot.InverseTransformPoint(targetWorldCorners[0]);
-            Vector2 targetTopRight = overlayRoot.InverseTransformPoint(targetWorldCorners[2]);
-            Vector2 targetCenter = (targetBottomLeft + targetTopRight) * 0.5f;
+            AlignFocusDimmers(bottomLeft, topRight);
+        }
 
+        private Rect GetWorkBounds()
+        {
+            Rect bounds = GetOverlayRect(targetFrame);
+            if (_workbenchView != null && _workbenchView.transform is RectTransform workbench)
+            {
+                Rect board = GetOverlayRect(workbench);
+                bounds = Rect.MinMaxRect(Mathf.Min(bounds.xMin, board.xMin), Mathf.Min(bounds.yMin, board.yMin),
+                    Mathf.Max(bounds.xMax, board.xMax), Mathf.Max(bounds.yMax, board.yMax));
+            }
+            // The knife pivots at its tip, so its pulsing handle extends past either cut endpoint.
+            // Reserve that space independently of the current pointer to avoid moving the board while dragging.
+            if (_activeOption != null && _activeOption.MiniGameType == CookingMiniGameType.Slicing)
+            {
+                bounds.yMin -= 80f;
+                bounds.yMax += 80f;
+            }
+            return bounds;
+        }
+
+        private Rect GetOverlayRect(RectTransform rect)
+        {
+            Vector3[] corners = new Vector3[4];
+            rect.GetWorldCorners(corners);
+            Vector2 minimum = overlayRoot.InverseTransformPoint(corners[0]);
+            Vector2 maximum = minimum;
+            for (int i = 1; i < corners.Length; i++)
+            {
+                Vector2 point = overlayRoot.InverseTransformPoint(corners[i]);
+                minimum = Vector2.Min(minimum, point);
+                maximum = Vector2.Max(maximum, point);
+            }
+            return Rect.MinMaxRect(minimum.x, minimum.y, maximum.x, maximum.y);
+        }
+
+        private void PlacePanel(RectTransform panel, float x, float y)
+        {
+            Rect bounds = GetOverlayRect(panel);
+            float halfWidth = bounds.width * 0.5f;
+            x = Mathf.Clamp(x, overlayRoot.rect.xMin + ScreenPadding + halfWidth,
+                overlayRoot.rect.xMax - ScreenPadding - halfWidth);
+            panel.position += overlayRoot.TransformVector(new Vector2(x, y) - bounds.center);
+        }
+
+        private void RefreshHudTextLayout()
+        {
             if (hudRoot != null)
             {
-                float hudY = Mathf.Min(overlayRoot.rect.yMax - 70f, targetTopRight.y + 58f);
-                hudRoot.anchoredPosition = new Vector2(targetCenter.x, hudY);
+                float buttonWidth = cancelButton != null ? ((RectTransform)cancelButton.transform).rect.width : 0f;
+                float width = hudRoot.rect.width - PanelPadding * 3f - buttonWidth;
+                float x = -(buttonWidth + PanelPadding) * 0.5f;
+                float top = PanelPadding;
+                LayoutTextRow(titleField, x, width, 36f, PanelPadding, ref top);
+                LayoutTextRow(instructionField, x, width, 48f, PanelPadding, ref top);
+                LayoutTextRow(statusField, x, width, 28f, PanelPadding, ref top);
+                hudRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, top);
+                if (cancelButton != null)
+                {
+                    RectTransform button = (RectTransform)cancelButton.transform;
+                    button.anchoredPosition = new Vector2(hudRoot.rect.width * 0.5f - PanelPadding - buttonWidth * 0.5f, 0f);
+                }
             }
 
             if (actionHudRoot != null)
             {
-                float actionHeight = Mathf.Max(1f, actionHudRoot.rect.height);
-                float actionY = targetBottomLeft.y - actionHudGap - actionHeight * 0.5f;
-                actionY = Mathf.Max(overlayRoot.rect.yMin + actionHeight * 0.5f + 24f, actionY);
-                actionHudRoot.anchoredPosition = new Vector2(targetCenter.x, actionY);
+                float width = actionHudRoot.rect.width - PanelPadding * 2f;
+                float top = PanelPadding;
+                LayoutTextRow(gestureField, 0f, width, 52f, 8f, ref top);
+                LayoutRow(progressGaugeRoot, 0f, width, 22f, 8f, ref top);
+                LayoutTextRow(progressField, 0f, width, 28f, 8f, ref top);
+                LayoutRow(timerGaugeRoot, 0f, width, 8f, 8f, ref top);
+                actionHudRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(176f, top + 8f));
             }
 
-            if (mistakeCanvasGroup != null && mistakeCanvasGroup.transform is RectTransform mistakeRoot)
+            if (mistakeCanvasGroup != null && mistakeField != null)
             {
-                float actionTop = actionHudRoot != null
-                    ? actionHudRoot.anchoredPosition.y + actionHudRoot.rect.height * 0.5f
-                    : targetBottomLeft.y - actionHudGap;
-                float toastY = actionTop + 16f + mistakeRoot.rect.height * 0.5f;
-                mistakeRoot.anchoredPosition = new Vector2(targetCenter.x, toastY);
+                RectTransform toast = (RectTransform)mistakeCanvasGroup.transform;
+                float width = toast.rect.width - PanelPadding * 2f;
+                float top = PanelPadding;
+                LayoutTextRow(mistakeField, 0f, width, 42f, PanelPadding, ref top);
+                toast.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, top);
             }
+        }
 
-            AlignFocusDimmers(bottomLeft, topRight);
+        private static void LayoutTextRow(TextMeshProUGUI field, float x, float width, float minimumHeight,
+            float gap, ref float top)
+        {
+            if (field == null)
+                return;
+            field.textWrappingMode = TextWrappingModes.Normal;
+            float height = Mathf.Max(minimumHeight, Mathf.Ceil(field.GetPreferredValues(field.text, width, Mathf.Infinity).y));
+            LayoutRow(field.rectTransform, x, width, height, gap, ref top);
+        }
+
+        private static void LayoutRow(RectTransform row, float x, float width, float height, float gap, ref float top)
+        {
+            if (row == null)
+                return;
+            row.anchorMin = row.anchorMax = row.pivot = new Vector2(0.5f, 1f);
+            row.anchoredPosition = new Vector2(x, -top);
+            row.sizeDelta = new Vector2(width, height);
+            top += height + gap;
         }
 
         private bool GetDisplayedIngredientWorldCorners(Vector3[] worldCorners)
@@ -1081,10 +1263,13 @@ namespace Work.Cook.Code.Runtime.UI
             }
         }
 
-        private static void SetText(TextMeshProUGUI field, string text)
+        private void SetText(TextMeshProUGUI field, string text)
         {
-            if (field != null)
-                field.text = text ?? string.Empty;
+            string value = text ?? string.Empty;
+            if (field == null || field.text == value)
+                return;
+            field.text = value;
+            _hudLayoutDirty = true;
         }
     }
 }

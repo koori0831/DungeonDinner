@@ -159,6 +159,8 @@ namespace Work.Adventure.Code.UI
         /// </summary>
         public void SelectNextBusiness()
         {
+            if (_isCanAction == false) return;
+
             HideUI();
             Bus<CookingBusinessResumeRequestedEvent>.Raise(new CookingBusinessResumeRequestedEvent());
         }

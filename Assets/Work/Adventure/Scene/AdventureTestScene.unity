@@ -1852,7 +1852,7 @@ MonoBehaviour:
   m_MinHeight: -1
   m_PreferredWidth: -1
   m_PreferredHeight: -1
-  m_FlexibleWidth: 1
+  m_FlexibleWidth: 2
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
 --- !u!114 &60794785
@@ -4435,6 +4435,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 1285608165}
+  entryIcon: {fileID: 0}
 --- !u!114 &150146316
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6444,6 +6445,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 1719121622}
+  entryIcon: {fileID: 0}
 --- !u!114 &241344280
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9909,6 +9911,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 744252057}
+  entryIcon: {fileID: 0}
 --- !u!114 &400086756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12582,6 +12585,18 @@ MonoBehaviour:
   completeTypingOnSubmit: 1
   playerNameColor: '#000000'
   npcNameColor: '#D6A85A'
+  portraitCatalog: {fileID: 0}
+  portraitRoot: {fileID: 0}
+  portraitCanvasGroup: {fileID: 0}
+  portraitImage: {fileID: 0}
+  createPortraitViewIfMissing: 1
+  hidePortraitWhenCookingStepReady: 1
+  portraitSize: {x: 520, y: 520}
+  portraitRestingPosition: {x: 18, y: 0}
+  portraitSlideDistance: 80
+  portraitEntranceDuration: 0.35
+  portraitExitDuration: 0.22
+  portraitEntranceScale: 0.94
   conversationShown:
     m_PersistentCalls:
       m_Calls: []
@@ -14053,6 +14068,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 1763229192}
+  entryIcon: {fileID: 0}
 --- !u!114 &593310659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16960,6 +16976,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 1515906324}
+  entryIcon: {fileID: 0}
 --- !u!114 &747720210
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18938,6 +18955,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 1398175272}
+  entryIcon: {fileID: 0}
 --- !u!114 &849881195
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19599,6 +19617,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 914212305}
+  entryIcon: {fileID: 0}
 --- !u!114 &859478177
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19787,6 +19806,21 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bfd6ebcc4044e016b04d70e8c98b4333, type: 2}
   - {fileID: 11400000, guid: ed943c0558c268b9976f9164fd341dae, type: 2}
   - {fileID: 11400000, guid: ec473c5b01a9ce221e6087424c5d06c3, type: 2}
+  - {fileID: 11400000, guid: 9b05f675d5b0b37d9463150fdad3f128, type: 2}
+  - {fileID: 11400000, guid: 1f46a6a07e4e3008f87e3e76b7b8d2e5, type: 2}
+  - {fileID: 11400000, guid: 09109d5238bc94a0cc7783726dcfc9fb, type: 2}
+  - {fileID: 11400000, guid: f9b721a1ea8d148a7d6eb04157f459e7, type: 2}
+  - {fileID: 11400000, guid: 212caf7c02e3268226b0e63b2618bfde, type: 2}
+  - {fileID: 11400000, guid: df756489695801a9607272acdb21e50a, type: 2}
+  - {fileID: 11400000, guid: 0736ab9217350b2a564f1572801a324a, type: 2}
+  - {fileID: 11400000, guid: fc16c245481437f3941e2a8af8028aca, type: 2}
+  - {fileID: 11400000, guid: 6467f56ac9b7b6af1284300aef643d15, type: 2}
+  - {fileID: 11400000, guid: ba0b7d4e739254e1c17a1f42046a220c, type: 2}
+  - {fileID: 11400000, guid: b59bc63694c723c885a2bde01772f280, type: 2}
+  - {fileID: 11400000, guid: c978ef11bfa4dffb5651ff4432db42d4, type: 2}
+  supplyEventChance: 0.35
+  maxEventsWithoutSupply: 3
+  missingToolWeight: 2
 --- !u!1 &860598365
 GameObject:
   m_ObjectHideFlags: 0
@@ -34808,6 +34842,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 1090374789}
+  entryIcon: {fileID: 0}
 --- !u!114 &1438339611
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37161,6 +37196,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 1018023191}
+  entryIcon: {fileID: 0}
 --- !u!114 &1524859789
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39643,6 +39679,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 1778100719}
+  entryIcon: {fileID: 0}
 --- !u!114 &1622270069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44267,6 +44304,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.InfoSelectBtn
   nameField: {fileID: 89395837}
+  entryIcon: {fileID: 0}
 --- !u!114 &1852371317
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -13,6 +13,7 @@ namespace Work.Cook.Code.Runtime.Systems
 {
     public sealed class CookingKnowledgeStore : MonoBehaviour
     {
+        public const string DefaultSaveKey = "DungeonDinner.CookingKnowledge";
         private const int CURRENT_SCHEMA_VERSION = 2;
 
         [Header("Data")]
@@ -25,7 +26,7 @@ namespace Work.Cook.Code.Runtime.Systems
         [Header("Persistence")]
         [SerializeField] private bool loadFromPlayerPrefsOnAwake = true;
         [SerializeField] private bool saveToPlayerPrefs = true;
-        [SerializeField] private string playerPrefsKey = "DungeonDinner.CookingKnowledge";
+        [SerializeField] private string playerPrefsKey = DefaultSaveKey;
 
         private readonly HashSet<string> _discoveredRecipeIds =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);

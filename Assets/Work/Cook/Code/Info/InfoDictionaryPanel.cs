@@ -35,7 +35,12 @@ namespace Work.Cook.Code.Info
         public void Awake()
         {
             if (buildOnAwake == true)
-                Initialize(initialCategoryDataList);
+            {
+                // The general guide is shared by all scenes; recipe discovery has its own initializer.
+                var catalog = initialCategoryDataList.Count == 0
+                    ? Resources.Load<FieldGuideCatalogSO>("DungeonFieldGuide") : null;
+                Initialize(catalog != null ? catalog.BuildCategories() : initialCategoryDataList);
+            }
         }
 
         public void Initialize(IReadOnlyList<InfoDictionaryCategoryData> categories)
@@ -119,6 +124,8 @@ namespace Work.Cook.Code.Info
                 RegisterCategoryLookup(categoryData.DisplayName, view, bockmark);
                 RegisterNavigationContexts(categoryData);
                 view.InitializeField(categoryData.Entries, info => EnableDisplay(categoryData.ViewType, info));
+                if (buildOnAwake)
+                    view.SetCategoryHeading(categoryData.DisplayName, categoryData.Entries?.Count ?? 0);
                 view.Disable();
                 bockmark.Rect.anchoredPosition = new Vector2(default_X_Value, y_Offset * i);
                 string categoryDisplayName = categoryData.DisplayName;

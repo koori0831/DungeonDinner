@@ -150,6 +150,8 @@ namespace Work.Cook.Code.Runtime.Systems
                 return;
             }
 
+            EnsureReferences();
+
             if (encounterDirector == null)
             {
                 return;
@@ -158,6 +160,15 @@ namespace Work.Cook.Code.Runtime.Systems
             if (_businessClosed == false)
             {
                 return;
+            }
+
+            // Closing spends three time units, so the daily guest limit may still be in effect.
+            // Rest only until the next day; preparation activities may already have advanced it.
+            if (encounterDirector.IsBusinessDayComplete && gameTimeService != null)
+            {
+                int remainingTime = GameTimeDisplayFormatter.GetTimeUntilNextDay(
+                    gameTimeService.CurrentTimeOfDay);
+                gameTimeService.AdvanceTime(remainingTime, GameTimeActivityType.Rest);
             }
 
             _businessClosed = false;

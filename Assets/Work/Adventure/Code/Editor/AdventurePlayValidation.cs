@@ -54,7 +54,7 @@ namespace Work.Adventure.Code.Editor
                     return;
                 }
                 Require(errors.Count == 0, string.Join("\n", errors));
-                report.AppendLine("PASS: 138 terminal paths across 45 events, including all 3 branching events; actual UI choices, missing-item locks, ingredient/tool costs, inventory rewards, dialog images and cleanup. No runtime errors, missing glyphs or missing-target tween warnings.");
+                report.AppendLine("PASS: 174 terminal paths across 57 events, including all 3 branching events; actual UI choices, missing-item locks, ingredient/tool costs, inventory rewards, dialog images and cleanup. No runtime errors, missing glyphs or missing-target tween warnings.");
                 Debug.Log(report.ToString());
             }
             catch (Exception error)
@@ -90,7 +90,7 @@ namespace Work.Adventure.Code.Editor
             dialog.gameObject.SetActive(true);
             Set(dialog, "time", 0.01f);
             Set(dialog, "characterInterval", 0.001f);
-            var names = new[] { "Find_Box", "Find_HolySwordSalt", "Meet_MushroomBarber", "Meet_AdventurerTrade", "Find_BoxSlime", "Find_SaltGoddess", "Find_BrokenGoddessRepair", "Find_CoconutCrab", "Meet_SproutSlime", "Find_RopeCache", "Meet_LanternKeeper", "Find_CookKit", "Meet_SupplyPorter", "Meet_RopeWeaver", "Meet_BottleTrader", "Find_LedgePantry", "Meet_PitAdventurer", "Find_DarkNest", "Find_HotSpringBasket", "Find_StickyPool", "Find_RootCellar", "Find_HangingPantry", "Find_MossyStair", "Meet_LostMushroomChild", "Find_CrackedStoreroom", "Find_CrabSnare", "Find_TiltedSaltCart", "Find_ThornLunchbox", "Meet_CaughtApron", "Find_SeepingSaltWell", "Meet_LeakingPack", "Find_SlimeCurtain", "Meet_MushroomWaterer", "Find_SleepingCrab", "Find_CollapsedShelf", "Meet_SootyCook", "Find_GlowingCrack", "Find_DewMushrooms", "Meet_StatueCaretaker", "Find_SlimeTracks", "Find_SaltDrips", "Find_CrabMolting", "Find_StickyLatch", "Meet_MushroomSplinter", "Find_SlimePicnic" };
+            var names = new[] { "Find_Box", "Find_HolySwordSalt", "Meet_MushroomBarber", "Meet_AdventurerTrade", "Find_BoxSlime", "Find_SaltGoddess", "Find_BrokenGoddessRepair", "Find_CoconutCrab", "Meet_SproutSlime", "Find_RopeCache", "Meet_LanternKeeper", "Find_CookKit", "Meet_SupplyPorter", "Meet_RopeWeaver", "Meet_BottleTrader", "Find_LedgePantry", "Meet_PitAdventurer", "Find_DarkNest", "Find_HotSpringBasket", "Find_StickyPool", "Find_RootCellar", "Find_HangingPantry", "Find_MossyStair", "Meet_LostMushroomChild", "Find_CrackedStoreroom", "Find_CrabSnare", "Find_TiltedSaltCart", "Find_ThornLunchbox", "Meet_CaughtApron", "Find_SeepingSaltWell", "Meet_LeakingPack", "Find_SlimeCurtain", "Meet_MushroomWaterer", "Find_SleepingCrab", "Find_CollapsedShelf", "Meet_SootyCook", "Find_GlowingCrack", "Find_DewMushrooms", "Meet_StatueCaretaker", "Find_SlimeTracks", "Find_SaltDrips", "Find_CrabMolting", "Find_StickyLatch", "Meet_MushroomSplinter", "Find_SlimePicnic", "Meet_CampCarver", "Find_SealedSaltJar", "Meet_BridgeWatch", "Meet_NightGatherer", "Meet_PicklingCook", "Find_BubblingCrevice", "Meet_RootClimber", "Meet_StoneKitchen", "Meet_CaveMedic", "Find_ResinFruit", "Find_EchoCabinet", "Meet_CrabKeeper" };
             var tools = new[] { "knife", "Hamer", "Rope", "Lantern", "Tongs", "CollectingBottle" }.Select(n => AssetDatabase.LoadAssetAtPath<AdventureItemSO>("Assets/Work/Adventure/SO/AdventureItem/" + n + ".asset")).ToArray();
             yield return 0.7f;
             foreach (string name in names)
@@ -142,6 +142,9 @@ namespace Work.Adventure.Code.Editor
                     Require(buttons.Length == asset.options.Count, name + ": wrong root button count");
                     foreach (var entry in buttons)
                     {
+                        // Editor update callbacks can run before the UI frame has finished its entrance tween.
+                        Field<RectTransform>(entry, "root").DOComplete();
+                        Canvas.ForceUpdateCanvases();
                         var label = Field<TextMeshProUGUI>(entry, "nameField");
                         label.ForceMeshUpdate();
                         var canvas = label.canvas;

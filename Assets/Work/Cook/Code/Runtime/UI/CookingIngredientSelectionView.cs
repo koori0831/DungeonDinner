@@ -61,6 +61,7 @@ namespace Work.Cook.Code.Runtime.UI
         private ICookingIngredientSource _subscribedIngredientSource;
         private IngredientSO _focusedIngredient;
         private string _searchQuery = string.Empty;
+        private bool _bagPresentationApplied;
 
         private void OnValidate()
         {
@@ -482,10 +483,131 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (HasRequiredLayoutReferences() == true)
             {
+                ApplyBagPresentation();
                 return;
             }
 
             Debug.LogError("CookingIngredientSelectionView is missing inspector layout references or ingredient button prefabs. Assign references from a prefab/scene object.", this);
+        }
+
+        private void ApplyBagPresentation()
+        {
+            if (_bagPresentationApplied) return;
+            _bagPresentationApplied = true;
+            Color panel = new Color(0.14f, 0.085f, 0.045f, 1f);
+            Color section = new Color(0.22f, 0.145f, 0.10f, 1f);
+            Color gold = new Color(0.83f, 0.68f, 0.43f, 1f);
+            StyleBagSurface(transform, panel, gold);
+            var rootLayout = GetComponent<VerticalLayoutGroup>();
+            if (rootLayout != null)
+            {
+                rootLayout.padding = new RectOffset(20, 20, 18, 18);
+                rootLayout.spacing = 12;
+                rootLayout.childControlHeight = rootLayout.childControlWidth = true;
+                rootLayout.childForceExpandHeight = false;
+            }
+            Transform title = transform.Find("Title");
+            SetBagHeight(title, 36);
+            if (title != null && title.TryGetComponent<TextMeshProUGUI>(out var titleText))
+            {
+                titleText.text = "가방 · 재료 선택";
+                titleText.fontSize = 24;
+                titleText.color = gold;
+            }
+            Transform body = transform.Find("Body");
+            SetBagHeight(body, 0, 1);
+            if (body != null && body.TryGetComponent<HorizontalLayoutGroup>(out var columns))
+            {
+                columns.spacing = 12;
+                columns.childControlWidth = columns.childControlHeight = true;
+                columns.childForceExpandWidth = columns.childForceExpandHeight = true;
+            }
+            Transform bag = availableIngredientRoot.parent.parent;
+            Transform selected = selectedIngredientRoot.parent.parent;
+            foreach (var column in new[] { bag, selected })
+            {
+                StyleBagSurface(column, section, new Color(gold.r, gold.g, gold.b, 0.45f));
+                var sizing = column.GetComponent<LayoutElement>() ?? column.gameObject.AddComponent<LayoutElement>();
+                sizing.minWidth = 0;
+                sizing.preferredWidth = 0;
+                sizing.flexibleWidth = 1;
+                var layout = column.GetComponent<VerticalLayoutGroup>();
+                if (layout != null)
+                {
+                    layout.padding = new RectOffset(12, 12, 12, 12);
+                    layout.spacing = 8;
+                    layout.childControlHeight = layout.childControlWidth = true;
+                    layout.childForceExpandHeight = false;
+                }
+                SetBagHeight(column.Find("SectionTitle"), 30);
+            }
+            searchInputField.transform.SetSiblingIndex(1);
+            availableSummaryField.transform.SetSiblingIndex(2);
+            SetBagHeight(searchInputField.transform, 38);
+            StyleBagSurface(searchInputField.transform, panel, gold);
+            if (searchInputField.textComponent != null) searchInputField.textComponent.color = Color.white;
+            if (searchInputField.placeholder is TMP_Text placeholder) placeholder.color = new Color(1, 1, 1, 0.65f);
+            SetBagHeight(availableSummaryField.transform, 22);
+            SetBagHeight(availableIngredientRoot.parent, 0, 1);
+            SetBagHeight(selectedIngredientRoot.parent, 0, 1);
+            foreach (var listRoot in new[] { availableIngredientRoot, selectedIngredientRoot })
+            {
+                var scroll = listRoot.GetComponentInParent<ScrollRect>();
+                if (scroll != null)
+                {
+                    scroll.horizontal = false;
+                    scroll.scrollSensitivity = 24;
+                    Work.Cook.Code.Info.InfoDisplayPanel.AddReadingScrollbar(scroll, 8);
+                }
+            }
+            SetBagHeight(ingredientDetailField.transform, 76);
+            ingredientDetailField.fontSize = 14;
+            ingredientDetailField.enableAutoSizing = true;
+            ingredientDetailField.fontSizeMin = 11;
+            ingredientDetailField.fontSizeMax = 14;
+            SetBagHeight(emptyAvailableField.transform, 38);
+            SetBagHeight(emptySelectedField.transform, 44);
+            SetBagHeight(selectionRuleField.transform, 48);
+            foreach (var text in GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (text.transform == title) continue;
+                text.color = Color.white;
+                text.textWrappingMode = TextWrappingModes.Normal;
+            }
+            if (searchInputField.placeholder is TMP_Text searchHint) searchHint.color = new Color(1, 1, 1, 0.65f);
+            Transform actions = transform.Find("ActionRow");
+            SetBagHeight(actions, 48);
+            foreach (var action in new[] { clearButton, confirmButton })
+            {
+                SetBagHeight(action.transform, 48);
+                StyleBagSurface(action.transform, action == confirmButton ? new Color(0.48f, 0.30f, 0.13f) : section, gold);
+                var colors = action.colors;
+                colors.normalColor = Color.white;
+                colors.highlightedColor = new Color(1, 0.91f, 0.72f);
+                colors.selectedColor = colors.highlightedColor;
+                colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+                action.colors = colors;
+            }
+        }
+
+        private static void SetBagHeight(Transform target, float height, float flexible = 0)
+        {
+            if (target == null) return;
+            var element = target.GetComponent<LayoutElement>() ?? target.gameObject.AddComponent<LayoutElement>();
+            element.ignoreLayout = false;
+            element.minHeight = height;
+            element.preferredHeight = height;
+            element.flexibleHeight = flexible;
+        }
+
+        private static void StyleBagSurface(Transform target, Color fill, Color border)
+        {
+            if (target == null) return;
+            var image = target.GetComponent<Image>() ?? target.gameObject.AddComponent<Image>();
+            image.color = fill;
+            var outline = target.GetComponent<Outline>() ?? target.gameObject.AddComponent<Outline>();
+            outline.effectColor = border;
+            outline.effectDistance = new Vector2(1, -1);
         }
 
         private bool HasRequiredLayoutReferences()

@@ -122,7 +122,7 @@ namespace Work.Adventure.Code
                     ? locked.KeyItem != null && HasItem(locked.KeyItem) != locked.IsUnLockOption
                     : !(option is IngredientLockedOption ingredient) || ingredient.CanSelect(inventory);
                 _currentEvent = _eventSelector.Select(eventList, _currentEvent,
-                    _adventureItemDic.Values.Any(count => count > 0), HasItem, CanSelect,
+                    _adventureItemDic.Values.Sum(count => Mathf.Max(0, count)), HasItem, CanSelect,
                     supplyEventChance, maxEventsWithoutSupply, missingToolWeight, () => Random.value);
                 if (_currentEvent == null)
                 {

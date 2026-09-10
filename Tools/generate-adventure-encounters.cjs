@@ -19,7 +19,7 @@ function header(name, script, cls) {
   return `%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n--- !u!114 &11400000\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 0}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: ${ref(script,11500000,3)}\n  m_Name: ${name}\n  m_EditorClassIdentifier: Assembly-CSharp::${cls}\n`;
 }
 
-const {events}=require('./adventure-equipment-encounters.cjs');
+const {events}=require(process.argv[2] || './adventure-equipment-encounters.cjs');
 const toolNames={knife:'칼',hammer:'망치',Rope:'밧줄',Lantern:'탐험 등불',Tongs:'긴 집게',CollectingBottle:'채집병'};
 const tools=Object.fromEntries(Object.keys(toolNames).map(n=>[n,A+'/SO/AdventureItem/'+(n==='hammer'?'Hamer':n)+'.asset']));
 const materialNames={SlimeMucus:'슬라임 점액',CornCheese:'콘치즈',RockSalt:'암염'};
