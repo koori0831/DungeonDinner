@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="region-row" class="list-row region-row">
+        <ui:Label name="region-name" text="지역" class="row-title" />
+        <ui:Label name="region-time" text="이동 1" class="row-subtitle" />
+    </ui:VisualElement>
+</ui:UXML>

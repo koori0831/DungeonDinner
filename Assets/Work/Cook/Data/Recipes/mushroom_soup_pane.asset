@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01763dce3a1996f42bdc09202d075d93, type: 3}
+  m_Name: mushroom_soup_pane
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.RecipeSO
+  recipeId: mushroom_soup_pane
+  displayName: "\uBC84\uC12F \uC218\uD504 \uBE60\uB124"
+  iconSprite: {fileID: 21300000, guid: c0d325eeeff8100459b5768e49a3d8be, type: 3}
+  description: "머시룸맨의 갓을 그릇으로 삼아 납작버섯 조각과 끓인 슬라임 점액을 담은 버섯 수프 빠네. 빵 대신 버섯 갓까지 함께 먹는 던전 요리다."
+  revealNameByDefault: 0
+  hiddenDisplayName: ???
+  undiscoveredDescription: "버섯 갓을 그릇으로 쓰는 따뜻한 수프. 재료와 손질을 조합해 조리법을 알아내자."
+  hintDescription: "버섯 갓은 모양을 유지하고 납작버섯은 썰거나 다져 넣는다. 슬라임 점액을 끓이면 끈적함이 줄어든다. 암염은 선택 재료다."
+  discoveredDescription: "버섯 갓을 그대로 사용하고, 납작버섯을 썰거나 다져 슬라임 점액과 함께 담는다. 점액의 손질에 따라 농도와 온도가 달라지며 암염을 더할 수 있다."
+  category: {fileID: 11400000, guid: 1b2952f03915ffb4983759a8c2a89117, type: 2}
+  priority: 0
+  baseTags:
+  - {fileID: 11400000, guid: 1620f2a3b70a2a84ebdb18e8ecc4bd3e, type: 2}
+  - {fileID: 11400000, guid: f73414f9cae048d47bcb30ad6215c784, type: 2}
+  - {fileID: 11400000, guid: 5b122f10b24af134fa18da0d725c4921, type: 2}
+  - {fileID: 11400000, guid: 801c732da891b614d9963390a5ba26ce, type: 2}
+  requiredIngredients:
+  - requirementId: slot_10000001
+    ingredient: {fileID: 11400000, guid: 52c2c5f32ce29d6479ae5892c99e56c6, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods:
+    - {fileID: 11400000, guid: 28af1fe5b37bf79419db73d548f2c79b, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 0
+  - requirementId: slot_10000002
+    ingredient: {fileID: 11400000, guid: 09db9e234bdaac645977b8020c1fd84e, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods:
+    - {fileID: 11400000, guid: 04676038e45c8fe4ab12e5097dce2760, type: 2}
+    - {fileID: 11400000, guid: 9a9ab2bc5e82e934cb3c1c1b1246b55d, type: 2}
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 0
+  - requirementId: slot_10000003
+    ingredient: {fileID: 11400000, guid: 07bec4b9989c44a4bbf5b8364376c15e, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods: []
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 0
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 0
+  - requirementId: slot_10000004
+    ingredient: {fileID: 11400000, guid: 8047bb3271861f147a23403c44b5c7fc, type: 2}
+    ingredientCategory: {fileID: 0}
+    requiredTags: []
+    alternatives: []
+    alternativeOptions: []
+    requiredPreparationMethod: {fileID: 0}
+    requiredPreparationMethods: []
+    minCount: 1
+    maxCount: 1
+    recipeDefining: 1
+    requireManualPreparation: 0
+    usePreparationResultNameModifier: 1
+  perfectPreparationRules: []

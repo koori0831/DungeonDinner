@@ -1,0 +1,120 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c017245360f0bc546a567e1840070efd, type: 3}
+  m_Name: Find_Mushroom
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
+  <dialogDatas>k__BackingField:
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uB358\uC804 \uAE38\uBAA9\uC5D0\uC11C \uBC84\uC12F\uC744
+      \uBC1C\uACAC\uD588\uB2E4."
+    method:
+    - rid: 3674030402256765096
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uBE68\uAC04 \uAC13\uC5D0 \uD558\uC580 \uBC18\uC810\uC774
+      \uBC15\uD600 \uC788\uB2E4."
+    method: []
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uBC84\uC12F\uC744 \uAC00\uAE4C\uC774\uC5D0\uC11C
+      \uC0B4\uD3B4\uBCF4\uC558\uB2E4."
+    method: []
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uAC13\uC774 \uC81C\uBC95 \uD2BC\uD2BC\uD55C\uB370?\""
+    method: []
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC5B4\uB5BB\uAC8C \uC190\uC9C8\uD560\uAE4C?\""
+    method: []
+  options:
+  - rid: 3674030357021720966
+  - rid: 3674030357021720968
+  references:
+    version: 2
+    RefIds:
+    - rid: 3674030357021720966
+      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "\uBC84\uC12F\uC744 \uAC00\uC838\uAC04\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uBC84\uC12F\uC744 \uC5BB\uB294\uB2E4."
+        rewardMethod:
+        - rid: 3674030389440807017
+        <ResultdialogDatas>k__BackingField:
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uBC84\uC12F\uC744 \uBF51\uC544 \uCC59\uACBC\uB2E4."
+          method:
+          - rid: 3674030402256765097
+        followUpOptions: []
+    - rid: 3674030357021720968
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "\uBC84\uC12F\uC744 \uC790\uB978\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
+        <RewardDescription>k__BackingField: "\uC790\uB978 \uBC84\uC12F\uC744 \uC5BB\uB294\uB2E4."
+        rewardMethod:
+        - rid: 3674030389440807018
+        - rid: 3674030402256765161
+        <ResultdialogDatas>k__BackingField:
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uCE7C\uB85C \uBC84\uC12F\uC758 \uAC13\uACFC
+            \uC904\uAE30\uB97C \uC798\uB77C \uB098\uB234\uB2E4."
+          method:
+          - rid: 3674030402256765098
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC904\uAE30\uB294 \uBE5B\uC73C\uB85C \uBCC0\uD558\uB354\uB2C8
+            \uC0AC\uB77C\uC84C\uB2E4."
+          method:
+          - rid: 3674030402256765099
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB0A8\uC740 \uBC84\uC12F \uAC13\uC744 \uCC59\uACBC\uB2E4."
+          method:
+          - rid: 3674030402256765100
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 0
+    - rid: 3674030389440807017
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 3b3858c376a94420afed3190905d141d, type: 2}
+        amount: 1
+    - rid: 3674030389440807018
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 3b3858c376a94420afed3190905d141d, type: 2}
+        amount: 1
+    - rid: 3674030402256765096
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 95bf6303494e25f4a8ed0c258b31786d, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 3674030402256765097
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 3674030402256765098
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 3674030402256765099
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 1e907fc6786ae384792cfc8c6c9ae71a, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 3674030402256765100
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 3674030402256765161
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 4d12c1c6cd2345e9a96bfd7d88e8dc17, type: 2}
+        amount: 1

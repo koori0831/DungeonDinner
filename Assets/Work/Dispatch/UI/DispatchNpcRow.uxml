@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="npc-row" class="list-row npc-row">
+        <ui:VisualElement class="portrait-placeholder">
+            <ui:Label name="npc-initial" text="?" class="portrait-initial" />
+        </ui:VisualElement>
+        <ui:VisualElement class="row-text-group">
+            <ui:Label name="npc-name" text="NPC" class="row-title" />
+            <ui:Label name="npc-affinity" text="친밀도 0" class="row-subtitle" />
+        </ui:VisualElement>
+        <ui:Label name="npc-state" text="가능" class="state-badge" />
+    </ui:VisualElement>
+</ui:UXML>

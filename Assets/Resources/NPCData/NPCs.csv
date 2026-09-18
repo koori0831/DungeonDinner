@@ -1,2 +1,5 @@
-NpcId,DisplayName,Race,Role,PreferredTags,PreferredFoodTypes,AvoidTags,Notes,RequestAvailable,RequestUnlockLevel,RequestUnlockEvent
+﻿"NpcId","DisplayName","Race","Role","PreferredTags","PreferredFoodTypes","AvoidTags","Notes","RequestAvailable","RequestUnlockLevel","RequestUnlockEvent"
 "Odin","오딘","드래곤","황금 드래곤 로드","warm","dessert","sticky","새로운 음식에 도전하는걸 좋아하는 황금 드래곤족의 드래곤 로드","FALSE","5",""
+"Nari","나리","인간","견습 모험가","sweet","dessert","bleak","처음 보는 음식도 메모하며 배우려는 견습 모험가. 밝고 조심스러운 말투를 쓴다.","FALSE","5",""
+"Boram","보람","도마뱀족","동굴 채집꾼","warm","fondue","bleak","재료의 모양과 손질을 유심히 살피는 동굴 채집꾼. 차분하고 구체적으로 말한다.","FALSE","5",""
+"Rook","룩","하피","정찰병","warm","soup","bleak","길과 바람의 변화를 기록하는 정찰병. 짧고 분명하게 말한다.","FALSE","5",""

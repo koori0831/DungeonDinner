@@ -1,0 +1,145 @@
+using UnityEngine;
+using Work.Adventure.Code.UI;
+using Work.Cook.Code.Runtime.Systems;
+using Work.Cook.Code.Runtime.UI;
+using Work.Core.EventBus;
+using Work.Dispatch.Code.Runtime;
+using Work.Dispatch.Code.UI;
+using System.Collections;
+using Work.UtillUI.Code;
+
+namespace Work.Adventure.Code
+{
+    public class PreparationManager : MonoBehaviour
+    {
+        [SerializeField] private AdventureManager adventureManager;
+
+        [SerializeField] private PreparationMenu preparationMenuUI;
+        [SerializeField] private MainUI mainUIroot;
+        [SerializeField] private DispatchScreenPresenter dispatchScreen;
+        [SerializeField] private DispatchManager dispatchManager;
+        [SerializeField] private bool startWithAdventure = true;
+
+        public void Awake()
+        {
+            Bus<CookingBusinessClosedEvent>.Events += EndBusiness;
+            Bus<OnSelectPreparationEvent>.Events += HandleSelectPreparationEvent;
+            if (dispatchScreen == null)
+                dispatchScreen = FindFirstObjectByType<DispatchScreenPresenter>();
+            if (dispatchManager == null)
+                dispatchManager = FindFirstObjectByType<DispatchManager>();
+
+            preparationMenuUI.Init(
+                () => mainUIroot.HideUI(),
+                () => mainUIroot.ShowUI(),
+                BuildDispatchStatus);
+            adventureManager.Init();
+            if (dispatchScreen != null)
+                dispatchScreen.Closed += ReturnFromDispatch;
+        }
+
+        private IEnumerator Start()
+        {
+            if (!startWithAdventure) yield break;
+            preparationMenuUI.HideUI();
+            mainUIroot.HideUI();
+            var business = FindFirstObjectByType<CookingBusinessFlowController>();
+            business?.PrepareForFirstAdventure();
+            // All scene services and the opening fade must finish initializing first.
+            yield return null;
+            while (GameUiInput.IsBlocked) yield return null;
+            SelectAdventure();
+        }
+
+        private void HandleSelectPreparationEvent(OnSelectPreparationEvent evt)
+        {
+            Debug.Log("HandleSelectPreparationEvent");
+            if (evt.preparationType == PreparationEnum.Adventure)
+            {
+                Debug.Log("HandleSelectPreparationEvent: Adventure");
+                SelectAdventure();
+            }
+            else if (evt.preparationType == PreparationEnum.Dispatch)
+            {
+                Debug.Log("HandleSelectPreparationEvent: Dispatch");
+                SelectDispatch();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            Bus<CookingBusinessClosedEvent>.Events -= EndBusiness;
+            Bus<OnSelectPreparationEvent>.Events -= HandleSelectPreparationEvent;
+            if (dispatchScreen != null)
+                dispatchScreen.Closed -= ReturnFromDispatch;
+        }
+
+        [ContextMenu("TestEndBusiness")]
+        public void Test()
+        {
+            preparationMenuUI.ShowUI();
+        }
+
+        public void StopAdventure()
+        {
+            GameUiInput.SetContext(GameUiContext.Preparation);
+            preparationMenuUI.ShowUI();
+            mainUIroot.ShowUI();
+        }
+
+        public void EndBusiness(CookingBusinessClosedEvent evt)
+        {
+            GameUiInput.SetContext(GameUiContext.Preparation);
+            preparationMenuUI.ShowUI();
+        }
+
+        public void SelectAdventure()
+        {
+            mainUIroot.HideUI();
+            adventureManager.StartAdventure();
+        }
+
+        public void SelectDispatch()
+        {
+            GameUiInput.SetContext(GameUiContext.Dispatch);
+            if (dispatchScreen == null)
+                dispatchScreen = FindFirstObjectByType<DispatchScreenPresenter>();
+
+            if (dispatchScreen != null)
+                dispatchScreen.Show();
+            else
+            {
+                Debug.LogError("파견 UI를 찾을 수 없습니다.", this);
+                ReturnFromDispatch();
+            }
+        }
+
+        private void ReturnFromDispatch()
+        {
+            GameUiInput.SetContext(GameUiContext.Preparation);
+            preparationMenuUI.ShowUI();
+            mainUIroot.ShowUI();
+        }
+
+        private string BuildDispatchStatus()
+        {
+            if (dispatchManager == null)
+                dispatchManager = FindFirstObjectByType<DispatchManager>();
+
+            if (dispatchManager == null)
+                return "이용 불가";
+
+            int reportCount = dispatchManager.ReturnedReports?.Count ?? 0;
+            return FormatDispatchStatus(dispatchManager.HasActiveJob, reportCount);
+        }
+
+        private static string FormatDispatchStatus(bool hasActiveJob, int reportCount)
+        {
+            reportCount = Mathf.Max(0, reportCount);
+            if (hasActiveJob)
+                return reportCount > 0 ? $"진행 중 · 보고서 {reportCount}건" : "진행 중";
+
+            return reportCount > 0 ? $"보고서 {reportCount}건" : "가능";
+        }
+    }
+}

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Work.Core.EventBus;
 using Work.Entities.Code;
 using Work.Items.Code;
 
@@ -27,6 +28,9 @@ namespace Work.Players.Code.Inventory
         [SerializeField]
         private int lastRemainingAmount;
 
+        private bool _isSubscribedToItemEvents;
+        private InventoryItemStack[] _snapshotItemStacks = new InventoryItemStack[DEFAULT_SLOT_CAPACITY];
+
         /// <summary>
         /// 인벤토리 내용이 변경될 때 발생하는 이벤트
         /// </summary>
@@ -50,6 +54,21 @@ namespace Work.Players.Code.Inventory
         private void Awake()
         {
             EnsureSlots();
+        }
+
+        private void OnEnable()
+        {
+            SubscribeItemEvents();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeItemEvents();
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeItemEvents();
         }
 
         /// <summary>
@@ -361,12 +380,89 @@ namespace Work.Players.Code.Inventory
         {
             Action<PlayerInventoryModule> handler = InventoryChanged;
 
-            if (handler == null)
+            if (handler != null)
+            {
+                handler.Invoke(this);
+            }
+
+            Bus<InventoryChangedEvent>.Raise(new InventoryChangedEvent());
+        }
+
+        private void SubscribeItemEvents()
+        {
+            if (_isSubscribedToItemEvents == true)
             {
                 return;
             }
 
-            handler.Invoke(this);
+            Bus<InventoryItemAddRequestedEvent>.Events += HandleAddRequested;
+            Bus<InventoryItemsAddRequestedEvent>.Events += HandleAddItemsRequested;
+            Bus<InventoryItemRemoveRequestedEvent>.Events += HandleRemoveRequested;
+            Bus<InventorySnapshotRequestedEvent>.Events += HandleSnapshotRequested;
+            _isSubscribedToItemEvents = true;
+        }
+
+        private void UnsubscribeItemEvents()
+        {
+            if (_isSubscribedToItemEvents == false)
+            {
+                return;
+            }
+
+            Bus<InventoryItemAddRequestedEvent>.Events -= HandleAddRequested;
+            Bus<InventoryItemsAddRequestedEvent>.Events -= HandleAddItemsRequested;
+            Bus<InventoryItemRemoveRequestedEvent>.Events -= HandleRemoveRequested;
+            Bus<InventorySnapshotRequestedEvent>.Events -= HandleSnapshotRequested;
+            _isSubscribedToItemEvents = false;
+        }
+
+        private void HandleAddRequested(InventoryItemAddRequestedEvent request)
+        {
+            AddItem(request.Item, request.Amount);
+        }
+
+        private void HandleAddItemsRequested(InventoryItemsAddRequestedEvent request)
+        {
+            AddItems(
+                request.ItemStacks,
+                request.StartIndex,
+                request.Count);
+        }
+
+        private void HandleRemoveRequested(InventoryItemRemoveRequestedEvent request)
+        {
+            RemoveItem(request.Item, request.Amount);
+        }
+
+        private void HandleSnapshotRequested(InventorySnapshotRequestedEvent request)
+        {
+            EnsureSlots();
+            EnsureSnapshotBuffer();
+
+            int stackCount = 0;
+            for (int i = 0; i < slots.Length; i++)
+            {
+                InventorySlot slot = slots[i];
+                if (slot == null || slot.IsEmpty == true)
+                {
+                    continue;
+                }
+
+                _snapshotItemStacks[stackCount] = new InventoryItemStack(slot.Item, slot.Amount);
+                stackCount++;
+            }
+
+            Bus<InventorySnapshotPublishedEvent>.Raise(new InventorySnapshotPublishedEvent(_snapshotItemStacks, stackCount));
+        }
+
+        private void EnsureSnapshotBuffer()
+        {
+            if (_snapshotItemStacks != null && _snapshotItemStacks.Length >= slots.Length)
+            {
+                return;
+            }
+
+            _snapshotItemStacks = new InventoryItemStack[slots.Length];
         }
 
         private void OnValidate()

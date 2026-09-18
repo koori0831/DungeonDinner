@@ -1,5 +1,7 @@
 # NPC Request Authoring Guide
 
+> 과거 의뢰 설계 예시다. 현재 등록 NPC 오딘의 의뢰는 비활성 상태이며 아래 예시 인물은 미등록이다. 실제 대화 CSV는 `EventId,Group,QuestionCategory,LineOrder,Speaker,Text`를 사용한다. 최신 값과 작성 규칙은 [대화 생성 기준 자료](Dialogue_Generation_Reference.md)를 우선한다.
+
 이 문서는 NPC 대화 시스템에서 "의뢰형 이벤트"를 작성할 때 필요한 최소 구조를 정리한다.
 요리 판정 자체는 별도 시스템에서 처리하고, NPC 시스템은 의뢰 제안, 결과에 따른 상태 전환, 완료 대화, 후일담 대화를 담당한다.
 

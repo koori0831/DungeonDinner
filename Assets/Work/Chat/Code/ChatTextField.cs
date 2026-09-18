@@ -10,10 +10,13 @@ namespace Work.Chat.Code
     {
         [SerializeField] private TextMeshProUGUI text;
         [SerializeField] private Image image;
-        [SerializeField] private Vector2 padding = new Vector2(28f, 18f);
-        [SerializeField] private float minWidth = 95f;
-        [SerializeField] private float minHeight = 50f;
-        [SerializeField] private float maxWidth = 520f;
+        [SerializeField] private Sprite playerBubbleSprite;
+        [SerializeField] private Sprite otherBubbleSprite;
+        [SerializeField] private Vector2 padding = new Vector2(88f, 32f);
+        [SerializeField] private Vector2 bubbleExtraSize = new Vector2(52f, 16f);
+        [SerializeField] private float minWidth = 200f;
+        [SerializeField] private float minHeight = 72f;
+        [SerializeField] private float maxWidth = 700f;
         [SerializeField] private float startScale = 0.35f;
         [SerializeField] private float overScale = 1.08f;
         [SerializeField] private float underScale = 0.97f;
@@ -53,12 +56,28 @@ namespace Work.Chat.Code
             text.text = script;
             RectTransform rectTransform = transform as RectTransform;
             if (rectTransform != null)
-                rectTransform.pivot = new Vector2(isUserChat ? 1f : 0f, rectTransform.pivot.y);
-            
-            text.color = isUserChat ? Color.white : Color.black;
-            image.color = !isUserChat ? Color.white : Color.black;
+                rectTransform.pivot = new Vector2(isUserChat ? 0f : 1f, rectTransform.pivot.y);
+
+            ApplyBubbleVisual(isUserChat);
             ResizeToText();
             StartTyping();
+        }
+
+        private void ApplyBubbleVisual(bool isUserChat)
+        {
+            Sprite bubbleSprite = isUserChat == true ? playerBubbleSprite : otherBubbleSprite;
+            if (bubbleSprite != null && image != null)
+            {
+                image.sprite = bubbleSprite;
+                image.type = Image.Type.Sliced;
+                image.preserveAspect = false;
+                image.color = Color.white;
+                text.color = isUserChat == true ? new Color(0.24f, 0.14f, 0.08f) : Color.white;
+                return;
+            }
+
+            text.color = isUserChat == true ? Color.black : Color.white;
+            image.color = isUserChat == true ? Color.white : Color.black;
         }
 
         public void SetMaxWidth(float width)
@@ -86,14 +105,14 @@ namespace Work.Chat.Code
             if (rectTransform == null)
                 return;
 
-            float textMaxWidth = Mathf.Max(1f, maxWidth - padding.x);
+            float textMaxWidth = Mathf.Max(1f, maxWidth - padding.x - bubbleExtraSize.x);
             Vector2 preferred = text.GetPreferredValues(Chat, textMaxWidth, 0f);
 
-            float bubbleWidth = Mathf.Clamp(preferred.x + padding.x, minWidth, maxWidth);
-            float wrappedTextWidth = Mathf.Max(1f, bubbleWidth - padding.x);
+            float bubbleWidth = Mathf.Clamp(preferred.x + padding.x + bubbleExtraSize.x, minWidth, maxWidth);
+            float wrappedTextWidth = Mathf.Max(1f, bubbleWidth - padding.x - bubbleExtraSize.x);
             preferred = text.GetPreferredValues(Chat, wrappedTextWidth, 0f);
 
-            float bubbleHeight = Mathf.Max(minHeight, preferred.y + padding.y);
+            float bubbleHeight = Mathf.Max(minHeight, preferred.y + padding.y + bubbleExtraSize.y);
             rectTransform.sizeDelta = new Vector2(bubbleWidth, bubbleHeight);
 
             RectTransform textRectTransform = text.rectTransform;

@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
+using Work.Core.EventBus;
 using Work.NPC.Code.Data;
+using Work.TimeSystem;
 using Random = UnityEngine.Random;
 
 namespace Work.NPC.Code.Runtime
@@ -27,7 +30,7 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private bool playOnStart;
         [SerializeField, Min(1)] private int currentDay = 1;
         [SerializeField] private bool persistHistory = true;
-        [SerializeField] private string historySaveKey = "DungeonDinner.NpcEncounterHistory";
+        [SerializeField] private string historySaveKey = NpcEncounterHistory.DefaultSaveKey;
         [SerializeField] private bool continueDayFromHistoryOnLoad = true;
         [SerializeField] private bool ignoreNpcCooldownWhenPoolIsEmpty;
         [SerializeField, Min(1)] private int maxEncountersPerDay = 3;
@@ -35,6 +38,21 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private bool avoidImmediateRepeat = true;
         [SerializeField, Min(0)] private int recentNpcRepeatBlockCount = 2;
         [SerializeField, Min(0)] private int recentEventRepeatBlockCount = 3;
+        [SerializeField] private GameTimeService gameTimeService;
+        [SerializeField] private MonoBehaviour externalAvailabilityRuleSource;
+
+        [Header("Encounter Intro")]
+        [SerializeField] private Transform npcRiseTarget;
+        [SerializeField] private bool playNpcRiseBeforeConversation;
+        [SerializeField] private float npcRiseStartEulerX = 90f;
+        [SerializeField] private float npcRiseEndEulerX;
+        [SerializeField, Min(0f)] private float npcRiseDuration = 0.55f;
+        [SerializeField] private Ease npcRiseEase = Ease.OutBack;
+
+        [Header("Encounter Outro")]
+        [SerializeField] private bool playNpcReturnAfterResultConversation = true;
+        [SerializeField, Min(0f)] private float npcReturnDuration = 0.45f;
+        [SerializeField] private Ease npcReturnEase = Ease.InBack;
 
         [Header("Events")]
         [SerializeField] private NpcAffinityChangeSummaryEvent affinityChanged = new NpcAffinityChangeSummaryEvent();
@@ -43,6 +61,7 @@ namespace Work.NPC.Code.Runtime
 
         private NpcConversationDatabase _database;
         private NpcEncounterHistory _history;
+        private bool _isEncounterDataInitialized;
         private int _activeEncounterDay = 1;
         private string _activeEventId;
         private int _sessionDay;
@@ -50,6 +69,11 @@ namespace Work.NPC.Code.Runtime
         private int _encountersStartedToday;
         private string _lastAffinityChangeSummary;
         private string _lastRequestUnlockSummary;
+        private Tween _npcRiseTween;
+        private bool _isStartingEncounter;
+        private bool _isPlayingNpcReturn;
+        private bool _shouldReturnNpcAfterResultConversation;
+        private INpcAvailabilityRule _externalAvailabilityRule;
 
         public event Action<NpcAffinityChangeContext> AffinityChanged;
         public event Action<NpcAffinityChangeContext> AffinityLevelChanged;
@@ -64,6 +88,7 @@ namespace Work.NPC.Code.Runtime
         {
             get
             {
+                EnsureEncounterDataInitialized();
                 SyncDailySessionState();
                 return _encountersStartedToday;
             }
@@ -79,30 +104,56 @@ namespace Work.NPC.Code.Runtime
 
         private void Awake()
         {
-            currentDay = Mathf.Max(1, currentDay);
-
             if (runner == null)
                 runner = FindFirstObjectByType<NpcConversationRunner>();
 
-            _database = NpcConversationDatabase.LoadFromResources(resourceFolder);
-            _history = persistHistory
-                ? NpcEncounterHistory.Load(historySaveKey)
-                : NpcEncounterHistory.CreateUnsaved();
-
-            SyncCurrentDayFromHistory();
-            ReconcileRequestStatesFromPlayedRequestEvents();
+            EnsureEncounterDataInitialized();
+            ResolveExternalAvailabilityRule();
+            Bus<GameDayChangedEvent>.Events += HandleGameDayChanged;
 
             if (runner != null)
             {
+                runner.DishEvaluated += HandleDishEvaluated;
                 runner.ResultDialogueStarted += HandleResultDialogueStarted;
                 runner.ConversationCompleted += HandleConversationCompleted;
             }
         }
 
+        private void EnsureEncounterDataInitialized()
+        {
+            if (_isEncounterDataInitialized)
+                return;
+
+            // Preparation UI can query this component before its Awake runs.
+            currentDay = Mathf.Max(1, currentDay);
+            _database ??= NpcConversationDatabase.LoadFromResources(resourceFolder);
+            _history ??= persistHistory
+                ? NpcEncounterHistory.Load(historySaveKey)
+                : NpcEncounterHistory.CreateUnsaved();
+
+            if (gameTimeService == null)
+                gameTimeService = FindFirstObjectByType<GameTimeService>();
+
+            if (gameTimeService != null)
+                currentDay = Mathf.Max(1, gameTimeService.CurrentDay);
+            else
+                SyncCurrentDayFromHistory();
+
+            ReconcileRequestStatesFromPlayedRequestEvents();
+            // Earlier calls may have cached the same day and region without history.
+            SyncDailySessionState(true);
+            _isEncounterDataInitialized = true;
+        }
+
         private void OnDestroy()
         {
+            Bus<GameDayChangedEvent>.Events -= HandleGameDayChanged;
+            _npcRiseTween?.Kill();
+            _npcRiseTween = null;
+
             if (runner != null)
             {
+                runner.DishEvaluated -= HandleDishEvaluated;
                 runner.ResultDialogueStarted -= HandleResultDialogueStarted;
                 runner.ConversationCompleted -= HandleConversationCompleted;
             }
@@ -118,6 +169,50 @@ namespace Work.NPC.Code.Runtime
         {
             regionId = newRegionId;
             SyncDailySessionState();
+        }
+
+        public bool TryGetNpcData(string npcId, out NpcData npc)
+        {
+            if (_database == null || string.IsNullOrWhiteSpace(npcId))
+            {
+                npc = null;
+                return false;
+            }
+
+            return _database.Npcs.TryGetValue(npcId, out npc);
+        }
+
+        public IReadOnlyList<NpcData> GetAllNpcData()
+        {
+            if (_database == null)
+                return Array.Empty<NpcData>();
+
+            return _database.Npcs.Values
+                .OrderBy(npc => npc.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        public int GetNpcAffinity(string npcId)
+        {
+            return _history != null && string.IsNullOrWhiteSpace(npcId) == false
+                ? _history.GetNpcAffinity(npcId)
+                : 0;
+        }
+
+        public IReadOnlyList<string> GetNpcRegionIds(string npcId)
+        {
+            if (_database == null || string.IsNullOrWhiteSpace(npcId))
+                return Array.Empty<string>();
+
+            return _database.RegionPoolEntries
+                .Where(entry => string.Equals(entry.NpcId, npcId, StringComparison.OrdinalIgnoreCase)
+                                && string.IsNullOrWhiteSpace(entry.RegionId) == false
+                                && entry.RegionId != "*"
+                                && string.Equals(entry.RegionId, "Any", StringComparison.OrdinalIgnoreCase) == false)
+                .Select(entry => entry.RegionId)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         public void SetCurrentDay(int newCurrentDay)
@@ -471,11 +566,17 @@ namespace Work.NPC.Code.Runtime
 
         public bool CanStartEncounter()
         {
+            EnsureEncounterDataInitialized();
+
             if (runner == null)
                 runner = FindFirstObjectByType<NpcConversationRunner>();
 
-            if (runner == null || runner.HasActiveConversation)
+            if (runner == null
+                || runner.HasActiveConversation == true
+                || _isStartingEncounter == true)
+            {
                 return false;
+            }
 
             SyncDailySessionState();
             ReconcileRequestStatesFromPlayedRequestEvents();
@@ -492,11 +593,13 @@ namespace Work.NPC.Code.Runtime
                 return false;
             }
 
-            if (runner.HasActiveConversation)
+            if (runner.HasActiveConversation == true || _isStartingEncounter == true || _isPlayingNpcReturn == true)
             {
                 Debug.LogWarning("NPC encounter already has an active conversation. Complete the current conversation before starting another encounter.");
                 return false;
             }
+
+            _shouldReturnNpcAfterResultConversation = false;
 
             SyncDailySessionState();
             ReconcileRequestStatesFromPlayedRequestEvents();
@@ -520,13 +623,64 @@ namespace Work.NPC.Code.Runtime
             Debug.Log(
                 $"NPC encounter selected: date={NpcImperialCalendar.FormatDayIndex(_activeEncounterDay)}, " +
                 $"region={regionId}, npc={visitEvent.NpcId}, event={visitEvent.EventId}");
-            runner.PlayEvent(visitEvent.EventId, _history.GetNpcAffinity(visitEvent.NpcId));
+            PlayEncounterConversationAfterIntro(visitEvent);
             RecordEncounter(visitEvent, _activeEncounterDay, advanceDay);
             return true;
         }
 
+        private void PlayEncounterConversationAfterIntro(VisitEventData visitEvent)
+        {
+            if (visitEvent == null)
+            {
+                return;
+            }
+
+            if (playNpcRiseBeforeConversation == false || npcRiseTarget == null || npcRiseDuration <= 0f)
+            {
+                PlayEncounterConversation(visitEvent);
+                return;
+            }
+
+            _isStartingEncounter = true;
+            _npcRiseTween?.Kill();
+
+            Quaternion startRotation = Quaternion.Euler(npcRiseStartEulerX, 0f, 0f);
+            Quaternion endRotation = Quaternion.Euler(npcRiseEndEulerX, 0f, 0f);
+            npcRiseTarget.localRotation = startRotation;
+
+            _npcRiseTween = npcRiseTarget
+                .DOLocalRotateQuaternion(endRotation, npcRiseDuration)
+                .SetEase(npcRiseEase)
+                .SetTarget(npcRiseTarget)
+                .OnComplete(() => CompleteNpcRiseIntro(visitEvent, endRotation));
+        }
+
+        private void CompleteNpcRiseIntro(VisitEventData visitEvent, Quaternion endRotation)
+        {
+            if (npcRiseTarget != null)
+            {
+                npcRiseTarget.localRotation = endRotation;
+            }
+
+            PlayEncounterConversation(visitEvent);
+        }
+
+        private void PlayEncounterConversation(VisitEventData visitEvent)
+        {
+            _isStartingEncounter = false;
+            _npcRiseTween = null;
+
+            if (runner == null || visitEvent == null)
+            {
+                return;
+            }
+
+            runner.PlayEvent(visitEvent.EventId, _history.GetNpcAffinity(visitEvent.NpcId));
+        }
+
         public bool TryPickVisitEvent(string targetRegionId, out VisitEventData visitEvent)
         {
+            EnsureEncounterDataInitialized();
             visitEvent = null;
             currentDay = Mathf.Max(1, currentDay);
             SyncDailySessionState();
@@ -597,6 +751,12 @@ namespace Work.NPC.Code.Runtime
 
             foreach (RegionPoolEntryData entry in poolEntries)
             {
+                if (IsNpcExternallyAvailable(entry.NpcId) == false)
+                {
+                    dayRepeatBlocked++;
+                    continue;
+                }
+
                 if (entry.MinDay > currentDay)
                 {
                     minDayBlocked++;
@@ -652,6 +812,40 @@ namespace Work.NPC.Code.Runtime
                 $"historyLastDate={NpcImperialCalendar.FormatDayIndex(lastEncounterDay)}");
         }
 
+        private void HandleGameDayChanged(GameDayChangedEvent gameEvent)
+        {
+            SetCurrentDay(gameEvent.CurrentDay);
+        }
+
+        private void ResolveExternalAvailabilityRule()
+        {
+            _externalAvailabilityRule = externalAvailabilityRuleSource as INpcAvailabilityRule;
+            if (_externalAvailabilityRule != null)
+                return;
+
+            MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None);
+
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is INpcAvailabilityRule availabilityRule && behaviours[i] != this)
+                {
+                    _externalAvailabilityRule = availabilityRule;
+                    externalAvailabilityRuleSource = behaviours[i];
+                    return;
+                }
+            }
+        }
+
+        private bool IsNpcExternallyAvailable(string npcId)
+        {
+            if (_externalAvailabilityRule == null)
+                ResolveExternalAvailabilityRule();
+
+            return _externalAvailabilityRule == null || _externalAvailabilityRule.IsNpcAvailable(npcId);
+        }
+
         private void SyncDailySessionState(bool force = false)
         {
             currentDay = Mathf.Max(1, currentDay);
@@ -675,6 +869,9 @@ namespace Work.NPC.Code.Runtime
 
             foreach (RegionPoolEntryData entry in poolEntries)
             {
+                if (IsNpcExternallyAvailable(entry.NpcId) == false)
+                    continue;
+
                 if (entry.MinDay > currentDay)
                     continue;
 
@@ -696,6 +893,9 @@ namespace Work.NPC.Code.Runtime
         private List<string> GetPoolEntryBlockers(RegionPoolEntryData entry)
         {
             List<string> blockers = new List<string>();
+
+            if (IsNpcExternallyAvailable(entry.NpcId) == false)
+                blockers.Add("npc unavailable");
 
             if (entry.MinDay > currentDay)
                 blockers.Add($"minDay {currentDay}/{entry.MinDay}");
@@ -1156,6 +1356,17 @@ namespace Work.NPC.Code.Runtime
             return count;
         }
 
+        private void HandleDishEvaluated(NpcDishResultContext resultContext)
+        {
+            if (resultContext == null
+                || string.Equals(resultContext.EventId, _activeEventId, StringComparison.OrdinalIgnoreCase) == false)
+            {
+                return;
+            }
+
+            _shouldReturnNpcAfterResultConversation = true;
+        }
+
         private void HandleResultDialogueStarted(string eventId, NpcConversationResult result)
         {
             result = NpcConversationRunner.NormalizeResult(result);
@@ -1171,6 +1382,8 @@ namespace Work.NPC.Code.Runtime
                 Debug.LogWarning($"Cannot record NPC result. Visit event not found: {eventId}");
                 return;
             }
+
+            _shouldReturnNpcAfterResultConversation = true;
 
             int affinityDelta = GetAffinityDelta(result);
             int beforeAffinity = _history.GetNpcAffinity(visitEvent.NpcId);
@@ -1261,7 +1474,50 @@ namespace Work.NPC.Code.Runtime
 
         private void HandleConversationCompleted()
         {
+            if (_shouldReturnNpcAfterResultConversation == true)
+            {
+                _shouldReturnNpcAfterResultConversation = false;
+                PlayNpcReturnAfterResultConversation();
+            }
+
             _activeEventId = string.Empty;
+        }
+
+        private void PlayNpcReturnAfterResultConversation()
+        {
+            if (playNpcReturnAfterResultConversation == false || npcRiseTarget == null)
+            {
+                return;
+            }
+
+            Quaternion returnRotation = Quaternion.Euler(npcRiseStartEulerX, 0f, 0f);
+            _npcRiseTween?.Kill();
+
+            if (npcReturnDuration <= 0f)
+            {
+                npcRiseTarget.localRotation = returnRotation;
+                _npcRiseTween = null;
+                _isPlayingNpcReturn = false;
+                return;
+            }
+
+            _isPlayingNpcReturn = true;
+            _npcRiseTween = npcRiseTarget
+                .DOLocalRotateQuaternion(returnRotation, npcReturnDuration)
+                .SetEase(npcReturnEase)
+                .SetTarget(npcRiseTarget)
+                .OnComplete(() => CompleteNpcReturnAfterResultConversation(returnRotation));
+        }
+
+        private void CompleteNpcReturnAfterResultConversation(Quaternion returnRotation)
+        {
+            if (npcRiseTarget != null)
+            {
+                npcRiseTarget.localRotation = returnRotation;
+            }
+
+            _npcRiseTween = null;
+            _isPlayingNpcReturn = false;
         }
 
         private void RecordEncounter(VisitEventData visitEvent, int encounterDay, bool advanceDay)

@@ -1,105 +1,102 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace Work.NPC.Code.Runtime
 {
-    public sealed class NpcOrderSlipPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public sealed class NpcOrderSlipPanel : MonoBehaviour
     {
         [Header("References")]
-        [SerializeField] private TMP_FontAsset fontAsset;
         [SerializeField] private TextMeshProUGUI titleText;
         [SerializeField] private TextMeshProUGUI contentText;
         [SerializeField] private CanvasGroup canvasGroup;
 
-        [Header("Generated UI")]
-        [SerializeField] private bool createGeneratedUi = true;
+        [Header("Initial State")]
         [SerializeField] private bool visibleOnStart;
-        [SerializeField] private bool visibleOnConversationStart = true;
-        [SerializeField] private Vector2 panelSize = new Vector2(320f, 360f);
-        [SerializeField] private Vector2 defaultAnchoredPosition = new Vector2(360f, 0f);
 
-        [Header("Motion")]
-        [SerializeField, Min(0f)] private float dragTopHeight = 48f;
-        [SerializeField, Min(0f)] private float horizontalOverhang = 80f;
-        [SerializeField, Min(0f)] private float verticalOverhang = 80f;
+        [Header("Typing")]
         [SerializeField, Min(0.001f)] private float characterDelay = 0.025f;
         [SerializeField, Min(1)] private int maxEntries = 12;
+
+        [Header("Enter Motion")]
+        [SerializeField] private bool playEnterAnimation = true;
+        [SerializeField, Min(0f)] private float enterDropDistance = 96f;
+        [SerializeField, Min(0f)] private float enterDuration = 0.35f;
+        [SerializeField, Min(0f)] private float enterFadeDuration = 0.14f;
+        [SerializeField] private Ease enterEase = Ease.OutBack;
 
         private readonly Queue<string> _queuedEntries = new Queue<string>();
         private readonly List<string> _completedEntries = new List<string>();
         private readonly StringBuilder _displayedText = new StringBuilder();
-        private RectTransform _root;
-        private Canvas _canvas;
-        private Coroutine _typingRoutine;
-        private bool _isDragging;
+        private CancellationTokenSource _animationCancellationTokenSource;
+        private RectTransform _rectTransform;
+        private Sequence _enterSequence;
+        private Vector2 _defaultAnchoredPosition;
+        private bool _isProcessingQueue;
+        private bool _hasEntered;
+        private bool _hasDefaultAnchoredPosition;
+        private bool _isVisible;
         private int _entrySequence;
-
-        public static NpcOrderSlipPanel GetOrCreateGeneratedPanel()
-        {
-            NpcOrderSlipPanel existing = FindFirstObjectByType<NpcOrderSlipPanel>();
-            if (existing != null)
-                return existing;
-
-            Canvas canvas = FindFirstObjectByType<Canvas>();
-            if (canvas == null)
-            {
-                GameObject canvasObject = new GameObject(
-                    "NpcOrderSlipCanvas",
-                    typeof(RectTransform),
-                    typeof(Canvas),
-                    typeof(CanvasScaler),
-                    typeof(GraphicRaycaster));
-                canvas = canvasObject.GetComponent<Canvas>();
-                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-                CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
-                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                scaler.referenceResolution = new Vector2(1920f, 1080f);
-            }
-
-            GameObject panelObject = new GameObject("NpcOrderSlipPanel", typeof(RectTransform));
-            panelObject.transform.SetParent(canvas.transform, false);
-            return panelObject.AddComponent<NpcOrderSlipPanel>();
-        }
 
         private void Awake()
         {
-            _root = transform as RectTransform;
-            _canvas = GetComponentInParent<Canvas>();
-            ResolveFont();
+            _rectTransform = transform as RectTransform;
 
             if (canvasGroup == null)
                 canvasGroup = GetComponent<CanvasGroup>();
 
-            if (createGeneratedUi && contentText == null)
-                BuildGeneratedUi();
+            if (contentText == null)
+            {
+                Debug.LogError("NpcOrderSlipPanel contentText is missing. Assign titleText/contentText/canvasGroup from a prefab or inspector reference.", this);
+            }
 
-            ApplyDefaultLayout();
+            if (canvasGroup == null)
+            {
+                Debug.LogError("NpcOrderSlipPanel canvasGroup is missing. Assign it from a prefab or inspector reference.", this);
+            }
+
+            CaptureDefaultAnchoredPosition();
+            if (titleText != null) titleText.color = new Color(0.97f, 0.94f, 0.84f, 1f);
+            if (contentText != null)
+            {
+                contentText.fontSize = 20f;
+                contentText.enableAutoSizing = false;
+                contentText.textWrappingMode = TextWrappingModes.Normal;
+                contentText.color = new Color(0.24f, 0.14f, 0.08f, 1f);
+            }
             SetVisible(visibleOnStart);
             RefreshContentText();
         }
 
+        private void OnDestroy()
+        {
+            CancelAnimation();
+            KillEnterSequence(false);
+        }
+
+        private void OnDisable()
+        {
+            CancelAnimation();
+            KillEnterSequence(false);
+        }
+
         public void ResetForConversation(string eventId = "", string npcId = "")
         {
-            if (_typingRoutine != null)
-            {
-                StopCoroutine(_typingRoutine);
-                _typingRoutine = null;
-            }
+            CancelAnimation();
 
             _queuedEntries.Clear();
             _completedEntries.Clear();
             _displayedText.Clear();
             _entrySequence = 0;
+            _hasEntered = false;
+            _isProcessingQueue = false;
+            SetVisible(false);
             RefreshContentText();
-
-            if (visibleOnConversationStart)
-                SetVisible(true);
         }
 
         public void AppendOrderClues(IEnumerable<string> clues)
@@ -107,6 +104,7 @@ namespace Work.NPC.Code.Runtime
             if (clues == null)
                 return;
 
+            bool startedFirstEntry = false;
             foreach (string clue in clues)
             {
                 string normalized = NormalizeClue(clue);
@@ -114,11 +112,24 @@ namespace Work.NPC.Code.Runtime
                     continue;
 
                 _entrySequence++;
-                _queuedEntries.Enqueue($"{_entrySequence:00}  {normalized}");
+                string entry = $"{_entrySequence:00}  {normalized}";
+                if (_hasEntered == false && startedFirstEntry == false)
+                {
+                    AppendVisibleCompletedEntry(entry);
+                    _hasEntered = true;
+                    startedFirstEntry = true;
+                    SetVisible(true);
+                    StartProcessingQueue();
+                    continue;
+                }
+
+                _queuedEntries.Enqueue(entry);
             }
 
-            if (_queuedEntries.Count > 0 && _typingRoutine == null)
-                _typingRoutine = StartCoroutine(TypeQueuedEntriesRoutine());
+            if (_queuedEntries.Count > 0 && _isProcessingQueue == false)
+            {
+                StartProcessingQueue();
+            }
         }
 
         public void SetVisible(bool visible)
@@ -126,55 +137,177 @@ namespace Work.NPC.Code.Runtime
             if (canvasGroup == null)
                 return;
 
-            canvasGroup.alpha = visible ? 1f : 0f;
-            canvasGroup.interactable = visible;
-            canvasGroup.blocksRaycasts = visible;
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            _isDragging = IsPointerInDragArea(eventData);
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (_isDragging == false || _root == null)
-                return;
-
-            float scaleFactor = _canvas != null && _canvas.scaleFactor > 0f ? _canvas.scaleFactor : 1f;
-            Vector2 position = _root.anchoredPosition;
-            position.x += eventData.delta.x / scaleFactor;
-            position.y += eventData.delta.y / scaleFactor;
-            position.x = ClampHorizontalPosition(position.x);
-            position.y = ClampVerticalPosition(position.y);
-            _root.anchoredPosition = position;
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            _isDragging = false;
-        }
-
-        private IEnumerator TypeQueuedEntriesRoutine()
-        {
-            while (_queuedEntries.Count > 0)
+            if (visible == true)
             {
-                string entry = _queuedEntries.Dequeue();
-                if (_displayedText.Length > 0)
-                    _displayedText.AppendLine();
-
-                for (int i = 0; i < entry.Length; i++)
-                {
-                    _displayedText.Append(entry[i]);
-                    RefreshContentText();
-                    yield return new WaitForSeconds(characterDelay);
-                }
-
-                _completedEntries.Add(entry);
-                TrimCompletedEntries();
+                ShowVisible();
+                return;
             }
 
-            _typingRoutine = null;
+            HideVisible();
+        }
+
+        private void ShowVisible()
+        {
+            // 조리 중에도 떠 있는 읽기 전용 HUD이므로 미니게임 입력을 가로채지 않는다.
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+
+            if (_isVisible == true)
+            {
+                return;
+            }
+
+            _isVisible = true;
+            if (playEnterAnimation == false || enterDuration <= 0f || _rectTransform == null)
+            {
+                RestoreDefaultAnchoredPosition();
+                canvasGroup.alpha = 1f;
+                return;
+            }
+
+            PlayEnterAnimation();
+        }
+
+        private void HideVisible()
+        {
+            KillEnterSequence(false);
+            RestoreDefaultAnchoredPosition();
+            _isVisible = false;
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
+
+        private void PlayEnterAnimation()
+        {
+            CaptureDefaultAnchoredPosition();
+            KillEnterSequence(false);
+
+            _rectTransform.anchoredPosition = _defaultAnchoredPosition + Vector2.up * enterDropDistance;
+            canvasGroup.alpha = enterFadeDuration <= 0f ? 1f : 0f;
+
+            Sequence sequence = DOTween.Sequence();
+            sequence.SetTarget(this);
+            sequence.SetLink(gameObject, LinkBehaviour.KillOnDisable);
+            sequence.Join(_rectTransform.DOAnchorPos(_defaultAnchoredPosition, enterDuration).SetEase(enterEase));
+
+            if (enterFadeDuration > 0f)
+            {
+                sequence.Join(canvasGroup.DOFade(1f, enterFadeDuration).SetEase(Ease.OutQuad));
+            }
+
+            sequence.OnKill(() =>
+            {
+                if (_enterSequence == sequence)
+                {
+                    _enterSequence = null;
+                }
+            });
+            _enterSequence = sequence;
+        }
+
+        private void KillEnterSequence(bool complete)
+        {
+            if (_enterSequence == null)
+            {
+                return;
+            }
+
+            _enterSequence.Kill(complete);
+            _enterSequence = null;
+        }
+
+        private void CaptureDefaultAnchoredPosition()
+        {
+            if (_hasDefaultAnchoredPosition == true || _rectTransform == null)
+            {
+                return;
+            }
+
+            _defaultAnchoredPosition = _rectTransform.anchoredPosition;
+            _hasDefaultAnchoredPosition = true;
+        }
+
+        private void RestoreDefaultAnchoredPosition()
+        {
+            if (_hasDefaultAnchoredPosition == false || _rectTransform == null)
+            {
+                return;
+            }
+
+            _rectTransform.anchoredPosition = _defaultAnchoredPosition;
+        }
+
+        private void StartProcessingQueue()
+        {
+            CancelAnimation();
+            _animationCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
+            ProcessQueuedEntriesAsync(_animationCancellationTokenSource).Forget();
+        }
+
+        private async UniTask ProcessQueuedEntriesAsync(CancellationTokenSource cancellationTokenSource)
+        {
+            CancellationToken cancellationToken = cancellationTokenSource.Token;
+            _isProcessingQueue = true;
+            try
+            {
+                SetVisible(true);
+
+                while (_queuedEntries.Count > 0)
+                {
+                    await TypeQueuedEntryAsync(_queuedEntries.Dequeue(), cancellationToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // 새 손님 시작 또는 패널 초기화로 연출이 취소되는 정상 흐름
+            }
+            finally
+            {
+                _isProcessingQueue = false;
+                if (_animationCancellationTokenSource == cancellationTokenSource)
+                {
+                    _animationCancellationTokenSource.Dispose();
+                    _animationCancellationTokenSource = null;
+                }
+            }
+        }
+
+        private async UniTask TypeQueuedEntryAsync(string entry, CancellationToken cancellationToken)
+        {
+            if (_displayedText.Length > 0)
+            {
+                _displayedText.AppendLine();
+            }
+
+            int delayMilliseconds = Mathf.Max(1, Mathf.RoundToInt(characterDelay * 1000f));
+            for (int i = 0; i < entry.Length; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                _displayedText.Append(entry[i]);
+                RefreshContentText();
+                await UniTask.Delay(delayMilliseconds, cancellationToken: cancellationToken);
+            }
+
+            AppendCompletedEntry(entry);
+        }
+
+        private void AppendCompletedEntry(string entry)
+        {
+            _completedEntries.Add(entry);
+            TrimCompletedEntries();
+        }
+
+        private void AppendVisibleCompletedEntry(string entry)
+        {
+            if (_displayedText.Length > 0)
+            {
+                _displayedText.AppendLine();
+            }
+
+            _displayedText.Append(entry);
+            AppendCompletedEntry(entry);
+            RefreshContentText();
         }
 
         private void TrimCompletedEntries()
@@ -205,146 +338,18 @@ namespace Work.NPC.Code.Runtime
             contentText.text = _displayedText.Length > 0 ? _displayedText.ToString() : "...";
         }
 
-        private bool IsPointerInDragArea(PointerEventData eventData)
+        private void CancelAnimation()
         {
-            if (_root == null || eventData == null)
-                return false;
-
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    _root,
-                    eventData.position,
-                    eventData.pressEventCamera,
-                    out Vector2 localPoint) == false)
+            if (_animationCancellationTokenSource == null)
             {
-                return false;
+                return;
             }
 
-            return localPoint.x >= 0f
-                   && localPoint.x <= _root.rect.width
-                   && localPoint.y <= 0f
-                   && localPoint.y >= -_root.rect.height;
+            _animationCancellationTokenSource.Cancel();
+            _animationCancellationTokenSource.Dispose();
+            _animationCancellationTokenSource = null;
         }
 
-        private float ClampHorizontalPosition(float x)
-        {
-            if (_root == null || _root.parent is RectTransform parent == false)
-                return x;
-
-            float minX = -horizontalOverhang;
-            float maxX = Mathf.Max(0f, parent.rect.width - _root.rect.width) + horizontalOverhang;
-            return Mathf.Clamp(x, minX, maxX);
-        }
-
-        private float ClampVerticalPosition(float y)
-        {
-            if (_root == null || _root.parent is RectTransform parent == false)
-                return y;
-
-            float minY = -Mathf.Max(0f, parent.rect.height - _root.rect.height) - verticalOverhang;
-            float maxY = verticalOverhang;
-            return Mathf.Clamp(y, minY, maxY);
-        }
-
-        private void ApplyDefaultLayout()
-        {
-            if (_root == null)
-                return;
-
-            _root.anchorMin = new Vector2(0f, 1f);
-            _root.anchorMax = new Vector2(0f, 1f);
-            _root.pivot = new Vector2(0f, 1f);
-            _root.sizeDelta = panelSize;
-            _root.anchoredPosition = new Vector2(
-                ClampHorizontalPosition(defaultAnchoredPosition.x),
-                defaultAnchoredPosition.y);
-        }
-
-        private void BuildGeneratedUi()
-        {
-            _root = transform as RectTransform;
-            if (_root == null)
-                return;
-
-            Image background = GetComponent<Image>();
-            if (background == null)
-                background = gameObject.AddComponent<Image>();
-
-            background.color = new Color(0.96f, 0.92f, 0.78f, 0.96f);
-            background.raycastTarget = true;
-
-            if (canvasGroup == null)
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
-
-            GameObject headerObject = new GameObject("Header", typeof(RectTransform), typeof(Image));
-            headerObject.transform.SetParent(transform, false);
-            RectTransform header = headerObject.GetComponent<RectTransform>();
-            header.anchorMin = new Vector2(0f, 1f);
-            header.anchorMax = Vector2.one;
-            header.pivot = new Vector2(0.5f, 1f);
-            header.sizeDelta = new Vector2(0f, dragTopHeight);
-            header.anchoredPosition = Vector2.zero;
-            headerObject.GetComponent<Image>().color = new Color(0.22f, 0.19f, 0.16f, 0.95f);
-
-            titleText = CreateText(header, "Title", "주문 명세서", 20f, TextAlignmentOptions.MidlineLeft);
-            RectTransform titleRect = titleText.rectTransform;
-            titleRect.anchorMin = Vector2.zero;
-            titleRect.anchorMax = Vector2.one;
-            titleRect.offsetMin = new Vector2(18f, 0f);
-            titleRect.offsetMax = new Vector2(-18f, 0f);
-            titleText.color = new Color(1f, 0.94f, 0.78f, 1f);
-
-            GameObject bodyObject = new GameObject("Body", typeof(RectTransform), typeof(RectMask2D));
-            bodyObject.transform.SetParent(transform, false);
-            RectTransform body = bodyObject.GetComponent<RectTransform>();
-            body.anchorMin = Vector2.zero;
-            body.anchorMax = Vector2.one;
-            body.offsetMin = new Vector2(18f, 18f);
-            body.offsetMax = new Vector2(-18f, -dragTopHeight - 16f);
-
-            contentText = CreateText(body, "Content", string.Empty, 17f, TextAlignmentOptions.TopLeft);
-            RectTransform content = contentText.rectTransform;
-            content.anchorMin = Vector2.zero;
-            content.anchorMax = Vector2.one;
-            content.offsetMin = Vector2.zero;
-            content.offsetMax = Vector2.zero;
-            contentText.color = new Color(0.12f, 0.09f, 0.06f, 1f);
-            contentText.textWrappingMode = TextWrappingModes.Normal;
-            contentText.overflowMode = TextOverflowModes.Overflow;
-        }
-
-        private TextMeshProUGUI CreateText(
-            Transform parent,
-            string name,
-            string value,
-            float fontSize,
-            TextAlignmentOptions alignment)
-        {
-            GameObject textObject = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            textObject.transform.SetParent(parent, false);
-
-            TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
-            text.text = value;
-            text.fontSize = fontSize;
-            text.alignment = alignment;
-            text.richText = true;
-
-            if (fontAsset != null)
-                text.font = fontAsset;
-
-            return text;
-        }
-
-        private void ResolveFont()
-        {
-            if (fontAsset != null)
-                return;
-
-#if UNITY_EDITOR
-            fontAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/MangoDdobak-B(otf) SDF.asset");
-#endif
-            if (fontAsset == null)
-                fontAsset = TMP_Settings.defaultFontAsset;
-        }
 
         private static string NormalizeClue(string clue)
         {

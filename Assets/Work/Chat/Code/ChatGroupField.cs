@@ -43,6 +43,8 @@ namespace Work.Chat.Code
         public ChatTextField AddChat(string chat, bool isUserChat)
         {
             EnsureReferences();
+            if (_layoutGroup != null)
+                _layoutGroup.childAlignment = isUserChat ? TextAnchor.UpperLeft : TextAnchor.UpperRight;
 
             ChatTextField newChat = Instantiate(chatTextPrefab, transform);
             newChat.SetMaxWidth(GetBubbleMaxWidth());

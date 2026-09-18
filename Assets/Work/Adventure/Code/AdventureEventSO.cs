@@ -1,0 +1,90 @@
+using Alchemy.Inspector;
+using Work.Core.EventBus;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using Work.Adventure.Code.UI;
+using Work.Cook.Code.Data;
+using Work.Players.Code.Inventory;
+
+namespace Work.Adventure.Code
+{
+    public readonly record struct AdventureLineObservedEvent(AdventrueDialogData Line) : IEvent;
+    [Serializable]
+    public class IngredientLockedOption : Options
+    {
+        [field: SerializeField] public IngredientItemDataSO RequiredIngredient { get; private set; }
+        [field: SerializeField, Min(1)] public int RequiredAmount { get; private set; } = 1;
+        [field: SerializeField] public string LockTooltip { get; private set; }
+
+        public bool CanSelect(PlayerInventoryModule inventory)
+        {
+            return inventory != null && RequiredIngredient != null && RequiredAmount > 0
+                && inventory.GetItemAmount(RequiredIngredient) >= RequiredAmount;
+        }
+
+        public bool TryConsume(PlayerInventoryModule inventory)
+        {
+            if (!CanSelect(inventory))
+                return false;
+
+            return inventory.RemoveItem(RequiredIngredient, RequiredAmount) == RequiredAmount;
+        }
+    }
+
+    [Serializable]
+    public abstract class AdventureReward 
+    {
+        public abstract void GetReward();
+    }
+
+    [Serializable]
+    public abstract class AdventrueDialogEvent
+    {
+        public abstract void Init(RectTransform root);
+
+        public abstract void RaiseEvent();
+    }
+
+    [Serializable]
+    public class Options
+    {
+        public Options() { }
+        public Options(string name) { OptionName = name; OptionTooltip = "필요한 아이템: 없음."; }
+        [field:SerializeField] public string OptionName {  get; protected set; }
+        [field:SerializeField] public string OptionTooltip {  get; protected set; }
+        
+        [field:SerializeField] public string RewardDescription { get; protected set; }
+        [SerializeReference] public List<AdventureReward> rewardMethod = new List<AdventureReward>();
+        [field: SerializeField] public List<AdventrueDialogData> ResultdialogDatas { get; private set; } = new List<AdventrueDialogData>();
+        [SerializeReference, Tooltip("결과 대사와 보상 처리 후 표시할 선택지. 비어 있으면 이벤트가 끝납니다.")]
+        public List<Options> followUpOptions = new List<Options>();
+    }
+    [Serializable]
+    public class LockedOption : Options
+    {
+        [field: SerializeField] public string LockTooltip { get; protected set; }
+        [field:SerializeField] public AdventureItemSO KeyItem { get; protected set; } // 해당 아이템을 가지고 있으면 선택지 해금
+        [field: SerializeField] public bool IsUnLockOption { get; protected set; }
+        [field: SerializeField] public bool IsUseItemOption { get; protected set; }
+        [ShowIf(nameof(IsUseItemOption))] public ItemLogStatusEnum LogStatus;
+    } 
+
+    [Serializable] 
+    public class AdventrueDialogData // 대화 한줄 한줄이고 해당 줄에 어떤 이미지가 나와야한다. 뭐 다른게 작동해야 한다. 그러면 AdventrueEventDialogEvent를 구현한 클래스를 넣어두면 알아서 실행
+    {
+        public AdventrueDialogData() { }
+        public AdventrueDialogData(string context) { Context = context; }
+        [SerializeField] private List<string> discoveryEntryIds = new List<string>();
+        public List<string> DiscoveryEntryIds => discoveryEntryIds;
+        [field: SerializeField] public string Context { get; private set;  }
+        [SerializeReference] public List<AdventrueDialogEvent> method = new List<AdventrueDialogEvent>();
+    }
+
+    [CreateAssetMenu(fileName = "AdventureEventSO", menuName = "SO/Adventure/AdventureEventSO")]
+    public class AdventureEventSO : ScriptableObject
+    {
+        [field:SerializeField] public List<AdventrueDialogData> dialogDatas { get; private set; } = new List<AdventrueDialogData>();
+        [SerializeReference] public List<Options> options = new List<Options>();
+    }
+}

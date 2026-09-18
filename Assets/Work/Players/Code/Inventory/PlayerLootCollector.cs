@@ -17,9 +17,6 @@ namespace Work.Players.Code.Inventory
         private const float FALLBACK_LOOT_RADIUS = 1.25f;
 
         [SerializeField]
-        private PlayerInventoryModule inventoryModule;
-
-        [SerializeField]
         private CharacterController collectorController;
 
         [SerializeField]
@@ -32,11 +29,10 @@ namespace Work.Players.Code.Inventory
         [SerializeField]
         private int lastRemainingAmount;
 
-        private bool _loggedMissingInventory;
         private bool _loggedMissingController;
         private bool _isSubscribedToLootEvents;
+        private bool _isSubscribedToInventoryEvents;
         private bool _isCollecting;
-        private PlayerInventoryModule _subscribedInventoryModule;
         private readonly List<WorldLootItem> NEARBY_LOOT_ITEMS = new List<WorldLootItem>();
         private readonly Collider[] OVERLAP_RESULTS = new Collider[MAX_OVERLAP_RESULT_COUNT];
 
@@ -59,13 +55,13 @@ namespace Work.Players.Code.Inventory
         {
             ResolveSceneReferences(null);
             SubscribeLootEvents();
-            SubscribeInventory();
+            SubscribeInventoryEvents();
         }
 
         private void OnDisable()
         {
             UnsubscribeLootEvents();
-            UnsubscribeInventory();
+            UnsubscribeInventoryEvents();
             NEARBY_LOOT_ITEMS.Clear();
             _isCollecting = false;
         }
@@ -80,7 +76,7 @@ namespace Work.Players.Code.Inventory
 
             if (isActiveAndEnabled == true)
             {
-                SubscribeInventory();
+                SubscribeInventoryEvents();
             }
         }
 
@@ -92,13 +88,6 @@ namespace Work.Players.Code.Inventory
         {
             ResetLastLootResult();
             ResolveSceneReferences(null);
-            SubscribeInventory();
-
-            if (inventoryModule == null)
-            {
-                LogMissingInventoryModuleOnce();
-                return 0;
-            }
 
             if (collectorController == null)
             {
@@ -141,14 +130,9 @@ namespace Work.Players.Code.Inventory
                         continue;
                     }
 
-                    InventoryAddResult addResult = inventoryModule.AddItem(itemStack.Item, itemStack.Amount);
-                    lastCollectedAmount += addResult.AddedAmount;
-                    lastRemainingAmount += addResult.RemainingAmount;
-
-                    if (addResult.AddedAmount > 0)
-                    {
-                        lootItem.ConsumeAmount(addResult.AddedAmount);
-                    }
+                    Bus<InventoryItemAddRequestedEvent>.Raise(new InventoryItemAddRequestedEvent(itemStack.Item, itemStack.Amount));
+                    lastCollectedAmount += itemStack.Amount;
+                    lootItem.ConsumeAmount(itemStack.Amount);
 
                     if (lootItem == null || lootItem.IsLootable == false)
                     {
@@ -210,13 +194,8 @@ namespace Work.Players.Code.Inventory
             RemoveLootItem(evt.LootItem);
         }
 
-        private void HandleInventoryChanged(PlayerInventoryModule changedInventoryModule)
+        private void HandleInventoryChanged(InventoryChangedEvent evt)
         {
-            if (changedInventoryModule != inventoryModule)
-            {
-                return;
-            }
-
             if (_isCollecting == true)
             {
                 return;
@@ -359,36 +338,7 @@ namespace Work.Players.Code.Inventory
 
         private void ResolveSceneReferences(Entity entity)
         {
-            ResolveInventoryModule(entity);
             ResolveCollectorController(entity);
-        }
-
-        private void ResolveInventoryModule(Entity entity)
-        {
-            if (inventoryModule != null)
-            {
-                _loggedMissingInventory = false;
-                return;
-            }
-
-            if (entity != null && entity.TryGetModule(out PlayerInventoryModule entityInventoryModule, true) == true)
-            {
-                inventoryModule = entityInventoryModule;
-                _loggedMissingInventory = false;
-                return;
-            }
-
-            inventoryModule = GetComponent<PlayerInventoryModule>();
-
-            if (inventoryModule == null)
-            {
-                inventoryModule = GetComponentInParent<PlayerInventoryModule>();
-            }
-
-            if (inventoryModule != null)
-            {
-                _loggedMissingInventory = false;
-            }
         }
 
         private void ResolveCollectorController(Entity entity)
@@ -452,43 +402,26 @@ namespace Work.Players.Code.Inventory
             _isSubscribedToLootEvents = false;
         }
 
-        private void SubscribeInventory()
+        private void SubscribeInventoryEvents()
         {
-            if (_subscribedInventoryModule == inventoryModule)
+            if (_isSubscribedToInventoryEvents == true)
             {
                 return;
             }
 
-            UnsubscribeInventory();
-
-            if (inventoryModule == null)
-            {
-                return;
-            }
-            inventoryModule.InventoryChanged += HandleInventoryChanged;
-            _subscribedInventoryModule = inventoryModule;
+            Bus<InventoryChangedEvent>.Events += HandleInventoryChanged;
+            _isSubscribedToInventoryEvents = true;
         }
 
-        private void UnsubscribeInventory()
+        private void UnsubscribeInventoryEvents()
         {
-            if (_subscribedInventoryModule == null)
+            if (_isSubscribedToInventoryEvents == false)
             {
                 return;
             }
 
-            _subscribedInventoryModule.InventoryChanged -= HandleInventoryChanged;
-            _subscribedInventoryModule = null;
-        }
-
-        private void LogMissingInventoryModuleOnce()
-        {
-            if (_loggedMissingInventory == true)
-            {
-                return;
-            }
-
-            _loggedMissingInventory = true;
-            LogMissingInventoryModule();
+            Bus<InventoryChangedEvent>.Events -= HandleInventoryChanged;
+            _isSubscribedToInventoryEvents = false;
         }
 
         private void LogMissingControllerOnce()
@@ -512,13 +445,6 @@ namespace Work.Players.Code.Inventory
             }
 
             Debug.Log($"{nameof(PlayerLootCollector)} collected amount={lastCollectedAmount}, remaining={lastRemainingAmount}", this);
-        }
-
-        [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-        private void LogMissingInventoryModule()
-        {
-            Debug.LogWarning($"{nameof(PlayerInventoryModule)} is missing. Auto loot skipped.", this);
         }
 
         [System.Diagnostics.Conditional("UNITY_EDITOR")]

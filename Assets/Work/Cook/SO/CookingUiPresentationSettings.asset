@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d8a8266afb25854ab59548d719db55e, type: 3}
+  m_Name: CookingUiPresentationSettings
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.CookingUiPresentationSettingsSO
+  fontAsset: {fileID: 11400000, guid: 54f94c96368179245b3374208b777d0a, type: 2}
+  backdropColor: {r: 0.035, g: 0.022, b: 0.014, a: 0.9}
+  parchmentColor: {r: 0.97, g: 0.94, b: 0.86, a: 1}
+  panelColor: {r: 0.29, g: 0.19, b: 0.13, a: 1}
+  ironColor: {r: 0.16, g: 0.17, b: 0.18, a: 1}
+  primaryTextColor: {r: 0.26, g: 0.16, b: 0.09, a: 1}
+  secondaryTextColor: {r: 0.44, g: 0.32, b: 0.21, a: 1}
+  positiveColor: {r: 0.33, g: 0.47, b: 0.22, a: 1}
+  negativeColor: {r: 0.82, g: 0.25, b: 0.18, a: 1}
+  missingColor: {r: 0.48, g: 0.43, b: 0.38, a: 1}
+  backdropDuration: 0.4
+  qualityDuration: 0.4
+  reactionDuration: 0.5
+  rewardDuration: 0.5
+  actionDuration: 0.2
+  cardHoverOffset: 20
+  cardHoverScale: 1.04
+  cardHoverDuration: 0.14
+  maxFanCardCount: 7
+  scrollFallbackThreshold: 8
+  enableScrollFallback: 0
+  maxFanAngle: 13
+  minFanCardSpacing: 132
+  maxFanCardSpacing: 220
+  minFanCardScale: 0.86
+  fanArcHeight: 70
+  fanFocusLift: 68
+  fanFocusScale: 1.08
+  fanSelectedLift: 18
+  fanNeighborSpread: 36
+  fanPeerDrop: 24
+  fanTweenDuration: 0.16
+  qualityVisuals:
+  - quality: 3
+    displayName: "\uC644\uBCBD"
+    color: {r: 0.5, g: 0.31, b: 0.08, a: 1}
+    icon: {fileID: 21300000, guid: 3009b3494c754ebb8984266c7869eb3c, type: 3}
+  - quality: 1
+    displayName: "\uBCF4\uD1B5"
+    color: {r: 0.37, g: 0.27, b: 0.17, a: 1}
+    icon: {fileID: 21300000, guid: 68e6026045a74744b6b61ef1965cc602, type: 3}
+  - quality: 2
+    displayName: "\uC88B\uC74C"
+    color: {r: 0.37, g: 0.27, b: 0.17, a: 1}
+    icon: {fileID: 21300000, guid: 862bfee873e24fafba35df781cb2820c, type: 3}
+  - quality: 0
+    displayName: "\uBBF8\uD761"
+    color: {r: 0.37, g: 0.27, b: 0.17, a: 1}
+    icon: {fileID: 21300000, guid: 9e13c698fddf4365b939f6a76471edcc, type: 3}
+  reactionVisuals:
+  - result: 4
+    displayName: "\uD669\uD640\uD568"
+    summary: "\uC190\uB2D8\uC758 \uCDE8\uD5A5\uC744 \uC815\uD655\uD788 \uC0AC\uB85C\uC7A1\uC558\uC2B5\uB2C8\uB2E4."
+    color: {r: 1, g: 0.76, b: 0.24, a: 1}
+    icon: {fileID: 21300000, guid: 5a7bfca974524d41b9850869bb31904f, type: 3}
+  - result: 3
+    displayName: "\uB9CC\uC871"
+    summary: "\uC8FC\uBB38\uC758 \uD575\uC2EC\uC744 \uCDA9\uC2E4\uD788 \uCC44\uC6E0\uC2B5\uB2C8\uB2E4."
+    color: {r: 0.46, g: 0.78, b: 0.42, a: 1}
+    icon: {fileID: 21300000, guid: 0a73ddba8b6c4bc381df8500a0323682, type: 3}
+  - result: 2
+    displayName: "\uD765\uBBF8"
+    summary: "\uC870\uAE08 \uB2E4\uB974\uC9C0\uB9CC \uC190\uB2D8\uC774 \uAD00\uC2EC\uC744
+      \uBCF4\uC785\uB2C8\uB2E4."
+    color: {r: 0.5, g: 0.67, b: 0.86, a: 1}
+    icon: {fileID: 21300000, guid: 55e1d9ffd0ad4e8dab70171945d19f5c, type: 3}
+  - result: 1
+    displayName: "\uC544\uC26C\uC6C0"
+    summary: "\uC8FC\uBB38\uC758 \uC911\uC694\uD55C \uB2E8\uC11C\uAC00 \uB9DE\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    color: {r: 0.62, g: 0.46, b: 0.36, a: 1}
+    icon: {fileID: 21300000, guid: 6c38ffa0cd5d4a00bcdbb9b0505cddb6, type: 3}
+  - result: 0
+    displayName: "\uAC70\uBD80\uAC10"
+    summary: "\uC704\uD5D8\uD55C \uC7AC\uB8CC\uB098 \uC870\uD569\uC774 \uAC10\uC9C0\uB418\uC5C8\uC2B5\uB2C8\uB2E4."
+    color: {r: 0.64, g: 0.18, b: 0.14, a: 1}
+    icon: {fileID: 21300000, guid: c699ef1d748244be995870e9a8365e9b, type: 3}
+  tagVisuals:
+  - kind: 0
+    displayName: "\uD544\uC218"
+    color: {r: 0.78, g: 0.62, b: 0.3, a: 1}
+    icon: {fileID: 21300000, guid: 47ddd6e084574e19b0d6c087fbcd3fb6, type: 3}
+  - kind: 1
+    displayName: "\uC120\uD638"
+    color: {r: 0.48, g: 0.72, b: 0.42, a: 1}
+    icon: {fileID: 21300000, guid: 8c548f79f9e343dcb64729cf4f1dc8a9, type: 3}
+  - kind: 2
+    displayName: "\uD68C\uD53C"
+    color: {r: 0.76, g: 0.4, b: 0.28, a: 1}
+    icon: {fileID: 21300000, guid: 86c1b1da3f5f49fcb978bb8b7a9da4cc, type: 3}
+  - kind: 3
+    displayName: "\uC704\uD5D8"
+    color: {r: 0.68, g: 0.18, b: 0.14, a: 1}
+    icon: {fileID: 21300000, guid: 06ee082ebb6543579d8fcfb87bc0abf0, type: 3}
+  rewardIcon: {fileID: 21300000, guid: 928fc71f8cd2466ebc558f2aafea7e7f, type: 3}
+  npcPlaceholderIcon: {fileID: 21300000, guid: c2d6bdfc7f6542eeb91f1074974442c0, type: 3}
+  cookingSparkleIcon: {fileID: 21300000, guid: a8be26ddaf5a4a548b6c67c0686d06cc, type: 3}
+  panelSprite: {fileID: 21300000, guid: cc51a4e9bbeb9ee488f5cf09bcf5e214, type: 3}
+  receiptSprite: {fileID: 21300000, guid: 208374d4bc54c81479635f11a2a787af, type: 3}
+  cardSprite: {fileID: 21300000, guid: 9c6326e84237b5a4293a33fa4209ff3c, type: 3}
+  primaryButtonSprite: {fileID: 21300000, guid: 32d5d1f7080689241a57ebd7e3e0e43c, type: 3}
+  secondaryButtonSprite: {fileID: 21300000, guid: 16190f4660a2fdd46ab44c255b826e4e, type: 3}
+  labelSprite: {fileID: 21300000, guid: 907354955703cfa4fa180bffdddc56f8, type: 3}
+  npcChatBubbleSprite: {fileID: 21300000, guid: d2e48b9cdc065f34a81d5a5d738bafe0, type: 3}
+  playerChatBubbleSprite: {fileID: 21300000, guid: 7bf2aa6bf92731949bdf20928cd7a78c, type: 3}
+  dishRevealClip: {fileID: 0}
+  qualityStampClip: {fileID: 0}
+  rewardCountClip: {fileID: 0}

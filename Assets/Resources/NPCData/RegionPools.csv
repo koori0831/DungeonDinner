@@ -1,3 +1,6 @@
-RegionId,NpcId,Weight,MinDay,CooldownDays,PoolType,Condition
+﻿"RegionId","NpcId","Weight","MinDay","CooldownDays","PoolType","Condition"
 "MossCave","Odin","80","1","1","Normal",""
 "Volcano","Odin","80","1","1","Normal",""
+"MossCave","Nari","80","1","1","Normal",""
+"MossCave","Boram","80","1","1","Normal",""
+"MossCave","Rook","80","1","1","Normal",""

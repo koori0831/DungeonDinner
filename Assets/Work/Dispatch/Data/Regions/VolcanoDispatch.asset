@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f88185793d41ef499464493ca4a9be9, type: 3}
+  m_Name: VolcanoDispatch
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Dispatch.Code.Data.DispatchRegionSO
+  region: {fileID: 11400000, guid: 2d6f6286309489249b069dcf84a3aa26, type: 2}
+  illustration: {fileID: 0}
+  baseTravelTime: 3
+  materials:
+  - item: {fileID: 11400000, guid: 07f6ea565ce24a5798f3fd36ccbd6b32, type: 2}
+    maxRequestAmount: 10
+    amountPerBatch: 1
+    timePerBatch: 1
+    minYieldPercent: 60
+    maxYieldPercent: 100
+  - item: {fileID: 11400000, guid: 80ebcfd6da9b0cc4c81498ec6b1ca26a, type: 2}
+    maxRequestAmount: 8
+    amountPerBatch: 2
+    timePerBatch: 1
+    minYieldPercent: 50
+    maxYieldPercent: 90
+  - item: {fileID: 11400000, guid: 50f56f458c6a45dbb85feddecd3b2fb1, type: 2}
+    maxRequestAmount: 8
+    amountPerBatch: 2
+    timePerBatch: 1
+    minYieldPercent: 50
+    maxYieldPercent: 90
+  rareRewards:
+    chancePerGatherTime: 2
+    maximumChance: 20
+    rewards:
+    - item: {fileID: 11400000, guid: f889fb720df847858ad65d2dcd77f536, type: 2}
+      weight: 1
+      minAmount: 1
+      maxAmount: 1

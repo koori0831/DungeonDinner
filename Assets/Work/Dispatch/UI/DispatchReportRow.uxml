@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="report-row" class="list-row report-row">
+        <ui:VisualElement class="report-main">
+            <ui:Label name="report-title" text="NPC 귀환" class="row-title" />
+            <ui:Label name="report-region" text="지역" class="row-subtitle" />
+            <ui:Label name="report-rewards" text="획득 물자" class="report-rewards" />
+        </ui:VisualElement>
+        <ui:Button name="claim-button" text="보상 수령" class="primary-button claim-button" />
+    </ui:VisualElement>
+</ui:UXML>

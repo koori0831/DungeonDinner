@@ -1,9 +1,12 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using Work.Chat.Code;
 using Work.NPC.Code.Data;
+using Work.UtillUI.Code;
 
 namespace Work.NPC.Code.Runtime
 {
@@ -15,15 +18,32 @@ namespace Work.NPC.Code.Runtime
         [SerializeField] private bool resolveReferencesOnEnable = true;
         [SerializeField] private bool disableRunnerDirectChatOutput = true;
         [SerializeField] private bool visibleOnEnable = true;
+        [SerializeField] private bool showWhenConversationStarted = true;
         [SerializeField] private bool showWhenDialogueLinePlayed = true;
         [SerializeField] private bool showWhenQuestionOptionsAvailable = true;
         [SerializeField] private bool showWhenOrderReady = true;
         [SerializeField] private bool hideWhenCookingStepReady;
         [SerializeField] private bool hideWhenConversationCompleted;
+        [SerializeField] private bool clearChatHistoryWhenConversationStarted = true;
+        [SerializeField] private bool clearChatHistoryWhenConversationCompleted;
         [SerializeField] private bool showSpeakerNameInBubble = true;
         [SerializeField] private bool completeTypingOnSubmit = true;
-        [SerializeField] private string playerNameColor = "#9FD4FF";
+        [SerializeField] private string playerNameColor = "#000000";
         [SerializeField] private string npcNameColor = "#D6A85A";
+
+        [Header("NPC Portrait")]
+        [SerializeField] private NpcPortraitCatalogSO portraitCatalog;
+        [SerializeField] private RectTransform portraitRoot;
+        [SerializeField] private CanvasGroup portraitCanvasGroup;
+        [SerializeField] private Image portraitImage;
+        [SerializeField] private bool createPortraitViewIfMissing = true;
+        [SerializeField] private bool hidePortraitWhenCookingStepReady = true;
+        [SerializeField] private Vector2 portraitSize = new Vector2(520f, 520f);
+        [SerializeField] private Vector2 portraitRestingPosition = new Vector2(18f, 0f);
+        [SerializeField, Min(0f)] private float portraitSlideDistance = 80f;
+        [SerializeField, Min(0.01f)] private float portraitEntranceDuration = 0.35f;
+        [SerializeField, Min(0.01f)] private float portraitExitDuration = 0.22f;
+        [SerializeField, Range(0.5f, 1f)] private float portraitEntranceScale = 0.94f;
 
         [Header("Events")]
         [SerializeField] private UnityEvent conversationShown = new UnityEvent();
@@ -34,6 +54,14 @@ namespace Work.NPC.Code.Runtime
         private bool _visible;
         private bool _hasSavedRunnerDirectOutput;
         private bool _savedRunnerDirectOutput;
+        private Sequence _portraitSequence;
+        private string _visiblePortraitNpcId;
+        private bool _portraitIsVisible;
+        private RectTransform _generatedPortraitMotionRoot;
+
+        private RectTransform PortraitMotionRoot => _generatedPortraitMotionRoot != null
+            ? _generatedPortraitMotionRoot
+            : portraitRoot;
 
         public bool IsVisible => _visible;
 
@@ -45,7 +73,12 @@ namespace Work.NPC.Code.Runtime
                 canvasGroup = GetComponent<CanvasGroup>();
 
             if (canvasGroup == null)
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            {
+                Debug.LogError("NpcConversationView CanvasGroup is missing. Assign it in the inspector or add it to the prefab.", this);
+            }
+
+            EnsurePortraitPresentation();
+            SetPortraitHiddenImmediate();
         }
 
         private void OnEnable()
@@ -53,13 +86,21 @@ namespace Work.NPC.Code.Runtime
             if (resolveReferencesOnEnable)
                 ResolveReferences();
 
+            EnsurePortraitPresentation();
             SetRunnerSubscriptions(true);
             ApplyRunnerDirectOutputOverride();
             SetVisible(visibleOnEnable);
+
+            if (visibleOnEnable && runner != null && runner.HasActiveConversation)
+                ShowPortrait(runner.CurrentNpcId);
+            else
+                SetPortraitHiddenImmediate();
         }
 
         private void OnDisable()
         {
+            KillPortraitSequence();
+            SetPortraitHiddenImmediate();
             RestoreRunnerDirectOutputOverride();
             SetRunnerSubscriptions(false);
         }
@@ -102,6 +143,16 @@ namespace Work.NPC.Code.Runtime
                 canvasGroup.blocksRaycasts = visible;
             }
 
+            if (visible)
+            {
+                if (runner != null && runner.HasActiveConversation)
+                    ShowPortrait(runner.CurrentNpcId);
+            }
+            else
+            {
+                HidePortrait();
+            }
+
             if (changed == false)
                 return;
 
@@ -113,7 +164,8 @@ namespace Work.NPC.Code.Runtime
 
         private void Update()
         {
-            if (completeTypingOnSubmit == false || chatPanel == null)
+            if (!_visible || GameUiInput.IsBlocked || GameUiInput.Context == GameUiContext.Adventure
+                || completeTypingOnSubmit == false || chatPanel == null)
                 return;
 
             bool submitted = false;
@@ -139,6 +191,9 @@ namespace Work.NPC.Code.Runtime
 
             if (chatPanel == null)
                 chatPanel = FindFirstObjectByType<ChatPanel>();
+
+            if (portraitCatalog == null)
+                portraitCatalog = NpcPortraitCatalogSO.LoadDefault();
         }
 
         private void SetRunnerSubscriptions(bool subscribe)
@@ -148,6 +203,7 @@ namespace Work.NPC.Code.Runtime
 
             if (subscribe)
             {
+                runner.ConversationStarted += HandleConversationStarted;
                 runner.DialogueLinePlayed += HandleDialogueLinePlayed;
                 runner.QuestionOptionsUpdated += HandleQuestionOptionsUpdated;
                 runner.OrderReady += HandleOrderReady;
@@ -156,11 +212,23 @@ namespace Work.NPC.Code.Runtime
                 return;
             }
 
+            runner.ConversationStarted -= HandleConversationStarted;
             runner.DialogueLinePlayed -= HandleDialogueLinePlayed;
             runner.QuestionOptionsUpdated -= HandleQuestionOptionsUpdated;
             runner.OrderReady -= HandleOrderReady;
             runner.CookingStepReady -= HandleCookingStepReady;
             runner.ConversationCompleted -= HandleConversationCompleted;
+        }
+
+        private void HandleConversationStarted()
+        {
+            if (clearChatHistoryWhenConversationStarted == true)
+                chatPanel?.ClearChats();
+
+            if (showWhenConversationStarted == true)
+                SetVisible(true);
+
+            ShowPortrait(runner != null ? runner.CurrentNpcId : string.Empty);
         }
 
         private void ApplyRunnerDirectOutputOverride()
@@ -190,6 +258,9 @@ namespace Work.NPC.Code.Runtime
             if (chatPanel == null || context == null)
                 return;
 
+            if (context.IsPlayer == false)
+                ShowPortrait(context.NpcId);
+
             ChatTextField chat = chatPanel.AddChat(BuildBubbleText(context), context.IsPlayer);
             context.RegisterPresentationWaiter(() => chat == null || chat.IsTyping == false);
         }
@@ -210,6 +281,9 @@ namespace Work.NPC.Code.Runtime
         {
             cookingStepReady.Invoke();
 
+            if (hidePortraitWhenCookingStepReady)
+                HidePortrait();
+
             if (hideWhenCookingStepReady)
                 SetVisible(false);
         }
@@ -217,9 +291,183 @@ namespace Work.NPC.Code.Runtime
         private void HandleConversationCompleted()
         {
             conversationCompleted.Invoke();
+            HidePortrait();
+
+            if (clearChatHistoryWhenConversationCompleted == true)
+                chatPanel?.ClearChats();
 
             if (hideWhenConversationCompleted)
                 SetVisible(false);
+        }
+
+        private void EnsurePortraitPresentation()
+        {
+            if (portraitCatalog == null)
+                portraitCatalog = NpcPortraitCatalogSO.LoadDefault();
+
+            if (portraitRoot != null)
+            {
+                if (portraitCanvasGroup == null)
+                    portraitCanvasGroup = portraitRoot.GetComponent<CanvasGroup>();
+                if (portraitImage == null)
+                    portraitImage = portraitRoot.GetComponentInChildren<Image>(true);
+            }
+
+            if (portraitRoot != null && portraitCanvasGroup != null && portraitImage != null)
+                return;
+            if (createPortraitViewIfMissing == false)
+                return;
+
+            RectTransform parent = ResolvePortraitParent();
+            if (parent == null)
+                return;
+
+            GameObject rootObject = new GameObject(
+                "NpcEntrancePortrait",
+                typeof(RectTransform),
+                typeof(CanvasGroup),
+                typeof(LayoutElement));
+            rootObject.layer = parent.gameObject.layer;
+            portraitRoot = rootObject.GetComponent<RectTransform>();
+            portraitRoot.SetParent(parent, false);
+            portraitRoot.anchorMin = Vector2.zero;
+            portraitRoot.anchorMax = Vector2.zero;
+            portraitRoot.pivot = Vector2.zero;
+            portraitRoot.sizeDelta = portraitSize;
+            portraitRoot.anchoredPosition = portraitRestingPosition;
+            portraitRoot.SetAsLastSibling();
+
+            LayoutElement layoutElement = rootObject.GetComponent<LayoutElement>();
+            layoutElement.ignoreLayout = false;
+            layoutElement.preferredWidth = portraitSize.x;
+            layoutElement.preferredHeight = portraitSize.y;
+            portraitCanvasGroup = rootObject.GetComponent<CanvasGroup>();
+            portraitCanvasGroup.interactable = false;
+            portraitCanvasGroup.blocksRaycasts = false;
+
+            GameObject imageObject = new GameObject("Portrait", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            imageObject.layer = rootObject.layer;
+            RectTransform imageRect = imageObject.GetComponent<RectTransform>();
+            imageRect.SetParent(portraitRoot, false);
+            imageRect.anchorMin = Vector2.zero;
+            imageRect.anchorMax = Vector2.one;
+            imageRect.pivot = new Vector2(0.5f, 0f);
+            imageRect.offsetMin = Vector2.zero;
+            imageRect.offsetMax = Vector2.zero;
+            // Animate the image so the parent layout can keep positioning its slot.
+            _generatedPortraitMotionRoot = imageRect;
+
+            portraitImage = imageObject.GetComponent<Image>();
+            portraitImage.raycastTarget = false;
+            portraitImage.preserveAspect = true;
+            portraitImage.color = Color.white;
+        }
+
+        private RectTransform ResolvePortraitParent()
+        {
+            if (chatPanel != null && chatPanel.transform.parent is RectTransform chatParent)
+                return chatParent;
+
+            Canvas canvas = chatPanel != null
+                ? chatPanel.GetComponentInParent<Canvas>()
+                : FindFirstObjectByType<Canvas>();
+            return canvas != null ? canvas.rootCanvas.transform as RectTransform : null;
+        }
+
+        private void ShowPortrait(string npcId)
+        {
+            EnsurePortraitPresentation();
+            if (portraitRoot == null || portraitCanvasGroup == null || portraitImage == null)
+                return;
+
+            Sprite portrait = portraitCatalog != null ? portraitCatalog.GetPortrait(npcId) : null;
+            if (portrait == null)
+            {
+                HidePortrait();
+                return;
+            }
+
+            string normalizedNpcId = string.IsNullOrWhiteSpace(npcId) ? string.Empty : npcId.Trim();
+            bool needsEntrance = _portraitIsVisible == false
+                                 || string.Equals(_visiblePortraitNpcId, normalizedNpcId, System.StringComparison.OrdinalIgnoreCase) == false;
+
+            portraitImage.sprite = portrait;
+            portraitImage.enabled = true;
+            _visiblePortraitNpcId = normalizedNpcId;
+            if (needsEntrance == false)
+                return;
+
+            KillPortraitSequence();
+            _portraitIsVisible = true;
+            portraitRoot.gameObject.SetActive(true);
+            PortraitMotionRoot.anchoredPosition = portraitRestingPosition + Vector2.left * portraitSlideDistance;
+            PortraitMotionRoot.localScale = new Vector3(portraitEntranceScale, portraitEntranceScale, 1f);
+            portraitCanvasGroup.alpha = 0f;
+
+            _portraitSequence = DOTween.Sequence()
+                .SetUpdate(true)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
+            _portraitSequence.Join(
+                PortraitMotionRoot.DOAnchorPos(portraitRestingPosition, portraitEntranceDuration)
+                    .SetEase(Ease.OutCubic));
+            _portraitSequence.Join(portraitCanvasGroup.DOFade(1f, portraitEntranceDuration));
+            _portraitSequence.Join(
+                PortraitMotionRoot.DOScale(Vector3.one, portraitEntranceDuration)
+                    .SetEase(Ease.OutBack));
+            _portraitSequence.OnComplete(() => _portraitSequence = null);
+        }
+
+        private void HidePortrait()
+        {
+            if (portraitRoot == null || portraitCanvasGroup == null)
+                return;
+            if (_portraitIsVisible == false)
+            {
+                SetPortraitHiddenImmediate();
+                return;
+            }
+
+            KillPortraitSequence();
+            _portraitIsVisible = false;
+            _visiblePortraitNpcId = string.Empty;
+            _portraitSequence = DOTween.Sequence()
+                .SetUpdate(true)
+                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
+            _portraitSequence.Join(
+                PortraitMotionRoot.DOAnchorPos(
+                        portraitRestingPosition + Vector2.left * portraitSlideDistance,
+                        portraitExitDuration)
+                    .SetEase(Ease.InCubic));
+            _portraitSequence.Join(portraitCanvasGroup.DOFade(0f, portraitExitDuration));
+            _portraitSequence.Join(
+                PortraitMotionRoot.DOScale(
+                        new Vector3(portraitEntranceScale, portraitEntranceScale, 1f),
+                        portraitExitDuration)
+                    .SetEase(Ease.InCubic));
+            _portraitSequence.OnComplete(() => _portraitSequence = null);
+        }
+
+        private void SetPortraitHiddenImmediate()
+        {
+            if (portraitRoot == null || portraitCanvasGroup == null)
+                return;
+
+            _portraitIsVisible = false;
+            _visiblePortraitNpcId = string.Empty;
+            portraitCanvasGroup.alpha = 0f;
+            portraitCanvasGroup.interactable = false;
+            portraitCanvasGroup.blocksRaycasts = false;
+            PortraitMotionRoot.anchoredPosition = portraitRestingPosition + Vector2.left * portraitSlideDistance;
+            PortraitMotionRoot.localScale = new Vector3(portraitEntranceScale, portraitEntranceScale, 1f);
+        }
+
+        private void KillPortraitSequence()
+        {
+            if (_portraitSequence == null)
+                return;
+
+            _portraitSequence.Kill(false);
+            _portraitSequence = null;
         }
 
         private string BuildBubbleText(NpcDialogueLineContext context)

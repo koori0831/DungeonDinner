@@ -30,6 +30,8 @@ namespace Work.Chat.Code
         private VerticalLayoutGroup _contentLayoutGroup;
         private ChatTextField _lastChat;
 
+        public RectTransform ContentRoot => contentTrm;
+
         private void Awake()
         {
             EnsureReferences();
@@ -93,6 +95,23 @@ namespace Work.Chat.Code
 
             _lastChat.CompleteTyping();
             return true;
+        }
+
+        /// <summary>
+        /// 현재 표시 중인 모든 채팅 말풍선 제거
+        /// </summary>
+        public void ClearChats()
+        {
+            for (int i = 0; i < _chatGroups.Count; i++)
+            {
+                if (_chatGroups[i]?.Group != null)
+                    Destroy(_chatGroups[i].Group.gameObject);
+            }
+
+            _chatGroups.Clear();
+            beforeChatIsUser = null;
+            _lastChat = null;
+            RefreshContentHeight();
         }
 
         public void RefreshLayout()
