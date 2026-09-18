@@ -607,7 +607,7 @@ namespace Work.Cook.Code.Editor.Tests
         }
 
         [Test]
-        public void VersionlessKnowledge_MigratesResolvableAndUnresolvableVariantsToV2()
+        public void VersionlessKnowledge_MigratesResolvableAndUnresolvableVariantsToV3()
         {
             PreparationMethodSO method = CreateMethod("cut");
             IngredientPreparationOption option = CreateOption("cut_option", method, resultNameModifier: "썬");
@@ -634,7 +634,82 @@ namespace Work.Cook.Code.Editor.Tests
             Assert.That(knowledge.Variants, Has.Count.EqualTo(2));
             Assert.That(CountReplayable(knowledge.Variants), Is.EqualTo(1));
             Assert.That(CountLegacyUnreplayable(knowledge.Variants), Is.EqualTo(1));
-            Assert.That(PlayerPrefs.GetString(key), Does.Contain("\"schemaVersion\":2"));
+            Assert.That(PlayerPrefs.GetString(key), Does.Contain("\"schemaVersion\":3"));
+        }
+
+        [Test]
+        public void GeneralDiscovery_RedactsEveryUnobservedEntryAndOnlyRevealsObservedLine()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<CookingDataCatalogSO>("Assets/Work/Cook/SO/CookingDataCatalog.asset");
+            var store = CreateKnowledgeStore(catalog, false, false, "");
+            var guide = Resources.Load<Work.Cook.Code.Info.FieldGuideCatalogSO>("DungeonFieldGuide");
+            foreach (var category in guide.BuildCategories(store))
+                foreach (var entry in category.Entries)
+                {
+                    Assert.That(entry.DisplayName, Is.EqualTo("???"), entry.EntryId);
+                    Assert.That(entry.Icon, Is.Null, entry.EntryId);
+                }
+            var line = new Work.Adventure.Code.AdventrueDialogData("눈앞에 슬라임 한 마리가 나타났다.");
+            line.DiscoveryEntryIds.Add("monster:slime");
+            var callback = typeof(CookingKnowledgeStore).GetMethod("ObserveAdventureLine", BindingFlags.NonPublic | BindingFlags.Instance);
+            callback.Invoke(store, new object[] { new Work.Adventure.Code.AdventureLineObservedEvent(line) });
+            Assert.That(store.IsEntryDiscovered("monster:slime"), Is.True);
+            Assert.That(store.IsEntryDiscovered("monster:coconut_crab"), Is.False);
+            store.ClearKnowledgeForDebug();
+            Assert.That(store.IsEntryDiscovered("monster:slime"), Is.False);
+        }
+
+        [Test]
+        public void ResultAndService_RecordCompletionAndGuestReactionSeparatelyOnce()
+        {
+            var tag = CreateTag("savory");
+            var method = CreateMethod("cut");
+            var option = CreateOption("cut", method);
+            var ingredient = CreateIngredient("ingredient", option);
+            var recipe = CreateRecipe("recipe", Requirement(ingredient, true, "main"));
+            var catalog = CreateCatalog(new[] { ingredient }, new[] { recipe }, new[] { tag }, new[] { method });
+            var store = CreateKnowledgeStore(catalog, false, false, "");
+            var identity = BuildVariantIdentity(recipe, ingredient, option, null);
+            var result = CreateDishResult(recipe, tag, identity, option, "session", DishCraftGrade.Good, DishOddity.Normal);
+            Assert.That(store.LearnFromResult(result), Is.True);
+            Assert.That(store.LearnFromResult(result), Is.False);
+            Assert.That(store.GetRecipeKnowledge(recipe).CompletionCount, Is.EqualTo(1));
+            Assert.That(store.GetRecipeKnowledge(recipe).GuestSummaries, Is.Empty);
+            var report = CreateMatchReport("recipe", "guest", "savory", DishCraftGrade.Good);
+            Assert.That(store.LearnFromService(result, report), Is.True);
+            Assert.That(store.LearnFromService(result, report), Is.False);
+            Assert.That(store.GetRecipeKnowledge(recipe).CompletionCount, Is.EqualTo(1));
+            Assert.That(store.GetRecipeKnowledge(recipe).GuestSummaries[0].ServeCount, Is.EqualTo(1));
+            var duplicate = CreateDishResult(recipe, tag, identity, option, "session", DishCraftGrade.Good, DishOddity.Normal);
+            Assert.That(store.LearnFromService(duplicate, report), Is.False);
+            Assert.That(store.GetRecipeKnowledge(recipe).CompletionCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void V2Knowledge_PreservesCountsAndMigratesGeneralDiscoveryIds()
+        {
+            var ingredient = CreateIngredient("ingredient");
+            var recipe = CreateRecipe("recipe", Requirement(ingredient, true, "main"));
+            var catalog = CreateCatalog(new[] { ingredient }, new[] { recipe });
+            string key = "DungeonDinner.Tests.Discovery." + Guid.NewGuid().ToString("N");
+            _playerPrefsKeys.Add(key);
+            PlayerPrefs.SetString(key, @"{""schemaVersion"":2,""discoveredRecipeIds"":[""recipe""],""triedIngredientIds"":[""ingredient""],""recipeRecords"":[{""recipeId"":""recipe"",""completionCount"":4}]}");
+            var store = CreateKnowledgeStore(catalog, true, true, key);
+            Assert.That(store.GetRecipeKnowledge(recipe).CompletionCount, Is.EqualTo(4));
+            Assert.That(store.IsEntryDiscovered("recipe:recipe"), Is.True);
+            Assert.That(store.IsEntryDiscovered("ingredient:ingredient"), Is.True);
+            Assert.That(store.IsEntryDiscovered("monster:slime"), Is.False);
+            Assert.That(PlayerPrefs.GetString(key), Does.Contain("\"schemaVersion\":3"));
+        }
+
+        [Test]
+        public void IncompleteDish_IsSharedDisplayDataWithoutBeingARecipe()
+        {
+            var data = IncompleteDishDefinitionSO.Instance;
+            Assert.That(data, Is.Not.Null);
+            Assert.That(data.Icon, Is.Not.Null);
+            var catalog = AssetDatabase.LoadAssetAtPath<CookingDataCatalogSO>("Assets/Work/Cook/SO/CookingDataCatalog.asset");
+            foreach (var recipe in catalog.Recipes) Assert.That(recipe.RecipeId, Is.Not.EqualTo(IncompleteDishDefinitionSO.EntryId));
         }
 
         [Test]

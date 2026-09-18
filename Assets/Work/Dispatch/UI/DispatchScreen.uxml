@@ -3,6 +3,7 @@
     <ui:VisualElement name="dispatch-root" class="dispatch-screen is-hidden">
         <ui:VisualElement class="screen-dim" />
         <ui:VisualElement class="ledger">
+            <ui:VisualElement class="ledger-paper" picking-mode="Ignore" />
             <ui:VisualElement class="ledger-header">
                 <ui:VisualElement>
                     <ui:Label text="길드 파견 장부" class="title" />
@@ -39,6 +40,8 @@
                 <ui:VisualElement class="ledger-column summary-column">
                     <ui:Label text="의뢰 전표" class="section-title" />
                     <ui:VisualElement class="summary-slip">
+                        <ui:VisualElement class="panel-paper" picking-mode="Ignore" />
+                        <ui:ScrollView class="summary-scroll" horizontal-scroller-visibility="Hidden">
                         <ui:Label text="파견자" class="summary-key" />
                         <ui:Label name="summary-npc" text="선택되지 않음" class="summary-value" />
                         <ui:Label text="목적지" class="summary-key" />
@@ -49,6 +52,7 @@
                         <ui:Label name="summary-duration" text="예상 시간 -" class="duration-label" />
                         <ui:Label name="summary-return" text="귀환 예정 -" class="return-label" />
                         <ui:Label name="summary-rare" text="" class="rare-hint" />
+                        </ui:ScrollView>
                     </ui:VisualElement>
                     <ui:Label name="request-message" text="NPC와 재료를 선택해 주세요." class="message-label" />
                     <ui:Button name="dispatch-button" text="파견 보내기" class="primary-button" />
@@ -57,6 +61,7 @@
 
             <ui:VisualElement name="active-page" class="page single-page is-hidden">
                 <ui:VisualElement class="status-card">
+                    <ui:VisualElement class="panel-paper" picking-mode="Ignore" />
                     <ui:Label text="현재 파견" class="section-title centered" />
                     <ui:Label name="active-npc" text="진행 중인 파견이 없습니다." class="active-title" />
                     <ui:Label name="active-region" text="" class="active-region" />
@@ -68,6 +73,7 @@
 
             <ui:VisualElement name="report-page" class="page single-page is-hidden">
                 <ui:VisualElement class="report-panel">
+                    <ui:VisualElement class="panel-paper" picking-mode="Ignore" />
                     <ui:Label text="귀환 보고서" class="section-title centered" />
                     <ui:Label text="인벤토리에 공간이 부족하면 남은 물자는 장부에 보관됩니다." class="section-hint centered" />
                     <ui:ListView name="report-list" class="ledger-list report-list" fixed-item-height="118" />
@@ -80,8 +86,11 @@
 
         <ui:VisualElement name="confirmation-modal" class="modal-layer is-hidden">
             <ui:VisualElement class="modal-card">
+                <ui:VisualElement class="panel-paper" picking-mode="Ignore" />
                 <ui:Label text="파견 확인" class="modal-title" />
+                <ui:ScrollView class="modal-scroll" horizontal-scroller-visibility="Hidden">
                 <ui:Label name="confirmation-text" text="이 내용으로 파견을 보낼까요?" class="modal-text" />
+                </ui:ScrollView>
                 <ui:VisualElement class="modal-buttons">
                     <ui:Button name="confirmation-cancel-button" text="취소" class="secondary-button" />
                     <ui:Button name="confirmation-accept-button" text="파견 보내기" class="primary-button" />

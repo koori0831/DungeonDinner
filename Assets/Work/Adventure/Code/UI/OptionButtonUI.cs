@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Work.Core.EventBus;
 using Work.Players.Code.Inventory;
+using Work.UtillUI.Code;
 
 namespace Work.Adventure.Code.UI
 {
@@ -43,6 +44,7 @@ namespace Work.Adventure.Code.UI
                     _inventory.InventoryChanged += RefreshIngredientAvailability;
                 button.onClick.AddListener(() =>
                 {
+                    if (GameUiInput.IsBlocked) return;
                     if (!button.interactable || !ingredientOption.TryConsume(_inventory))
                     {
                         button.interactable = false;
@@ -64,6 +66,7 @@ namespace Work.Adventure.Code.UI
                 button.interactable = isHaveItem != lockedOption.IsUnLockOption;
                 button.onClick.AddListener(() =>
                 {
+                    if (GameUiInput.IsBlocked) return;
                     if (!button.interactable || Bus<OnHaveItemEvent, BoolenReturnValue>.Raise(
                         new OnHaveItemEvent(lockedOption.KeyItem)).isTrue == lockedOption.IsUnLockOption)
                         return;
@@ -80,7 +83,7 @@ namespace Work.Adventure.Code.UI
             else
                 button.onClick.AddListener(() =>
                 {
-                    if (!button.interactable) return;
+                    if (GameUiInput.IsBlocked || !button.interactable) return;
                     button.interactable = false;
                     resultDialog?.Invoke(optionInfo);
                 });

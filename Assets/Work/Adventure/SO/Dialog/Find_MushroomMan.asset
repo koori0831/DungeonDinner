@@ -13,12 +13,18 @@ MonoBehaviour:
   m_Name: Find_MushroomMan
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "멀리서 머쉬룸맨을 발견했다."
+  - discoveryEntryIds:
+    - monster:mushroom_man
+    <Context>k__BackingField: "\uBA40\uB9AC\uC11C \uBA38\uC26C\uB8F8\uB9E8\uC744
+      \uBC1C\uACAC\uD588\uB2E4."
     method:
     - rid: 3674030402256765110
-  - <Context>k__BackingField: "\"아직 나를 발견하지는 못한 것 같아.\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC544\uC9C1 \uB098\uB97C \uBC1C\uACAC\uD558\uC9C0\uB294
+      \uBABB\uD55C \uAC83 \uAC19\uC544.\""
     method: []
-  - <Context>k__BackingField: "\"다가가 볼까?\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uB2E4\uAC00\uAC00 \uBCFC\uAE4C?\""
     method: []
   options:
   - rid: 3674030402256765111
@@ -35,49 +41,78 @@ MonoBehaviour:
     - rid: 3674030402256765111
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "옆길로 돌아간다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
+        <OptionName>k__BackingField: "\uC606\uAE38\uB85C \uB3CC\uC544\uAC04\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
         <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"옆길로 돌아가자.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC606\uAE38\uB85C \uB3CC\uC544\uAC00\uC790.\""
           method:
           - rid: 3674030402256765128
-        - <Context>k__BackingField: "머쉬룸맨을 피해 옆길로 돌아갔다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC744 \uD53C\uD574
+            \uC606\uAE38\uB85C \uB3CC\uC544\uAC14\uB2E4."
           method: []
+        followUpOptions: []
     - rid: 3674030402256765113
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "칼로 공격한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
+        <OptionName>k__BackingField: "\uCE7C\uB85C \uACF5\uACA9\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
         <RewardDescription>k__BackingField: 
         rewardMethod:
         - rid: 3674030402256765120
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "발소리를 죽이고 머쉬룸맨에게 다가갔다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBC1C\uC18C\uB9AC\uB97C \uC8FD\uC774\uACE0
+            \uBA38\uC26C\uB8F8\uB9E8\uC5D0\uAC8C \uB2E4\uAC00\uAC14\uB2E4."
           method:
           - rid: 3674030402256765129
-        - <Context>k__BackingField: "머쉬룸맨은 다른 곳을 보느라 이쪽을 눈치채지 못했다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC740 \uB2E4\uB978
+            \uACF3\uC744 \uBCF4\uB290\uB77C \uC774\uCABD\uC744 \uB208\uCE58\uCC44\uC9C0
+            \uBABB\uD588\uB2E4."
           method:
           - rid: 3674030402256765130
-        - <Context>k__BackingField: "\"지금이야.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC9C0\uAE08\uC774\uC57C.\""
           method: []
-        - <Context>k__BackingField: "칼을 뻗어 머쉬룸맨을 공격했다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uCE7C\uC744 \uBED7\uC5B4 \uBA38\uC26C\uB8F8\uB9E8\uC744
+            \uACF5\uACA9\uD588\uB2E4."
           method: []
-        - <Context>k__BackingField: "머쉬룸맨은 빛으로 변해 사라졌다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC740 \uBE5B\uC73C\uB85C
+            \uBCC0\uD574 \uC0AC\uB77C\uC84C\uB2E4."
           method:
           - rid: 3674030402256765117
-        - <Context>k__BackingField: "\"휴, 성공했네.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uD734, \uC131\uACF5\uD588\uB124.\""
           method: []
-        - <Context>k__BackingField: "머쉬룸맨이 있던 자리에 갓만 남았다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC774 \uC788\uB358
+            \uC790\uB9AC\uC5D0 \uAC13\uB9CC \uB0A8\uC558\uB2E4."
           method:
           - rid: 3674030402256765122
-        - <Context>k__BackingField: "\"이건 요리에 쓸 수 있겠어.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC774\uAC74 \uC694\uB9AC\uC5D0 \uC4F8 \uC218
+            \uC788\uACA0\uC5B4.\""
           method: []
-        - <Context>k__BackingField: "남은 버섯 갓을 챙겼다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB0A8\uC740 \uBC84\uC12F \uAC13\uC744 \uCC59\uACBC\uB2E4."
           method:
           - rid: 3674030402256765116
-        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -91,36 +126,61 @@ MonoBehaviour:
     - rid: 3674030402256765119
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "망치로 공격한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개."
+        <OptionName>k__BackingField: "\uB9DD\uCE58\uB85C \uACF5\uACA9\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uB9DD\uCE58
+          1\uAC1C."
         <RewardDescription>k__BackingField: 
         rewardMethod:
         - rid: 3674030402256765121
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "발소리를 죽이고 머쉬룸맨에게 다가갔다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBC1C\uC18C\uB9AC\uB97C \uC8FD\uC774\uACE0
+            \uBA38\uC26C\uB8F8\uB9E8\uC5D0\uAC8C \uB2E4\uAC00\uAC14\uB2E4."
           method:
           - rid: 3674030402256765131
-        - <Context>k__BackingField: "머쉬룸맨은 다른 곳을 보느라 이쪽을 눈치채지 못했다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC740 \uB2E4\uB978
+            \uACF3\uC744 \uBCF4\uB290\uB77C \uC774\uCABD\uC744 \uB208\uCE58\uCC44\uC9C0
+            \uBABB\uD588\uB2E4."
           method:
           - rid: 3674030402256765132
-        - <Context>k__BackingField: "\"지금이야.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC9C0\uAE08\uC774\uC57C.\""
           method: []
-        - <Context>k__BackingField: "망치를 들어 머쉬룸맨을 내리쳤다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uB9DD\uCE58\uB97C \uB4E4\uC5B4 \uBA38\uC26C\uB8F8\uB9E8\uC744
+            \uB0B4\uB9AC\uCCE4\uB2E4."
           method: []
-        - <Context>k__BackingField: "머쉬룸맨은 빛으로 변해 사라졌다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC740 \uBE5B\uC73C\uB85C
+            \uBCC0\uD574 \uC0AC\uB77C\uC84C\uB2E4."
           method:
           - rid: 3674030402256765126
-        - <Context>k__BackingField: "\"휴, 성공했네.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uD734, \uC131\uACF5\uD588\uB124.\""
           method: []
-        - <Context>k__BackingField: "머쉬룸맨이 있던 자리에 납작해진 갓만 남았다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC774 \uC788\uB358
+            \uC790\uB9AC\uC5D0 \uB0A9\uC791\uD574\uC9C4 \uAC13\uB9CC \uB0A8\uC558\uB2E4."
           method:
           - rid: 3674030402256765123
-        - <Context>k__BackingField: "\"모양은 달라도 요리에는 쓸 수 있겠어.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uBAA8\uC591\uC740 \uB2EC\uB77C\uB3C4 \uC694\uB9AC\uC5D0\uB294
+            \uC4F8 \uC218 \uC788\uACA0\uC5B4.\""
           method: []
-        - <Context>k__BackingField: "납작해진 버섯 갓을 챙겼다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB0A9\uC791\uD574\uC9C4 \uBC84\uC12F \uAC13\uC744
+            \uCC59\uACBC\uB2E4."
           method:
           - rid: 3674030402256765135
-        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uB9DD\uCE58
+          1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0

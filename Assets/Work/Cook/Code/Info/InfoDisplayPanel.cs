@@ -169,7 +169,7 @@ namespace Work.Cook.Code.Info
             nextBtn = nextBtn != null ? nextBtn : CreateGuideNavigation("NextEntry", "다음", 0.69f);
         }
 
-        internal static void AddReadingScrollbar(ScrollRect scroll, float topInset)
+        public static void AddReadingScrollbar(ScrollRect scroll, float topInset)
         {
             if (scroll.verticalScrollbar != null)
                 return;

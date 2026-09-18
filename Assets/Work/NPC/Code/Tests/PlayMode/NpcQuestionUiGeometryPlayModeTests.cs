@@ -53,15 +53,8 @@ namespace DungeonDinner.Npc.PlayModeTests
         public IEnumerator CookTestScene_OdinPortraitSlidesIntoConversationUi()
         {
             const string scenePath = "Assets/Work/Cook/Scene/CookTestScene.unity";
-            int buildIndex = SceneUtility.GetBuildIndexByScenePath(scenePath);
-            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), scenePath + " is not enabled in Build Settings.");
 
-            // CookTestScene currently emits this unrelated PreparationMenu/NpcEncounterDirector startup exception.
-            LogAssert.Expect(LogType.Exception, "NullReferenceException: Object reference not set to an instance of an object");
-            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
-            Assert.That(loadOperation, Is.Not.Null);
-            while (loadOperation.isDone == false)
-                yield return null;
+            yield return FeedbackSceneFixture.Load(scenePath);
 
             yield return null;
 
@@ -109,13 +102,8 @@ namespace DungeonDinner.Npc.PlayModeTests
 
         private static IEnumerator MeasureScene(string scenePath)
         {
-            int buildIndex = SceneUtility.GetBuildIndexByScenePath(scenePath);
-            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), scenePath + " is not enabled in Build Settings.");
 
-            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
-            Assert.That(loadOperation, Is.Not.Null, "Could not start loading " + scenePath);
-            while (loadOperation.isDone == false)
-                yield return null;
+            yield return FeedbackSceneFixture.Load(scenePath);
 
             yield return null;
             yield return new WaitForSecondsRealtime(0.75f);

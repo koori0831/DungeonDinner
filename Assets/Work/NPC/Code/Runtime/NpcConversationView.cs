@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Work.Chat.Code;
 using Work.NPC.Code.Data;
+using Work.UtillUI.Code;
 
 namespace Work.NPC.Code.Runtime
 {
@@ -163,7 +164,8 @@ namespace Work.NPC.Code.Runtime
 
         private void Update()
         {
-            if (completeTypingOnSubmit == false || chatPanel == null)
+            if (!_visible || GameUiInput.IsBlocked || GameUiInput.Context == GameUiContext.Adventure
+                || completeTypingOnSubmit == false || chatPanel == null)
                 return;
 
             bool submitted = false;

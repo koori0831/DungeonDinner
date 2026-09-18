@@ -14,7 +14,7 @@ namespace Work.Cook.Code.Runtime.Core
             bool isFormed)
         {
             if (isFormed == false || recipe == null)
-                return "미완성 요리";
+                return IncompleteDishDefinitionSO.Instance != null ? IncompleteDishDefinitionSO.Instance.DisplayName : "미완성 요리";
 
             string baseName = recipe.DisplayName;
             string modifierText = BuildModifierText(recipe, preparedIngredients);

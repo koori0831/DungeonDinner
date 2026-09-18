@@ -61,6 +61,14 @@ namespace Work.NPC.Code.Runtime
             }
 
             CaptureDefaultAnchoredPosition();
+            if (titleText != null) titleText.color = new Color(0.97f, 0.94f, 0.84f, 1f);
+            if (contentText != null)
+            {
+                contentText.fontSize = 20f;
+                contentText.enableAutoSizing = false;
+                contentText.textWrappingMode = TextWrappingModes.Normal;
+                contentText.color = new Color(0.24f, 0.14f, 0.08f, 1f);
+            }
             SetVisible(visibleOnStart);
             RefreshContentText();
         }

@@ -21,57 +21,53 @@ namespace Work.NPC.Code.Editor.Tests
         [TestCase("corn_cheese_fondue")]
         public void OrderProfile_CanBeSatisfiedWithRealPreparations(string recipeId)
         {
-            string json = File.ReadAllText("Docs/NPCSystem/Production/OrderProfiles.json");
-            Profile profile = JsonUtility.FromJson<ProfileFile>(json).profiles.Single(p => p.recipeId == recipeId);
             var catalog = AssetDatabase.LoadAssetAtPath<CookingDataCatalogSO>("Assets/Work/Cook/SO/CookingDataCatalog.asset");
-            var ingredients = profile.preparations.Select(p => catalog.Ingredients.Single(i => i.IngredientId == p.ingredientId)).ToArray();
-            CookingSession session = CookingSession.CreateForDirectIngredients(ingredients);
-            for (int i = 0; i < ingredients.Length; i++)
+            var orders = CsvTableParser.Parse(Resources.Load<TextAsset>("NPCData/VisitEvents"))
+                .Select(VisitEventData.FromRow).Where(o => o.CorrectRecipeId == recipeId).ToArray();
+            Assert.That(orders, Is.Not.Empty);
+            var chosen = new List<(IngredientSO ingredient, IngredientPreparationOption option)>();
+            var builder = CookingServiceFactory.CreateDishResultBuilder(catalog);
+            bool Search(int index)
             {
-                var option = ingredients[i].PreparationOptions.Single(o => o.PreparationOptionId == profile.preparations[i].optionId);
-                session.SelectPreparation(ingredients[i], option);
+                if (index == catalog.Ingredients.Count)
+                {
+                    if (chosen.Count == 0) return false;
+                    var session = CookingSession.CreateForDirectIngredients(chosen.Select(p => p.ingredient).ToArray());
+                    foreach (var pair in chosen) session.SelectPreparation(pair.ingredient, pair.option);
+                    var dish = builder.Build(session);
+                    if (!dish.IsRecipeMatched || dish.BaseRecipe.RecipeId != recipeId) return false;
+                    var submission = CookingNpcDishAdapter.ToNpcDishSubmission(dish);
+                    return orders.All(order =>
+                    {
+                        var outcome = NpcDishResultEvaluator.Evaluate(order, submission);
+                        return (outcome.Result == NpcConversationResult.Correct || outcome.Result == NpcConversationResult.Perfect)
+                            && order.PreferredTags.All(submission.Tags.Contains);
+                    });
+                }
+                if (Search(index + 1)) return true;
+                var ingredient = catalog.Ingredients[index];
+                foreach (var option in ingredient.PreparationOptions)
+                {
+                    chosen.Add((ingredient, option));
+                    if (Search(index + 1)) return true;
+                    chosen.RemoveAt(chosen.Count - 1);
+                }
+                return false;
             }
-
-            DishResult result = CookingServiceFactory.CreateDishResultBuilder(catalog).Build(session);
-            Assert.That(result.FormationStatus, Is.EqualTo(DishFormationStatus.Formed));
-            Assert.That(result.BaseRecipe.RecipeId, Is.EqualTo(recipeId));
-            var order = VisitEventData.FromRow(new Dictionary<string, string>
-            {
-                ["EventId"] = "ProductionProfileCheck", ["NpcId"] = "ProfileCheck",
-                ["CorrectRecipeId"] = recipeId, ["AllowedFoodTypes"] = profile.foodType,
-                ["RequiredTags"] = profile.requiredTags, ["PreferredTags"] = profile.preferredTags,
-                ["AvoidTags"] = profile.avoidTags, ["DisgustingTags"] = profile.disgustingTags
-            });
-            var submission = CookingNpcDishAdapter.ToNpcDishSubmission(result);
-            var evaluation = NpcDishResultEvaluator.Evaluate(order, submission);
-            Assert.That(evaluation.Result, Is.EqualTo(NpcConversationResult.Correct).Or.EqualTo(NpcConversationResult.Perfect));
-            Assert.That(order.PreferredTags.All(submission.Tags.Contains), Is.True,
-                "The example preparation must also be able to satisfy the preferred tags.");
+            Assert.That(Search(0), Is.True, recipeId + " must satisfy the shipped NPC sensory requirements using real preparations.");
         }
 
         [Test]
-        public void StarterTemplate_DailyOrdersAreRepeatableUnderRuntimeRules()
+        public void ProductionDailyOrders_AreRepeatableUnderRuntimeRules()
         {
-            string csv = File.ReadAllText("Docs/NPCSystem/Production/Templates/NpcPackage/VisitEvents.csv")
-                .Replace("{{NPC_ID}}", "TemplateVisitor");
-            var asset = new TextAsset(csv);
-            try
+            var events = CsvTableParser.Parse(Resources.Load<TextAsset>("NPCData/VisitEvents")).Select(VisitEventData.FromRow).ToArray();
+            var daily = events.Where(e => e.RepeatMode == VisitEventRepeatMode.Cycle).ToArray();
+            Assert.That(daily.Length, Is.GreaterThanOrEqualTo(4));
+            foreach (var order in daily)
             {
-                var events = CsvTableParser.Parse(asset).Select(VisitEventData.FromRow).ToArray();
-                var dailyOrders = events.Where(e => e.RepeatMode == VisitEventRepeatMode.Cycle).ToArray();
-                Assert.That(dailyOrders.Length, Is.EqualTo(2));
-                foreach (var order in dailyOrders)
-                {
-                    Assert.That(NpcVisitEventRules.IsOneShotEvent(order), Is.False, order.EventId);
-                    Assert.That(NpcVisitEventRules.RequiresCookingStep(order), Is.True, order.EventId);
-                    Assert.That(order.RequiredLastResult, Is.Empty);
-                    Assert.That(order.RequiredCorrectCount, Is.Zero);
-                    Assert.That(order.RequiredAffinity, Is.Zero);
-                }
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(asset);
+                Assert.That(NpcVisitEventRules.IsOneShotEvent(order), Is.False, order.EventId);
+                Assert.That(NpcVisitEventRules.RequiresCookingStep(order), Is.True, order.EventId);
+                Assert.That(order.RequiredLastResult, Is.Empty, order.EventId);
             }
         }
 

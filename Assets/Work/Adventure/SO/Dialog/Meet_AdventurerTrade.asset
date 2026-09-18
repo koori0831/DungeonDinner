@@ -13,16 +13,24 @@ MonoBehaviour:
   m_Name: Meet_AdventurerTrade
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "험상궂은 모험가가 식재료 상자 앞에서 한숨을 쉰다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uD5D8\uC0C1\uAD82\uC740 \uBAA8\uD5D8\uAC00\uAC00
+      \uC2DD\uC7AC\uB8CC \uC0C1\uC790 \uC55E\uC5D0\uC11C \uD55C\uC228\uC744 \uC270\uB2E4."
     method:
     - rid: 1001
     - rid: 1002
     - rid: 1003
-  - <Context>k__BackingField: "\"무기를 내놔.\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uBB34\uAE30\uB97C \uB0B4\uB194.\""
     method: []
-  - <Context>k__BackingField: "\"…아니, 거래하자는 뜻이었어. 손질할 도구를 잃어버렸거든.\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\u2026\uC544\uB2C8, \uAC70\uB798\uD558\uC790\uB294
+      \uB73B\uC774\uC5C8\uC5B4. \uC190\uC9C8\uD560 \uB3C4\uAD6C\uB97C \uC783\uC5B4\uBC84\uB838\uAC70\uB4E0.\""
     method: []
-  - <Context>k__BackingField: "도구를 넘기면 재료를 주겠다고 한다. 앞으로의 채집에 쓸 도구를 여기서 바꿔도 될까?"
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uB3C4\uAD6C\uB97C \uB118\uAE30\uBA74 \uC7AC\uB8CC\uB97C
+      \uC8FC\uACA0\uB2E4\uACE0 \uD55C\uB2E4. \uC55E\uC73C\uB85C\uC758 \uCC44\uC9D1\uC5D0
+      \uC4F8 \uB3C4\uAD6C\uB97C \uC5EC\uAE30\uC11C \uBC14\uAFD4\uB3C4 \uB420\uAE4C?"
     method: []
   options:
   - rid: 900000000000000001
@@ -72,26 +80,38 @@ MonoBehaviour:
     - rid: 1010
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "칼을 건넨다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개. 선택 시 1개 소모됩니다."
-        <RewardDescription>k__BackingField: "칼 1개 소모 → 콘치즈 2개 + 버섯 갓 1개"
+        <OptionName>k__BackingField: "\uCE7C\uC744 \uAC74\uB128\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
+        <RewardDescription>k__BackingField: "\uCE7C 1\uAC1C \uC18C\uBAA8 \u2192 \uCF58\uCE58\uC988
+          2\uAC1C + \uBC84\uC12F \uAC13 1\uAC1C"
         rewardMethod:
         - rid: 1004
         - rid: 1005
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "칼을 건네자 모험가는 안도의 한숨을 쉬었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uCE7C\uC744 \uAC74\uB124\uC790 \uBAA8\uD5D8\uAC00\uB294
+            \uC548\uB3C4\uC758 \uD55C\uC228\uC744 \uC26C\uC5C8\uB2E4."
           method: []
-        - <Context>k__BackingField: "\"이제야 줄기를 자를 수 있겠군. 약속한 재료다.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC774\uC81C\uC57C \uC904\uAE30\uB97C \uC790\uB97C
+            \uC218 \uC788\uACA0\uAD70. \uC57D\uC18D\uD55C \uC7AC\uB8CC\uB2E4.\""
           method: []
-        - <Context>k__BackingField: "콘치즈 두 개와 버섯 갓 하나를 받았다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uCF58\uCE58\uC988 \uB450 \uAC1C\uC640 \uBC84\uC12F
+            \uAC13 \uD558\uB098\uB97C \uBC1B\uC558\uB2E4."
           method:
           - rid: 1006
           - rid: 1007
           - rid: 1008
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1009
-        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개. 선택 시 1개 소모됩니다."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 1
@@ -125,26 +145,38 @@ MonoBehaviour:
     - rid: 1017
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "망치를 건넨다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개. 선택 시 1개 소모됩니다."
-        <RewardDescription>k__BackingField: "망치 1개 소모 → 암염 2개 + 납작버섯 1개"
+        <OptionName>k__BackingField: "\uB9DD\uCE58\uB97C \uAC74\uB128\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uB9DD\uCE58
+          1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
+        <RewardDescription>k__BackingField: "\uB9DD\uCE58 1\uAC1C \uC18C\uBAA8 \u2192
+          \uC554\uC5FC 2\uAC1C + \uB0A9\uC791\uBC84\uC12F 1\uAC1C"
         rewardMethod:
         - rid: 1011
         - rid: 1012
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "망치를 넘겨주자 모험가가 큼직한 암염을 두드려 보았다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB9DD\uCE58\uB97C \uB118\uACA8\uC8FC\uC790
+            \uBAA8\uD5D8\uAC00\uAC00 \uD07C\uC9C1\uD55C \uC554\uC5FC\uC744 \uB450\uB4DC\uB824
+            \uBCF4\uC558\uB2E4."
           method: []
-        - <Context>k__BackingField: "\"좋아. 이 정도면 충분하겠어.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC88B\uC544. \uC774 \uC815\uB3C4\uBA74 \uCDA9\uBD84\uD558\uACA0\uC5B4.\""
           method: []
-        - <Context>k__BackingField: "암염 두 개와 납작버섯 하나를 받았다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC554\uC5FC \uB450 \uAC1C\uC640 \uB0A9\uC791\uBC84\uC12F
+            \uD558\uB098\uB97C \uBC1B\uC558\uB2E4."
           method:
           - rid: 1013
           - rid: 1014
           - rid: 1015
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1016
-        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개. 선택 시 1개 소모됩니다."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uB9DD\uCE58
+          1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 1
@@ -155,29 +187,41 @@ MonoBehaviour:
     - rid: 1019
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "도구는 계속 쓰기로 한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: "거래하지 않음"
+        <OptionName>k__BackingField: "\uB3C4\uAD6C\uB294 \uACC4\uC18D \uC4F0\uAE30\uB85C
+          \uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uAC70\uB798\uD558\uC9C0 \uC54A\uC74C"
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"아직 더 돌아다녀야 해서요.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC544\uC9C1 \uB354 \uB3CC\uC544\uB2E4\uB140\uC57C
+            \uD574\uC11C\uC694.\""
           method: []
-        - <Context>k__BackingField: "모험가는 고개를 끄덕이고 다음 행인을 기다렸다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uBAA8\uD5D8\uAC00\uB294 \uACE0\uAC1C\uB97C
+            \uB044\uB355\uC774\uACE0 \uB2E4\uC74C \uD589\uC778\uC744 \uAE30\uB2E4\uB838\uB2E4."
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1018
+        followUpOptions: []
     - rid: 900000000000000001
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "거래 조건을 묻는다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: ""
+        <OptionName>k__BackingField: "\uAC70\uB798 \uC870\uAC74\uC744 \uBB3B\uB294\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "모험가가 내 짐을 보며 공구를 가리켰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uBAA8\uD5D8\uAC00\uAC00 \uB0B4 \uC9D0\uC744
+            \uBCF4\uBA70 \uACF5\uAD6C\uB97C \uAC00\uB9AC\uCF30\uB2E4."
           method: []
-        - <Context>k__BackingField: "\"칼이나 망치가 필요해. 내줄 수 있는 물건이 있나?\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uCE7C\uC774\uB098 \uB9DD\uCE58\uAC00 \uD544\uC694\uD574.
+            \uB0B4\uC904 \uC218 \uC788\uB294 \uBB3C\uAC74\uC774 \uC788\uB098?\""
           method: []
         followUpOptions:
         - rid: 1010

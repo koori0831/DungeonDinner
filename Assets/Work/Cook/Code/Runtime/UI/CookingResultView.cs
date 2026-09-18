@@ -6,6 +6,8 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using Work.UtillUI.Code;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
@@ -63,6 +65,7 @@ namespace Work.Cook.Code.Runtime.UI
         [Header("Details")]
         [SerializeField] private Button detailsToggleButton;
         [SerializeField] private GameObject detailsDrawer;
+        [SerializeField] private TextMeshProUGUI detailSummaryField;
         [SerializeField] private RectTransform tagComparisonRoot;
         [SerializeField] private CookingUiChipView tagChipTemplate;
         [SerializeField] private TextMeshProUGUI exactMatchField;
@@ -119,7 +122,8 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void Update()
         {
-            if (_isRevealing && UnityEngine.Input.anyKeyDown)
+            if (_isRevealing && !GameUiInput.IsBlocked && Keyboard.current != null
+                && (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.enterKey.wasPressedThisFrame))
                 CompleteReveal(true);
         }
 
@@ -214,6 +218,9 @@ namespace Work.Cook.Code.Runtime.UI
 
             _detailsOpen = !_detailsOpen;
             detailsDrawer.SetActive(_detailsOpen);
+            bool showVerdict = !_detailsOpen && _model != null && _model.HasNpcReport;
+            SetActive(reactionGroup != null ? reactionGroup.gameObject : null, showVerdict);
+            SetActive(rewardPreviewGroup != null ? rewardPreviewGroup.gameObject : null, showVerdict);
             UpdateDetailsButtonLabel();
         }
 
@@ -224,8 +231,16 @@ namespace Work.Cook.Code.Runtime.UI
 
             BindDishIcon(model.Source);
             SetText(dishNameField, model.DishName);
-            SetText(recipeField, $"{model.RecipeName} · {model.CategoryName}");
+            SetText(recipeField, model.Source.IsRecipeMatched
+                ? $"{model.RecipeName} · {model.CategoryName}"
+                : IncompleteDishDefinitionSO.Instance?.Description ?? "아직 하나의 요리가 되지는 못했다.");
             SetText(representativeTagsField, BuildRepresentativeTagText(model.RepresentativeTags));
+            if (recipeField != null)
+            {
+                bool formed = model.Source.IsRecipeMatched;
+                recipeField.rectTransform.sizeDelta = new Vector2(290, formed ? 48 : 96);
+                recipeField.rectTransform.anchoredPosition = new Vector2(105, formed ? -28 : -52);
+            }
 
             CookingQualityVisual qualityVisual = presentationSettings?.GetQualityVisual(model.CraftGrade);
             BindImage(qualityIconImage, qualityVisual?.Icon);
@@ -235,13 +250,39 @@ namespace Work.Cook.Code.Runtime.UI
                 qualityNameField.color = qualityVisual.Color;
 
             ApplyVerdictVisibility(model);
-            RebuildPreparationEntries(model.PreparedIngredients);
-            BindReasons(model.Reasons);
+            if (detailSummaryField != null) BindDetailSummary(model);
+            else { RebuildPreparationEntries(model.PreparedIngredients); BindReasons(model.Reasons); }
             UpdateActionButtonLabel(model.HasNpcReport);
 
             _detailsOpen = false;
             SetActive(detailsDrawer, false);
             UpdateDetailsButtonLabel();
+        }
+
+        private void BindDetailSummary(CookingResultPresentationModel model)
+        {
+            var text = new StringBuilder();
+            foreach (var item in model.PreparedIngredients)
+            {
+                text.Append("<b>").Append(item.IngredientName).Append(" · ").Append(item.MethodName).AppendLine("</b>");
+                text.Append(item.GradeName).Append("  /  완성도 ").Append(item.QualityDelta.ToString("+#;-#;0")).AppendLine();
+                if (!string.IsNullOrWhiteSpace(item.Feedback)) text.AppendLine(item.Feedback);
+                if (item.EffectLabels.Count > 0) text.AppendLine(string.Join(" · ", item.EffectLabels));
+                text.AppendLine();
+            }
+            if (model.HasNpcReport)
+            {
+                text.Append("<b>").Append(model.NpcName).Append(" · ").Append(model.ReactionName).AppendLine("</b>");
+                text.AppendLine(model.ReactionSummary);
+                foreach (var tag in model.TagComparisons)
+                    text.Append(tag.DisplayName).Append(" : ").AppendLine(tag.Status == CookingTagPresentationStatus.Matched ? "일치" : tag.Status == CookingTagPresentationStatus.Triggered ? "피해야 할 조건" : "미충족");
+                text.AppendLine();
+            }
+            foreach (string reason in model.Reasons) text.AppendLine(reason);
+            detailSummaryField.text = text.ToString().Trim();
+            var scroll = detailSummaryField.GetComponentInParent<ScrollRect>();
+            Canvas.ForceUpdateCanvases();
+            if (scroll != null) scroll.verticalNormalizedPosition = 1;
         }
 
         private void BindEmptyState()
@@ -600,7 +641,7 @@ namespace Work.Cook.Code.Runtime.UI
         private static string BuildRepresentativeTagText(IReadOnlyList<string> tags)
         {
             if (tags == null || tags.Count == 0)
-                return "대표 태그 없음";
+                return string.Empty;
 
             return "#" + string.Join("  #", tags);
         }

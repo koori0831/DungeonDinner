@@ -59,6 +59,7 @@ function saveEvent(event) {
 const paths = events.map(saveEvent);
 require('./normalize-adventure-text.cjs').normalizePaths(paths);
 require('./upgrade-adventure-branches.cjs').upgradePaths(paths);
+require('./adventure-discovery.cjs').annotate(paths);
 for(const scene of [`${A}/Scene/AdventureTestScene.unity`,'Assets/Work/Cook/Scene/CookTestScene.unity']) {
  let s = read(scene); const nl = s.includes('\r\n')?'\r\n':'\n';
  s = s.replace(/  eventList:\r?\n(?:  - .*\r?\n)*/g, block => block + paths.filter(p=>!block.includes(guid(p))).map(p=>`  - ${ref(p)}${nl}`).join(''));

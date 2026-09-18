@@ -13,22 +13,34 @@ MonoBehaviour:
   m_Name: Find_Box
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "길을 지나가다 낡은 나무 상자를 발견했다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uAE38\uC744 \uC9C0\uB098\uAC00\uB2E4 \uB0A1\uC740
+      \uB098\uBB34 \uC0C1\uC790\uB97C \uBC1C\uACAC\uD588\uB2E4."
     method:
     - rid: 3674030411505205351
-  - <Context>k__BackingField: "\"이건 뭐지?\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC774\uAC74 \uBB50\uC9C0?\""
     method: []
-  - <Context>k__BackingField: "\"던전 한가운데 나무 상자라니...\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uB358\uC804 \uD55C\uAC00\uC6B4\uB370 \uB098\uBB34
+      \uC0C1\uC790\uB77C\uB2C8...\""
     method: []
-  - <Context>k__BackingField: "\"혹시 미믹인가?\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uD639\uC2DC \uBBF8\uBBF9\uC778\uAC00?\""
     method: []
-  - <Context>k__BackingField: "미믹인지 확인하려고 상자를 가볍게 두드렸다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uBBF8\uBBF9\uC778\uC9C0 \uD655\uC778\uD558\uB824\uACE0
+      \uC0C1\uC790\uB97C \uAC00\uBCCD\uAC8C \uB450\uB4DC\uB838\uB2E4."
     method: []
-  - <Context>k__BackingField: "툭, 툭."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uD22D, \uD22D."
     method: []
-  - <Context>k__BackingField: "\"움직이지는 않네. 미믹은 아닌가?\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC6C0\uC9C1\uC774\uC9C0\uB294 \uC54A\uB124. \uBBF8\uBBF9\uC740
+      \uC544\uB2CC\uAC00?\""
     method: []
-  - <Context>k__BackingField: "\"어떻게 할까?\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC5B4\uB5BB\uAC8C \uD560\uAE4C?\""
     method: []
   options:
   - rid: 900000000000000001
@@ -36,6 +48,27 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: 900000000000000001
+      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "\uC0C1\uC790\uB97C \uC0B4\uD540\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: 
+        rewardMethod: []
+        <ResultdialogDatas>k__BackingField:
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC0C1\uC790\uC758 \uBAA8\uC11C\uB9AC\uC640
+            \uC790\uBB3C\uC1E0\uB97C \uC790\uC138\uD788 \uC0B4\uD3B4\uBCF4\uC558\uB2E4."
+          method: []
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB098\uBB34\uD310\uC740 \uB0A1\uC558\uC9C0\uB9CC
+            \uC790\uBB3C\uC1E0\uB294 \uB2E8\uB2E8\uD558\uB2E4. \uD2C8\uC744 \uAC74\uB4DC\uB9AC\uAC70\uB098
+            \uC0C1\uC790\uB97C \uBD80\uC220 \uC218 \uC788\uC744 \uAC83 \uAC19\uB2E4."
+          method: []
+        followUpOptions:
+        - rid: 3674030411505205353
+        - rid: 3674030411505205354
+        - rid: 3674030411505205352
     - rid: 3674030411505205351
       type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
       data:
@@ -44,45 +77,65 @@ MonoBehaviour:
     - rid: 3674030411505205352
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "그냥 지나간다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
+        <OptionName>k__BackingField: "\uADF8\uB0E5 \uC9C0\uB098\uAC04\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
         <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"여는 방법도 모르겠고...\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC5EC\uB294 \uBC29\uBC95\uB3C4 \uBAA8\uB974\uACA0\uACE0...\""
           method: []
-        - <Context>k__BackingField: "\"미믹일지도 모르니 그냥 지나가자.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uBBF8\uBBF9\uC77C\uC9C0\uB3C4 \uBAA8\uB974\uB2C8
+            \uADF8\uB0E5 \uC9C0\uB098\uAC00\uC790.\""
           method: []
-        - <Context>k__BackingField: "나무 상자를 뒤로하고 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB098\uBB34 \uC0C1\uC790\uB97C \uB4A4\uB85C\uD558\uACE0
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 3674030411505205355
+        followUpOptions: []
     - rid: 3674030411505205353
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "망치로 부순다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개."
+        <OptionName>k__BackingField: "\uB9DD\uCE58\uB85C \uBD80\uC21C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uB9DD\uCE58
+          1\uAC1C."
         <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"흠...\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uD760...\""
           method: []
-        - <Context>k__BackingField: "\"망치로 부술 수 있지 않을까?\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uB9DD\uCE58\uB85C \uBD80\uC220 \uC218 \uC788\uC9C0
+            \uC54A\uC744\uAE4C?\""
           method: []
-        - <Context>k__BackingField: "망치를 크게 휘둘러 상자를 내리쳤다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB9DD\uCE58\uB97C \uD06C\uAC8C \uD718\uB458\uB7EC
+            \uC0C1\uC790\uB97C \uB0B4\uB9AC\uCCE4\uB2E4."
           method: []
-        - <Context>k__BackingField: "<size=70>쾅!</size>"
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "<size=70>\uCF85!</size>"
           method:
           - rid: 3674030411505205364
-        - <Context>k__BackingField: "상자가 산산조각 나며 내용물이 드러났다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC0C1\uC790\uAC00 \uC0B0\uC0B0\uC870\uAC01
+            \uB098\uBA70 \uB0B4\uC6A9\uBB3C\uC774 \uB4DC\uB7EC\uB0AC\uB2E4."
           method:
           - rid: 3674030411505205365
-        - <Context>k__BackingField: "상자 안에는 여러 종류의 식재료가 들어 있었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC0C1\uC790 \uC548\uC5D0\uB294 \uC5EC\uB7EC
+            \uC885\uB958\uC758 \uC2DD\uC7AC\uB8CC\uAC00 \uB4E4\uC5B4 \uC788\uC5C8\uB2E4."
           method:
           - rid: 3674030411505205362
-        - <Context>k__BackingField: "\"뜻밖의 수확이네.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uB73B\uBC16\uC758 \uC218\uD655\uC774\uB124.\""
           method:
           - rid: 3674030415293710407
-        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uB9DD\uCE58
+          1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -90,34 +143,53 @@ MonoBehaviour:
     - rid: 3674030411505205354
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "칼로 자물쇠를 딴다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
+        <OptionName>k__BackingField: "\uCE7C\uB85C \uC790\uBB3C\uC1E0\uB97C \uB534\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
         <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"어릴 때는 괴도가 되고 싶었지.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC5B4\uB9B4 \uB54C\uB294 \uAD34\uB3C4\uAC00
+            \uB418\uACE0 \uC2F6\uC5C8\uC9C0.\""
           method: []
-        - <Context>k__BackingField: "칼끝을 자물쇠 구멍에 밀어 넣었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uCE7C\uB05D\uC744 \uC790\uBB3C\uC1E0 \uAD6C\uBA4D\uC5D0
+            \uBC00\uC5B4 \uB123\uC5C8\uB2E4."
           method: []
-        - <Context>k__BackingField: "잠금쇠를 찾아 칼을 조심스럽게 움직였다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC7A0\uAE08\uC1E0\uB97C \uCC3E\uC544 \uCE7C\uC744
+            \uC870\uC2EC\uC2A4\uB7FD\uAC8C \uC6C0\uC9C1\uC600\uB2E4."
           method: []
-        - <Context>k__BackingField: "덜그럭, 덜그럭."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB35C\uADF8\uB7ED, \uB35C\uADF8\uB7ED."
           method: []
-        - <Context>k__BackingField: "그때 칼에서 불길한 소리가 났다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uADF8\uB54C \uCE7C\uC5D0\uC11C \uBD88\uAE38\uD55C
+            \uC18C\uB9AC\uAC00 \uB0AC\uB2E4."
           method: []
-        - <Context>k__BackingField: "<size=70>깡!</size>"
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "<size=70>\uAE61!</size>"
           method: []
-        - <Context>k__BackingField: "\"어...?\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC5B4...?\""
           method: []
-        - <Context>k__BackingField: "힘을 버티지 못한 칼이 부러졌다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uD798\uC744 \uBC84\uD2F0\uC9C0 \uBABB\uD55C
+            \uCE7C\uC774 \uBD80\uB7EC\uC84C\uB2E4."
           method:
           - rid: 3674030411505205366
-        - <Context>k__BackingField: "열리지 않은 상자를 뒤로하고 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC5F4\uB9AC\uC9C0 \uC54A\uC740 \uC0C1\uC790\uB97C
+            \uB4A4\uB85C\uD558\uACE0 \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 3674030411505205367
-        - <Context>k__BackingField: "\"그냥 지나갈걸...\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uADF8\uB0E5 \uC9C0\uB098\uAC08\uAC78...\""
           method: []
-        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -156,19 +228,3 @@ MonoBehaviour:
     - rid: 3674030415293710407
       type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
       data: 
-    - rid: 900000000000000001
-      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
-      data:
-        <OptionName>k__BackingField: "상자를 살핀다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: ""
-        rewardMethod: []
-        <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "상자의 모서리와 자물쇠를 자세히 살펴보았다."
-          method: []
-        - <Context>k__BackingField: "나무판은 낡았지만 자물쇠는 단단하다. 틈을 건드리거나 상자를 부술 수 있을 것 같다."
-          method: []
-        followUpOptions:
-        - rid: 3674030411505205353
-        - rid: 3674030411505205354
-        - rid: 3674030411505205352

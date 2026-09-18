@@ -187,6 +187,7 @@ namespace Work.Dispatch.Code.Editor
             CopyCookReferenceConfiguration(targetScene, presentationRoot, cookingPanel);
             BindCookingPresentation(targetScene, presentationRoot, cookingPanel);
 
+            PlaytestFeedbackInstaller.ApplyToScene(targetScene);
             EditorSceneManager.MarkSceneDirty(targetScene);
             EditorSceneManager.SaveScene(targetScene);
             AssetDatabase.SaveAssets();

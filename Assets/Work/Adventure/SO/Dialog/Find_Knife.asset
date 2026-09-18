@@ -13,14 +13,20 @@ MonoBehaviour:
   m_Name: Find_Knife
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "길가에서 버려진 칼을 발견했다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uAE38\uAC00\uC5D0\uC11C \uBC84\uB824\uC9C4 \uCE7C\uC744
+      \uBC1C\uACAC\uD588\uB2E4."
     method:
     - rid: 3674030402256765101
-  - <Context>k__BackingField: "버려진 물건치고는 상태가 좋다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uBC84\uB824\uC9C4 \uBB3C\uAC74\uCE58\uACE0\uB294
+      \uC0C1\uD0DC\uAC00 \uC88B\uB2E4."
     method: []
-  - <Context>k__BackingField: "\"이런 게 왜 여기 있지?\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC774\uB7F0 \uAC8C \uC65C \uC5EC\uAE30 \uC788\uC9C0?\""
     method: []
-  - <Context>k__BackingField: "\"어떻게 할까?\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC5B4\uB5BB\uAC8C \uD560\uAE4C?\""
     method: []
   options:
   - rid: 3674030371714105429
@@ -31,31 +37,39 @@ MonoBehaviour:
     - rid: 3674030371714105429
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "그냥 지나친다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
+        <OptionName>k__BackingField: "\uADF8\uB0E5 \uC9C0\uB098\uCE5C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
         <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"그 자리에 두자.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uADF8 \uC790\uB9AC\uC5D0 \uB450\uC790.\""
           method: []
-        - <Context>k__BackingField: "칼을 그대로 두고 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uCE7C\uC744 \uADF8\uB300\uB85C \uB450\uACE0
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 3674030402256765102
+        followUpOptions: []
     - rid: 3674030402256765035
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "칼을 챙긴다"
-        <OptionTooltip>k__BackingField: "선택 조건: 칼 미보유."
+        <OptionName>k__BackingField: "\uCE7C\uC744 \uCC59\uAE34\uB2E4"
+        <OptionTooltip>k__BackingField: "\uC120\uD0DD \uC870\uAC74: \uCE7C \uBBF8\uBCF4\uC720."
         <RewardDescription>k__BackingField: 
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "\"필요할 때가 있을 거야.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uD544\uC694\uD560 \uB54C\uAC00 \uC788\uC744
+            \uAC70\uC57C.\""
           method:
           - rid: 3674030402256765217
-        - <Context>k__BackingField: "칼을 챙겼다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uCE7C\uC744 \uCC59\uACBC\uB2E4."
           method:
           - rid: 3674030402256765103
-        <LockTooltip>k__BackingField: "선택 조건: 칼 미보유."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uC120\uD0DD \uC870\uAC74: \uCE7C \uBBF8\uBCF4\uC720."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 1
         <IsUseItemOption>k__BackingField: 0

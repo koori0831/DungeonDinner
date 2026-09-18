@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
+using Work.UtillUI.Code;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -26,26 +27,21 @@ namespace Work.Cook.Code.Runtime.UI
 
         [Header("HUD")]
         [SerializeField] private RectTransform hudRoot;
-        [SerializeField] private TextMeshProUGUI titleField;
-        [SerializeField] private TextMeshProUGUI instructionField;
-        [SerializeField] private TextMeshProUGUI statusField;
         [SerializeField] private Button cancelButton;
 
         [Header("Action HUD")]
         [SerializeField] private RectTransform actionHudRoot;
+        [SerializeField] private TextMeshProUGUI instructionField;
         [SerializeField] private RectTransform progressGaugeRoot;
         [SerializeField] private Image progressFill;
         [SerializeField] private Image targetBand;
         [SerializeField] private Image targetMarker;
         [SerializeField] private TextMeshProUGUI progressField;
-        [SerializeField] private TextMeshProUGUI gestureField;
         [SerializeField] private RectTransform timerGaugeRoot;
         [SerializeField] private Image timerFill;
 
-        [Header("Mistake Toast")]
-        [SerializeField] private CanvasGroup mistakeCanvasGroup;
-        [SerializeField] private TextMeshProUGUI mistakeField;
-        [SerializeField, Min(0.1f)] private float mistakeDisplayDuration = 1.2f;
+        [Header("Graphic cues")]
+        [SerializeField] private CookingGestureGraphic gestureGraphic;
 
         [Header("Result")]
         [SerializeField] private CanvasGroup resultCanvasGroup;
@@ -148,37 +144,11 @@ namespace Work.Cook.Code.Runtime.UI
 
         public void SetFontAsset(TMP_FontAsset fontAsset)
         {
+            EnsureInstructionField();
             _hudLayoutDirty = true;
-            if (fontAsset == null)
-                return;
-
-            if (titleField != null)
-                titleField.font = fontAsset;
-            if (instructionField != null)
-                instructionField.font = fontAsset;
-            if (statusField != null)
-                statusField.font = fontAsset;
-            if (resultField != null)
-                resultField.font = fontAsset;
-            if (resultScoreField != null)
-                resultScoreField.font = fontAsset;
-            if (resultReasonField != null)
-                resultReasonField.font = fontAsset;
-            if (progressField != null)
-            {
-                progressField.font = fontAsset;
-                progressField.fontSize = Mathf.Max(progressField.fontSize, 20f);
-            }
-            if (gestureField != null)
-            {
-                gestureField.font = fontAsset;
-                gestureField.fontSize = Mathf.Max(gestureField.fontSize, 22f);
-            }
-            if (mistakeField != null)
-            {
-                mistakeField.font = fontAsset;
-                mistakeField.fontSize = Mathf.Max(mistakeField.fontSize, 21f);
-            }
+            if (fontAsset == null) return;
+            foreach (var field in new[] { resultField, resultScoreField, resultReasonField, progressField, instructionField })
+                if (field != null) field.font = fontAsset;
         }
 
         public bool Begin(IngredientSO ingredient, IngredientPreparationOption option)
@@ -186,7 +156,10 @@ namespace Work.Cook.Code.Runtime.UI
             if (ingredient == null || option == null || targetFrame == null || maskImage == null)
                 return false;
 
+            GameUiInput.SetContext(GameUiContext.Cooking);
             StopResultRoutine();
+            foreach (var field in new[] { resultField, resultScoreField, resultReasonField })
+                if (field != null) field.text = string.Empty;
             _activeIngredient = ingredient;
             _activeOption = option;
             _presentationSyncFramesRemaining = 2;
@@ -208,9 +181,6 @@ namespace Work.Cook.Code.Runtime.UI
             }
             SetIngredientVisible(true);
 
-            SetText(titleField, option.DisplayName);
-            SetText(instructionField, "재료 위의 가이드를 따라 조작하세요.");
-            SetText(statusField, string.Empty);
             SetResultVisible(false);
             StopMistakeRoutine();
             ResetActionHud();
@@ -223,20 +193,15 @@ namespace Work.Cook.Code.Runtime.UI
             return true;
         }
 
-        public void SetInstruction(string text)
-        {
-            SetText(instructionField, text);
-        }
 
-        public void SetStatus(string text)
-        {
-            SetText(statusField, text);
-        }
+
+
 
         public void MarkProgress()
         {
             _lastProgressTime = Time.unscaledTime;
             _hintShown = false;
+            gestureGraphic?.CompleteDemonstration();
         }
 
         public void PlayActionFeedback()
@@ -309,7 +274,7 @@ namespace Work.Cook.Code.Runtime.UI
                 true));
         }
 
-        public void ConfigureActionHud(string gestureText, bool showProgress, bool showTarget, bool showTimer)
+        public void ConfigureActionHud(CookingGesture action, bool showProgress, bool showTarget, bool showTimer)
         {
             if (actionHudRoot != null)
                 actionHudRoot.gameObject.SetActive(true);
@@ -324,28 +289,92 @@ namespace Work.Cook.Code.Runtime.UI
             if (timerGaugeRoot != null)
                 timerGaugeRoot.gameObject.SetActive(showTimer);
 
-            SetText(gestureField, gestureText);
             SetText(progressField, string.Empty);
             SetHorizontalFill(progressFill, 0f);
             SetHorizontalFill(timerFill, 1f);
+            SetGesture(action);
         }
 
-        public void SetGesture(string text)
+        public void SetGesture(CookingGesture action)
         {
-            SetText(gestureField, text);
+            if (gestureGraphic != null) gestureGraphic.SetAction(action);
+            EnsureInstructionField();
+            SetText(instructionField, BuildInstruction(_activeOption != null ? _activeOption.MiniGameType : CookingMiniGameType.None, action));
         }
 
-        public void SetProgress(float normalizedValue, string label)
+        private void EnsureInstructionField()
+        {
+            if (actionHudRoot == null) return;
+            if (instructionField == null)
+            {
+                var existing = actionHudRoot.Find("Instruction");
+                instructionField = existing != null ? existing.GetComponent<TextMeshProUGUI>() : null;
+                if (instructionField == null)
+                {
+                    var label = new GameObject("Instruction", typeof(RectTransform), typeof(TextMeshProUGUI));
+                    label.transform.SetParent(actionHudRoot, false);
+                    instructionField = label.GetComponent<TextMeshProUGUI>();
+                }
+            }
+            instructionField.font = progressField != null ? progressField.font : instructionField.font;
+            instructionField.fontSize = 24f;
+            instructionField.enableAutoSizing = false;
+            instructionField.color = new Color(0.24f, 0.14f, 0.08f, 1f);
+            instructionField.alignment = TextAlignmentOptions.TopLeft;
+            instructionField.textWrappingMode = TextWrappingModes.Normal;
+            instructionField.overflowMode = TextOverflowModes.Overflow;
+            instructionField.raycastTarget = false;
+            instructionField.maskable = false;
+            // Serialized HUDs can retain an older sibling order. Keep the opaque paper
+            // below the instructions just as in a newly created runtime HUD.
+            actionHudRoot.Find("PaperBackground")?.SetAsFirstSibling();
+            instructionField.transform.SetAsLastSibling();
+            actionHudRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 440f);
+        }
+
+        private static string BuildInstruction(CookingMiniGameType type, CookingGesture action)
+        {
+            switch (type)
+            {
+                case CookingMiniGameType.Chopping:
+                    return "빛나는 표식을 순서대로 클릭해 다지세요.";
+                case CookingMiniGameType.Slicing:
+                    return "빛나는 시작점을 누른 채 선을 따라 끝까지 드래그하세요.";
+                case CookingMiniGameType.Cleansing:
+                    return "솔을 누른 채 얼룩 위를 문질러 닦으세요.";
+                case CookingMiniGameType.Grinding:
+                    return "막자를 누른 채 중심 주위로 원을 그려 가세요.";
+                case CookingMiniGameType.Stewing:
+                    if (action == CookingGesture.Stir) return "누른 채 중심 주위로 원을 그려 한 바퀴 저으세요.";
+                    if (action == CookingGesture.Discard) return "거품을 오른쪽 위 붉은 폐기 영역으로 드래그해 놓으세요.";
+                    return "재료 위를 누른 채 오른쪽으로 드래그한 뒤 놓으세요.";
+                case CookingMiniGameType.Boiling:
+                    return "게이지가 목표 구간에 들어오면 재료를 클릭해 건져내세요.";
+                case CookingMiniGameType.Roasting:
+                case CookingMiniGameType.Burning:
+                    return action == CookingGesture.Flip
+                        ? "재료를 클릭해 뒤집고, 게이지가 목표 구간에 오면 다시 클릭하세요."
+                        : "게이지가 목표 구간에 들어오면 재료를 클릭해 꺼내세요.";
+                case CookingMiniGameType.Freezing:
+                    return "표면 전체를 고르게 문지르고, 게이지가 목표 구간에 오면 놓으세요.";
+                case CookingMiniGameType.Diluting:
+                    return "물병을 강조된 영역으로 옮겨 누르고, 게이지가 목표 구간에 오면 놓으세요.";
+                default:
+                    return "강조된 지점을 눌러 조작하세요.";
+            }
+        }
+
+        public void SetProgress(float normalizedValue, int completed = -1, int total = 0)
         {
             SetHorizontalFill(progressFill, normalizedValue);
             if (targetBand != null)
                 targetBand.gameObject.SetActive(false);
             if (targetMarker != null)
                 targetMarker.gameObject.SetActive(false);
-            SetText(progressField, label);
+            SetText(progressField, total > 0 ? $"{completed}/{total}" : $"{Mathf.RoundToInt(Mathf.Clamp01(normalizedValue) * 100f)}%");
         }
 
-        public void SetTargetState(float normalizedValue, float targetMin, float targetMax, string label)
+        public void SetTargetState(float normalizedValue, float targetMin, float targetMax)
         {
             float minimum = Mathf.Clamp01(Mathf.Min(targetMin, targetMax));
             float maximum = Mathf.Clamp01(Mathf.Max(targetMin, targetMax));
@@ -356,7 +385,7 @@ namespace Work.Cook.Code.Runtime.UI
                 targetBand.gameObject.SetActive(true);
             if (targetMarker != null)
                 targetMarker.gameObject.SetActive(true);
-            SetText(progressField, label);
+            SetText(progressField, $"{Mathf.RoundToInt(Mathf.Clamp01(normalizedValue) * 100f)}%");
         }
 
         public void SetTimer(float remaining, float duration)
@@ -365,14 +394,9 @@ namespace Work.Cook.Code.Runtime.UI
             SetHorizontalFill(timerFill, normalized);
         }
 
-        public void ShowMistake(string text)
+        public void ShowMistake(CookingFeedbackState state = CookingFeedbackState.Mistake)
         {
-            if (string.IsNullOrWhiteSpace(text))
-                text = "입력 가이드를 다시 확인하세요.";
-
-            if (_mistakeRoutine != null)
-                StopCoroutine(_mistakeRoutine);
-            _mistakeRoutine = StartCoroutine(ShowMistakeRoutine(text));
+            gestureGraphic?.ShowFeedback(state);
             PlayMistakeFeedback();
         }
 
@@ -396,6 +420,7 @@ namespace Work.Cook.Code.Runtime.UI
             ResetActionHud();
             ResetTargetFrame();
             SetIngredientVisible(false);
+            gestureGraphic?.Hide();
             RestoreWorkbenchPosition();
             SetPreparationTextHidden(false);
         }
@@ -431,11 +456,7 @@ namespace Work.Cook.Code.Runtime.UI
             AlignTargetFrameToIngredientAnchor();
             RefreshFocusLayout();
 
-            if (_hintShown == false && Time.unscaledTime - _lastProgressTime >= 10f)
-            {
-                _hintShown = true;
-                ShowMistake("입력 가이드를 다시 확인하세요.");
-            }
+
         }
 
         private IEnumerator ShowResultRoutine(CookingMiniGameResult result, Action completed)
@@ -445,6 +466,7 @@ namespace Work.Cook.Code.Runtime.UI
                 cancelButton.interactable = false;
             StopMistakeRoutine();
             ResetActionHud();
+            gestureGraphic?.Hide();
             ResultShown?.Invoke(result);
             CookingMiniGameGrade grade = result != null ? result.Grade : CookingMiniGameGrade.Bad;
             SetText(resultField, GetGradeLabel(grade));
@@ -720,65 +742,19 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void RefreshFocusLayout()
         {
-            if (overlayRoot == null || targetFrame == null || maskImage == null)
-                return;
-
-            if (_hudLayoutDirty)
-            {
-                RefreshHudTextLayout();
-                _hudLayoutDirty = false;
-            }
-
-            Rect workBounds = GetWorkBounds();
-            float headerHeight = hudRoot != null ? hudRoot.rect.height : 0f;
-            float actionHeight = actionHudRoot != null ? actionHudRoot.rect.height : 0f;
-            RectTransform mistakeRoot = mistakeCanvasGroup != null
-                ? mistakeCanvasGroup.transform as RectTransform : null;
-            float toastHeight = mistakeRoot != null ? mistakeRoot.rect.height * 1.04f : 0f;
-            float minimumCenter = overlayRoot.rect.yMin + ScreenPadding + actionHudGap
-                                  + actionHeight + PanelPadding + toastHeight + workBounds.height * 0.5f;
-            float maximumCenter = overlayRoot.rect.yMax - ScreenPadding - actionHudGap
-                                  - headerHeight - workBounds.height * 0.5f;
-
-            // Translate the workbench only when needed; its size and all input tolerances stay unchanged.
-            if (minimumCenter <= maximumCenter)
-            {
-                float shift = Mathf.Clamp(workBounds.center.y, minimumCenter, maximumCenter) - workBounds.center.y;
-                if (Mathf.Abs(shift) > 0.01f)
-                {
-                    RectTransform workbench = _workbenchView != null ? _workbenchView.transform as RectTransform : null;
-                    if (workbench != null)
-                    {
-                        if (_shiftedWorkbench == null)
-                        {
-                            _shiftedWorkbench = workbench;
-                            _workbenchOriginalPosition = workbench.anchoredPosition;
-                        }
-                        workbench.position += overlayRoot.TransformVector(new Vector3(0f, shift));
-                        AlignTargetFrameToIngredientAnchor();
-                    }
-                    else if (ingredientAnchor == null)
-                        targetFrame.position += overlayRoot.TransformVector(new Vector3(0f, shift));
-                    workBounds = GetWorkBounds();
-                }
-            }
-
-            if (hudRoot != null)
-                PlacePanel(hudRoot, workBounds.center.x, workBounds.yMax + actionHudGap + headerHeight * 0.5f);
+            if (overlayRoot == null || targetFrame == null) return;
+            if (_hudLayoutDirty) { RefreshHudTextLayout(); _hudLayoutDirty = false; }
+            Rect bounds = GetWorkBounds();
             if (actionHudRoot != null)
-                PlacePanel(actionHudRoot, workBounds.center.x, workBounds.yMin - actionHudGap - actionHeight * 0.5f);
-            if (mistakeRoot != null)
-                PlacePanel(mistakeRoot, workBounds.center.x,
-                    workBounds.yMin - actionHudGap - actionHeight - PanelPadding - toastHeight * 0.5f);
-
-            Vector3[] worldCorners = new Vector3[4];
-            if (GetDisplayedIngredientWorldCorners(worldCorners) == false)
-                return;
-
-            Vector3 bottomLeft = overlayRoot.InverseTransformPoint(worldCorners[0]);
-            Vector3 topRight = overlayRoot.InverseTransformPoint(worldCorners[2]);
-
-            AlignFocusDimmers(bottomLeft, topRight);
+                PlacePanel(actionHudRoot, bounds.center.x,
+                    Mathf.Max(overlayRoot.rect.yMin + ScreenPadding + actionHudRoot.rect.height * 0.5f,
+                        bounds.yMin - actionHudGap - actionHudRoot.rect.height * 0.5f));
+            if (hudRoot != null)
+                PlacePanel(hudRoot, bounds.xMax - hudRoot.rect.width * 0.5f,
+                    Mathf.Min(overlayRoot.rect.yMax - ScreenPadding - hudRoot.rect.height * 0.5f,
+                        bounds.yMax + actionHudGap));
+            if (resultCanvasGroup != null)
+                PlacePanel((RectTransform)resultCanvasGroup.transform, bounds.center.x, bounds.center.y);
         }
 
         private Rect GetWorkBounds()
@@ -826,42 +802,14 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void RefreshHudTextLayout()
         {
-            if (hudRoot != null)
-            {
-                float buttonWidth = cancelButton != null ? ((RectTransform)cancelButton.transform).rect.width : 0f;
-                float width = hudRoot.rect.width - PanelPadding * 3f - buttonWidth;
-                float x = -(buttonWidth + PanelPadding) * 0.5f;
-                float top = PanelPadding;
-                LayoutTextRow(titleField, x, width, 36f, PanelPadding, ref top);
-                LayoutTextRow(instructionField, x, width, 48f, PanelPadding, ref top);
-                LayoutTextRow(statusField, x, width, 28f, PanelPadding, ref top);
-                hudRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, top);
-                if (cancelButton != null)
-                {
-                    RectTransform button = (RectTransform)cancelButton.transform;
-                    button.anchoredPosition = new Vector2(hudRoot.rect.width * 0.5f - PanelPadding - buttonWidth * 0.5f, 0f);
-                }
-            }
-
-            if (actionHudRoot != null)
-            {
-                float width = actionHudRoot.rect.width - PanelPadding * 2f;
-                float top = PanelPadding;
-                LayoutTextRow(gestureField, 0f, width, 52f, 8f, ref top);
-                LayoutRow(progressGaugeRoot, 0f, width, 22f, 8f, ref top);
-                LayoutTextRow(progressField, 0f, width, 28f, 8f, ref top);
-                LayoutRow(timerGaugeRoot, 0f, width, 8f, 8f, ref top);
-                actionHudRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(176f, top + 8f));
-            }
-
-            if (mistakeCanvasGroup != null && mistakeField != null)
-            {
-                RectTransform toast = (RectTransform)mistakeCanvasGroup.transform;
-                float width = toast.rect.width - PanelPadding * 2f;
-                float top = PanelPadding;
-                LayoutTextRow(mistakeField, 0f, width, 42f, PanelPadding, ref top);
-                toast.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, top);
-            }
+            if (actionHudRoot == null) return;
+            float width = actionHudRoot.rect.width - PanelPadding * 2f;
+            float top = PanelPadding + 12f;
+            LayoutTextRow(instructionField, 0f, width - 24f, 32f, 12f, ref top);
+            LayoutRow(progressGaugeRoot, 0f, width, 22f, 8f, ref top);
+            LayoutTextRow(progressField, 0f, width, 28f, 8f, ref top);
+            LayoutRow(timerGaugeRoot, 0f, width, 10f, 8f, ref top);
+            actionHudRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, top + 8f);
         }
 
         private static void LayoutTextRow(TextMeshProUGUI field, float x, float width, float minimumHeight,
@@ -1010,15 +958,9 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void ApplyDimColor()
         {
-            if (focusDimmers == null)
-                return;
-
-            Color color = _settings != null ? _settings.FocusDimColor : new Color(0f, 0f, 0f, 0.5f);
-            for (int i = 0; i < focusDimmers.Length; i++)
-            {
-                if (focusDimmers[i] != null)
-                    focusDimmers[i].color = color;
-            }
+            if (focusDimmers == null) return;
+            foreach (var dim in focusDimmers)
+                if (dim != null) dim.gameObject.SetActive(false);
         }
 
         private void SetResultVisible(bool visible)
@@ -1031,82 +973,21 @@ namespace Work.Cook.Code.Runtime.UI
             resultCanvasGroup.blocksRaycasts = false;
         }
 
-        private IEnumerator ShowMistakeRoutine(string text)
-        {
-            SetText(mistakeField, text);
-            SetMistakeVisible(true);
 
-            RectTransform mistakeRoot = mistakeCanvasGroup != null
-                ? mistakeCanvasGroup.transform as RectTransform
-                : null;
-            if (mistakeCanvasGroup != null)
-                mistakeCanvasGroup.alpha = 0f;
-            if (mistakeRoot != null)
-                mistakeRoot.localScale = Vector3.one * 0.9f;
-
-            const float revealDuration = 0.12f;
-            float revealElapsed = 0f;
-            while (revealElapsed < revealDuration)
-            {
-                revealElapsed += Time.unscaledDeltaTime;
-                float progress = Mathf.Clamp01(revealElapsed / revealDuration);
-                float eased = 1f - Mathf.Pow(1f - progress, 3f);
-                if (mistakeCanvasGroup != null)
-                    mistakeCanvasGroup.alpha = eased;
-                if (mistakeRoot != null)
-                    mistakeRoot.localScale = Vector3.one * Mathf.LerpUnclamped(0.9f, 1.04f, eased);
-                yield return null;
-            }
-            if (mistakeRoot != null)
-                mistakeRoot.localScale = Vector3.one;
-
-            float holdDuration = Mathf.Max(0.1f, mistakeDisplayDuration - revealDuration - 0.18f);
-            yield return new WaitForSecondsRealtime(holdDuration);
-
-            float elapsed = 0f;
-            const float fadeDuration = 0.18f;
-            while (elapsed < fadeDuration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                if (mistakeCanvasGroup != null)
-                    mistakeCanvasGroup.alpha = 1f - Mathf.Clamp01(elapsed / fadeDuration);
-                yield return null;
-            }
-
-            SetMistakeVisible(false);
-            if (mistakeRoot != null)
-                mistakeRoot.localScale = Vector3.one;
-            _mistakeRoutine = null;
-        }
 
         private void StopMistakeRoutine()
         {
-            if (_mistakeRoutine != null)
-            {
-                StopCoroutine(_mistakeRoutine);
-                _mistakeRoutine = null;
-            }
-            SetMistakeVisible(false);
-            if (mistakeCanvasGroup != null)
-                mistakeCanvasGroup.transform.localScale = Vector3.one;
+            gestureGraphic?.ClearFeedback();
         }
 
-        private void SetMistakeVisible(bool visible)
-        {
-            if (mistakeCanvasGroup == null)
-                return;
 
-            mistakeCanvasGroup.alpha = visible ? 1f : 0f;
-            mistakeCanvasGroup.interactable = false;
-            mistakeCanvasGroup.blocksRaycasts = false;
-        }
 
         private void ResetActionHud()
         {
             if (actionHudRoot != null)
                 actionHudRoot.gameObject.SetActive(false);
+            SetText(instructionField, string.Empty);
             SetText(progressField, string.Empty);
-            SetText(gestureField, string.Empty);
             SetHorizontalFill(progressFill, 0f);
             SetHorizontalFill(timerFill, 1f);
             if (targetBand != null)
@@ -1219,7 +1100,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void HandleCancelClicked()
         {
-            _owner?.CancelActiveMiniGame();
+            if (!GameUiInput.IsBlocked) _owner?.CancelActiveMiniGame();
         }
 
         private void StopResultRoutine()

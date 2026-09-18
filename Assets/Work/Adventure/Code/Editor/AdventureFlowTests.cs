@@ -39,7 +39,7 @@ namespace Work.Adventure.Code.Editor
             tests.Selection_UsesPoolChanceAndMissingToolWeights();
             tests.Selection_ReducesSuppliesWithStockAndPrefersUsableTools();
             File.WriteAllText("Temp/AdventureFlowValidation.txt", DateTime.Now.ToString("O")
-                + "\nPASS: all 67 events, 195 terminal paths, branch graph and tooltips; empty inventory, drought guarantee, unavailable costs, null/duplicate/single entries, stock-dependent probability, disabled guarantees for stocked inventories, usable/consumptive event weights and missing-tool weighting.\n");
+                + "\nPASS: all 68 events, 196 terminal paths, branch graph and tooltips; empty inventory, drought guarantee, unavailable costs, null/duplicate/single entries, stock-dependent probability, disabled guarantees for stocked inventories, usable/consumptive event weights and missing-tool weighting.\n");
             Debug.Log("Adventure selection and branch validation passed.");
         }
 
@@ -48,7 +48,7 @@ namespace Work.Adventure.Code.Editor
         {
             var events = AssetDatabase.FindAssets("t:AdventureEventSO", new[] { "Assets/Work/Adventure/SO/Dialog" })
                 .Select(g => AssetDatabase.LoadAssetAtPath<AdventureEventSO>(AssetDatabase.GUIDToAssetPath(g))).ToArray();
-            Assert.That(events.Length, Is.EqualTo(67));
+            Assert.That(events.Length, Is.EqualTo(68));
             int count = 0;
             foreach (var e in events)
             {
@@ -77,7 +77,7 @@ namespace Work.Adventure.Code.Editor
                         Assert.That(option.rewardMethod, Is.Empty, "Current inquiry branches must not award items");
                 }
             }
-            Assert.That(count, Is.EqualTo(195));
+            Assert.That(count, Is.EqualTo(196));
         }
 
         private readonly List<Object> created = new List<Object>();

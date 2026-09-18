@@ -52,15 +52,19 @@ const monsters = [
 function field(text, key) { const match = text.match(new RegExp('^  ' + key + ': (.+)$', 'm')); if (!match) throw Error(key); return match[1]; }
 const itemEntries = tools.map(([id, intro, use, note]) => {
   const s = read(`${A}/SO/AdventureItem/${id}.asset`);
-  return { name: JSON.parse(field(s, '<ItemName>k__BackingField')), icon: field(s, '<ItemIcon>k__BackingField'), description: intro + section('주요 용도', use) + section('탐험 메모', note) };
+  const entryId = "tool:" + id.toLowerCase();
+  const itemPath = `${A}/SO/AdventureItem/${id}.asset`;
+  write(itemPath, s.replace(/^  discoveryEntryId:.*\r?\n/gm, "") + `  discoveryEntryId: ${entryId}\n`);
+  return { entryId, name: JSON.parse(field(s, '<ItemName>k__BackingField')), icon: field(s, '<ItemIcon>k__BackingField'), description: intro };
 });
-const monsterEntries = monsters.map(([name, icon, intro, note, material]) => ({name, icon: ref(`${A}/Graphics/Item/${icon}.png`, 21300000, 3), description: intro + section('관찰 기록', note) + section('관련 재료와 보상', material)}));
+const monsterIds = ['slime', 'rock_salt_slime', 'sprout_slime', 'mushroom_man', 'coconut_crab'];
+const monsterEntries = monsters.map(([name, icon, intro, note, material], index) => ({entryId: 'monster:' + monsterIds[index], name, icon: ref(`${A}/Graphics/Item/${icon}.png`, 21300000, 3), description: intro}));
 let output = `%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n--- !u!114 &11400000\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 0}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: ${ref(script, 11500000, 3)}\n  m_Name: DungeonFieldGuide\n  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.FieldGuideCatalogSO\n  ingredients:\n`;
 for (const [id, source, notes] of ingredientRows) output += `  - ingredient: ${ref(`Assets/Work/Cook/Data/Ingredients/${id}.asset`)}\n    source: ${q(source)}\n    notes: ${q(notes)}\n`;
 output += `  cookingCatalog: ${ref('Assets/Work/Cook/SO/CookingDataCatalog.asset')}\n  categories:\n`;
 for (const [name, marker, entries] of [['도구', 5, itemEntries], ['몬스터', 3, monsterEntries]]) {
   output += `  - <DisplayName>k__BackingField: ${q(name)}\n    <MarkIcon>k__BackingField: ${entries[0].icon}\n    <Marker>k__BackingField: ${marker}\n    <ViewType>k__BackingField: 7\n    <Entries>k__BackingField:\n`;
-  for (const e of entries) output += `    - <DisplayName>k__BackingField: ${q(e.name)}\n      <Icon>k__BackingField: ${e.icon}\n      <Description>k__BackingField: ${q(e.description)}\n`;
+  for (const e of entries) output += `    - <EntryId>k__BackingField: ${q(e.entryId)}\n      <IsDiscovered>k__BackingField: 1\n      <DisplayName>k__BackingField: ${q(e.name)}\n      <Icon>k__BackingField: ${e.icon}\n      <Description>k__BackingField: ${q(e.description)}\n`;
 }
 const target = 'Assets/Resources/DungeonFieldGuide.asset';
 write(target, output);

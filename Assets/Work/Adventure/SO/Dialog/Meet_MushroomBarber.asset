@@ -13,15 +13,26 @@ MonoBehaviour:
   m_Name: Meet_MushroomBarber
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "머쉬룸맨이 다가와 자기 갓의 가장자리를 가리킨다."
+  - discoveryEntryIds:
+    - monster:mushroom_man
+    <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC774 \uB2E4\uAC00\uC640
+      \uC790\uAE30 \uAC13\uC758 \uAC00\uC7A5\uC790\uB9AC\uB97C \uAC00\uB9AC\uD0A8\uB2E4."
     method:
     - rid: 1001
     - rid: 1002
-  - <Context>k__BackingField: "너무 자란 갓이 눈을 가려, 걸을 때마다 벽에 부딪히는 모양이다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uB108\uBB34 \uC790\uB780 \uAC13\uC774 \uB208\uC744
+      \uAC00\uB824, \uAC78\uC744 \uB54C\uB9C8\uB2E4 \uBCBD\uC5D0 \uBD80\uB52A\uD788\uB294
+      \uBAA8\uC591\uC774\uB2E4."
     method: []
-  - <Context>k__BackingField: "머쉬룸맨은 손가락으로 가위질을 흉내 낸다."
+  - discoveryEntryIds:
+    - monster:mushroom_man
+    <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC740 \uC190\uAC00\uB77D\uC73C\uB85C
+      \uAC00\uC704\uC9C8\uC744 \uD749\uB0B4 \uB0B8\uB2E4."
     method: []
-  - <Context>k__BackingField: "\"싸우자는 게 아니라… 이발해 달라는 거야?\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC2F8\uC6B0\uC790\uB294 \uAC8C \uC544\uB2C8\uB77C\u2026
+      \uC774\uBC1C\uD574 \uB2EC\uB77C\uB294 \uAC70\uC57C?\""
     method: []
   options:
   - rid: 1007
@@ -57,24 +68,41 @@ MonoBehaviour:
     - rid: 1007
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "칼로 가장자리를 다듬는다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
-        <RewardDescription>k__BackingField: "버섯 갓 1개 획득 · 칼 유지"
+        <OptionName>k__BackingField: "\uCE7C\uB85C \uAC00\uC7A5\uC790\uB9AC\uB97C
+          \uB2E4\uB4EC\uB294\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
+        <RewardDescription>k__BackingField: "\uBC84\uC12F \uAC13 1\uAC1C \uD68D\uB4DD
+          \xB7 \uCE7C \uC720\uC9C0"
         rewardMethod:
         - rid: 1003
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "머쉬룸맨이 고개를 숙였다. 늘어진 갓의 가장자리만 잘라냈다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC774 \uACE0\uAC1C\uB97C
+            \uC219\uC600\uB2E4. \uB298\uC5B4\uC9C4 \uAC13\uC758 \uAC00\uC7A5\uC790\uB9AC\uB9CC
+            \uC798\uB77C\uB0C8\uB2E4."
           method: []
-        - <Context>k__BackingField: "잘라낸 갓 조각을 받자 머쉬룸맨은 기쁘게 손을 흔들었다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uC798\uB77C\uB0B8 \uAC13 \uC870\uAC01\uC744
+            \uBC1B\uC790 \uBA38\uC26C\uB8F8\uB9E8\uC740 \uAE30\uC058\uAC8C \uC190\uC744
+            \uD754\uB4E4\uC5C8\uB2E4."
           method:
           - rid: 1004
           - rid: 1005
-        - <Context>k__BackingField: "\"손님, 다음에도 이 길로 오세요.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC190\uB2D8, \uB2E4\uC74C\uC5D0\uB3C4 \uC774
+            \uAE38\uB85C \uC624\uC138\uC694.\""
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1006
-        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -98,24 +126,38 @@ MonoBehaviour:
     - rid: 1012
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "망치로 갓 끝을 살짝 누른다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 망치 1개."
-        <RewardDescription>k__BackingField: "납작버섯 1개 획득 · 망치 유지"
+        <OptionName>k__BackingField: "\uB9DD\uCE58\uB85C \uAC13 \uB05D\uC744 \uC0B4\uC9DD
+          \uB204\uB978\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uB9DD\uCE58
+          1\uAC1C."
+        <RewardDescription>k__BackingField: "\uB0A9\uC791\uBC84\uC12F 1\uAC1C \uD68D\uB4DD
+          \xB7 \uB9DD\uCE58 \uC720\uC9C0"
         rewardMethod:
         - rid: 1008
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "머쉬룸맨이 돌 위에 갓 끝을 올렸다. 아주 살짝 두드렸다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC774 \uB3CC \uC704\uC5D0
+            \uAC13 \uB05D\uC744 \uC62C\uB838\uB2E4. \uC544\uC8FC \uC0B4\uC9DD \uB450\uB4DC\uB838\uB2E4."
           method: []
-        - <Context>k__BackingField: "눌려 떨어진 갓 조각은 훌륭한 납작버섯이 되었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB20C\uB824 \uB5A8\uC5B4\uC9C4 \uAC13 \uC870\uAC01\uC740
+            \uD6CC\uB96D\uD55C \uB0A9\uC791\uBC84\uC12F\uC774 \uB418\uC5C8\uB2E4."
           method:
           - rid: 1009
           - rid: 1010
-        - <Context>k__BackingField: "\"이발을 부탁했는데… 다림질을 해버렸네.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC774\uBC1C\uC744 \uBD80\uD0C1\uD588\uB294\uB370\u2026
+            \uB2E4\uB9BC\uC9C8\uC744 \uD574\uBC84\uB838\uB124.\""
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1011
-        <LockTooltip>k__BackingField: "필요한 아이템: 망치 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uB9DD\uCE58
+          1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: df3c8c06f35164446849103e09797075, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -126,17 +168,30 @@ MonoBehaviour:
     - rid: 1014
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "부딪히지 않게 길을 안내한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: "보상 없음"
+        <OptionName>k__BackingField: "\uBD80\uB52A\uD788\uC9C0 \uC54A\uAC8C \uAE38\uC744
+          \uC548\uB0B4\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uBCF4\uC0C1 \uC5C6\uC74C"
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "머쉬룸맨을 넓은 길까지 안내했다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC744 \uB113\uC740
+            \uAE38\uAE4C\uC9C0 \uC548\uB0B4\uD588\uB2E4."
           method: []
-        - <Context>k__BackingField: "머쉬룸맨은 고맙다는 듯 고개를 끄덕이고 천천히 떠났다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC740 \uACE0\uB9D9\uB2E4\uB294
+            \uB4EF \uACE0\uAC1C\uB97C \uB044\uB355\uC774\uACE0 \uCC9C\uCC9C\uD788
+            \uB5A0\uB0AC\uB2E4."
           method: []
-        - <Context>k__BackingField: "\"다음엔 미용 도구를 챙겨 와야겠어.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uB2E4\uC74C\uC5D4 \uBBF8\uC6A9 \uB3C4\uAD6C\uB97C
+            \uCC59\uACA8 \uC640\uC57C\uACA0\uC5B4.\""
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1013
+        followUpOptions: []

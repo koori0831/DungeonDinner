@@ -29,7 +29,7 @@ const line=(text,...images)=>({text,images});
 for(const name of ['Rope','Lantern','Tongs','CollectingBottle']) {
  const png=A+'/Graphics/Item/'+name+'.png';
  if(!fs.existsSync(png+'.meta')) write(png+'.meta',read(A+'/Graphics/Item/knife.png.meta').replace(/^guid: \w+/m,'guid: '+crypto.randomBytes(16).toString('hex')).replace(/spriteID: \w+/,'spriteID: '+crypto.randomBytes(16).toString('hex')));
- write(tools[name],header(name,A+'/Code/AdventureItemSO.cs','Work.Adventure.Code.AdventureItemSO')+'  <ItemName>k__BackingField: '+q(toolNames[name])+'\n  <ItemIcon>k__BackingField: '+ref(png,21300000,3)+'\n');
+ write(tools[name],header(name,A+'/Code/AdventureItemSO.cs','Work.Adventure.Code.AdventureItemSO')+'  discoveryEntryId: tool:'+name.toLowerCase()+'\n  <ItemName>k__BackingField: '+q(toolNames[name])+'\n  <ItemIcon>k__BackingField: '+ref(png,21300000,3)+'\n');
  meta(tools[name]);
  const prefab=A+'/Prefabs/Item/'+name+'.prefab';
  write(prefab,read(A+'/Prefabs/Item/CoconutCrab.prefab').replace('m_Name: CoconutCrab','m_Name: '+name).replace(/m_Sprite: \{[^}]+\}/,'m_Sprite: '+ref(png,21300000,3)));
@@ -68,6 +68,7 @@ function saveEvent(event) {
 const paths = events.map(saveEvent);
 require('./normalize-adventure-text.cjs').normalizePaths(paths);
 require('./upgrade-adventure-branches.cjs').upgradePaths(paths);
+require('./adventure-discovery.cjs').annotate(paths);
 for(const scene of [`${A}/Scene/AdventureTestScene.unity`,'Assets/Work/Cook/Scene/CookTestScene.unity']) {
  let s = read(scene); const nl = s.includes('\r\n')?'\r\n':'\n';
  s = s.replace(/  eventList:\r?\n(?:  - .*\r?\n)*/g, block => block + paths.filter(p=>!block.includes(guid(p))).map(p=>`  - ${ref(p)}${nl}`).join(''));

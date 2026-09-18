@@ -13,11 +13,16 @@ MonoBehaviour:
   m_Name: Find_DarkNest
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "큰 버섯 아래에서 무언가 바스락거린다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uD070 \uBC84\uC12F \uC544\uB798\uC5D0\uC11C \uBB34\uC5B8\uAC00
+      \uBC14\uC2A4\uB77D\uAC70\uB9B0\uB2E4."
     method:
     - rid: 1001
     - rid: 1002
-  - <Context>k__BackingField: "깊은 그늘 때문에 안쪽이 보이지 않는다. 좁은 틈으로 손을 넣기에는 꺼림칙하다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uAE4A\uC740 \uADF8\uB298 \uB54C\uBB38\uC5D0 \uC548\uCABD\uC774
+      \uBCF4\uC774\uC9C0 \uC54A\uB294\uB2E4. \uC881\uC740 \uD2C8\uC73C\uB85C \uC190\uC744
+      \uB123\uAE30\uC5D0\uB294 \uAEBC\uB9BC\uCE59\uD558\uB2E4."
     method: []
   options:
   - rid: 1007
@@ -53,22 +58,32 @@ MonoBehaviour:
     - rid: 1007
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "등불로 안을 살핀다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 탐험 등불 1개."
-        <RewardDescription>k__BackingField: "그늘 속을 천천히 비춥니다. 탐험 등불이 필요합니다."
+        <OptionName>k__BackingField: "\uB4F1\uBD88\uB85C \uC548\uC744 \uC0B4\uD540\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uD0D0\uD5D8
+          \uB4F1\uBD88 1\uAC1C."
+        <RewardDescription>k__BackingField: "\uADF8\uB298 \uC18D\uC744 \uCC9C\uCC9C\uD788
+          \uBE44\uCDA5\uB2C8\uB2E4. \uD0D0\uD5D8 \uB4F1\uBD88\uC774 \uD544\uC694\uD569\uB2C8\uB2E4."
         rewardMethod:
         - rid: 1003
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "빛에 놀란 작은 벌레들이 흩어졌다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uBE5B\uC5D0 \uB180\uB780 \uC791\uC740 \uBC8C\uB808\uB4E4\uC774
+            \uD769\uC5B4\uC84C\uB2E4."
           method: []
-        - <Context>k__BackingField: "빈 둥지 주변의 멀쩡한 갓 두 조각을 챙겼다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uBE48 \uB465\uC9C0 \uC8FC\uBCC0\uC758 \uBA40\uCA61\uD55C
+            \uAC13 \uB450 \uC870\uAC01\uC744 \uCC59\uACBC\uB2E4."
           method:
           - rid: 1004
           - rid: 1005
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1006
-        <LockTooltip>k__BackingField: "필요한 아이템: 탐험 등불 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uD0D0\uD5D8
+          \uB4F1\uBD88 1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 3c5d959612ee74621763ca91143ffc23, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -92,22 +107,33 @@ MonoBehaviour:
     - rid: 1012
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "집게로 틈을 뒤진다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 긴 집게 1개."
-        <RewardDescription>k__BackingField: "손 대신 집게를 넣어 조심스럽게 살핍니다. 긴 집게가 필요합니다."
+        <OptionName>k__BackingField: "\uC9D1\uAC8C\uB85C \uD2C8\uC744 \uB4A4\uC9C4\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uAE34
+          \uC9D1\uAC8C 1\uAC1C."
+        <RewardDescription>k__BackingField: "\uC190 \uB300\uC2E0 \uC9D1\uAC8C\uB97C
+          \uB123\uC5B4 \uC870\uC2EC\uC2A4\uB7FD\uAC8C \uC0B4\uD54D\uB2C8\uB2E4. \uAE34
+          \uC9D1\uAC8C\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4."
         rewardMethod:
         - rid: 1008
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "집게 끝에 눌린 버섯 하나가 걸려 나왔다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D1\uAC8C \uB05D\uC5D0 \uB20C\uB9B0 \uBC84\uC12F
+            \uD558\uB098\uAC00 \uAC78\uB824 \uB098\uC654\uB2E4."
           method:
           - rid: 1009
           - rid: 1010
-        - <Context>k__BackingField: "\"적어도 손을 물리지는 않았네.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uC801\uC5B4\uB3C4 \uC190\uC744 \uBB3C\uB9AC\uC9C0\uB294
+            \uC54A\uC558\uB124.\""
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1011
-        <LockTooltip>k__BackingField: "필요한 아이템: 긴 집게 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uAE34
+          \uC9D1\uAC8C 1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 7f7cb47adad0c380eebdd2a95025b92e, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -118,13 +144,18 @@ MonoBehaviour:
     - rid: 1014
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "다음 길로 향한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: "주변을 건드리지 않고 길을 이어갑니다."
+        <OptionName>k__BackingField: "\uB2E4\uC74C \uAE38\uB85C \uD5A5\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uC8FC\uBCC0\uC744 \uAC74\uB4DC\uB9AC\uC9C0
+          \uC54A\uACE0 \uAE38\uC744 \uC774\uC5B4\uAC11\uB2C8\uB2E4."
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "위치를 기억해 두었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC704\uCE58\uB97C \uAE30\uC5B5\uD574 \uB450\uC5C8\uB2E4."
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1013
+        followUpOptions: []

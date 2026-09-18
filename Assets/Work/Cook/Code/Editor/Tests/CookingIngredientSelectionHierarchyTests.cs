@@ -20,39 +20,32 @@ namespace DungeonDinner.Cook.EditorTests
         }
 
         [Test]
-        public void IngredientActionButtons_HaveHierarchyOwnedHeight_AndRemainInsideSelectionView()
+        public void IngredientBag_HasIndependentFourColumnPopupAndReachableControls()
         {
             Scene scene = EditorSceneManager.OpenScene(CookScenePath, OpenSceneMode.Single);
             Transform selectionView = FindTransform(scene, "TemporaryIngredientSelectionView");
-
-            Assert.That(selectionView, Is.Not.Null, "The ingredient selection view is missing from CookTestScene.");
-
-            Transform actionRow = selectionView.Find("ActionRow");
-            Assert.That(actionRow, Is.Not.Null, "The ingredient selection action row is missing.");
-            Assert.That(actionRow.childCount, Is.EqualTo(2), "The action row must contain clear and confirm buttons.");
-
+            Assert.That(selectionView, Is.Not.Null);
+            Assert.That(selectionView.parent.GetComponent<Canvas>(), Is.Not.Null, "Bag must be independent of the dictionary.");
             selectionView.gameObject.SetActive(true);
-            RectTransform selectionRect = selectionView.GetComponent<RectTransform>();
-            LayoutRebuilder.ForceRebuildLayoutImmediate(selectionRect);
-            Canvas.ForceUpdateCanvases();
-
-            for (int index = 0; index < actionRow.childCount; index++)
+            var selectionRect = (RectTransform)selectionView;
+            Assert.That(selectionRect.sizeDelta, Is.EqualTo(new Vector2(720,680)));
+            Assert.That(selectionView.Find("TitleBar"), Is.Not.Null);
+            foreach (string name in new[] { "Collapse", "Close" })
+                Assert.That(selectionView.Find("TitleBar/" + name).GetComponent<Button>(), Is.Not.Null);
+            foreach (var button in selectionView.GetComponentsInChildren<Button>(true))
             {
-                RectTransform buttonRect = actionRow.GetChild(index) as RectTransform;
-                Assert.That(buttonRect, Is.Not.Null);
-
-                LayoutElement buttonLayout = buttonRect.GetComponent<LayoutElement>();
-                Assert.That(
-                    buttonLayout,
-                    Is.Not.Null,
-                    $"{buttonRect.name} must declare its size in the scene hierarchy instead of relying on runtime layout code.");
-                Assert.That(buttonLayout.ignoreLayout, Is.False);
-                Assert.That(buttonLayout.preferredHeight, Is.GreaterThan(0f));
-                Assert.That(buttonLayout.flexibleHeight, Is.EqualTo(0f));
-                Assert.That(buttonRect.rect.height, Is.GreaterThan(0f));
-
-                AssertRectIsContainedBy(buttonRect, selectionRect);
+                Assert.That(((RectTransform)button.transform).rect.height, Is.GreaterThanOrEqualTo(40));
+                AssertRectIsContainedBy((RectTransform)button.transform, selectionRect);
             }
+            var grids = selectionView.GetComponentsInChildren<GridLayoutGroup>(true);
+            Assert.That(grids.Length, Is.EqualTo(2));
+            foreach (var grid in grids)
+            {
+                Assert.That(grid.constraintCount, Is.EqualTo(4));
+                Assert.That(grid.cellSize, Is.EqualTo(new Vector2(150,112)));
+                Assert.That(grid.GetComponentInParent<ScrollRect>(true), Is.Not.Null);
+            }
+            Assert.That(selectionView.parent.Find("IngredientBagButton").GetComponent<Button>(), Is.Not.Null);
         }
 
         [Test]
@@ -64,8 +57,8 @@ namespace DungeonDinner.Cook.EditorTests
             GridLayoutGroup grid = prefab.GetComponentInChildren<GridLayoutGroup>(true);
             Assert.That(grid, Is.Not.Null);
             Assert.That(grid.childAlignment, Is.EqualTo(TextAnchor.UpperCenter));
-            Assert.That(grid.padding.left, Is.EqualTo(34));
-            Assert.That(grid.padding.right, Is.EqualTo(34));
+            Assert.That(grid.padding.left, Is.EqualTo(18));
+            Assert.That(grid.padding.right, Is.EqualTo(18));
 
             MonoBehaviour field = null;
             foreach (MonoBehaviour candidate in prefab.GetComponentsInChildren<MonoBehaviour>(true))
@@ -80,7 +73,7 @@ namespace DungeonDinner.Cook.EditorTests
             Assert.That(field, Is.Not.Null);
             SerializedObject serializedField = new SerializedObject(field);
             Assert.That(serializedField.FindProperty("columnsPerRow").intValue, Is.EqualTo(3));
-            Assert.That(serializedField.FindProperty("centeredHorizontalPadding").intValue, Is.EqualTo(34));
+            Assert.That(serializedField.FindProperty("centeredHorizontalPadding").intValue, Is.EqualTo(18));
         }
 
         private static Transform FindTransform(Scene scene, string objectName)
@@ -138,4 +131,3 @@ namespace DungeonDinner.Cook.EditorTests
         }
     }
 }
-

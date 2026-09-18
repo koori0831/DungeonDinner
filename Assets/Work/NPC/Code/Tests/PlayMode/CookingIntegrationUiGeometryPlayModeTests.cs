@@ -35,13 +35,8 @@ namespace DungeonDinner.Npc.PlayModeTests
         [Category("CookingIntegrationUiGeometry")]
         public IEnumerator DungeonDinner_RecipeCardsAreCenteredAndCookingViewIsVisible()
         {
-            int buildIndex = SceneUtility.GetBuildIndexByScenePath(ScenePath);
-            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), ScenePath + " is not enabled in Build Settings.");
 
-            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
-            Assert.That(loadOperation, Is.Not.Null);
-            while (loadOperation.isDone == false)
-                yield return null;
+            yield return FeedbackSceneFixture.Load(ScenePath);
 
             yield return null;
             yield return new WaitForSecondsRealtime(0.5f);
@@ -131,13 +126,8 @@ namespace DungeonDinner.Npc.PlayModeTests
         [Category("DispatchIntegrationSmoke")]
         public IEnumerator DungeonDinner_DispatchOpensClosesAndSharesGameTimeService()
         {
-            int buildIndex = SceneUtility.GetBuildIndexByScenePath(ScenePath);
-            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), ScenePath + " is not enabled in Build Settings.");
 
-            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
-            Assert.That(loadOperation, Is.Not.Null);
-            while (loadOperation.isDone == false)
-                yield return null;
+            yield return FeedbackSceneFixture.Load(ScenePath);
 
             yield return null;
             yield return new WaitForSecondsRealtime(0.5f);
@@ -187,13 +177,8 @@ namespace DungeonDinner.Npc.PlayModeTests
         [Category("LoopRegression")]
         public IEnumerator DungeonDinner_DispatchStatusRefreshesAfterStartReturnAndClaim()
         {
-            int buildIndex = SceneUtility.GetBuildIndexByScenePath(ScenePath);
-            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), ScenePath + " is not enabled in Build Settings.");
 
-            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
-            Assert.That(loadOperation, Is.Not.Null);
-            while (loadOperation.isDone == false)
-                yield return null;
+            yield return FeedbackSceneFixture.Load(ScenePath);
 
             yield return null;
             yield return new WaitForSecondsRealtime(0.5f);
@@ -250,13 +235,8 @@ namespace DungeonDinner.Npc.PlayModeTests
         [Category("LoopRegression")]
         public IEnumerator DungeonDinner_BusinessActionsNeverOverlapResultActionsAtSupportedResolutions()
         {
-            int buildIndex = SceneUtility.GetBuildIndexByScenePath(ScenePath);
-            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), ScenePath + " is not enabled in Build Settings.");
 
-            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
-            Assert.That(loadOperation, Is.Not.Null);
-            while (loadOperation.isDone == false)
-                yield return null;
+            yield return FeedbackSceneFixture.Load(ScenePath);
 
             int originalWidth = Screen.width;
             int originalHeight = Screen.height;
@@ -297,15 +277,10 @@ namespace DungeonDinner.Npc.PlayModeTests
         [Category("LoopRegression")]
         public IEnumerator DungeonDinner_TwoConsecutiveLoadsHaveOneListenerAndNoTransitionTargetErrors()
         {
-            int buildIndex = SceneUtility.GetBuildIndexByScenePath(ScenePath);
-            Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), ScenePath + " is not enabled in Build Settings.");
 
             for (int loadIndex = 0; loadIndex < 2; loadIndex++)
             {
-                AsyncOperation loadOperation = SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
-                Assert.That(loadOperation, Is.Not.Null);
-                while (loadOperation.isDone == false)
-                    yield return null;
+                yield return FeedbackSceneFixture.Load(ScenePath);
 
                 yield return null;
                 yield return new WaitForSecondsRealtime(0.75f);
@@ -344,7 +319,7 @@ namespace DungeonDinner.Npc.PlayModeTests
                 cardRects.Add(cardRect);
                 result.maxCardOutsideViewportRatio = Mathf.Max(
                     result.maxCardOutsideViewportRatio,
-                    OutsideRatio(cardRect, viewportRect));
+                    OutsideRatio(cardRect, new Rect(viewportRect.xMin, cardRect.yMin, viewportRect.width, cardRect.height)));
                 for (int otherIndex = 0; otherIndex < i; otherIndex++)
                 {
                     result.maxCardOverlapRatio = Mathf.Max(

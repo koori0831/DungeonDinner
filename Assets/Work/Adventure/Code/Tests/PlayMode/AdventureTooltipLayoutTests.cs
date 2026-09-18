@@ -112,7 +112,7 @@ namespace DungeonDinner.Adventure.Ui.PlayModeTests
                             new Vector2(viewport.xMax - 1, viewport.yMax - 1) })
                         {
                             SetPointer(mouse, edgePointer);
-                            yield return new WaitForEndOfFrame();
+                            yield return null;
                             AssertVisible(panel, viewport);
                         }
 

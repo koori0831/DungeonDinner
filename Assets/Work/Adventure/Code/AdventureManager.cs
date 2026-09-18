@@ -7,6 +7,8 @@ using Work.Core.EventBus;
 using Work.UtillUI.Code.Fade;
 using Work.TimeSystem;
 using Work.Players.Code.Inventory;
+using System;
+using Work.UtillUI.Code;
 
 namespace Work.Adventure.Code
 {
@@ -18,7 +20,7 @@ namespace Work.Adventure.Code
     public class AdventureManager : MonoBehaviour
     {
         [SerializeField] PreparationManager preparationManager;
-        [SerializeField] private AdventureMapUI adventureMap;
+        [SerializeField] private AdventureEventSO firstHarvestEvent;
         [SerializeField] private AdventureBackground background;
         [SerializeField] private AdventureDialogUI dialog;
         [SerializeField] private AdventureItemUI itemUI;
@@ -33,15 +35,25 @@ namespace Work.Adventure.Code
         private AdventureEventSO _currentEvent;
         private Dictionary<string, int> _adventureItemDic = new Dictionary<string, int>();
         private bool _isAdventureRunning;
+        private bool _initialized;
+        private bool _firstHarvestPending = true;
+        private IDisposable _walkingInput;
+        private int _transitionVersion;
+        public AdventurePhase Phase { get; private set; }
+        public bool IsAdventureRunning => _isAdventureRunning;
+        public bool FirstHarvestCompleted => !_firstHarvestPending;
         private Tween _startTransitionDelay;
         private Tween _stopTransitionDelay;
 
         public void Init()
         {
+            if (_initialized) return;
+            _initialized = true;
             if (gameTimeService == null)
                 gameTimeService = FindFirstObjectByType<GameTimeService>();
 
-            adventureMap.Init(StartAdventure);
+            dialog.EventFinished += HandleEventFinished;
+            dialog.BindContinuation(ProgressAdventure, StopAdventure);
             Bus<OnHaveItemEvent, BoolenReturnValue>.Events += HandleHaveItemCheckEvent;
             Bus<OnAddAdventureItemEvent>.Events += HandleAddAdventureItemEvent;
             Bus<OnRemoveAdventureItemEvent>.Events += HandleUseAdventureItemEvent;
@@ -50,6 +62,7 @@ namespace Work.Adventure.Code
         private void OnDestroy()
         {
             KillTransitionDelays();
+            if (dialog != null) dialog.EventFinished -= HandleEventFinished;
             Bus<OnAddAdventureItemEvent>.Events -= HandleAddAdventureItemEvent;
             Bus<OnRemoveAdventureItemEvent>.Events -= HandleUseAdventureItemEvent;
             Bus<OnHaveItemEvent, BoolenReturnValue>.Events -= HandleHaveItemCheckEvent;
@@ -87,59 +100,88 @@ namespace Work.Adventure.Code
             return value;
         }
 
-        public void OpenMap()
-        {
-            adventureMap.OpenMap();
-        }
-
         public void StartAdventure()
         {
-            if (_isAdventureRunning)
+            if (_isAdventureRunning || Phase == AdventurePhase.Exiting)
                 return;
 
             _isAdventureRunning = true;
+            Phase = AdventurePhase.Entering;
+            int version = ++_transitionVersion;
+            GameUiInput.SetContext(GameUiContext.Adventure);
             Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() =>
             {
+                if (version != _transitionVersion || !_isAdventureRunning) return;
                 itemUI.Enable();
-                adventureMap.CloseMap();
                 background.Enable();
                 _startTransitionDelay?.Kill(false);
                 _startTransitionDelay = DOVirtual.DelayedCall(
                         0.5f,
-                        () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent(ProgressAdventure)))
+                        () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent(() => BeginNextEvent(version))))
                     .SetLink(gameObject, LinkBehaviour.KillOnDisable);
             }));
         }
 
         public void ProgressAdventure()
         {
+            if (Phase != AdventurePhase.Choice || GameUiInput.IsBlocked) return;
+            BeginNextEvent(_transitionVersion);
+        }
+
+        private void BeginNextEvent(int version)
+        {
+            if (!_isAdventureRunning || version != _transitionVersion) return;
+            Phase = AdventurePhase.Walking;
+            dialog.ResetDialog();
+            _walkingInput?.Dispose();
+            _walkingInput = GameUiInput.Acquire();
             background.Walking(() =>
             {
+                if (!_isAdventureRunning || version != _transitionVersion) return;
                 var inventory = FindFirstObjectByType<PlayerInventoryModule>();
                 bool HasItem(AdventureItemSO item) => item != null
                     && _adventureItemDic.TryGetValue(item.ItemName, out int count) && count > 0;
                 bool CanSelect(Options option) => option is LockedOption locked
                     ? locked.KeyItem != null && HasItem(locked.KeyItem) != locked.IsUnLockOption
                     : !(option is IngredientLockedOption ingredient) || ingredient.CanSelect(inventory);
-                _currentEvent = _eventSelector.Select(eventList, _currentEvent,
+                _currentEvent = _firstHarvestPending && firstHarvestEvent != null ? firstHarvestEvent : _eventSelector.Select(eventList, _currentEvent,
                     _adventureItemDic.Values.Sum(count => Mathf.Max(0, count)), HasItem, CanSelect,
-                    supplyEventChance, maxEventsWithoutSupply, missingToolWeight, () => Random.value);
+                    supplyEventChance, maxEventsWithoutSupply, missingToolWeight, () => UnityEngine.Random.value);
                 if (_currentEvent == null)
                 {
                     Debug.LogWarning("진행할 어드벤처 이벤트가 없습니다.", this);
-                    StopAdventure();
+                    ExitAdventure();
                     return;
                 }
+                Phase = AdventurePhase.Dialog;
                 dialog.StartDialog(_currentEvent);
+                _walkingInput?.Dispose();
+                _walkingInput = null;
             });
+        }
+
+        private void HandleEventFinished()
+        {
+            if (!_isAdventureRunning) return;
+            if (_currentEvent == firstHarvestEvent) _firstHarvestPending = false;
+            Phase = AdventurePhase.Choice;
         }
 
         public void StopAdventure()
         {
-            if (_isAdventureRunning == false)
+            if (!_isAdventureRunning || Phase != AdventurePhase.Choice || GameUiInput.IsBlocked)
                 return;
+            ExitAdventure();
+        }
 
+        private void ExitAdventure()
+        {
             _isAdventureRunning = false;
+            Phase = AdventurePhase.Exiting;
+            int version = ++_transitionVersion;
+            dialog.ResetDialog();
+            _walkingInput?.Dispose();
+            _walkingInput = null;
             if (gameTimeService != null)
                 gameTimeService.AdvanceTime(1, GameTimeActivityType.Adventure);
             else
@@ -147,20 +189,25 @@ namespace Work.Adventure.Code
 
             Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() =>
             {
+                if (version != _transitionVersion) return;
                 itemUI.Disable();
-                adventureMap.CloseMap();
                 background.Disable();
                 preparationManager.StopAdventure();
                 _stopTransitionDelay?.Kill(false);
                 _stopTransitionDelay = DOVirtual.DelayedCall(
                         0.5f,
-                        () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent()))
+                        () => Bus<OnFadeOutEvent>.Raise(new OnFadeOutEvent(() => Phase = AdventurePhase.Inactive)))
                     .SetLink(gameObject, LinkBehaviour.KillOnDisable);
             }));
         }
 
         private void OnDisable()
         {
+            ++_transitionVersion;
+            _isAdventureRunning = false;
+            Phase = AdventurePhase.Inactive;
+            _walkingInput?.Dispose();
+            _walkingInput = null;
             KillTransitionDelays();
         }
 
@@ -172,4 +219,6 @@ namespace Work.Adventure.Code
             _stopTransitionDelay = null;
         }
     }
+
+    public enum AdventurePhase { Inactive, Entering, Walking, Dialog, Choice, Exiting }
 }

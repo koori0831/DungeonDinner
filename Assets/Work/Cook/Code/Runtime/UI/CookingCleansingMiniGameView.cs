@@ -60,9 +60,9 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (brushImage != null)
                 brushImage.gameObject.SetActive(false);
-            Host.SetInstruction("얼룩 위를 브러시로 문질러 씻어내세요.");
-            ConfigureHud("얼룩 위를 좌우로 문지르기 ↔", true, false, false);
-            SetProgress(0f, $"남은 얼룩 {_remaining}개");
+
+            ConfigureHud(CookingGesture.Scrub, true, false, false);
+            SetProgress(0f);
             RefreshStatus();
             return true;
         }
@@ -146,7 +146,7 @@ namespace Work.Cook.Code.Runtime.UI
                 if (_wastedStreak >= 10)
                 {
                     _wastedStreak = 0;
-                    RegisterMistake("브러시를 남아 있는 얼룩 위로 옮겨주세요.");
+                    RegisterMistake();
                 }
             }
 
@@ -154,7 +154,7 @@ namespace Work.Cook.Code.Runtime.UI
             for (int i = 0; i < _stainAmounts.Length; i++)
                 remainingAmount += _stainAmounts[i];
             float cleanProgress = 1f - remainingAmount / Mathf.Max(1, _stainAmounts.Length);
-            SetProgress(cleanProgress, _remaining > 0 ? $"남은 얼룩 {_remaining}개" : "깨끗해졌습니다");
+            SetProgress(cleanProgress);
 
             if (_remaining > 0)
                 return;
@@ -174,7 +174,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void RefreshStatus()
         {
-            Host.SetStatus(_remaining > 0 ? $"남은 얼룩 {_remaining}개" : "깨끗해졌습니다");
+
         }
     }
 }

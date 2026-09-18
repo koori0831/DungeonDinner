@@ -1,5 +1,5 @@
 using Alchemy.Inspector;
-using NUnit.Framework;
+using Work.Core.EventBus;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +9,7 @@ using Work.Players.Code.Inventory;
 
 namespace Work.Adventure.Code
 {
+    public readonly record struct AdventureLineObservedEvent(AdventrueDialogData Line) : IEvent;
     [Serializable]
     public class IngredientLockedOption : Options
     {
@@ -48,6 +49,8 @@ namespace Work.Adventure.Code
     [Serializable]
     public class Options
     {
+        public Options() { }
+        public Options(string name) { OptionName = name; OptionTooltip = "필요한 아이템: 없음."; }
         [field:SerializeField] public string OptionName {  get; protected set; }
         [field:SerializeField] public string OptionTooltip {  get; protected set; }
         
@@ -70,6 +73,10 @@ namespace Work.Adventure.Code
     [Serializable] 
     public class AdventrueDialogData // 대화 한줄 한줄이고 해당 줄에 어떤 이미지가 나와야한다. 뭐 다른게 작동해야 한다. 그러면 AdventrueEventDialogEvent를 구현한 클래스를 넣어두면 알아서 실행
     {
+        public AdventrueDialogData() { }
+        public AdventrueDialogData(string context) { Context = context; }
+        [SerializeField] private List<string> discoveryEntryIds = new List<string>();
+        public List<string> DiscoveryEntryIds => discoveryEntryIds;
         [field: SerializeField] public string Context { get; private set;  }
         [SerializeReference] public List<AdventrueDialogEvent> method = new List<AdventrueDialogEvent>();
     }

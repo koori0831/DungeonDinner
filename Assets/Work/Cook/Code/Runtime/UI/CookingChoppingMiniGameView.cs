@@ -53,9 +53,9 @@ namespace Work.Cook.Code.Runtime.UI
             _accuracySum = 0f;
             _startedTime = Time.unscaledTime;
             _profile = GetProfile(CookingMiniGameType.Chopping);
-            Host.SetInstruction("빛나는 타격점을 순서대로 빠르게 누르세요.");
-            ConfigureHud("빛나는 지점을 빠르게 연타!", true, false, true);
-            SetProgress(0f, $"타격 0/{targetImages.Length}");
+
+            ConfigureHud(CookingGesture.Tap, true, false, true);
+            SetProgress(0f, 0, targetImages.Length);
             SetTimer(_profile.Duration, _profile.Duration);
             RefreshTargets();
             return true;
@@ -87,18 +87,18 @@ namespace Work.Cook.Code.Runtime.UI
             int targetIndex = _order[_orderIndex];
             Image target = targetImages[targetIndex];
             float radius = target != null ? Mathf.Max(target.rectTransform.rect.width, target.rectTransform.rect.height) * 0.75f : 1f;
-            float distance = target != null ? Vector2.Distance(point, target.rectTransform.anchoredPosition) : float.MaxValue;
+            float distance = target != null ? Vector2.Distance(point, (Vector2)transform.InverseTransformPoint(target.rectTransform.position)) : float.MaxValue;
             if (distance > radius)
             {
                 _mistakes++;
-                RegisterMistake("빛나는 지점을 정확히 눌러주세요.");
+                RegisterMistake();
                 return;
             }
 
             _accuracySum += Mathf.Clamp01(1f - distance / Mathf.Max(1f, radius));
             _orderIndex++;
             MarkProgress();
-            SetProgress((float)_orderIndex / _order.Length, $"타격 {_orderIndex}/{_order.Length}");
+            SetProgress((float)_orderIndex / _order.Length, _orderIndex, _order.Length);
             if (_orderIndex >= _order.Length)
             {
                 float elapsed = Time.unscaledTime - _startedTime;
@@ -122,7 +122,7 @@ namespace Work.Cook.Code.Runtime.UI
                 bool done = IsCompleted(i);
                 targetImages[i].color = done ? completedColor : i == active ? activeColor : pendingColor;
             }
-            Host.SetStatus($"다음 타격점 · {_orderIndex + 1}/{targetImages.Length}");
+
         }
 
         private bool IsCompleted(int targetIndex)

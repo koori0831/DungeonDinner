@@ -10,6 +10,8 @@ namespace Work.Adventure.Code.AdventureEvents
     [Serializable]
     public class IngredientReward : AdventureReward
     {
+        public IngredientReward() { }
+        public IngredientReward(IngredientItemDataSO item, int count) { reward = item; amount = count; }
         [SerializeField] private IngredientItemDataSO reward;
         [SerializeField] private int amount;
 

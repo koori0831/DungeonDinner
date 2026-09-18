@@ -7,6 +7,7 @@ using Work.Core.EventBus;
 using Work.NPC.Code.Runtime;
 using Work.TimeSystem;
 using Work.UtillUI.Code.Fade;
+using Work.UtillUI.Code;
 
 namespace Work.Adventure.Code.UI
 {
@@ -139,9 +140,16 @@ namespace Work.Adventure.Code.UI
 
         public void SelectAction(PreparationEnum preparationType)
         {
+            if (!_isCanAction || GameUiInput.IsBlocked) return;
             HideUI(() =>
             {
                 _selectAfterAction?.Invoke();
+                // Adventure owns its complete transition; nesting a second fade could cancel its callback.
+                if (preparationType == PreparationEnum.Adventure)
+                {
+                    Bus<OnSelectPreparationEvent>.Raise(new OnSelectPreparationEvent(preparationType));
+                    return;
+                }
                 Bus<OnFadeInEvent>.Raise(new OnFadeInEvent(() =>
                 {
                     Bus<OnSelectPreparationEvent>.Raise(new OnSelectPreparationEvent(preparationType));
@@ -159,7 +167,7 @@ namespace Work.Adventure.Code.UI
         /// </summary>
         public void SelectNextBusiness()
         {
-            if (_isCanAction == false) return;
+            if (_isCanAction == false || GameUiInput.IsBlocked) return;
 
             HideUI();
             Bus<CookingBusinessResumeRequestedEvent>.Raise(new CookingBusinessResumeRequestedEvent());

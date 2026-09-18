@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using Work.UtillUI.Code;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +13,7 @@ namespace Work.Adventure.Code.UI
         public void Enable(List<Options> options, Action<Options> resultDialog)
         {
             DestroyAllButton();
+            GameUiInput.RequireFreshPress();
             _resultDialog = resultDialog;
 
             options.ForEach(x =>

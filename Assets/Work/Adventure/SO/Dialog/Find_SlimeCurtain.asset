@@ -13,11 +13,15 @@ MonoBehaviour:
   m_Name: Find_SlimeCurtain
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "통로 위에서 끈끈한 점액 막이 늘어졌다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uD1B5\uB85C \uC704\uC5D0\uC11C \uB048\uB048\uD55C
+      \uC810\uC561 \uB9C9\uC774 \uB298\uC5B4\uC84C\uB2E4."
     method:
     - rid: 1001
     - rid: 1002
-  - <Context>k__BackingField: "뒤편 선반의 윤곽이 희미하게 비친다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uB4A4\uD3B8 \uC120\uBC18\uC758 \uC724\uACFD\uC774
+      \uD76C\uBBF8\uD558\uAC8C \uBE44\uCE5C\uB2E4."
     method: []
   options:
   - rid: 1007
@@ -53,20 +57,30 @@ MonoBehaviour:
     - rid: 1007
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "막을 옆으로 당긴다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 밧줄 1개."
-        <RewardDescription>k__BackingField: "점액 막의 마른 가장자리를 걸어 젖힙니다. 필요한 도구: 밧줄."
+        <OptionName>k__BackingField: "\uB9C9\uC744 \uC606\uC73C\uB85C \uB2F9\uAE34\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uBC27\uC904
+          1\uAC1C."
+        <RewardDescription>k__BackingField: "\uC810\uC561 \uB9C9\uC758 \uB9C8\uB978
+          \uAC00\uC7A5\uC790\uB9AC\uB97C \uAC78\uC5B4 \uC816\uD799\uB2C8\uB2E4. \uD544\uC694\uD55C
+          \uB3C4\uAD6C: \uBC27\uC904."
         rewardMethod:
         - rid: 1003
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "선반의 버섯 갓 두 조각을 챙겼다. 밧줄을 빼서 끈적한 부분을 닦았다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC120\uBC18\uC758 \uBC84\uC12F \uAC13 \uB450
+            \uC870\uAC01\uC744 \uCC59\uACBC\uB2E4. \uBC27\uC904\uC744 \uBE7C\uC11C
+            \uB048\uC801\uD55C \uBD80\uBD84\uC744 \uB2E6\uC558\uB2E4."
           method:
           - rid: 1004
           - rid: 1005
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1006
-        <LockTooltip>k__BackingField: "필요한 아이템: 밧줄 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uBC27\uC904
+          1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 00690e7463eccff066fbd6eaae54331e, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -90,20 +104,31 @@ MonoBehaviour:
     - rid: 1012
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "떨어지는 점액을 받는다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 채집병 1개."
-        <RewardDescription>k__BackingField: "막 아래에 병을 대고 천천히 받아냅니다. 필요한 도구: 채집병."
+        <OptionName>k__BackingField: "\uB5A8\uC5B4\uC9C0\uB294 \uC810\uC561\uC744
+          \uBC1B\uB294\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCC44\uC9D1\uBCD1
+          1\uAC1C."
+        <RewardDescription>k__BackingField: "\uB9C9 \uC544\uB798\uC5D0 \uBCD1\uC744
+          \uB300\uACE0 \uCC9C\uCC9C\uD788 \uBC1B\uC544\uB0C5\uB2C8\uB2E4. \uD544\uC694\uD55C
+          \uB3C4\uAD6C: \uCC44\uC9D1\uBCD1."
         rewardMethod:
         - rid: 1008
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "먼지 없는 점액만 모아 재료 주머니에 넣었다. 병은 다시 비워 두었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uBA3C\uC9C0 \uC5C6\uB294 \uC810\uC561\uB9CC
+            \uBAA8\uC544 \uC7AC\uB8CC \uC8FC\uBA38\uB2C8\uC5D0 \uB123\uC5C8\uB2E4.
+            \uBCD1\uC740 \uB2E4\uC2DC \uBE44\uC6CC \uB450\uC5C8\uB2E4."
           method:
           - rid: 1009
           - rid: 1010
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1011
-        <LockTooltip>k__BackingField: "필요한 아이템: 채집병 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCC44\uC9D1\uBCD1
+          1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: adca43f04e3257400dd5961fb50461f4, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -114,13 +139,19 @@ MonoBehaviour:
     - rid: 1014
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "다음 길로 향한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: "주변을 건드리지 않고 길을 이어갑니다."
+        <OptionName>k__BackingField: "\uB2E4\uC74C \uAE38\uB85C \uD5A5\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uC8FC\uBCC0\uC744 \uAC74\uB4DC\uB9AC\uC9C0
+          \uC54A\uACE0 \uAE38\uC744 \uC774\uC5B4\uAC11\uB2C8\uB2E4."
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "주변 지형을 기억해 두었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC8FC\uBCC0 \uC9C0\uD615\uC744 \uAE30\uC5B5\uD574
+            \uB450\uC5C8\uB2E4."
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1013
+        followUpOptions: []

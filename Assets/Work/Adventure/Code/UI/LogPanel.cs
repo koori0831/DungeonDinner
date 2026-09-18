@@ -17,6 +17,19 @@ namespace Work.Adventure.Code.UI
             Bus<OnMinusLogCreateEvent>.Events += HandleMinusLogEvent;
         }
 
+        private void OnDestroy()
+        {
+            Bus<OnPlusLogCreateEvent>.Events -= HandlePlusLogEvent;
+            Bus<OnMinusLogCreateEvent>.Events -= HandleMinusLogEvent;
+        }
+
+        private void LateUpdate()
+        {
+            if (Work.UtillUI.Code.GameUiInput.Context == Work.UtillUI.Code.GameUiContext.Adventure) return;
+            for (int i = transform.childCount - 1; i >= 0; i--)
+                if (transform.GetChild(i).GetComponent<LogLabel>() != null) Destroy(transform.GetChild(i).gameObject);
+        }
+
         private void HandlePlusLogEvent(OnPlusLogCreateEvent evt)
         {
             LogLabel label = Instantiate(plusPrefab,transform);

@@ -48,8 +48,8 @@ namespace Work.Cook.Code.Runtime.UI
             _profile = GetProfile(CookingMiniGameType.Stewing);
             if (wasteZone != null)
                 wasteZone.gameObject.SetActive(false);
-            ConfigureHud("노브를 오른쪽으로 드래그 →", true, false, true);
-            SetProgress(0f, "단계 1/3");
+            ConfigureHud(CookingGesture.DragRight, true, false, true);
+            SetProgress(0f);
             SetTimer(_profile.Duration, _profile.Duration);
             RefreshStep();
             return true;
@@ -95,8 +95,7 @@ namespace Work.Cook.Code.Runtime.UI
                 {
                     _stirAngle += delta;
                     MarkProgress();
-                    SetProgress((1f + Mathf.Clamp01(_stirAngle / 360f)) / 3f,
-                        $"단계 2/3 · 젓기 {Mathf.RoundToInt(Mathf.Clamp01(_stirAngle / 360f) * 100f)}%");
+                    SetProgress((1f + Mathf.Clamp01(_stirAngle / 360f)) / 3f);
                 }
                 _lastDirection = direction;
                 if (_stirAngle >= 360f)
@@ -129,13 +128,12 @@ namespace Work.Cook.Code.Runtime.UI
                     AdvanceStep();
                 }
                 else
-                    RegisterMistake("노브를 오른쪽 적정 위치까지 드래그하세요.");
+                    RegisterMistake();
             }
             else if (_step == 2)
             {
-                bool reachedWaste = wasteZone != null
-                    ? RectTransformUtility.RectangleContainsScreenPoint(wasteZone.rectTransform, eventData.position, eventData.pressEventCamera)
-                    : delta.x > rect.width * 0.25f && delta.y > rect.height * 0.15f;
+                bool reachedWaste = wasteZone != null && wasteZone.gameObject.activeInHierarchy
+                    && RectTransformUtility.RectangleContainsScreenPoint(wasteZone.rectTransform, eventData.position, eventData.pressEventCamera);
                 if (reachedWaste)
                 {
                     float directionScore = Vector2.Dot(delta.normalized, new Vector2(0.78f, 0.62f));
@@ -143,7 +141,7 @@ namespace Work.Cook.Code.Runtime.UI
                     AdvanceStep();
                 }
                 else
-                    RegisterMistake("거품을 오른쪽 위 폐기 영역으로 밀어내세요.");
+                    RegisterMistake();
             }
         }
 
@@ -151,7 +149,7 @@ namespace Work.Cook.Code.Runtime.UI
         {
             _step++;
             MarkProgress();
-            SetProgress(Mathf.Clamp01((float)_step / 3f), $"단계 {Mathf.Min(_step + 1, 3)}/3");
+            SetProgress(Mathf.Clamp01((float)_step / 3f));
             if (_step >= 3)
             {
                 float elapsed = Time.unscaledTime - _startedTime;
@@ -166,27 +164,23 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void RefreshStep()
         {
-            string instruction;
             if (_step == 0)
             {
-                instruction = "불 조절 노브를 오른쪽 적정 위치로 드래그하세요.";
-                SetGesture("노브를 오른쪽으로 드래그 →");
+                SetGesture(CookingGesture.DragRight);
             }
             else if (_step == 1)
             {
-                instruction = "국물 중앙을 한 바퀴 원형으로 저으세요.";
-                SetGesture("국물 중앙을 원형으로 한 바퀴 돌리기");
+                SetGesture(CookingGesture.Stir);
             }
             else
             {
-                instruction = "거품을 오른쪽 위 폐기 영역으로 밀어내세요.";
-                SetGesture("거품을 오른쪽 위로 밀기 ↗");
+                SetGesture(CookingGesture.Discard);
             }
 
             if (wasteZone != null)
                 wasteZone.gameObject.SetActive(_step == 2);
-            Host.SetInstruction(instruction);
-            Host.SetStatus($"단계 {_step + 1}/3");
+
+
         }
     }
 }

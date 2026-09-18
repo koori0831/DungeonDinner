@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureItemSO
   <ItemName>k__BackingField: "채집병"
   <ItemIcon>k__BackingField: {fileID: 21300000, guid: 17139782310a4012f2aef0067e7ceaed, type: 3}
+  discoveryEntryId: tool:collectingbottle

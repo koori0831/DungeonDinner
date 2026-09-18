@@ -34,7 +34,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         [Header("Direct Selection Entry")]
         [SerializeField] private bool encyclopediaOnlyMode = true;
-        [SerializeField] private bool includeDirectIngredientSelection;
+        [SerializeField] private bool includeDirectIngredientSelection = true;
         [SerializeField] private string directSelectionDisplayName = "재료 직접 선택";
         [SerializeField, TextArea] private string directSelectionDescription =
             "가방에서 재료를 직접 골라 아직 발견하지 못한 레시피를 찾아봅니다.";
@@ -108,6 +108,13 @@ namespace Work.Cook.Code.Runtime.UI
             List<InfoDictionaryCategoryData> categories = new List<InfoDictionaryCategoryData>();
 
             AddRecipeCategories(categories);
+            var incomplete = IncompleteDishDefinitionSO.Instance;
+            if (incomplete != null)
+                categories.Add(new InfoDictionaryCategoryData("요리 실험", defaultCategoryIcon, MarkerEnum.Recipe,
+                    recipeDisplayViewType, new[] { new InfoDictionaryEntryData(incomplete.DisplayName, incomplete.Icon,
+                        incomplete.Description, IncompleteDishDefinitionSO.EntryId,
+                        knowledgeStore != null && knowledgeStore.IsEntryDiscovered(IncompleteDishDefinitionSO.EntryId)) }));
+
 
             if (includeDirectIngredientSelection && encyclopediaOnlyMode == false)
             {
@@ -277,19 +284,7 @@ namespace Work.Cook.Code.Runtime.UI
             return Array.Empty<FoodCategorySO>();
         }
 
-        private bool IsRecipeVisible(RecipeSO recipe)
-        {
-            if (recipe == null)
-                return false;
-
-            if (showAllRecipeNamesInEncyclopedia == true)
-                return true;
-
-            if (knowledgeStore != null)
-                return knowledgeStore.IsRecipeDiscovered(recipe);
-
-            return showAllRecipesUntilKnowledgeStoreExists || discoveredRecipes.Contains(recipe);
-        }
+        private bool IsRecipeVisible(RecipeSO recipe) => recipe != null;
 
         private bool IsRecipeDiscovered(RecipeSO recipe)
         {

@@ -49,16 +49,16 @@ namespace Work.Cook.Code.Runtime.UI
             if (labelField != null)
             {
                 labelField.text = label ?? string.Empty;
-                labelField.color = Color.white;
-                labelField.alignment = TextAlignmentOptions.MidlineLeft;
+                labelField.color = new Color(0.26f, 0.16f, 0.09f);
+                labelField.alignment = TextAlignmentOptions.Center;
                 labelField.enableAutoSizing = true;
                 labelField.fontSizeMin = 13;
                 labelField.fontSizeMax = 17;
                 labelField.textWrappingMode = TextWrappingModes.Normal;
                 labelField.rectTransform.anchorMin = Vector2.zero;
                 labelField.rectTransform.anchorMax = Vector2.one;
-                labelField.rectTransform.offsetMin = new Vector2(66, 8);
-                labelField.rectTransform.offsetMax = new Vector2(-12, -8);
+                labelField.rectTransform.offsetMin = new Vector2(6, 6);
+                labelField.rectTransform.offsetMax = new Vector2(-6, -76);
             }
 
             if (iconImage != null)
@@ -66,15 +66,15 @@ namespace Work.Cook.Code.Runtime.UI
                 iconImage.sprite = icon;
                 iconImage.enabled = icon != null;
                 iconImage.preserveAspect = true;
-                iconImage.rectTransform.anchorMin = iconImage.rectTransform.anchorMax = new Vector2(0, 0.5f);
+                iconImage.rectTransform.anchorMin = iconImage.rectTransform.anchorMax = new Vector2(0.5f, 1f);
                 iconImage.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                iconImage.rectTransform.anchoredPosition = new Vector2(34, 0);
-                iconImage.rectTransform.sizeDelta = new Vector2(44, 44);
+                iconImage.rectTransform.anchoredPosition = new Vector2(0, -40);
+                iconImage.rectTransform.sizeDelta = new Vector2(64, 64);
             }
             var rowSize = GetComponent<LayoutElement>();
             if (rowSize != null)
             {
-                rowSize.minHeight = rowSize.preferredHeight = 68;
+                rowSize.minHeight = rowSize.preferredHeight = 112;
                 rowSize.flexibleHeight = 0;
             }
 

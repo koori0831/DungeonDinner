@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureItemSO
   <ItemName>k__BackingField: "탐험 등불"
   <ItemIcon>k__BackingField: {fileID: 21300000, guid: cadeff0c580bd320377802b7ae06fc75, type: 3}
+  discoveryEntryId: tool:lantern

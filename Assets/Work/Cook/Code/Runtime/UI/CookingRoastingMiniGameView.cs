@@ -56,10 +56,10 @@ namespace Work.Cook.Code.Runtime.UI
                 flipIndicator.rectTransform.localRotation = Quaternion.identity;
                 flipIndicator.rectTransform.localScale = Vector3.one;
             }
-            Host.SetInstruction("재료를 한 번 눌러 뒤집고, 알맞게 익으면 다시 눌러 꺼내세요.");
-            Host.SetStatus(_type == CookingMiniGameType.Burning ? "진한 그을음이 오를 때 꺼내세요" : "색과 연기를 살펴보세요");
-            ConfigureHud("한 번 클릭해 뒤집기 · 적정 구간에서 다시 클릭", false, true, true);
-            SetTargetState(0f, _profile.TargetMin, _profile.TargetMax, "덜 익음");
+
+
+            ConfigureHud(CookingGesture.Flip, false, true, true);
+            SetTargetState(0f, _profile.TargetMin, _profile.TargetMax);
             float maximumDuration = Mathf.Max(_profile.Duration, _profile.MaximumDuration);
             SetTimer(maximumDuration, maximumDuration);
             RefreshVisual(0f);
@@ -80,7 +80,7 @@ namespace Work.Cook.Code.Runtime.UI
             RefreshVisual(doneness);
 
             float maximumDuration = Mathf.Max(_profile.Duration, _profile.MaximumDuration);
-            SetTargetState(doneness, _profile.TargetMin, _profile.TargetMax, GetDonenessLabel(doneness));
+            SetTargetState(doneness, _profile.TargetMin, _profile.TargetMax);
             SetTimer(Mathf.Max(0f, maximumDuration - elapsed), maximumDuration);
 
             if (elapsed >= maximumDuration)
@@ -96,7 +96,7 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (Host.IsIngredientHit(eventData) == false)
             {
-                RegisterMistake("재료를 눌러주세요.");
+                RegisterMistake();
                 return;
             }
 
@@ -108,8 +108,8 @@ namespace Work.Cook.Code.Runtime.UI
                     flipIndicator.rectTransform.localRotation = Quaternion.Euler(0f, 180f, 0f);
                 Host.PlayIngredientFlipFeedback();
                 MarkProgress();
-                Host.SetStatus("뒤집기 완료 · 적정 순간에 재료를 클릭하세요");
-                SetGesture("적정 구간에서 재료를 다시 클릭");
+
+                SetGesture(CookingGesture.Tap);
                 return;
             }
 
@@ -151,13 +151,6 @@ namespace Work.Cook.Code.Runtime.UI
             }
         }
 
-        private string GetDonenessLabel(float doneness)
-        {
-            if (doneness < _profile.TargetMin)
-                return _flipped ? "뒤집기 완료 · 아직 덜 익음" : "덜 익음 · 한 번 탭해 뒤집기";
-            if (doneness <= _profile.TargetMax)
-                return "적정 · 지금 재료를 클릭하세요";
-            return _type == CookingMiniGameType.Burning ? "진한 그을음 · 지금 재료를 클릭하세요" : "과열 위험 · 바로 재료를 클릭하세요";
-        }
+
     }
 }

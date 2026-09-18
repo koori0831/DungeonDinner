@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.Core;
+using Work.UtillUI.Code;
 
 namespace Work.Cook.Code.Runtime.UI
 {
@@ -21,6 +22,11 @@ namespace Work.Cook.Code.Runtime.UI
 
     public abstract class CookingOverlayMiniGameController : MonoBehaviour, ICookingOverlayMiniGameController
     {
+        [SerializeField] private Image[] dragVisuals = Array.Empty<Image>();
+        [SerializeField] private GameObject[] surfaceObjects = Array.Empty<GameObject>();
+        private Canvas[] _dragCanvases;
+        private Vector2[] _dragHomes;
+        private Quaternion[] _dragRotations;
         protected CookingMiniGameOverlayHost Host { get; private set; }
         protected CookingMiniGameOverlaySettingsSO Settings { get; private set; }
         protected Action<CookingMiniGameResult> Completion { get; private set; }
@@ -32,6 +38,8 @@ namespace Work.Cook.Code.Runtime.UI
         {
             Host = host;
             Settings = settings;
+            CacheDragVisuals();
+            SetSurfaceVisible(false);
         }
 
         public abstract bool CanPlay(CookingMiniGameType miniGameType);
@@ -44,7 +52,8 @@ namespace Work.Cook.Code.Runtime.UI
         public virtual void CancelMiniGame()
         {
             Completion = null;
-            ActivePointerId = int.MinValue;
+            CancelPointer();
+            SetSurfaceVisible(false);
         }
 
         protected static void ApplySprite(Image image, Sprite sprite, bool preserveColor = false)
@@ -89,6 +98,8 @@ namespace Work.Cook.Code.Runtime.UI
                 return false;
             }
 
+            CacheDragVisuals();
+            SetSurfaceVisible(true);
             Completion = completed;
             ActivePointerId = int.MinValue;
             return true;
@@ -116,23 +127,32 @@ namespace Work.Cook.Code.Runtime.UI
 
         protected bool TryCapturePointer(PointerEventData eventData)
         {
-            if (eventData == null)
+            if (eventData == null || GameUiInput.IsBlocked)
                 return false;
 
             int activePointerId = ActivePointerId;
             bool captured = CookingMiniGamePointerRules.TryCapture(ref activePointerId, eventData.pointerId);
             ActivePointerId = activePointerId;
+            if (captured) SetDragSorting(true);
             return captured;
         }
 
         protected bool IsActivePointer(PointerEventData eventData)
         {
-            return eventData != null && CookingMiniGamePointerRules.IsActive(ActivePointerId, eventData.pointerId);
+            return !GameUiInput.IsBlocked && eventData != null && CookingMiniGamePointerRules.IsActive(ActivePointerId, eventData.pointerId);
         }
 
         protected void ReleasePointer()
         {
             ActivePointerId = int.MinValue;
+            SetDragSorting(false);
+            if (_dragHomes != null)
+                for (int i = 0; i < dragVisuals.Length; i++)
+                    if (dragVisuals[i] != null)
+                    {
+                        dragVisuals[i].rectTransform.anchoredPosition = _dragHomes[i];
+                        dragVisuals[i].rectTransform.localRotation = _dragRotations[i];
+                    }
         }
 
         protected void MarkProgress()
@@ -141,24 +161,24 @@ namespace Work.Cook.Code.Runtime.UI
             Host?.PlayActionFeedback();
         }
 
-        protected void ConfigureHud(string gestureText, bool showProgress, bool showTarget, bool showTimer)
+        protected void ConfigureHud(CookingGesture action, bool showProgress, bool showTarget, bool showTimer)
         {
-            Host?.ConfigureActionHud(gestureText, showProgress, showTarget, showTimer);
+            Host?.ConfigureActionHud(action, showProgress, showTarget, showTimer);
         }
 
-        protected void SetGesture(string text)
+        protected void SetGesture(CookingGesture action)
         {
-            Host?.SetGesture(text);
+            Host?.SetGesture(action);
         }
 
-        protected void SetProgress(float normalizedValue, string label)
+        protected void SetProgress(float normalizedValue, int completed = -1, int total = 0)
         {
-            Host?.SetProgress(normalizedValue, label);
+            Host?.SetProgress(normalizedValue, completed, total);
         }
 
-        protected void SetTargetState(float normalizedValue, float targetMin, float targetMax, string label)
+        protected void SetTargetState(float normalizedValue, float targetMin, float targetMax)
         {
-            Host?.SetTargetState(normalizedValue, targetMin, targetMax, label);
+            Host?.SetTargetState(normalizedValue, targetMin, targetMax);
         }
 
         protected void SetTimer(float remaining, float duration)
@@ -166,10 +186,71 @@ namespace Work.Cook.Code.Runtime.UI
             Host?.SetTimer(remaining, duration);
         }
 
-        protected void RegisterMistake(string instruction = null)
+        protected void RegisterMistake(CookingFeedbackState state = CookingFeedbackState.Mistake)
         {
-            Host?.ShowMistake(instruction);
+            Host?.ShowMistake(state);
         }
+
+        private void CacheDragVisuals()
+        {
+            if (_dragCanvases != null) return;
+            _dragCanvases = new Canvas[dragVisuals.Length];
+            _dragHomes = new Vector2[dragVisuals.Length];
+            _dragRotations = new Quaternion[dragVisuals.Length];
+            Canvas parentCanvas = GetComponentInParent<Canvas>();
+            for (int i = 0; i < dragVisuals.Length; i++)
+            {
+                var image = dragVisuals[i];
+                if (image == null) continue;
+                image.raycastTarget = false;
+                image.maskable = false;
+                _dragHomes[i] = image.rectTransform.anchoredPosition;
+                _dragRotations[i] = image.rectTransform.localRotation;
+                var canvas = image.GetComponent<Canvas>();
+                if (canvas == null) canvas = image.gameObject.AddComponent<Canvas>();
+                canvas.overrideSorting = true;
+                canvas.sortingOrder = (parentCanvas != null ? parentCanvas.rootCanvas.sortingOrder : 0) + 100;
+                canvas.enabled = false;
+                _dragCanvases[i] = canvas;
+            }
+        }
+
+        private void SetDragSorting(bool value)
+        {
+            if (_dragCanvases == null) return;
+            foreach (var canvas in _dragCanvases)
+                if (canvas != null)
+                {
+                    canvas.enabled = value;
+                    if (value) canvas.overrideSorting = true;
+                }
+        }
+
+        private void LateUpdate() { if (ActivePointerId != int.MinValue) SetDragSorting(true); }
+
+        private void SetSurfaceVisible(bool value)
+        {
+            foreach (var surface in surfaceObjects) if (surface != null) surface.SetActive(value);
+        }
+
+        protected virtual void OnPointerCancelled() { }
+
+        private void CancelPointer()
+        {
+            ReleasePointer();
+            if (_dragHomes != null)
+                for (int i = 0; i < dragVisuals.Length; i++)
+                    if (dragVisuals[i] != null)
+                    {
+                        dragVisuals[i].rectTransform.anchoredPosition = _dragHomes[i];
+                        dragVisuals[i].rectTransform.localRotation = _dragRotations[i];
+                    }
+            OnPointerCancelled();
+        }
+
+        private void OnApplicationFocus(bool focused) { if (!focused) CancelPointer(); }
+        private void OnApplicationPause(bool paused) { if (paused) CancelPointer(); }
+        protected virtual void OnDisable() { CancelPointer(); SetSurfaceVisible(false); }
 
         protected void Finish(CookingMiniGameType type, float score, string feedbackText)
         {
@@ -178,7 +259,7 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
 
             Completion = null;
-            ActivePointerId = int.MinValue;
+            ReleasePointer();
             CookingMiniGameGrade grade = CookingMiniGameUtility.ResolveGrade(score);
             completed.Invoke(CookingMiniGameUtility.CreateResult(type, grade, score, feedbackText));
         }

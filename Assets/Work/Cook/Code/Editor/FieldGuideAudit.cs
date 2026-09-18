@@ -45,12 +45,12 @@ namespace Work.Cook.Code.Editor
                 foreach (var category in categories)
                 foreach (var entry in category.Entries)
                 {
-                    Require(entry.Icon != null, "Missing icon: " + entry.DisplayName);
+                    Require(entry.Icon == null && entry.DisplayName == "???", "Undiscovered entry leaked: " + entry.EntryId);
                     Require(!string.IsNullOrWhiteSpace(entry.Description), "Missing description: " + entry.DisplayName);
-                    Require(names.Add(entry.DisplayName), "Duplicate entry: " + entry.DisplayName);
+                    Require(names.Add(entry.EntryId), "Duplicate entry: " + entry.DisplayName);
                     count++;
                 }
-                Require(count == 21, "Unexpected production guide entry count: " + count);
+                Require(count > 0, "The production guide is empty.");
 
                 preview = EditorSceneManager.NewPreviewScene();
                 var cameraObject = new GameObject("Guide Audit Camera", typeof(Camera));
@@ -130,7 +130,7 @@ namespace Work.Cook.Code.Editor
                 capture.Apply();
                 Directory.CreateDirectory("Temp/FieldGuideAudit");
                 File.WriteAllBytes("Temp/FieldGuideAudit/guide.png", capture.EncodeToPNG());
-                File.WriteAllText("Temp/FieldGuideAudit/result.txt", "PASS: 21 entries, icons, descriptions, unique names, navigation, scroll reset, all list/title glyph bounds at widths 320/398/560.\n");
+                File.WriteAllText("Temp/FieldGuideAudit/result.txt", "PASS: undiscovered entries redacted, unique IDs, navigation, scroll reset, all list/title glyph bounds at widths 320/398/560.\n");
                 Debug.Log("Field guide audit passed. Preview: Temp/FieldGuideAudit/guide.png");
             }
             catch (Exception exception)

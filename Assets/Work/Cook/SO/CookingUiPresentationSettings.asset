@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Data.CookingUiPresentationSettingsSO
   fontAsset: {fileID: 11400000, guid: 54f94c96368179245b3374208b777d0a, type: 2}
   backdropColor: {r: 0.035, g: 0.022, b: 0.014, a: 0.9}
-  parchmentColor: {r: 0.83, g: 0.68, b: 0.43, a: 1}
-  panelColor: {r: 0.14, g: 0.085, b: 0.045, a: 0.98}
+  parchmentColor: {r: 0.97, g: 0.94, b: 0.86, a: 1}
+  panelColor: {r: 0.29, g: 0.19, b: 0.13, a: 1}
   ironColor: {r: 0.16, g: 0.17, b: 0.18, a: 1}
-  primaryTextColor: {r: 1, g: 0.92, b: 0.76, a: 1}
-  secondaryTextColor: {r: 0.83, g: 0.75, b: 0.62, a: 1}
-  positiveColor: {r: 0.95, g: 0.74, b: 0.27, a: 1}
+  primaryTextColor: {r: 0.26, g: 0.16, b: 0.09, a: 1}
+  secondaryTextColor: {r: 0.44, g: 0.32, b: 0.21, a: 1}
+  positiveColor: {r: 0.33, g: 0.47, b: 0.22, a: 1}
   negativeColor: {r: 0.82, g: 0.25, b: 0.18, a: 1}
   missingColor: {r: 0.48, g: 0.43, b: 0.38, a: 1}
   backdropDuration: 0.4
@@ -47,19 +47,19 @@ MonoBehaviour:
   qualityVisuals:
   - quality: 3
     displayName: "\uC644\uBCBD"
-    color: {r: 1, g: 0.77, b: 0.24, a: 1}
+    color: {r: 0.5, g: 0.31, b: 0.08, a: 1}
     icon: {fileID: 21300000, guid: 3009b3494c754ebb8984266c7869eb3c, type: 3}
   - quality: 1
     displayName: "\uBCF4\uD1B5"
-    color: {r: 0.83, g: 0.75, b: 0.58, a: 1}
+    color: {r: 0.37, g: 0.27, b: 0.17, a: 1}
     icon: {fileID: 21300000, guid: 68e6026045a74744b6b61ef1965cc602, type: 3}
   - quality: 2
     displayName: "\uC88B\uC74C"
-    color: {r: 0.7, g: 0.48, b: 0.87, a: 1}
+    color: {r: 0.37, g: 0.27, b: 0.17, a: 1}
     icon: {fileID: 21300000, guid: 862bfee873e24fafba35df781cb2820c, type: 3}
   - quality: 0
     displayName: "\uBBF8\uD761"
-    color: {r: 0.67, g: 0.2, b: 0.16, a: 1}
+    color: {r: 0.37, g: 0.27, b: 0.17, a: 1}
     icon: {fileID: 21300000, guid: 9e13c698fddf4365b939f6a76471edcc, type: 3}
   reactionVisuals:
   - result: 4

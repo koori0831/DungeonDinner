@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: Meet_LanternKeeper
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "노인이 어두운 갈림길에서 등불을 손보고 있다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uB178\uC778\uC774 \uC5B4\uB450\uC6B4 \uAC08\uB9BC\uAE38\uC5D0\uC11C
+      \uB4F1\uBD88\uC744 \uC190\uBCF4\uACE0 \uC788\uB2E4."
     method:
     - rid: 1001
     - rid: 1002
     - rid: 1003
-  - <Context>k__BackingField: "\"짐 정리를 거들어 주겠나? 여분의 등이 무거워서 말이야.\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC9D0 \uC815\uB9AC\uB97C \uAC70\uB4E4\uC5B4 \uC8FC\uACA0\uB098?
+      \uC5EC\uBD84\uC758 \uB4F1\uC774 \uBB34\uAC70\uC6CC\uC11C \uB9D0\uC774\uC57C.\""
     method: []
   options:
   - rid: 1008
@@ -58,21 +62,29 @@ MonoBehaviour:
     - rid: 1008
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "짐 정리를 돕는다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: "노인의 짐을 나눠 들고 밝은 길까지 함께 걷습니다."
+        <OptionName>k__BackingField: "\uC9D0 \uC815\uB9AC\uB97C \uB3D5\uB294\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uB178\uC778\uC758 \uC9D0\uC744 \uB098\uB220
+          \uB4E4\uACE0 \uBC1D\uC740 \uAE38\uAE4C\uC9C0 \uD568\uAED8 \uAC77\uC2B5\uB2C8\uB2E4."
         rewardMethod:
         - rid: 1004
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "갈림길을 지나자 노인이 여분의 등불을 건넸다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uAC08\uB9BC\uAE38\uC744 \uC9C0\uB098\uC790
+            \uB178\uC778\uC774 \uC5EC\uBD84\uC758 \uB4F1\uBD88\uC744 \uAC74\uB138\uB2E4."
           method:
           - rid: 1005
           - rid: 1006
-        - <Context>k__BackingField: "\"불씨는 챙겨 뒀네. 발밑부터 비추게나.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uBD88\uC528\uB294 \uCC59\uACA8 \uB480\uB124.
+            \uBC1C\uBC11\uBD80\uD130 \uBE44\uCD94\uAC8C\uB098.\""
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1007
+        followUpOptions: []
     - rid: 1009
       type: {class: AdventureItemReward, ns: Work.Adventure.Code.Rewards, asm: Assembly-CSharp}
       data:
@@ -91,22 +103,33 @@ MonoBehaviour:
     - rid: 1013
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "채집병을 건넨다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 채집병 1개. 선택 시 1개 소모됩니다."
-        <RewardDescription>k__BackingField: "기름을 옮겨 담을 병을 건넵니다. 채집병 1개가 소모됩니다."
+        <OptionName>k__BackingField: "\uCC44\uC9D1\uBCD1\uC744 \uAC74\uB128\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCC44\uC9D1\uBCD1
+          1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
+        <RewardDescription>k__BackingField: "\uAE30\uB984\uC744 \uC62E\uACA8 \uB2F4\uC744
+          \uBCD1\uC744 \uAC74\uB135\uB2C8\uB2E4. \uCC44\uC9D1\uBCD1 1\uAC1C\uAC00
+          \uC18C\uBAA8\uB429\uB2C8\uB2E4."
         rewardMethod:
         - rid: 1009
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "노인은 병에 기름을 담고 예비 등불을 내주었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uB178\uC778\uC740 \uBCD1\uC5D0 \uAE30\uB984\uC744
+            \uB2F4\uACE0 \uC608\uBE44 \uB4F1\uBD88\uC744 \uB0B4\uC8FC\uC5C8\uB2E4."
           method:
           - rid: 1010
           - rid: 1011
-        - <Context>k__BackingField: "\"딱 맞는 병이로군. 이 등은 자네가 쓰게.\""
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\"\uB531 \uB9DE\uB294 \uBCD1\uC774\uB85C\uAD70.
+            \uC774 \uB4F1\uC740 \uC790\uB124\uAC00 \uC4F0\uAC8C.\""
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1012
-        <LockTooltip>k__BackingField: "필요한 아이템: 채집병 1개. 선택 시 1개 소모됩니다."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCC44\uC9D1\uBCD1
+          1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: adca43f04e3257400dd5961fb50461f4, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 1
@@ -117,13 +140,18 @@ MonoBehaviour:
     - rid: 1015
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "다음 길로 향한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: "주변을 건드리지 않고 길을 이어갑니다."
+        <OptionName>k__BackingField: "\uB2E4\uC74C \uAE38\uB85C \uD5A5\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uC8FC\uBCC0\uC744 \uAC74\uB4DC\uB9AC\uC9C0
+          \uC54A\uACE0 \uAE38\uC744 \uC774\uC5B4\uAC11\uB2C8\uB2E4."
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "위치를 기억해 두었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC704\uCE58\uB97C \uAE30\uC5B5\uD574 \uB450\uC5C8\uB2E4."
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1014
+        followUpOptions: []

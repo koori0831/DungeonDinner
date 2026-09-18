@@ -13,14 +13,23 @@ MonoBehaviour:
   m_Name: Meet_RopeWeaver
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "머쉬룸맨이 풀섬유를 꼬며 매듭을 만들고 있다."
+  - discoveryEntryIds:
+    - monster:mushroom_man
+    <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC774 \uD480\uC12C\uC720\uB97C
+      \uAF2C\uBA70 \uB9E4\uB4ED\uC744 \uB9CC\uB4E4\uACE0 \uC788\uB2E4."
     method:
     - rid: 1001
     - rid: 1002
     - rid: 1003
-  - <Context>k__BackingField: "옆에는 손질을 기다리는 등불도 놓여 있다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uC606\uC5D0\uB294 \uC190\uC9C8\uC744 \uAE30\uB2E4\uB9AC\uB294
+      \uB4F1\uBD88\uB3C4 \uB193\uC5EC \uC788\uB2E4."
     method: []
-  - <Context>k__BackingField: "머쉬룸맨은 벌어진 섬유 끝과 등불 속 부러진 심지를 번갈아 가리킨다."
+  - discoveryEntryIds:
+    - monster:mushroom_man
+    <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC740 \uBC8C\uC5B4\uC9C4
+      \uC12C\uC720 \uB05D\uACFC \uB4F1\uBD88 \uC18D \uBD80\uB7EC\uC9C4 \uC2EC\uC9C0\uB97C
+      \uBC88\uAC08\uC544 \uAC00\uB9AC\uD0A8\uB2E4."
     method: []
   options:
   - rid: 1008
@@ -60,24 +69,37 @@ MonoBehaviour:
     - rid: 1008
       type: {class: IngredientLockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "점액으로 끝을 고정한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 슬라임 점액 1개. 선택 시 1개 소모됩니다."
-        <RewardDescription>k__BackingField: "풀섬유 끝에 점액을 바릅니다. 슬라임 점액 1개가 소모됩니다."
+        <OptionName>k__BackingField: "\uC810\uC561\uC73C\uB85C \uB05D\uC744 \uACE0\uC815\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC2AC\uB77C\uC784
+          \uC810\uC561 1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
+        <RewardDescription>k__BackingField: "\uD480\uC12C\uC720 \uB05D\uC5D0 \uC810\uC561\uC744
+          \uBC14\uB985\uB2C8\uB2E4. \uC2AC\uB77C\uC784 \uC810\uC561 1\uAC1C\uAC00
+          \uC18C\uBAA8\uB429\uB2C8\uB2E4."
         rewardMethod:
         - rid: 1004
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "섬유가 풀리지 않게 고정하자 머쉬룸맨이 완성된 밧줄을 건넸다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uC12C\uC720\uAC00 \uD480\uB9AC\uC9C0 \uC54A\uAC8C
+            \uACE0\uC815\uD558\uC790 \uBA38\uC26C\uB8F8\uB9E8\uC774 \uC644\uC131\uB41C
+            \uBC27\uC904\uC744 \uAC74\uB138\uB2E4."
           method:
           - rid: 1005
           - rid: 1006
-        - <Context>k__BackingField: "접착제 값으로는 꽤 든든했다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC811\uCC29\uC81C \uAC12\uC73C\uB85C\uB294
+            \uAF64 \uB4E0\uB4E0\uD588\uB2E4."
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1007
+        followUpOptions: []
         <RequiredIngredient>k__BackingField: {fileID: 11400000, guid: 50f56f458c6a45dbb85feddecd3b2fb1, type: 2}
         <RequiredAmount>k__BackingField: 1
-        <LockTooltip>k__BackingField: "필요한 아이템: 슬라임 점액 1개. 선택 시 1개 소모됩니다."
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC2AC\uB77C\uC784
+          \uC810\uC561 1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
     - rid: 1009
       type: {class: AdventureItemReward, ns: Work.Adventure.Code.Rewards, asm: Assembly-CSharp}
       data:
@@ -96,22 +118,34 @@ MonoBehaviour:
     - rid: 1013
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "집게로 심지를 손본다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 긴 집게 1개."
-        <RewardDescription>k__BackingField: "집게로 심지를 꺼내 바로잡습니다. 긴 집게가 필요합니다."
+        <OptionName>k__BackingField: "\uC9D1\uAC8C\uB85C \uC2EC\uC9C0\uB97C \uC190\uBCF8\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uAE34
+          \uC9D1\uAC8C 1\uAC1C."
+        <RewardDescription>k__BackingField: "\uC9D1\uAC8C\uB85C \uC2EC\uC9C0\uB97C
+          \uAEBC\uB0B4 \uBC14\uB85C\uC7A1\uC2B5\uB2C8\uB2E4. \uAE34 \uC9D1\uAC8C\uAC00
+          \uD544\uC694\uD569\uB2C8\uB2E4."
         rewardMethod:
         - rid: 1009
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "심지를 바로 세우니 작은 불꽃이 살아났다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC2EC\uC9C0\uB97C \uBC14\uB85C \uC138\uC6B0\uB2C8
+            \uC791\uC740 \uBD88\uAF43\uC774 \uC0B4\uC544\uB0AC\uB2E4."
           method:
           - rid: 1010
           - rid: 1011
-        - <Context>k__BackingField: "머쉬룸맨은 환하게 웃으며 등불을 내 쪽으로 밀었다."
+        - discoveryEntryIds:
+          - monster:mushroom_man
+          <Context>k__BackingField: "\uBA38\uC26C\uB8F8\uB9E8\uC740 \uD658\uD558\uAC8C
+            \uC6C3\uC73C\uBA70 \uB4F1\uBD88\uC744 \uB0B4 \uCABD\uC73C\uB85C \uBC00\uC5C8\uB2E4."
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1012
-        <LockTooltip>k__BackingField: "필요한 아이템: 긴 집게 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uAE34
+          \uC9D1\uAC8C 1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 7f7cb47adad0c380eebdd2a95025b92e, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -122,13 +156,18 @@ MonoBehaviour:
     - rid: 1015
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "다음 길로 향한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: "주변을 건드리지 않고 길을 이어갑니다."
+        <OptionName>k__BackingField: "\uB2E4\uC74C \uAE38\uB85C \uD5A5\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uC8FC\uBCC0\uC744 \uAC74\uB4DC\uB9AC\uC9C0
+          \uC54A\uACE0 \uAE38\uC744 \uC774\uC5B4\uAC11\uB2C8\uB2E4."
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "위치를 기억해 두었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC704\uCE58\uB97C \uAE30\uC5B5\uD574 \uB450\uC5C8\uB2E4."
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1014
+        followUpOptions: []

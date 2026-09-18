@@ -101,13 +101,20 @@ namespace Work.Adventure.Code.UI
 
         public void SetText(string message)
         {
+            if (text == null || root == null) return;
+            if (_canvas == null) _canvas = root.GetComponentInParent<Canvas>();
+            Canvas canvas = _canvas != null ? _canvas.rootCanvas : null;
+            Camera camera = canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+            float pixelsPerUnit = Vector2.Distance(
+                RectTransformUtility.WorldToScreenPoint(camera, root.TransformPoint(Vector3.right)),
+                RectTransformUtility.WorldToScreenPoint(camera, root.TransformPoint(Vector3.zero)));
+            float maxWidth = canvas != null ? (canvas.pixelRect.width - ScreenPadding * 2) / Mathf.Max(.001f, pixelsPerUnit) : 800;
             text.text = message;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            float width = Mathf.Min(maxWidth, text.GetPreferredValues(message, Mathf.Infinity, Mathf.Infinity).x + offset);
+            float height = Mathf.Max(52, text.GetPreferredValues(message, Mathf.Max(1, width - offset), Mathf.Infinity).y + 20);
+            root.sizeDelta = new Vector2(width, height);
             text.ForceMeshUpdate();
-
-            Vector2 textSize = text.GetRenderedValues(false);
-            Vector2 size = root.sizeDelta;
-            size.x = textSize.x + offset; // 좌우 여백
-            root.sizeDelta = size;
         }
     }
 }

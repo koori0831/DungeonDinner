@@ -60,10 +60,10 @@ namespace Work.Cook.Code.Runtime.UI
             transform.SetAsLastSibling();
             RefreshLineVisuals();
 
-            Host.SetInstruction("노란 절단선을 따라 끝까지 드래그하세요.");
-            Host.SetStatus($"활성 절단선 · {cutLineImages.Length}개 남음");
-            ConfigureHud("빛나는 칼 위치에서 반대쪽 끝까지 드래그", true, false, false);
-            SetProgress(0f, $"절단 0/{cutLineImages.Length}");
+
+
+            ConfigureHud(CookingGesture.Slice, true, false, false);
+            SetProgress(0f);
             return true;
         }
 
@@ -96,7 +96,7 @@ namespace Work.Cook.Code.Runtime.UI
             {
                 ReleasePointer();
                 _mistakes++;
-                RegisterMistake("빛나는 칼 위치에서 드래그를 시작하세요.");
+                RegisterMistake();
                 return;
             }
 
@@ -134,9 +134,8 @@ namespace Work.Cook.Code.Runtime.UI
             if (successful == false)
             {
                 _mistakes++;
-                SetProgress((float)_completedCount / _completedLines.Length,
-                    $"절단 {_completedCount}/{_completedLines.Length}");
-                RegisterMistake("선을 벗어났습니다. 끝점부터 다시 그어보세요.");
+                SetProgress((float)_completedCount / _completedLines.Length);
+                RegisterMistake();
                 ShowNextStartGuide();
                 return;
             }
@@ -146,8 +145,7 @@ namespace Work.Cook.Code.Runtime.UI
             _precisionSum += Mathf.Clamp01(1f - averageDeviation / Mathf.Max(1f, tolerance));
             RefreshLineVisuals();
             MarkProgress();
-            SetProgress((float)_completedCount / _completedLines.Length,
-                $"절단 {_completedCount}/{_completedLines.Length}");
+            SetProgress((float)_completedCount / _completedLines.Length);
 
             if (_completedCount >= _completedLines.Length)
             {
@@ -156,7 +154,7 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
-            Host.SetStatus($"다음 절단선 · {_completedLines.Length - _completedCount}개 남음");
+
         }
 
         private int FindClosestEndpoint(Vector2 point, float tolerance, out Vector2 start, out Vector2 end)
@@ -171,12 +169,7 @@ namespace Work.Cook.Code.Runtime.UI
                     continue;
 
                 RectTransform line = cutLineImages[i].rectTransform;
-                Vector2 center = line.anchoredPosition;
-                float radians = line.localEulerAngles.z * Mathf.Deg2Rad;
-                Vector2 direction = new Vector2(-Mathf.Sin(radians), Mathf.Cos(radians));
-                float length = Mathf.Max(line.rect.width, line.rect.height);
-                Vector2 a = center - direction * length * 0.5f;
-                Vector2 b = center + direction * length * 0.5f;
+                GetLineEndpoints(line, out Vector2 a, out Vector2 b);
                 float da = Vector2.Distance(point, a);
                 float db = Vector2.Distance(point, b);
                 if (da < closest)
@@ -238,8 +231,9 @@ namespace Work.Cook.Code.Runtime.UI
             knifeImage.rectTransform.localScale = Vector3.one * pulse;
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             if (knifeImage == null)
                 return;
 
@@ -262,17 +256,28 @@ namespace Work.Cook.Code.Runtime.UI
             }
 
             RectTransform line = cutLineImages[requiredLine].rectTransform;
-            Vector2 center = line.anchoredPosition;
-            float radians = line.localEulerAngles.z * Mathf.Deg2Rad;
-            Vector2 direction = new Vector2(-Mathf.Sin(radians), Mathf.Cos(radians));
-            float length = Mathf.Max(line.rect.width, line.rect.height);
-            Vector2 start = center - direction * length * 0.5f;
+            GetLineEndpoints(line, out Vector2 start, out Vector2 end);
+            Vector2 direction = (end - start).normalized;
 
             knifeImage.gameObject.SetActive(true);
             knifeImage.rectTransform.anchoredPosition = start;
             knifeImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f,
                 Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - knifeArtworkAngle);
             knifeImage.rectTransform.localScale = Vector3.one;
+        }
+
+        protected override void OnPointerCancelled()
+        {
+            _activeLine = -1;
+            if (knifeImage != null) knifeImage.gameObject.SetActive(false);
+        }
+
+        private void GetLineEndpoints(RectTransform line, out Vector2 a, out Vector2 b)
+        {
+            Vector2 extent = line.rect.height >= line.rect.width
+                ? new Vector2(0, line.rect.height * 0.5f) : new Vector2(line.rect.width * 0.5f, 0);
+            a = transform.InverseTransformPoint(line.TransformPoint(line.rect.center - extent));
+            b = transform.InverseTransformPoint(line.TransformPoint(line.rect.center + extent));
         }
 
         private void UpdateDrag(Vector2 point)
@@ -290,7 +295,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (_completedLines != null && _completedLines.Length > 0)
             {
                 float totalProgress = (_completedCount + Mathf.Clamp01(_maximumProgress)) / _completedLines.Length;
-                SetProgress(totalProgress, $"절단 {_completedCount}/{_completedLines.Length}");
+                SetProgress(totalProgress);
             }
             if (knifeImage != null)
             {

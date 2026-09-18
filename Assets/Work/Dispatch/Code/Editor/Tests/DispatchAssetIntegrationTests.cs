@@ -125,20 +125,14 @@ namespace Work.Dispatch.Code.Editor.Tests
         }
 
         [Test]
-        public void AdventureMapButtons_HaveAllRequiredSerializedReferences()
+        public void AdventurePrefab_HasNoRegionSelectionScreen()
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
                 "Assets/Work/Adventure/Prefabs/AdventureCanvas.prefab");
             Assert.That(prefab, Is.Not.Null);
-
-            MapSelectButton[] mapButtons = prefab.GetComponentsInChildren<MapSelectButton>(true);
-            Assert.That(mapButtons, Is.Not.Empty);
-            for (int i = 0; i < mapButtons.Length; i++)
-            {
-                AssertSerializedReference(mapButtons[i], "buttonImage");
-                AssertSerializedReference(mapButtons[i], "button");
-                AssertSerializedReference(mapButtons[i], "buttonText");
-            }
+            foreach (var component in prefab.GetComponentsInChildren<MonoBehaviour>(true))
+                if (component != null)
+                    Assert.That(new[] { "AdventureMapUI", "MapSelectButton", "MapInfoPanel" }, Does.Not.Contain(component.GetType().Name));
         }
 
         [TestCase(false, 0, "가능")]

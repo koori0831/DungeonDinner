@@ -35,6 +35,8 @@ namespace Work.Cook.Code.Info
     [Serializable]
     public class InfoDictionaryEntryData : IHaveDisplayNameInfo, IHaveIconInfo, IHaveDescriptionInfo
     {
+        [field: SerializeField] public string EntryId { get; private set; }
+        [field: SerializeField] public bool IsDiscovered { get; protected set; } = true;
         [field: SerializeField] public string DisplayName { get; private set; }
         [field: SerializeField] public Sprite Icon { get; private set; }
         [field: SerializeField] public string Description { get; private set; }
@@ -43,11 +45,13 @@ namespace Work.Cook.Code.Info
         {
         }
 
-        public InfoDictionaryEntryData(string displayName, Sprite icon, string description)
+        public InfoDictionaryEntryData(string displayName, Sprite icon, string description, string entryId = null, bool isDiscovered = true)
         {
-            DisplayName = displayName;
-            Icon = icon;
-            Description = description;
+            EntryId = string.IsNullOrWhiteSpace(entryId) ? displayName : entryId;
+            IsDiscovered = isDiscovered;
+            DisplayName = isDiscovered ? displayName : "???";
+            Icon = isDiscovered ? icon : null;
+            Description = isDiscovered ? description : "아직 발견하지 못했습니다.";
         }
     }
 }

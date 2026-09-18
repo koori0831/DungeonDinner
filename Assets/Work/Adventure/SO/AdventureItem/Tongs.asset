@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureItemSO
   <ItemName>k__BackingField: "긴 집게"
   <ItemIcon>k__BackingField: {fileID: 21300000, guid: 21290480980468aa6145ab372738f318, type: 3}
+  discoveryEntryId: tool:tongs

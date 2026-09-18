@@ -30,6 +30,8 @@ namespace Work.Chat.Code
         private VerticalLayoutGroup _contentLayoutGroup;
         private ChatTextField _lastChat;
 
+        public RectTransform ContentRoot => contentTrm;
+
         private void Awake()
         {
             EnsureReferences();

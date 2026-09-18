@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using UnityEngine;
 using Work.Cook.Code.Data;
 using Work.Cook.Code.Runtime.UI;
+using Work.Cook.Code.Runtime.Systems;
 
 namespace Work.Cook.Code.Info
 {
@@ -14,7 +16,7 @@ namespace Work.Cook.Code.Info
         [SerializeField] private List<InfoDictionaryCategoryData> categories = new List<InfoDictionaryCategoryData>();
         [SerializeField] private CookingDataCatalogSO cookingCatalog;
 
-        public IReadOnlyList<InfoDictionaryCategoryData> BuildCategories()
+        public IReadOnlyList<InfoDictionaryCategoryData> BuildCategories(CookingKnowledgeStore knowledge = null)
         {
             var result = new List<InfoDictionaryCategoryData>();
             var entries = new List<InfoDictionaryEntryData>();
@@ -25,20 +27,35 @@ namespace Work.Cook.Code.Info
                     continue;
                 var ingredient = record.ingredient;
                 var body = new StringBuilder(ingredient.Description);
-                Section(body, "채집 노트", record.source);
+
                 Section(body, "재료 분류", ingredient.Category != null ? ingredient.Category.DisplayName : "몬스터 재료");
                 var methods = new List<string>();
                 foreach (var option in ingredient.PreparationOptions)
-                    if (option != null && !string.IsNullOrWhiteSpace(option.DisplayName))
-                        methods.Add("• " + option.DisplayName);
+                    if (option != null && knowledge != null && knowledge.IsPreparationEffectKnown(ingredient, option) && !string.IsNullOrWhiteSpace(option.DisplayName))
+                        {
+                            var effects = new List<string>();
+                            if (option.AddTags.Count > 0) effects.Add("더해진 맛: " + string.Join(", ", option.AddTags.Where(t => t != null).Select(t => t.DisplayName)));
+                            if (option.RemoveTags.Count > 0) effects.Add("줄어든 맛: " + string.Join(", ", option.RemoveTags.Where(t => t != null).Select(t => t.DisplayName)));
+                            if (option.AddsPoison) effects.Add("독성 관찰");
+                            if (option.CausesDisgusting) effects.Add("불쾌한 풍미 관찰");
+                            methods.Add("• " + option.DisplayName + (effects.Count > 0 ? "\n" + string.Join(" · ", effects) : ""));
+                        }
                 Section(body, "손질 방법", string.Join("\n", methods));
-                Section(body, "요리사의 메모", record.notes);
-                entries.Add(new InfoDictionaryEntryData(ingredient.DisplayName, ingredient.IconSprite, body.ToString()));
+
+                entries.Add(new InfoDictionaryEntryData(ingredient.DisplayName, ingredient.IconSprite, body.ToString(),
+                    CookingKnowledgeStore.IngredientEntryId(ingredient), knowledge != null && knowledge.IsEntryDiscovered(CookingKnowledgeStore.IngredientEntryId(ingredient))));
             }
             if (entries.Count > 0)
                 result.Add(new InfoDictionaryCategoryData("재료", entries[0].Icon, MarkerEnum.Ingredient,
                     ViewHaveInfoEnum.Name | ViewHaveInfoEnum.Image | ViewHaveInfoEnum.Description, entries));
-            result.AddRange(categories);
+            foreach (var category in categories)
+            {
+                var observed = new List<InfoDictionaryEntryData>();
+                foreach (var entry in category.Entries)
+                    observed.Add(new InfoDictionaryEntryData(entry.DisplayName, entry.Icon, entry.Description, entry.EntryId,
+                        knowledge != null && knowledge.IsEntryDiscovered(entry.EntryId)));
+                result.Add(new InfoDictionaryCategoryData(category.DisplayName, category.MarkIcon, category.Marker, category.ViewType, observed));
+            }
             var dishes = new List<InfoDictionaryEntryData>();
             var seenRecipes = new HashSet<RecipeSO>();
             if (cookingCatalog != null)
@@ -48,16 +65,22 @@ namespace Work.Cook.Code.Info
                     continue;
                 var body = new StringBuilder(recipe.Description);
                 Section(body, "요리 분류", recipe.Category != null ? recipe.Category.DisplayName : "던전 요리");
-                var requirements = new List<string>();
-                foreach (var requirement in recipe.RequiredIngredients)
+                if (knowledge != null && knowledge.IsRecipeDiscovered(recipe))
                 {
-                    var text = CookingRecipeDisplayPanel.BuildRequirementText(requirement);
-                    if (!string.IsNullOrWhiteSpace(text)) requirements.Add("• " + text);
+                    var history = new CookingRecipeKnowledgePresentationBuilder(cookingCatalog).Build(knowledge.GetRecipeKnowledge(recipe));
+                    Section(body, "완성 기록", history.CompletionSummary);
+                    Section(body, "발견한 맛", history.KnownTags);
+                    Section(body, "손님 반응", history.GuestSummaries);
+                    foreach (var variant in history.Variants)
+                        Section(body, variant.DisplayName, variant.Summary + "\n" + variant.Details);
                 }
-                Section(body, "재료와 손질", string.Join("\n", requirements));
-                Section(body, "조리 메모", recipe.HintDescription);
-                dishes.Add(new InfoDictionaryEntryData(recipe.DisplayName, recipe.IconSprite, body.ToString()));
+                dishes.Add(new InfoDictionaryEntryData(recipe.DisplayName, recipe.IconSprite, body.ToString(),
+                    CookingKnowledgeStore.RecipeEntryId(recipe), knowledge != null && knowledge.IsRecipeDiscovered(recipe)));
             }
+            var incomplete = IncompleteDishDefinitionSO.Instance;
+            if (incomplete != null)
+                dishes.Add(new InfoDictionaryEntryData(incomplete.DisplayName, incomplete.Icon, incomplete.Description,
+                    IncompleteDishDefinitionSO.EntryId, knowledge != null && knowledge.IsEntryDiscovered(IncompleteDishDefinitionSO.EntryId)));
             if (dishes.Count > 0)
                 result.Add(new InfoDictionaryCategoryData("요리", dishes[0].Icon, MarkerEnum.Recipe,
                     ViewHaveInfoEnum.Name | ViewHaveInfoEnum.Image | ViewHaveInfoEnum.Description, dishes));

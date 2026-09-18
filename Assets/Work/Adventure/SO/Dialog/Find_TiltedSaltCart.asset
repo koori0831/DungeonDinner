@@ -13,11 +13,15 @@ MonoBehaviour:
   m_Name: Find_TiltedSaltCart
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "암염을 실은 수레가 옆으로 기울었다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uC554\uC5FC\uC744 \uC2E4\uC740 \uC218\uB808\uAC00
+      \uC606\uC73C\uB85C \uAE30\uC6B8\uC5C8\uB2E4."
     method:
     - rid: 1001
     - rid: 1002
-  - <Context>k__BackingField: "바퀴 아래에 작은 돌이 끼어 있다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uBC14\uD034 \uC544\uB798\uC5D0 \uC791\uC740 \uB3CC\uC774
+      \uB07C\uC5B4 \uC788\uB2E4."
     method: []
   options:
   - rid: 1007
@@ -53,20 +57,32 @@ MonoBehaviour:
     - rid: 1007
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "수레를 받쳐 묶는다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 밧줄 1개. 선택 시 1개 소모됩니다."
-        <RewardDescription>k__BackingField: "수레가 넘어가지 않도록 밧줄을 주변 뿌리에 묶어 둡니다. 필요한 도구: 밧줄 (1개 소모)."
+        <OptionName>k__BackingField: "\uC218\uB808\uB97C \uBC1B\uCCD0 \uBB36\uB294\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uBC27\uC904
+          1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
+        <RewardDescription>k__BackingField: "\uC218\uB808\uAC00 \uB118\uC5B4\uAC00\uC9C0
+          \uC54A\uB3C4\uB85D \uBC27\uC904\uC744 \uC8FC\uBCC0 \uBFCC\uB9AC\uC5D0 \uBB36\uC5B4
+          \uB461\uB2C8\uB2E4. \uD544\uC694\uD55C \uB3C4\uAD6C: \uBC27\uC904 (1\uAC1C
+          \uC18C\uBAA8)."
         rewardMethod:
         - rid: 1003
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "수레를 따라온 인부가 암염 세 덩이를 나눠 주었다. 밧줄은 수리를 마칠 때까지 남겨 두었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC218\uB808\uB97C \uB530\uB77C\uC628 \uC778\uBD80\uAC00
+            \uC554\uC5FC \uC138 \uB369\uC774\uB97C \uB098\uB220 \uC8FC\uC5C8\uB2E4.
+            \uBC27\uC904\uC740 \uC218\uB9AC\uB97C \uB9C8\uCE60 \uB54C\uAE4C\uC9C0
+            \uB0A8\uACA8 \uB450\uC5C8\uB2E4."
           method:
           - rid: 1004
           - rid: 1005
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1006
-        <LockTooltip>k__BackingField: "필요한 아이템: 밧줄 1개. 선택 시 1개 소모됩니다."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uBC27\uC904
+          1\uAC1C. \uC120\uD0DD \uC2DC 1\uAC1C \uC18C\uBAA8\uB429\uB2C8\uB2E4."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 00690e7463eccff066fbd6eaae54331e, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 1
@@ -90,20 +106,30 @@ MonoBehaviour:
     - rid: 1012
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "바퀴의 돌을 뺀다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 긴 집게 1개."
-        <RewardDescription>k__BackingField: "긴 집게로 바퀴 밑의 돌을 꺼냅니다. 필요한 도구: 긴 집게."
+        <OptionName>k__BackingField: "\uBC14\uD034\uC758 \uB3CC\uC744 \uBE80\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uAE34
+          \uC9D1\uAC8C 1\uAC1C."
+        <RewardDescription>k__BackingField: "\uAE34 \uC9D1\uAC8C\uB85C \uBC14\uD034
+          \uBC11\uC758 \uB3CC\uC744 \uAEBC\uB0C5\uB2C8\uB2E4. \uD544\uC694\uD55C
+          \uB3C4\uAD6C: \uAE34 \uC9D1\uAC8C."
         rewardMethod:
         - rid: 1008
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "수레가 평평한 곳으로 굴러갔다. 인부가 고맙다며 암염 한 덩이를 건넸다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC218\uB808\uAC00 \uD3C9\uD3C9\uD55C \uACF3\uC73C\uB85C
+            \uAD74\uB7EC\uAC14\uB2E4. \uC778\uBD80\uAC00 \uACE0\uB9D9\uB2E4\uBA70
+            \uC554\uC5FC \uD55C \uB369\uC774\uB97C \uAC74\uB138\uB2E4."
           method:
           - rid: 1009
           - rid: 1010
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1011
-        <LockTooltip>k__BackingField: "필요한 아이템: 긴 집게 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uAE34
+          \uC9D1\uAC8C 1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 7f7cb47adad0c380eebdd2a95025b92e, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
@@ -114,13 +140,19 @@ MonoBehaviour:
     - rid: 1014
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "다음 길로 향한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
-        <RewardDescription>k__BackingField: "주변을 건드리지 않고 길을 이어갑니다."
+        <OptionName>k__BackingField: "\uB2E4\uC74C \uAE38\uB85C \uD5A5\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uC8FC\uBCC0\uC744 \uAC74\uB4DC\uB9AC\uC9C0
+          \uC54A\uACE0 \uAE38\uC744 \uC774\uC5B4\uAC11\uB2C8\uB2E4."
         rewardMethod: []
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "주변 지형을 기억해 두었다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC8FC\uBCC0 \uC9C0\uD615\uC744 \uAE30\uC5B5\uD574
+            \uB450\uC5C8\uB2E4."
           method: []
-        - <Context>k__BackingField: "짐을 정리하고 다시 길을 나섰다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
           method:
           - rid: 1013
+        followUpOptions: []

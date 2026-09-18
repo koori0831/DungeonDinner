@@ -125,7 +125,14 @@ namespace DungeonDinner.Npc.PlayModeTests
 
             int buildIndex = SceneUtility.GetBuildIndexByScenePath(MainPath);
             Assert.That(buildIndex, Is.GreaterThanOrEqualTo(0), MainPath + " must be enabled in Build Settings.");
+            void ConfigureFixture(Scene loaded, LoadSceneMode mode)
+            {
+                var preparation = FindBehaviour("PreparationManager");
+                preparation.GetType().GetField("startWithAdventure", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(preparation, false);
+            }
+            SceneManager.sceneLoaded += ConfigureFixture;
             yield return SceneManager.LoadSceneAsync(buildIndex, LoadSceneMode.Single);
+            SceneManager.sceneLoaded -= ConfigureFixture;
             yield return null;
 
             _flow = FindBehaviour("CookingBusinessFlowController");
@@ -135,6 +142,11 @@ namespace DungeonDinner.Npc.PlayModeTests
             _nextBusiness = _menu.GetComponentsInChildren<Button>(true)
                 .Single(button => button.name == "GO_NextBusiness");
 
+            var inventory = FindBehaviour("PlayerInventoryModule");
+            var item = Resources.FindObjectsOfTypeAll<ScriptableObject>().First(o => o.GetType().Name == "IngredientItemDataSO");
+            inventory.GetType().GetMethod("AddItem").Invoke(inventory, new object[] { item, 20 });
+            _flow.GetType().GetField("_businessClosed", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(_flow, false);
+            _flow.GetType().GetMethod("StartNextCustomer").Invoke(_flow, null);
             Assert.That(Property<int>(_director, "EncountersStartedToday"), Is.EqualTo(3));
             Button close = Field<Button>(_flow, "closeShopButton");
             Assert.That(close.gameObject.activeInHierarchy, Is.True);

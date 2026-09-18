@@ -278,7 +278,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void HandleRewardGranted(CookingRewardGrantedEvent gameEvent)
         {
-            if (gameEvent.Source == gamePanel)
+            if (gameEvent.Source == gamePanel && gamePanel.CurrentScreen != CookingGameScreenState.Result)
                 Show(gameEvent.Grant);
         }
 

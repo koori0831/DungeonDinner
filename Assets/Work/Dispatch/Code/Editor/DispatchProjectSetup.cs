@@ -28,6 +28,7 @@ namespace Work.Dispatch.Code.Editor
         private const string DispatchRegionFolder = DispatchDataFolder + "/Regions";
         private const string DispatchCatalogPath = DispatchDataFolder + "/DispatchCatalog.asset";
         private const string PanelSettingsPath = "Assets/Work/Dispatch/UI/DispatchPanelSettings.asset";
+        private const string PresentationThemePath = "Assets/Work/Cook/SO/CookingUiPresentationSettings.asset";
         private const string PrefabFolder = "Assets/Work/Dispatch/Prefabs";
         private const string PrefabPath = PrefabFolder + "/DispatchUIRoot.prefab";
         private const string AdventureScenePath = "Assets/Work/Adventure/Scene/AdventureTestScene.unity";
@@ -267,6 +268,8 @@ namespace Work.Dispatch.Code.Editor
             serializedManager.ApplyModifiedPropertiesWithoutUndo();
 
             SerializedObject serializedPresenter = new SerializedObject(presenter);
+            serializedPresenter.FindProperty("presentationTheme").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<CookingUiPresentationSettingsSO>(PresentationThemePath);
             serializedPresenter.FindProperty("dispatchManager").objectReferenceValue = manager;
             serializedPresenter.FindProperty("npcQuery").objectReferenceValue = query;
             serializedPresenter.FindProperty("gameTimeService").objectReferenceValue = time;

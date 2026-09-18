@@ -13,12 +13,18 @@ MonoBehaviour:
   m_Name: Find_Slime
   m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
   <dialogDatas>k__BackingField:
-  - <Context>k__BackingField: "길을 가던 중 슬라임이 앞을 막았다."
+  - discoveryEntryIds:
+    - monster:slime
+    <Context>k__BackingField: "\uAE38\uC744 \uAC00\uB358 \uC911 \uC2AC\uB77C\uC784\uC774
+      \uC55E\uC744 \uB9C9\uC558\uB2E4."
     method:
     - rid: 3674030402256765086
-  - <Context>k__BackingField: "그냥 지나치기는 어려워 보인다."
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uADF8\uB0E5 \uC9C0\uB098\uCE58\uAE30\uB294 \uC5B4\uB824\uC6CC
+      \uBCF4\uC778\uB2E4."
     method: []
-  - <Context>k__BackingField: "\"어떻게 상대할까?\""
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\"\uC5B4\uB5BB\uAC8C \uC0C1\uB300\uD560\uAE4C?\""
     method: []
   options:
   - rid: 3674030402256765008
@@ -29,43 +35,63 @@ MonoBehaviour:
     - rid: 3674030402256765008
       type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "주먹으로 공격한다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 없음."
+        <OptionName>k__BackingField: "\uC8FC\uBA39\uC73C\uB85C \uACF5\uACA9\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
         <RewardDescription>k__BackingField: 
         rewardMethod:
         - rid: 3674030402256765013
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "주먹에 맞은 슬라임이 빛으로 변해 사라졌다."
+        - discoveryEntryIds:
+          - monster:slime
+          <Context>k__BackingField: "\uC8FC\uBA39\uC5D0 \uB9DE\uC740 \uC2AC\uB77C\uC784\uC774
+            \uBE5B\uC73C\uB85C \uBCC0\uD574 \uC0AC\uB77C\uC84C\uB2E4."
           method:
           - rid: 3674030402256765090
-        - <Context>k__BackingField: "슬라임이 있던 자리에 끈적한 점액이 남았다."
+        - discoveryEntryIds:
+          - monster:slime
+          <Context>k__BackingField: "\uC2AC\uB77C\uC784\uC774 \uC788\uB358 \uC790\uB9AC\uC5D0
+            \uB048\uC801\uD55C \uC810\uC561\uC774 \uB0A8\uC558\uB2E4."
           method:
           - rid: 3674030402256765091
-        - <Context>k__BackingField: "슬라임 점액을 챙겼다."
+        - discoveryEntryIds:
+          - monster:slime
+          <Context>k__BackingField: "\uC2AC\uB77C\uC784 \uC810\uC561\uC744 \uCC59\uACBC\uB2E4."
           method:
           - rid: 3674030402256765092
+        followUpOptions: []
     - rid: 3674030402256765009
       type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
       data:
-        <OptionName>k__BackingField: "칼로 베어 낸다"
-        <OptionTooltip>k__BackingField: "필요한 아이템: 칼 1개."
+        <OptionName>k__BackingField: "\uCE7C\uB85C \uBCA0\uC5B4 \uB0B8\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
         <RewardDescription>k__BackingField: 
         rewardMethod:
         - rid: 3674030402256765014
         <ResultdialogDatas>k__BackingField:
-        - <Context>k__BackingField: "칼로 슬라임의 점액을 베어 냈다."
+        - discoveryEntryIds:
+          - monster:slime
+          <Context>k__BackingField: "\uCE7C\uB85C \uC2AC\uB77C\uC784\uC758 \uC810\uC561\uC744
+            \uBCA0\uC5B4 \uB0C8\uB2E4."
           method:
           - rid: 3674030402256765094
-        - <Context>k__BackingField: "점액이 모두 떨어져 나가고 핵만 남았다."
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC810\uC561\uC774 \uBAA8\uB450 \uB5A8\uC5B4\uC838
+            \uB098\uAC00\uACE0 \uD575\uB9CC \uB0A8\uC558\uB2E4."
           method:
           - rid: 3674030402256765093
-        - <Context>k__BackingField: "슬라임 핵을 챙겼다."
+        - discoveryEntryIds:
+          - monster:slime
+          <Context>k__BackingField: "\uC2AC\uB77C\uC784 \uD575\uC744 \uCC59\uACBC\uB2E4."
           method:
           - rid: 3674030402256765095
-        <LockTooltip>k__BackingField: "필요한 아이템: 칼 1개."
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uCE7C
+          1\uAC1C."
         <KeyItem>k__BackingField: {fileID: 11400000, guid: 44b2dd6684d5ea94897cdfa0cbc98b96, type: 2}
         <IsUnLockOption>k__BackingField: 0
         <IsUseItemOption>k__BackingField: 0
+        LogStatus: 0
     - rid: 3674030402256765013
       type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
       data:

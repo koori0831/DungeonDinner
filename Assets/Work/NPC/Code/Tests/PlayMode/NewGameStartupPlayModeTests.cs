@@ -81,12 +81,13 @@ namespace DungeonDinner.Npc.PlayModeTests
                 Invoke(FindBehaviour("TitleUIManager"), "StartGame");
                 yield return WaitForMainScene();
                 yield return new WaitForSecondsRealtime(0.85f);
-                AssertFreshConversation();
+                yield return WaitForAdventure();
+                AssertFreshAdventure();
             }
         }
 
         [UnityTest]
-        public IEnumerator TitleStart_DuringOpeningFade_CompletesAndShowsFirstDialogue()
+        public IEnumerator TitleStart_DuringOpeningFade_CompletesAndStartsAdventure()
         {
             yield return LoadScene(TitlePath);
             // Start on the first frame, while FadeObject is still clearing the title.
@@ -94,7 +95,8 @@ namespace DungeonDinner.Npc.PlayModeTests
             Invoke(FindBehaviour("TitleUIManager"), "StartGame");
             yield return WaitForMainScene();
             yield return new WaitForSecondsRealtime(0.85f);
-            AssertFreshConversation();
+            yield return WaitForAdventure();
+                AssertFreshAdventure();
         }
 
         private static void SeedCompletedBusiness(int elapsedTime)
@@ -127,43 +129,38 @@ namespace DungeonDinner.Npc.PlayModeTests
             yield return null;
         }
 
-        private static void AssertFreshConversation()
+        private static void AssertFreshAdventure()
         {
-            MonoBehaviour director = FindBehaviour("NpcEncounterDirector");
-            MonoBehaviour runner = FindBehaviour("NpcConversationRunner");
-            MonoBehaviour panel = FindBehaviour("CookingGamePanel");
+            var director = FindBehaviour("NpcEncounterDirector");
+            var runner = FindBehaviour("NpcConversationRunner");
+            var panel = FindBehaviour("CookingGamePanel");
             Assert.That(Property<int>(director, "CurrentDay"), Is.EqualTo(1));
-            Assert.That(Property<int>(director, "EncountersStartedToday"), Is.EqualTo(1),
-                "Saved 3/3 visits must not carry into a new game.");
-            Assert.That(Property<bool>(runner, "HasActiveConversation"), Is.True);
-            Assert.That(Property<string>(runner, "CurrentNpcId"), Is.Not.Null.And.Not.Empty);
-            Assert.That(Property<object>(panel, "CurrentScreen").ToString(), Is.EqualTo("NpcConversation"));
-            Assert.That(Property<GameObject>(panel, "RecipeSelectionView"), Is.Null,
-                "MainScene still references the retired recipe dictionary.");
-            Assert.That(SceneBehaviours().Any(b => b.GetType().Name == "CookingRecipeSelectionView"), Is.False);
-            Assert.That(SceneBehaviours().Count(b => b.GetType().Name == "InfoDictionaryPanel"), Is.EqualTo(1));
-
-            MonoBehaviour view = FindBehaviour("NpcConversationView");
-            Assert.That(Property<bool>(view, "IsVisible"), Is.True);
-            CanvasGroup portrait = Field<CanvasGroup>(view, "portraitCanvasGroup");
-            Image image = Field<Image>(view, "portraitImage");
-            Assert.That(portrait.alpha, Is.GreaterThan(0.95f));
-            Assert.That(image.sprite, Is.Not.Null);
-            Assert.That(SceneBehaviours().Any(b => b.GetType().Name == "ChatTextField" && b.gameObject.activeInHierarchy), Is.True,
-                "The first NPC must have an actual dialogue bubble.");
-
+            Assert.That(Property<int>(director, "EncountersStartedToday"), Is.Zero);
+            Assert.That(Property<bool>(runner, "HasActiveConversation"), Is.False);
+            Assert.That(Property<object>(panel, "CurrentScreen").ToString(), Is.EqualTo("None"));
+            Assert.That(Property<bool>(FindBehaviour("AdventureManager"), "IsAdventureRunning"), Is.True);
+            Assert.That(SceneBehaviours().Any(b => b.GetType().Name == "AdventureMapUI"), Is.False);
+            var inventory = FindBehaviour("PlayerInventoryModule");
+            int capacity = Property<int>(inventory, "SlotCapacity");
+            for (int i = 0; i < capacity; i++)
+            {
+                object slot = inventory.GetType().GetMethod("GetSlot").Invoke(inventory, new object[] { i });
+                if (slot != null) Assert.That(Property<int>(slot, "Amount"), Is.Zero);
+            }
             Assert.That(Property<int>(FindBehaviour("GameTimeService"), "TotalElapsedTime"), Is.Zero);
-            MonoBehaviour wallet = FindBehaviour("CookingRewardWallet");
+            var wallet = FindBehaviour("CookingRewardWallet");
             Assert.That(Property<int>(wallet, "Balance"), Is.EqualTo(Property<int>(wallet, "StartingBalance")));
             Assert.That(Property<int>(FindBehaviour("CookingKnowledgeStore"), "DiscoveredRecipeCount"), Is.Zero);
             Assert.That(PlayerPrefs.HasKey(DispatchKey), Is.False);
-            Assert.That(PlayerPrefs.GetFloat(VolumeKey), Is.EqualTo(0.37f).Within(0.001f));
+            Assert.That(PlayerPrefs.GetFloat(VolumeKey), Is.EqualTo(.37f).Within(.001f));
+        }
 
-            // Opening/closing the preparation stage must not restore the removed dictionary.
-            Invoke(panel, "OpenPreparation");
-            Assert.That(SceneBehaviours().Any(b => b.GetType().Name == "CookingRecipeSelectionView"), Is.False);
-            Invoke(panel, "ReturnToNpcConversation");
-            Assert.That(Property<object>(panel, "CurrentScreen").ToString(), Is.EqualTo("NpcConversation"));
+        private static IEnumerator WaitForAdventure()
+        {
+            float deadline = Time.realtimeSinceStartup + 20;
+            while (Property<object>(FindBehaviour("AdventureManager"), "Phase").ToString() != "Dialog"
+                   && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.That(Property<object>(FindBehaviour("AdventureManager"), "Phase").ToString(), Is.EqualTo("Dialog"));
         }
 
         private static IEnumerable<MonoBehaviour> SceneBehaviours()
