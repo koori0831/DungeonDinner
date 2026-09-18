@@ -15,7 +15,7 @@ MonoBehaviour:
   ingredientId: mushroom_cap
   displayName: "\uBC84\uC12F \uAC13"
   iconSprite: {fileID: 21300000, guid: eaf24aeb6f1447b42a0b8669f822fd9b, type: 3}
-  description: "\uADF8\uB987\uCC98\uB7FC \uC0DD\uAE34 \uBC84\uC12F\uC758 \uAC13 \uBD80\uBD84"
+  description: "그릇처럼 오목한 버섯의 갓 부분. 모양을 살려 통으로 사용하거나 썰고 다져 요리에 넣을 수 있다."
   category: {fileID: 11400000, guid: c09afd2ec0fc6144db663cb0e38a7b70, type: 2}
   modelPrefab: {fileID: 1843261731331868922, guid: 27c217d1d0298794a97ed57400c4a6b4, type: 3}
   baseTags: []

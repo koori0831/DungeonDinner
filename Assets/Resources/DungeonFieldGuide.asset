@@ -1,0 +1,103 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 451b82fdc6b2e8bcf8fd99001cad0941, type: 3}
+  m_Name: DungeonFieldGuide
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Cook.Code.Info.FieldGuideCatalogSO
+  ingredients:
+  - ingredient: {fileID: 11400000, guid: 8cec7b909ae7ef04d88c301ac7ae8435, type: 2}
+    source: "콘치즈 군락과 탐험 중 만나는 식량 상자에서 구할 수 있다. 새싹 슬라임을 따라가면 군락을 발견하기도 한다."
+    notes: "가열해 녹이는 손질을 선택할 수 있다. 탐험에서는 물물교환에 쓰이기도 하므로 여분을 챙겨 두자."
+  - ingredient: {fileID: 11400000, guid: 09db9e234bdaac645977b8020c1fd84e, type: 2}
+    source: "던전의 버섯과 식량 상자를 살펴보자. 가시덤불 속 상자에서는 긴 집게가 도움이 된다."
+    notes: "통째로 쓰거나 썰고 다질 수 있다. 칼질의 완성도에 따라 요리의 식감이 달라진다."
+  - ingredient: {fileID: 11400000, guid: 52c2c5f32ce29d6479ae5892c99e56c6, type: 2}
+    source: "큰 버섯과 머쉬룸맨에게서 얻는 재료. 곤란한 머쉬룸맨을 도와주고 받는 경우도 있다."
+    notes: "갓 모양을 살려 통으로 쓰거나 한입 크기로 손질해 보자. 같은 재료도 손질에 따라 다른 요리로 이어진다."
+  - ingredient: {fileID: 11400000, guid: 07bec4b9989c44a4bbf5b8364376c15e, type: 2}
+    source: "던전의 소금 결정, 저장고와 암염을 품은 슬라임을 살펴보자."
+    notes: "굽거나 곱게 갈아 사용하는 손질이 있다. 탐험 중 거래에 필요한 경우도 있다."
+  - ingredient: {fileID: 11400000, guid: 8047bb3271861f147a23403c44b5c7fc, type: 2}
+    source: "슬라임을 상대하거나 지나간 자리의 점액을 모아 얻는다. 채집병을 쓰면 웅덩이와 좁은 틈에서도 채집할 수 있다."
+    notes: "끓이기와 살짝 얼리기는 서로 다른 식감을 만든다. 도구 없이 그대로 사용하는 방법도 있다."
+  - ingredient: {fileID: 11400000, guid: 1f93d6c1ee7d4204ab4cc51790be1f44, type: 2}
+    source: "슬라임의 몸 안쪽에 남는 핵. 탐험에서는 칼로 점액을 걷어 내거나 집게로 웅덩이를 뒤져 얻기도 한다."
+    notes: "씻기, 그을리기, 삶기를 선택할 수 있다. 겉보기만 보고 맛을 단정하지 말고 손질 결과를 기록해 보자."
+  - ingredient: {fileID: 11400000, guid: c82bc453cc94264b27145a0e87cdc372, type: 2}
+    source: "코코넛 게의 껍질을 공략하거나 탈피한 껍질에서 꺼낸다. 망치·칼·긴 집게를 사용할 기회가 있다."
+    notes: "그대로 사용하거나 굽고 데칠 수 있다. 은은한 단맛과 고소한 풍미를 살려 보자."
+  cookingCatalog: {fileID: 11400000, guid: 4ec4ea9cc8f39c342a0f95dcb38f25da, type: 2}
+  categories:
+  - <DisplayName>k__BackingField: "도구"
+    <MarkIcon>k__BackingField: {fileID: 21300000, guid: 1dc844e3a026c5e42953adcbdccf0d36, type: 3}
+    <Marker>k__BackingField: 5
+    <ViewType>k__BackingField: 7
+    <Entries>k__BackingField:
+    - <EntryId>k__BackingField: "tool:knife"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "칼"
+      <Icon>k__BackingField: {fileID: 21300000, guid: 1dc844e3a026c5e42953adcbdccf0d36, type: 3}
+      <Description>k__BackingField: "잘라 내고 틈을 공략하는 탐험용 칼."
+    - <EntryId>k__BackingField: "tool:hamer"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "망치"
+      <Icon>k__BackingField: {fileID: 21300000, guid: bb97b8c77e1b6314ca7dacbb0884ea2d, type: 3}
+      <Description>k__BackingField: "단단한 껍질과 돌을 두드리는 묵직한 망치."
+    - <EntryId>k__BackingField: "tool:rope"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "밧줄"
+      <Icon>k__BackingField: {fileID: 21300000, guid: c7613c13d930ab669e822fba1efe0fd8, type: 3}
+      <Description>k__BackingField: "몸과 짐을 단단히 고정하는 튼튼한 밧줄."
+    - <EntryId>k__BackingField: "tool:lantern"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "탐험 등불"
+      <Icon>k__BackingField: {fileID: 21300000, guid: cadeff0c580bd320377802b7ae06fc75, type: 3}
+      <Description>k__BackingField: "어두운 갈림길과 손이 닿지 않는 틈을 비추는 탐험 등불."
+    - <EntryId>k__BackingField: "tool:tongs"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "긴 집게"
+      <Icon>k__BackingField: {fileID: 21300000, guid: 21290480980468aa6145ab372738f318, type: 3}
+      <Description>k__BackingField: "맨손이 닿기 어려운 곳을 대신 잡아 주는 긴 집게."
+    - <EntryId>k__BackingField: "tool:collectingbottle"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "채집병"
+      <Icon>k__BackingField: {fileID: 21300000, guid: 17139782310a4012f2aef0067e7ceaed, type: 3}
+      <Description>k__BackingField: "점액과 샘물을 담을 수 있는 마개 달린 채집병."
+  - <DisplayName>k__BackingField: "몬스터"
+    <MarkIcon>k__BackingField: {fileID: 21300000, guid: 77e75d23753f97d45b13bcad773bd1f4, type: 3}
+    <Marker>k__BackingField: 3
+    <ViewType>k__BackingField: 7
+    <Entries>k__BackingField:
+    - <EntryId>k__BackingField: "monster:slime"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "슬라임"
+      <Icon>k__BackingField: {fileID: 21300000, guid: 77e75d23753f97d45b13bcad773bd1f4, type: 3}
+      <Description>k__BackingField: "말랑한 점액으로 몸을 이루고 길목을 막아서는 던전의 익숙한 주민."
+    - <EntryId>k__BackingField: "monster:rock_salt_slime"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "암염 슬라임"
+      <Icon>k__BackingField: {fileID: 21300000, guid: d60eacf5c3a1c8743a0cb65eb5c4ef12, type: 3}
+      <Description>k__BackingField: "몸속에 하얀 암염을 품은 슬라임. 반투명한 몸 안의 결정을 눈여겨보자."
+    - <EntryId>k__BackingField: "monster:sprout_slime"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "새싹 슬라임"
+      <Icon>k__BackingField: {fileID: 21300000, guid: 77e75d23753f97d45b13bcad773bd1f4, type: 3}
+      <Description>k__BackingField: "머리에 작은 새싹이 돋은 슬라임. 몇 걸음 움직이고 뒤돌아보며 길을 안내하기도 한다."
+    - <EntryId>k__BackingField: "monster:mushroom_man"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "머쉬룸맨"
+      <Icon>k__BackingField: {fileID: 21300000, guid: fc278eededd35fb46900912eafcf9cfd, type: 3}
+      <Description>k__BackingField: "커다란 갓을 머리에 쓴 버섯 주민. 길가에서 서성이거나 잠든 모습을 볼 수 있다."
+    - <EntryId>k__BackingField: "monster:coconut_crab"
+      <IsDiscovered>k__BackingField: 1
+      <DisplayName>k__BackingField: "코코넛 게"
+      <Icon>k__BackingField: {fileID: 21300000, guid: 0fc835c9a5677dd4eb184b0e271e1382, type: 3}
+      <Description>k__BackingField: "코코넛 껍질을 집 삼아 움직이는 게. 단단한 껍질 사이로 틈과 집게발이 보인다."

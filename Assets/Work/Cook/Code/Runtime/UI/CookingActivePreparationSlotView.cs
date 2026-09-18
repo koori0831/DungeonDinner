@@ -102,10 +102,9 @@ namespace Work.Cook.Code.Runtime.UI
             KillTween();
             BindIcon(option);
             BindGrade(null);
-            string optionName = option != null ? option.DisplayName : "그대로 사용";
-            SetText(titleField, optionName);
-            SetText(descriptionField, "재료 위의 안내를 따라 직접 조작하세요.");
-            SetText(stateField, "진행 중");
+            SetText(titleField, string.Empty);
+            SetText(descriptionField, string.Empty);
+            SetText(stateField, string.Empty);
             SetAccent(new Color(0.9f, 0.48f, 0.16f, 1f));
             PlayProgressPulse();
         }

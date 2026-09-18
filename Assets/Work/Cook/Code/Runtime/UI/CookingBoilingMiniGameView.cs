@@ -31,10 +31,10 @@ namespace Work.Cook.Code.Runtime.UI
 
             _profile = GetProfile(CookingMiniGameType.Boiling);
             _startedTime = Time.unscaledTime;
-            Host.SetInstruction("기포와 색을 보고 알맞게 익으면 재료를 클릭해 건지세요.");
-            Host.SetStatus("익힘 상태를 지켜보세요");
-            ConfigureHud("적정 구간에서 중앙 재료를 클릭", false, true, true);
-            SetTargetState(0f, _profile.TargetMin, _profile.TargetMax, "덜 익음");
+
+
+            ConfigureHud(CookingGesture.Tap, false, true, true);
+            SetTargetState(0f, _profile.TargetMin, _profile.TargetMax);
             float maximumDuration = Mathf.Max(_profile.Duration, _profile.MaximumDuration);
             SetTimer(maximumDuration, maximumDuration);
             RefreshVisual(0f);
@@ -50,10 +50,7 @@ namespace Work.Cook.Code.Runtime.UI
             float doneness = Mathf.Clamp01(elapsed / _profile.Duration);
             RefreshVisual(doneness);
             float maximumDuration = Mathf.Max(_profile.Duration, _profile.MaximumDuration);
-            string label = doneness < _profile.TargetMin
-                ? "덜 익음"
-                : doneness <= _profile.TargetMax ? "적정 · 지금 재료를 클릭하세요" : "과열 위험 · 바로 재료를 클릭하세요";
-            SetTargetState(doneness, _profile.TargetMin, _profile.TargetMax, label);
+            SetTargetState(doneness, _profile.TargetMin, _profile.TargetMax);
             SetTimer(Mathf.Max(0f, maximumDuration - elapsed), maximumDuration);
             if (elapsed >= maximumDuration)
                 Finish(CookingMiniGameType.Boiling, 0.12f, "재료를 제때 건져내지 못했습니다.");
@@ -66,7 +63,7 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (Host.IsIngredientHit(eventData) == false)
             {
-                RegisterMistake("재료를 눌러주세요.");
+                RegisterMistake();
                 return;
             }
 

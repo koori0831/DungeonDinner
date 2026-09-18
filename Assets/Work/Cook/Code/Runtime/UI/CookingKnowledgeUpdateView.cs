@@ -162,32 +162,10 @@ namespace Work.Cook.Code.Runtime.UI
 
         private static string BuildRecipePageBody(CookingKnowledgeUpdate update)
         {
-            RecipeSO recipe = update.Recipe;
-            if (recipe == null)
-                return BuildFallbackBody(update);
-
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine(recipe.DisplayName);
-
-            if (recipe.Category != null)
-                builder.AppendLine($"분류: {recipe.Category.DisplayName}");
-
-            string description = recipe.GetKnowledgeDescription(true, true);
-            if (string.IsNullOrWhiteSpace(description) == false)
-            {
-                builder.AppendLine();
-                builder.AppendLine(description);
-            }
-
-            if (recipe.RequiredIngredients != null && recipe.RequiredIngredients.Count > 0)
-            {
-                builder.AppendLine();
-                builder.AppendLine("확인된 재료");
-                for (int i = 0; i < recipe.RequiredIngredients.Count; i++)
-                    AppendRequirementLine(builder, recipe.RequiredIngredients[i]);
-            }
-
-            return builder.ToString().Trim();
+            var recipe = update.Recipe;
+            if (recipe == null) return BuildFallbackBody(update);
+            return recipe.DisplayName + "\n\n" + recipe.GetKnowledgeDescription(true, true)
+                + "\n\n이번에 완성한 재료와 손질 조합이 도감에 기록되었습니다.";
         }
 
         private static string BuildIngredientPageBody(CookingKnowledgeUpdate update)

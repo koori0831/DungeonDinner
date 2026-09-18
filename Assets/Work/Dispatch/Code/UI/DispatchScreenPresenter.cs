@@ -8,12 +8,15 @@ using Work.Dispatch.Code.Data;
 using Work.Dispatch.Code.Runtime;
 using Work.NPC.Code.Data;
 using Work.TimeSystem;
+using Work.Cook.Code.Data;
+using Work.UtillUI.Code;
 
 namespace Work.Dispatch.Code.UI
 {
     [RequireComponent(typeof(UIDocument))]
     public sealed class DispatchScreenPresenter : MonoBehaviour
     {
+        [SerializeField] private CookingUiPresentationSettingsSO presentationTheme;
         [Header("Runtime")]
         [SerializeField] private DispatchManager dispatchManager;
         [SerializeField] private DispatchNpcQuery npcQuery;
@@ -142,12 +145,73 @@ namespace Work.Dispatch.Code.UI
                 return;
             }
 
+            ApplySharedTheme();
             QueryElements();
             ConfigureLists();
             BindButtons();
             SetVisible(_root, false);
             SetVisible(_confirmationModal, false);
             _initialized = true;
+        }
+
+        private void ApplySharedTheme()
+        {
+            if (_root == null || presentationTheme == null) return;
+            _root.style.color = presentationTheme.PrimaryTextColor;
+            if (presentationTheme.FontAsset != null && presentationTheme.FontAsset.sourceFontFile != null)
+                _root.style.unityFontDefinition = FontDefinition.FromFont(presentationTheme.FontAsset.sourceFontFile);
+            foreach (string className in new[] { "ledger", "summary-slip", "status-card", "report-panel", "modal-card" })
+                _root.Query<VisualElement>(className: className).ForEach(element =>
+                    ApplySpriteSkin(element, presentationTheme.PanelSprite, .4f));
+            foreach (string className in new[] { "ledger-paper", "panel-paper" })
+                _root.Query<VisualElement>(className: className).ForEach(element =>
+                    ApplySpriteSkin(element, presentationTheme.ReceiptSprite, 1f));
+            foreach (string className in new[] { "title", "modal-title" })
+                _root.Query<Label>(className: className).ForEach(element =>
+                    ApplySpriteSkin(element, presentationTheme.LabelSprite, .4f));
+            _root.Query<Button>().ForEach(button => ApplyButtonTheme(button,
+                button.ClassListContains("secondary-button") || button.ClassListContains("close-button")
+                || button.ClassListContains("tab-button") && !button.ClassListContains("is-selected")));
+        }
+
+        private static void ApplySpriteSkin(VisualElement element, Sprite sprite, float sliceScale)
+        {
+            if (sprite == null) return;
+            element.style.backgroundImage = new StyleBackground(sprite);
+            // Keep the sprite's transparent edge and use its authored slicing coordinates.
+            element.style.backgroundColor = Color.clear;
+            Vector4 border = sprite.border;
+            element.style.unitySliceLeft = Mathf.RoundToInt(border.x);
+            element.style.unitySliceBottom = Mathf.RoundToInt(border.y);
+            element.style.unitySliceRight = Mathf.RoundToInt(border.z);
+            element.style.unitySliceTop = Mathf.RoundToInt(border.w);
+            element.style.unitySliceScale = sliceScale;
+        }
+
+        private void ApplyButtonTheme(Button button, bool secondary)
+        {
+            if (presentationTheme == null) return;
+            button.AddToClassList("dispatch-button-skin");
+            button.EnableInClassList("is-secondary", secondary);
+            ApplySpriteSkin(button, secondary ? presentationTheme.SecondaryButtonSprite : presentationTheme.PrimaryButtonSprite,
+                button.ClassListContains("quantity-button") || button.ClassListContains("close-button") ? .2f : .4f);
+        }
+
+        private VisualElement CreateThemedRow(VisualTreeAsset template)
+        {
+            // State classes and click handlers must target the styled row, not CloneTree's wrapper.
+            var container = template.CloneTree();
+            var row = container.Q<VisualElement>(className: "list-row");
+            row.RemoveFromHierarchy();
+            if (presentationTheme != null)
+                ApplySpriteSkin(row, presentationTheme.ReceiptSprite, .4f);
+            row.Query<Button>().ForEach(button => ApplyButtonTheme(button, button.ClassListContains("quantity-button")));
+            return row;
+        }
+
+        private void Update()
+        {
+            if (_root != null) _root.SetEnabled(!GameUiInput.IsBlocked);
         }
 
         private void QueryElements()
@@ -203,7 +267,7 @@ namespace Work.Dispatch.Code.UI
             _npcList.itemsSource = _npcRows;
             _npcList.makeItem = () =>
             {
-                VisualElement row = npcRowTemplate.CloneTree();
+                VisualElement row = CreateThemedRow(npcRowTemplate);
                 row.RegisterCallback<ClickEvent>(_ =>
                 {
                     if (row.userData is NpcRowModel model)
@@ -223,7 +287,7 @@ namespace Work.Dispatch.Code.UI
             _regionList.itemsSource = _regionRows;
             _regionList.makeItem = () =>
             {
-                VisualElement row = regionRowTemplate.CloneTree();
+                VisualElement row = CreateThemedRow(regionRowTemplate);
                 row.RegisterCallback<ClickEvent>(_ =>
                 {
                     if (row.userData is RegionRowModel model)
@@ -243,7 +307,7 @@ namespace Work.Dispatch.Code.UI
             _materialList.itemsSource = _materialRows;
             _materialList.makeItem = () =>
             {
-                VisualElement row = materialRowTemplate.CloneTree();
+                VisualElement row = CreateThemedRow(materialRowTemplate);
                 row.Q<Button>("decrease-button").clicked += () => ChangeMaterialAmount(row, -1);
                 row.Q<Button>("increase-button").clicked += () => ChangeMaterialAmount(row, 1);
                 return row;
@@ -260,7 +324,7 @@ namespace Work.Dispatch.Code.UI
             _reportList.itemsSource = _reportRows;
             _reportList.makeItem = () =>
             {
-                VisualElement row = reportRowTemplate.CloneTree();
+                VisualElement row = CreateThemedRow(reportRowTemplate);
                 row.Q<Button>("claim-button").clicked += () => ClaimReport(row);
                 return row;
             };
@@ -287,6 +351,18 @@ namespace Work.Dispatch.Code.UI
             if (_dispatchButton != null) _dispatchButton.clicked -= OpenConfirmation;
             if (_confirmationAcceptButton != null) _confirmationAcceptButton.clicked -= ConfirmDispatch;
             if (_confirmationCancelButton != null) _confirmationCancelButton.clicked -= CancelConfirmation;
+        }
+
+        private void RebuildList(ListView list, string emptyMessage)
+        {
+            if (list == null) return;
+            list.Rebuild();
+            list.schedule.Execute(() => list.Query<Label>().ForEach(label =>
+            {
+                if (label.text != "List is empty") return;
+                label.text = emptyMessage;
+                if (presentationTheme != null) label.style.color = presentationTheme.PrimaryTextColor;
+            }));
         }
 
         private void RefreshAll()
@@ -339,7 +415,7 @@ namespace Work.Dispatch.Code.UI
                 _requestedAmounts.Clear();
             }
 
-            _npcList?.Rebuild();
+            RebuildList(_npcList, "아직 만난 동료가 없습니다.");
         }
 
         private void RefreshRegionRows()
@@ -349,7 +425,7 @@ namespace Work.Dispatch.Code.UI
                 || npcQuery == null
                 || dispatchManager?.Catalog == null)
             {
-                _regionList?.Rebuild();
+                RebuildList(_regionList, "파견할 동료를 먼저 선택해 주세요.");
                 return;
             }
 
@@ -369,7 +445,7 @@ namespace Work.Dispatch.Code.UI
                 _requestedAmounts.Clear();
             }
 
-            _regionList?.Rebuild();
+            RebuildList(_regionList, "파견할 동료를 먼저 선택해 주세요.");
         }
 
         private void RefreshMaterialRows()
@@ -389,7 +465,7 @@ namespace Work.Dispatch.Code.UI
                 }
             }
 
-            _materialList?.Rebuild();
+            RebuildList(_materialList, "목적지를 선택하면 요청할 재료가 표시됩니다.");
         }
 
         private void RefreshSummary()
@@ -434,7 +510,8 @@ namespace Work.Dispatch.Code.UI
                 _summaryDuration.text = "예상 시간 -";
                 _summaryReturn.text = "귀환 예정 -";
                 _summaryRare.text = string.Empty;
-                _requestMessage.text = dispatchManager != null ? validation.Message : "파견 시스템을 찾을 수 없습니다.";
+                _requestMessage.text = npc == null ? "친밀도를 쌓은 동료를 선택해 주세요."
+                    : dispatchManager != null ? validation.Message : "파견 시스템을 찾을 수 없습니다.";
                 _dispatchButton.SetEnabled(false);
             }
         }
@@ -451,6 +528,7 @@ namespace Work.Dispatch.Code.UI
                 _activeProgress.lowValue = 0;
                 _activeProgress.highValue = 1;
                 _activeProgress.value = 0;
+                _activeProgress.title = "대기 중";
                 return;
             }
 
@@ -481,7 +559,7 @@ namespace Work.Dispatch.Code.UI
                 }
             }
 
-            _reportList?.Rebuild();
+            RebuildList(_reportList, "아직 도착한 귀환 보고서가 없습니다.");
             SetVisible(_reportEmptyLabel, _reportRows.Count == 0);
             SetVisible(_reportList, _reportRows.Count > 0);
         }
@@ -516,6 +594,8 @@ namespace Work.Dispatch.Code.UI
             row.Q<Label>("material-name").text = model.Rule.Item.DisplayName;
             row.Q<Label>("quantity-label").text = model.Amount.ToString();
             row.Q<Image>("material-icon").sprite = model.Rule.Item.Icon;
+            row.Q<Button>("decrease-button").SetEnabled(model.Amount > 0);
+            row.Q<Button>("increase-button").SetEnabled(model.Amount < model.Rule.MaxRequestAmount);
 
             if (model.Amount > 0)
             {
@@ -763,6 +843,9 @@ namespace Work.Dispatch.Code.UI
             _requestTabButton.EnableInClassList("is-selected", page == PageType.Request);
             _activeTabButton.EnableInClassList("is-selected", page == PageType.Active);
             _reportTabButton.EnableInClassList("is-selected", page == PageType.Report);
+            ApplyButtonTheme(_requestTabButton, page != PageType.Request);
+            ApplyButtonTheme(_activeTabButton, page != PageType.Active);
+            ApplyButtonTheme(_reportTabButton, page != PageType.Report);
 
             if (page == PageType.Active) RefreshActivePage();
             if (page == PageType.Report) RefreshReportRows();

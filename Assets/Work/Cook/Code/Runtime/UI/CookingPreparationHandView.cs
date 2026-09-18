@@ -24,7 +24,7 @@ namespace Work.Cook.Code.Runtime.UI
     /// </summary>
     public sealed class CookingPreparationHandView : MonoBehaviour
     {
-        private const float MiniGameBackdropAlpha = 0.08f;
+        private const float MiniGameBackdropAlpha = 0f;
         private const float ResultBackdropAlpha = 0.72f;
 
         [SerializeField] private RectTransform cardRoot;
@@ -154,7 +154,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         /// <summary>
         /// 기존 호출 호환용. false는 선택 완료 상태이며 시각적 흐림은 적용하지 않는다.
-        /// 미니게임과 결과의 흐림은 각각 ShowMiniGameState/ShowResultState를 사용한다.
+        /// 미니게임에서는 ShowMiniGameState로 숨기고, 결과에서는 ShowResultState로 흐리게 표시한다.
         /// </summary>
         public void SetInteractable(bool interactable)
         {

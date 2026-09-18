@@ -40,6 +40,9 @@ namespace Work.Cook.Code.Runtime.UI
                 return ItemIconUtility.GetOrCreateTempIcon("dish_missing", "Missing Dish", 0.62f, 0.42f, 0.28f);
             }
 
+            if (!result.IsRecipeMatched && IncompleteDishDefinitionSO.Instance != null)
+                return IncompleteDishDefinitionSO.Instance.Icon;
+
             if (result.BaseRecipe != null && result.BaseRecipe.IconSprite != null)
                 return result.BaseRecipe.IconSprite;
 

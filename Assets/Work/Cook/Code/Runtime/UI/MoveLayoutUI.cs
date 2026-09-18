@@ -12,21 +12,30 @@ namespace Work.Cook.Code.Runtime.UI
         private Vector2 _defaultPosition = Vector2.zero;
         private LayoutElement _myElement;
         private Tween _moveTween;
+        private CanvasGroup _inputGroup;
         private void Awake()
         {
             _defaultPosition = root.anchoredPosition;
             _myElement = GetComponent<LayoutElement>();
+            _inputGroup = root.GetComponent<CanvasGroup>();
+            if (_inputGroup == null) _inputGroup = root.gameObject.AddComponent<CanvasGroup>();
         }
 
         public void Move()
         {
-            _myElement.ignoreLayout = true;
+            _inputGroup.interactable = _inputGroup.blocksRaycasts = false;
+            Work.UtillUI.Code.GameUiInput.ClearSelection();
+            if (_myElement != null) _myElement.ignoreLayout = true;
             AnimateTo(offset, null);
         }
 
         public void ResetPos()
         { 
-            AnimateTo(_defaultPosition, () => _myElement.ignoreLayout = false);
+            AnimateTo(_defaultPosition, () =>
+            {
+                if (_myElement != null) _myElement.ignoreLayout = false;
+                _inputGroup.interactable = _inputGroup.blocksRaycasts = true;
+            });
         }
 
         private void OnDisable()

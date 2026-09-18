@@ -5,6 +5,8 @@ using Work.Cook.Code.Runtime.UI;
 using Work.Core.EventBus;
 using Work.Dispatch.Code.Runtime;
 using Work.Dispatch.Code.UI;
+using System.Collections;
+using Work.UtillUI.Code;
 
 namespace Work.Adventure.Code
 {
@@ -16,6 +18,7 @@ namespace Work.Adventure.Code
         [SerializeField] private MainUI mainUIroot;
         [SerializeField] private DispatchScreenPresenter dispatchScreen;
         [SerializeField] private DispatchManager dispatchManager;
+        [SerializeField] private bool startWithAdventure = true;
 
         public void Awake()
         {
@@ -33,6 +36,19 @@ namespace Work.Adventure.Code
             adventureManager.Init();
             if (dispatchScreen != null)
                 dispatchScreen.Closed += ReturnFromDispatch;
+        }
+
+        private IEnumerator Start()
+        {
+            if (!startWithAdventure) yield break;
+            preparationMenuUI.HideUI();
+            mainUIroot.HideUI();
+            var business = FindFirstObjectByType<CookingBusinessFlowController>();
+            business?.PrepareForFirstAdventure();
+            // All scene services and the opening fade must finish initializing first.
+            yield return null;
+            while (GameUiInput.IsBlocked) yield return null;
+            SelectAdventure();
         }
 
         private void HandleSelectPreparationEvent(OnSelectPreparationEvent evt)
@@ -66,24 +82,26 @@ namespace Work.Adventure.Code
 
         public void StopAdventure()
         {
+            GameUiInput.SetContext(GameUiContext.Preparation);
             preparationMenuUI.ShowUI();
             mainUIroot.ShowUI();
         }
 
         public void EndBusiness(CookingBusinessClosedEvent evt)
         {
+            GameUiInput.SetContext(GameUiContext.Preparation);
             preparationMenuUI.ShowUI();
         }
 
         public void SelectAdventure()
         {
-            //지도 나오고 어디 갈지 선택하고 거기에 맞춰서 
-            //다시 페이드 인아웃 나오고 배경 바뀌고 
-            adventureManager.OpenMap();
+            mainUIroot.HideUI();
+            adventureManager.StartAdventure();
         }
 
         public void SelectDispatch()
         {
+            GameUiInput.SetContext(GameUiContext.Dispatch);
             if (dispatchScreen == null)
                 dispatchScreen = FindFirstObjectByType<DispatchScreenPresenter>();
 
@@ -98,6 +116,7 @@ namespace Work.Adventure.Code
 
         private void ReturnFromDispatch()
         {
+            GameUiInput.SetContext(GameUiContext.Preparation);
             preparationMenuUI.ShowUI();
             mainUIroot.ShowUI();
         }

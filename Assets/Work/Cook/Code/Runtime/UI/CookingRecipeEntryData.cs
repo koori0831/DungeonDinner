@@ -13,7 +13,6 @@ namespace Work.Cook.Code.Runtime.UI
     {
         public RecipeSO Recipe { get; }
         public bool IsDirectIngredientSelection { get; }
-        public bool IsDiscovered { get; }
         public bool HasAttempted { get; }
         public IReadOnlyList<FoodTagSO> KnownEffectiveTags { get; }
 
@@ -24,9 +23,10 @@ namespace Work.Cook.Code.Runtime.UI
             bool hasAttempted,
             IReadOnlyList<FoodTagSO> knownEffectiveTags)
             : base(
-                recipe != null ? recipe.GetKnowledgeDisplayName(isDiscovered) : string.Empty,
+                recipe != null ? recipe.DisplayName : string.Empty,
                 icon,
-                recipe != null ? recipe.GetKnowledgeDescription(isDiscovered, hasAttempted) : string.Empty)
+                recipe != null ? recipe.Description : string.Empty,
+                CookingKnowledgeStore.RecipeEntryId(recipe), isDiscovered)
         {
             Recipe = recipe;
             IsDiscovered = isDiscovered;
@@ -39,7 +39,7 @@ namespace Work.Cook.Code.Runtime.UI
             Sprite icon,
             string description,
             bool isDirectIngredientSelection)
-            : base(displayName, icon, description)
+            : base(displayName, icon, description, "action:direct_ingredients")
         {
             IsDirectIngredientSelection = isDirectIngredientSelection;
             KnownEffectiveTags = new List<FoodTagSO>();

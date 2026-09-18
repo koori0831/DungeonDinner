@@ -10,10 +10,12 @@ namespace Work.Cook.Code.Runtime.Systems
 {
     public sealed class CookingRewardWallet : MonoBehaviour
     {
+        public const string DefaultSaveKey = "DungeonDinner.CookingRewardBalance";
+
         [SerializeField, Min(0)] private int startingBalance;
         [SerializeField] private bool loadFromPlayerPrefsOnAwake = true;
         [SerializeField] private bool saveToPlayerPrefs = true;
-        [SerializeField] private string playerPrefsKey = "DungeonDinner.CookingRewardBalance";
+        [SerializeField] private string playerPrefsKey = DefaultSaveKey;
         private bool _initialized;
         private int _balance;
 

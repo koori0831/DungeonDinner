@@ -32,6 +32,7 @@ namespace Work.UtillUI.Code.Fade
         [SerializeField] private FadeState startFadeState = FadeState.FillFromLeft;
         private FadeState _currentState = FadeState.FillFromLeft;
         private Sequence _transition;
+        private IDisposable _inputLock;
 
         private void Awake()
         {
@@ -44,6 +45,7 @@ namespace Work.UtillUI.Code.Fade
         private void OnDestroy()
         {
             KillTransition();
+            ReleaseInput();
             Bus<OnFadeOutEvent>.Events -= Clear;
             Bus<OnFadeInEvent>.Events -= Fill;
         }
@@ -51,14 +53,23 @@ namespace Work.UtillUI.Code.Fade
         private void OnDisable()
         {
             KillTransition();
+            ReleaseInput();
         }
 
         public void Fill(OnFadeInEvent evt)
         {
-            if (_currentState == FadeState.FillFromRight || _currentState == FadeState.FillFromLeft)
+            _inputLock ??= GameUiInput.Acquire();
+            bool alreadyFilled = _currentState == FadeState.FillFromRight || _currentState == FadeState.FillFromLeft;
+            // The opening clear keeps its previous state until the tween finishes.
+            // A start click during that tween must replace it and still complete its callback.
+            if (alreadyFilled && (_transition == null || _transition.IsActive() == false || _transition.IsPlaying() == false))
+            {
+                evt.callback?.Invoke();
                 return;
+            }
             if (root == null)
             {
+                ReleaseInput();
                 evt.callback?.Invoke();
                 return;
             }
@@ -70,17 +81,25 @@ namespace Work.UtillUI.Code.Fade
                 .Join(root.DOSizeDelta(new Vector2(fillInfo.width, root.sizeDelta.y), fadeTime))
                 .OnComplete(() =>
                 {
-                    _currentState = _currentState == FadeState.Left ? FadeState.FillFromLeft : FadeState.FillFromRight;
+                    _currentState = _currentState == FadeState.Left || _currentState == FadeState.FillFromLeft
+                        ? FadeState.FillFromLeft
+                        : FadeState.FillFromRight;
                     evt.callback?.Invoke();
                 });
         }
 
         public void Clear(OnFadeOutEvent evt)
         {
+            _inputLock ??= GameUiInput.Acquire();
             if (_currentState == FadeState.Right || _currentState == FadeState.Left)
+            {
+                ReleaseInput();
+                evt.callback?.Invoke();
                 return;
+            }
             if (root == null)
             {
+                ReleaseInput();
                 evt.callback?.Invoke();
                 return;
             }
@@ -107,6 +126,7 @@ namespace Work.UtillUI.Code.Fade
                 .OnComplete(() =>
                 {
                     _currentState = completedState;
+                    ReleaseInput();
                     callback?.Invoke();
                 });
         }
@@ -116,6 +136,13 @@ namespace Work.UtillUI.Code.Fade
             _transition?.Kill(false);
             _transition = null;
             root?.DOKill(false);
+        }
+
+        private void ReleaseInput()
+        {
+            var lease = _inputLock;
+            _inputLock = null;
+            lease?.Dispose();
         }
     }
 }

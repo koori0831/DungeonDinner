@@ -61,6 +61,7 @@ namespace Work.Cook.Code.Runtime.UI
         private ICookingIngredientSource _subscribedIngredientSource;
         private IngredientSO _focusedIngredient;
         private string _searchQuery = string.Empty;
+        private bool _bagPresentationApplied;
 
         private void OnValidate()
         {
@@ -86,7 +87,7 @@ namespace Work.Cook.Code.Runtime.UI
             BindSearchField();
             SubscribeFlowEvents();
             SubscribeIngredientSourceEvents();
-            Refresh(true);
+            Refresh(false);
         }
 
         private void OnDisable()
@@ -482,10 +483,52 @@ namespace Work.Cook.Code.Runtime.UI
         {
             if (HasRequiredLayoutReferences() == true)
             {
+                ApplyBagPresentation();
                 return;
             }
 
             Debug.LogError("CookingIngredientSelectionView is missing inspector layout references or ingredient button prefabs. Assign references from a prefab/scene object.", this);
+        }
+
+        private void ApplyBagPresentation()
+        {
+            if (_bagPresentationApplied) return;
+            _bagPresentationApplied = true;
+            foreach (var text in GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                text.color = new Color(0.26f, 0.16f, 0.09f);
+                text.textWrappingMode = TextWrappingModes.Normal;
+            }
+            if (clearButton != null)
+                foreach (var label in clearButton.GetComponentsInChildren<TextMeshProUGUI>(true))
+                    label.color = new Color(.97f, .94f, .86f);
+            foreach (var button in new[] { clearButton, confirmButton })
+            {
+                if (button == null) continue;
+                var colors = ColorBlock.defaultColorBlock;
+                colors.disabledColor = new Color(.94f, .90f, .83f, 1f);
+                button.colors = colors;
+            }
+        }
+
+        private static void SetBagHeight(Transform target, float height, float flexible = 0)
+        {
+            if (target == null) return;
+            var element = target.GetComponent<LayoutElement>() ?? target.gameObject.AddComponent<LayoutElement>();
+            element.ignoreLayout = false;
+            element.minHeight = height;
+            element.preferredHeight = height;
+            element.flexibleHeight = flexible;
+        }
+
+        private static void StyleBagSurface(Transform target, Color fill, Color border)
+        {
+            if (target == null) return;
+            var image = target.GetComponent<Image>() ?? target.gameObject.AddComponent<Image>();
+            image.color = fill;
+            var outline = target.GetComponent<Outline>() ?? target.gameObject.AddComponent<Outline>();
+            outline.effectColor = border;
+            outline.effectDistance = new Vector2(1, -1);
         }
 
         private bool HasRequiredLayoutReferences()

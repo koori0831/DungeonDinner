@@ -1,8 +1,11 @@
 using DG.Tweening;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Work.Core.EventBus;
+using Work.UtillUI.Code;
 
 namespace Work.Adventure.Code.UI
 {
@@ -25,53 +28,78 @@ namespace Work.Adventure.Code.UI
         private List<AdventrueDialogData> _currentDialogDatas;
         private int _currentDialogIndex = 0;
         private bool _isCanWriteText;
+        private bool _dialogActive;
+        private bool _awaitingChoice;
+        private List<Options> _currentOptions;
+        private IDisposable _panelInput;
+        private int _inputFrame = -1;
+        public event Action EventFinished;
+        public bool IsDialogActive => _dialogActive;
+        public bool IsAwaitingChoice => _awaitingChoice;
+
+        public void BindContinuation(Action go, Action stop) => selectUI.Bind(go, stop);
+
+        public void ResetDialog()
+        {
+            _dialogActive = _awaitingChoice = _isCanWriteText = false;
+            _typingTween?.Kill(false);
+            KillPanelTween();
+            optionUI.DestroyAllButton();
+            selectUI.Disable();
+            if (root != null)
+                for (int i = root.childCount - 1; i >= 0; i--) Destroy(root.GetChild(i).gameObject);
+            nextObject.gameObject.SetActive(false);
+            dialogPanel.sizeDelta = new Vector2(dialogPanel.sizeDelta.x, 0);
+            dialogText.text = string.Empty;
+        }
 
         public void StartDialog(AdventureEventSO eventSo)
         {
+            _typingTween?.Kill(false);
+            optionUI.DestroyAllButton();
+            selectUI.Disable();
+            _dialogActive = true;
+            _awaitingChoice = false;
+            _isCanWriteText = false;
+            _currentDialogIndex = 0;
+            _selectOption = null;
             _currentEvent = eventSo;
+            _currentOptions = eventSo.options;
             _currentDialogDatas = eventSo.dialogDatas;
-            eventSo.dialogDatas.ForEach(item =>
-            {
-                item.method.ForEach(method =>
-                {
-                    method.Init(root);
-                });
-            });
-
-            eventSo.options.ForEach(item =>
-            {
-                item.ResultdialogDatas.ForEach(data =>
-                {
-                    data.method.ForEach(method =>
-                    {
-                        method.Init(root);
-                    });
-                });
-            });
-
-
+            InitLines();
             OpenDialogPanel();
+        }
+
+        private void InitLines()
+        {
+            foreach (var line in _currentDialogDatas)
+                foreach (var method in line.method) method.Init(root);
         }
 
         private void Update()
         {
-            if (_isCanWriteText)
-            {
-                if (Mouse.current.leftButton.wasPressedThisFrame)
-                {
-                    NextDialog();
-                }
-            }
+            if (!_dialogActive || _awaitingChoice || GameUiInput.IsBlocked
+                || GameUiInput.Context != GameUiContext.Adventure || _inputFrame == Time.frameCount) return;
+            bool pressed = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame
+                || Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+            if (!pressed) return;
+            _inputFrame = Time.frameCount;
+            if (_typingTween != null && _typingTween.IsActive() && _typingTween.IsPlaying())
+                _typingTween.Complete(true);
+            else if (_isCanWriteText) NextDialog();
         }
 
         public void OpenDialogPanel()
         {
             KillPanelTween();
+            _panelInput = GameUiInput.Acquire();
             _panelTween = dialogPanel
                 .DOSizeDelta(new Vector2(dialogPanel.sizeDelta.x, panelMovePosY), time)
                 .SetLink(gameObject, LinkBehaviour.KillOnDisable)
                 .OnComplete(() =>
                 {
+                    _panelInput?.Dispose();
+                    _panelInput = null;
                     _isCanWriteText = true;
                     NextDialog();
                 });
@@ -79,47 +107,68 @@ namespace Work.Adventure.Code.UI
 
         public void CloseDialogPanel()
         {
+            _isCanWriteText = false;
             dialogText.text = " ";
             nextObject.gameObject.SetActive(false);
             KillPanelTween();
             _panelTween = dialogPanel
                 .DOSizeDelta(new Vector2(dialogPanel.sizeDelta.x, 0), time)
                 .SetLink(gameObject, LinkBehaviour.KillOnDisable)
-                .OnComplete(() => _isCanWriteText = false);
+                .OnComplete(() =>
+                {
+                    if (_dialogActive) return;
+                    EventFinished?.Invoke();
+                    selectUI.Enable();
+                });
         }
 
         public void NextDialog()
         {
+            if (!_dialogActive || _awaitingChoice) return;
             if (_currentDialogDatas.Count <= _currentDialogIndex)
             {
                 _isCanWriteText = false;
                 _currentDialogIndex = 0;
+                nextObject.gameObject.SetActive(false);
                 if (_currentEvent == null)
                 {
-                    _selectOption.rewardMethod.ForEach(x => x.GetReward());
-                    Debug.Log(_selectOption.RewardDescription);
-                    CloseDialogPanel();
-                    selectUI.Enable();
-                    //_selectOption.RewardDescription; 보상부분 띄워줄때 
+                    var completed = _selectOption;
+                    _selectOption = null;
+                    _currentOptions = completed.followUpOptions;
+                    completed.rewardMethod.ForEach(x => x.GetReward());
+                    Debug.Log(completed.RewardDescription);
+                }
+                if (_currentOptions != null && _currentOptions.Count > 0)
+                {
+                    _awaitingChoice = true;
+                    optionUI.Enable(_currentOptions, ResultDialog);
                 }
                 else
-                    optionUI.Enable(_currentEvent.options, ResultDialog);
+                {
+                    _dialogActive = false;
+                    CloseDialogPanel();
+                }
                 return;
             }
 
             AdventrueDialogData data = _currentDialogDatas[_currentDialogIndex++];
 
             PlayTyping(data.Context);
+            Bus<AdventureLineObservedEvent>.Raise(new AdventureLineObservedEvent(data));
             data.method.ForEach(x => x.RaiseEvent());
         }
 
         public void ResultDialog(Options option)
         {
-            // 이후 다이얼로그 받았고 어떤 옵션 선택했는지도 받았음
+            if (!_dialogActive || !_awaitingChoice || !_currentOptions.Contains(option)) return;
+            _inputFrame = Time.frameCount;
+            _awaitingChoice = false;
             _isCanWriteText = true;
             _selectOption = option;
             _currentEvent = null;
             _currentDialogDatas = _selectOption.ResultdialogDatas;
+            _currentDialogIndex = 0;
+            InitLines();
             NextDialog();
         }
 
@@ -151,6 +200,8 @@ namespace Work.Adventure.Code.UI
 
         private void OnDisable()
         {
+            _dialogActive = false;
+            _awaitingChoice = false;
             _isCanWriteText = false;
             _typingTween?.Kill(false);
             _typingTween = null;
@@ -162,6 +213,8 @@ namespace Work.Adventure.Code.UI
             _panelTween?.Kill(false);
             _panelTween = null;
             dialogPanel?.DOKill(false);
+            _panelInput?.Dispose();
+            _panelInput = null;
         }
     }
 }

@@ -54,10 +54,10 @@ namespace Work.Cook.Code.Runtime.UI
                 RefreshCell(i);
             if (handIndicator != null)
                 handIndicator.gameObject.SetActive(false);
-            Host.SetInstruction("재료 표면 전체를 문질러 냉기를 고르게 퍼뜨리세요.");
-            Host.SetStatus("서리가 빈 곳을 채우세요");
-            ConfigureHud("표면 전체를 고르게 문지르기 ↔", false, true, true);
-            SetTargetState(0f, _profile.TargetMin, _profile.TargetMax, "냉각 부족");
+
+
+            ConfigureHud(CookingGesture.Scrub, false, true, true);
+            SetTargetState(0f, _profile.TargetMin, _profile.TargetMax);
             SetTimer(_profile.MaximumDuration, _profile.MaximumDuration);
             return true;
         }
@@ -129,8 +129,9 @@ namespace Work.Cook.Code.Runtime.UI
                 if (cell == null)
                     continue;
                 Vector2 size = cell.rectTransform.rect.size;
-                if (Mathf.Abs(point.x - cell.rectTransform.anchoredPosition.x) > size.x * 0.62f
-                    || Mathf.Abs(point.y - cell.rectTransform.anchoredPosition.y) > size.y * 0.62f)
+                Vector2 cellPoint = cell.rectTransform.InverseTransformPoint(transform.TransformPoint(point));
+                if (Mathf.Abs(cellPoint.x) > size.x * 0.62f
+                    || Mathf.Abs(cellPoint.y) > size.y * 0.62f)
                 {
                     continue;
                 }
@@ -143,7 +144,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (hit)
                 MarkProgress();
             else
-                RegisterMistake("재료 표면 안쪽을 문질러주세요.");
+                RegisterMistake();
 
             float mean = 0f;
             float minimum = 1f;
@@ -153,16 +154,7 @@ namespace Work.Cook.Code.Runtime.UI
                 minimum = Mathf.Min(minimum, _cells[i]);
             }
             mean /= _cells.Length;
-            string stateLabel;
-            if (mean < _profile.TargetMin)
-                stateLabel = $"냉각 {Mathf.RoundToInt(mean * 100f)}% · 빈 곳을 채우세요";
-            else if (mean <= _profile.TargetMax && minimum >= _profile.TargetMin * 0.72f)
-                stateLabel = "적정 · 고르게 얼었습니다";
-            else if (mean > _profile.TargetMax)
-                stateLabel = "과냉각 위험 · 같은 곳을 피하세요";
-            else
-                stateLabel = "냉각량은 충분 · 빈 곳을 더 채우세요";
-            SetTargetState(mean, _profile.TargetMin, _profile.TargetMax, stateLabel);
+            SetTargetState(mean, _profile.TargetMin, _profile.TargetMax);
             if (mean > _profile.TargetMax + 0.12f)
             {
                 Finish(CookingMiniGameType.Freezing,

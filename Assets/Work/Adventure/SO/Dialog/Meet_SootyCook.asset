@@ -1,0 +1,156 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c017245360f0bc546a567e1840070efd, type: 3}
+  m_Name: Meet_SootyCook
+  m_EditorClassIdentifier: Assembly-CSharp::Work.Adventure.Code.AdventureEventSO
+  <dialogDatas>k__BackingField:
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uC5BC\uAD74\uC5D0 \uAC80\uB315\uC774 \uBB3B\uC740
+      \uBAA8\uD5D8\uAC00\uAC00 \uD654\uB355 \uC55E\uC5D0 \uC549\uC544 \uC788\uB2E4."
+    method:
+    - rid: 1001
+    - rid: 1002
+  - discoveryEntryIds: []
+    <Context>k__BackingField: "\uBD88\uC740 \uAEBC\uC84C\uC9C0\uB9CC \uC548\uCABD
+      \uB3CC\uC5D0\uB294 \uC5F4\uAE30\uAC00 \uB0A8\uC544 \uC788\uB2E4."
+    method: []
+  options:
+  - rid: 1007
+  - rid: 1012
+  - rid: 1014
+  references:
+    version: 2
+    RefIds:
+    - rid: 1001
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1002
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 7c841b79623433c4c87c93b4535fec58, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1003
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 80ebcfd6da9b0cc4c81498ec6b1ca26a, type: 2}
+        amount: 2
+    - rid: 1004
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1005
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 4ba0d3eda9ba2614bb6bc2865ef05dc8, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1006
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1007
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "\uD654\uB355 \uC548\uC744 \uBE44\uCD98\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uD0D0\uD5D8
+          \uB4F1\uBD88 1\uAC1C."
+        <RewardDescription>k__BackingField: "\uB4F1\uBD88\uB85C \uD654\uB355 \uC548\uCABD\uC5D0
+          \uAC78\uB9B0 \uAC83\uC744 \uD655\uC778\uD569\uB2C8\uB2E4. \uD544\uC694\uD55C
+          \uB3C4\uAD6C: \uD0D0\uD5D8 \uB4F1\uBD88."
+        rewardMethod:
+        - rid: 1003
+        <ResultdialogDatas>k__BackingField:
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC5F0\uD1B5\uC5D0 \uAC78\uB9B0 \uB098\uBB47\uC870\uAC01\uC744
+            \uCC3E\uC544 \uC54C\uB824 \uC8FC\uC5C8\uB2E4. \uC694\uB9AC\uC0AC\uAC00
+            \uCF58\uCE58\uC988 \uB450 \uAC1C\uB97C \uB098\uB220 \uC8FC\uC5C8\uB2E4."
+          method:
+          - rid: 1004
+          - rid: 1005
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
+          method:
+          - rid: 1006
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uD0D0\uD5D8
+          \uB4F1\uBD88 1\uAC1C."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: 3c5d959612ee74621763ca91143ffc23, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1008
+      type: {class: IngredientReward, ns: Work.Adventure.Code.AdventureEvents, asm: Assembly-CSharp}
+      data:
+        reward: {fileID: 11400000, guid: 4d12c1c6cd2345e9a96bfd7d88e8dc17, type: 2}
+        amount: 2
+    - rid: 1009
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1010
+      type: {class: CreateImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data:
+        imagePrefab: {fileID: 81474867245666639, guid: 05834041d8f6987438e0fead5912a0b8, type: 3}
+        position: {x: 0, y: 0}
+    - rid: 1011
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1012
+      type: {class: LockedOption, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "\uB728\uAC70\uC6B4 \uB3CC\uC744 \uC62E\uAE34\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uAE34
+          \uC9D1\uAC8C 1\uAC1C."
+        <RewardDescription>k__BackingField: "\uC9D1\uAC8C\uB85C \uD654\uB355 \uC785\uAD6C\uC758
+          \uB728\uAC70\uC6B4 \uB3CC\uC744 \uCE58\uC6C1\uB2C8\uB2E4. \uD544\uC694\uD55C
+          \uB3C4\uAD6C: \uAE34 \uC9D1\uAC8C."
+        rewardMethod:
+        - rid: 1008
+        <ResultdialogDatas>k__BackingField:
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uD654\uB355 \uC785\uAD6C\uAC00 \uC5F4\uB838\uB2E4.
+            \uC694\uB9AC\uC0AC\uAC00 \uB0A8\uACA8 \uB454 \uB0A9\uC791\uBC84\uC12F
+            \uB450 \uAC1C\uB97C \uAC74\uB138\uB2E4."
+          method:
+          - rid: 1009
+          - rid: 1010
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
+          method:
+          - rid: 1011
+        followUpOptions: []
+        <LockTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uAE34
+          \uC9D1\uAC8C 1\uAC1C."
+        <KeyItem>k__BackingField: {fileID: 11400000, guid: 7f7cb47adad0c380eebdd2a95025b92e, type: 2}
+        <IsUnLockOption>k__BackingField: 0
+        <IsUseItemOption>k__BackingField: 0
+        LogStatus: 3
+    - rid: 1013
+      type: {class: DeleteAllImageEvent, ns: Work.Adventure.Code.DialogMethod, asm: Assembly-CSharp}
+      data: 
+    - rid: 1014
+      type: {class: Options, ns: Work.Adventure.Code, asm: Assembly-CSharp}
+      data:
+        <OptionName>k__BackingField: "\uB2E4\uC74C \uAE38\uB85C \uD5A5\uD55C\uB2E4"
+        <OptionTooltip>k__BackingField: "\uD544\uC694\uD55C \uC544\uC774\uD15C: \uC5C6\uC74C."
+        <RewardDescription>k__BackingField: "\uC8FC\uBCC0\uC744 \uAC74\uB4DC\uB9AC\uC9C0
+          \uC54A\uACE0 \uAE38\uC744 \uC774\uC5B4\uAC11\uB2C8\uB2E4."
+        rewardMethod: []
+        <ResultdialogDatas>k__BackingField:
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC8FC\uBCC0 \uC9C0\uD615\uC744 \uAE30\uC5B5\uD574
+            \uB450\uC5C8\uB2E4."
+          method: []
+        - discoveryEntryIds: []
+          <Context>k__BackingField: "\uC9D0\uC744 \uC815\uB9AC\uD558\uACE0 \uB2E4\uC2DC
+            \uAE38\uC744 \uB098\uC130\uB2E4."
+          method:
+          - rid: 1013
+        followUpOptions: []

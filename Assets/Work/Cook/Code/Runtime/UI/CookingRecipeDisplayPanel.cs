@@ -17,6 +17,7 @@ namespace Work.Cook.Code.Runtime.UI
 {
     public sealed class CookingRecipeDisplayPanel : InfoDisplayPanel
     {
+        protected override bool UseFieldGuideLayout => false;
         [Header("Recipe Fields")]
         [SerializeField] private TextMeshProUGUI requiredIngredientsField;
         [SerializeField] private TextMeshProUGUI knownEffectiveTagsField;
@@ -31,6 +32,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private bool showConfirmButtonForDirectSelection = true;
 
         private CookingRecipeEntryData _currentEntry;
+        private InfoDictionaryEntryData _displayedEntry;
         private ScrollRect _knowledgeScrollRect;
         private RectTransform _knowledgeContent;
         private RectTransform _variantListRoot;
@@ -72,6 +74,7 @@ namespace Work.Cook.Code.Runtime.UI
         {
             base.Enable(displayInfo);
 
+            _displayedEntry = displayInfo;
             _currentEntry = displayInfo as CookingRecipeEntryData;
             BindRecipeFields();
         }
@@ -89,6 +92,7 @@ namespace Work.Cook.Code.Runtime.UI
                 SetText(requiredIngredientsField, string.Empty);
                 SetText(knownEffectiveTagsField, string.Empty);
                 SetConfirmButton(false, confirmRecipeText);
+                BindKnowledgeBody();
                 return;
             }
 
@@ -180,7 +184,15 @@ namespace Work.Cook.Code.Runtime.UI
 
             ClearChildren(_variantListRoot);
             if (_currentEntry == null)
+            {
+                SetText(_descriptionBodyField, _displayedEntry?.Description ?? string.Empty);
+                SetText(_requirementsBodyField, string.Empty);
+                SetText(_completionBodyField, string.Empty);
+                SetText(_tagsBodyField, string.Empty);
+                SetText(_guestsBodyField, string.Empty);
+                SetText(_emptyVariantsField, string.Empty);
                 return;
+            }
 
             if (_currentEntry.IsDirectIngredientSelection)
             {
@@ -193,6 +205,16 @@ namespace Work.Cook.Code.Runtime.UI
                 return;
             }
 
+            if (!_currentEntry.IsDiscovered)
+            {
+                SetText(_descriptionBodyField, "아직 발견하지 못했습니다.");
+                SetText(_requirementsBodyField, string.Empty);
+                SetText(_completionBodyField, string.Empty);
+                SetText(_tagsBodyField, string.Empty);
+                SetText(_guestsBodyField, string.Empty);
+                SetText(_emptyVariantsField, string.Empty);
+                return;
+            }
             EnsureKnowledgeStore();
             CookingRecipeKnowledgeSnapshot snapshot = knowledgeStore != null
                 ? knowledgeStore.GetRecipeKnowledge(_currentEntry.Recipe)
@@ -200,7 +222,7 @@ namespace Work.Cook.Code.Runtime.UI
             CookingRecipeKnowledgePresentationModel model =
                 new CookingRecipeKnowledgePresentationBuilder(knowledgeStore?.Catalog).Build(snapshot);
             SetText(_descriptionBodyField, model.RecipeDescription);
-            SetText(_requirementsBodyField, BuildRequiredIngredientText(_currentEntry));
+            SetText(_requirementsBodyField, "완성해 본 재료와 손질 조합은 아래 기록에서 확인할 수 있습니다.");
             SetText(_completionBodyField, model.CompletionSummary);
             SetText(_tagsBodyField, model.KnownTags);
             SetText(_guestsBodyField, model.GuestSummaries);
@@ -241,7 +263,7 @@ namespace Work.Cook.Code.Runtime.UI
             scrollRectTransform.anchorMax = Vector2.one;
             scrollRectTransform.offsetMin = new Vector2(24f, 56f);
             scrollRectTransform.offsetMax = new Vector2(-24f, -128f);
-            scrollObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.12f);
+            scrollObject.GetComponent<Image>().color = new Color(0.96f, 0.9f, 0.8f, 1f);
             _knowledgeScrollRect = scrollObject.GetComponent<ScrollRect>();
             _knowledgeScrollRect.horizontal = false;
             _knowledgeScrollRect.vertical = true;
@@ -385,7 +407,7 @@ namespace Work.Cook.Code.Runtime.UI
             return builder.ToString();
         }
 
-        private static string BuildRequirementText(RecipeIngredientRequirement requirement)
+        internal static string BuildRequirementText(RecipeIngredientRequirement requirement)
         {
             if (requirement == null)
                 return string.Empty;

@@ -1,0 +1,2 @@
+2026-09-09T10:32:41.4313182+09:00
+PASS: all 67 events, 195 terminal paths, branch graph and tooltips; empty inventory, drought guarantee, unavailable costs, null/duplicate/single entries, stock-dependent probability, disabled guarantees for stocked inventories, usable/consumptive event weights and missing-tool weighting.

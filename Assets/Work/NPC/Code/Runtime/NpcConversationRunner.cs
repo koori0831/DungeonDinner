@@ -528,6 +528,9 @@ namespace Work.NPC.Code.Runtime
             IReadOnlyList<string> orderHighlights = line.IsPlayer || writeNpcBoldTextToOrderSlip == false
                 ? Array.Empty<string>()
                 : markup.BoldSegments;
+            // Sensory hints may be plain prose. Record only lines actually heard in the order or selected questions.
+            if (!line.IsPlayer && writeNpcBoldTextToOrderSlip && orderHighlights.Count == 0 && IsOrderClueGroup(line.Group))
+                orderHighlights = new[] { markup.RichText };
             bool hasViewSubscriber = DialogueLinePlayed != null;
             NpcDialogueLineContext context = new NpcDialogueLineContext(
                 _currentEvent?.EventId,
@@ -554,6 +557,15 @@ namespace Work.NPC.Code.Runtime
                 Debug.Log(text);
 
             return context;
+        }
+
+        private bool IsOrderClueGroup(string group)
+        {
+            if (string.Equals(group, "OrderIntent", StringComparison.Ordinal)) return true;
+            foreach (string categoryId in _usedQuestionCategories)
+                if (_database.TryGetQuestionCategory(categoryId, out QuestionCategoryData category)
+                    && string.Equals(group, category.DialogueGroup, StringComparison.Ordinal)) return true;
+            return false;
         }
 
         private string GetSpeakerName(string speaker)
@@ -657,6 +669,12 @@ namespace Work.NPC.Code.Runtime
             ConversationCompleted?.Invoke();
             conversationCompleted.Invoke();
             Debug.Log("NPC conversation completed.");
+        }
+
+        public void ShowOrderSlipForCooking()
+        {
+            if (IsReadyForCooking)
+                orderSlipPanel?.SetVisible(true);
         }
 
         private void HideOrderSlipPanel()

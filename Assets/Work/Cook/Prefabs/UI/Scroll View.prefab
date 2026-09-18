@@ -49,14 +49,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GridLayoutGroup
   m_Padding:
-    m_Left: 34
-    m_Right: 34
+    m_Left: 18
+    m_Right: 18
     m_Top: 30
     m_Bottom: 0
   m_ChildAlignment: 1
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 100, y: 135}
+  m_CellSize: {x: 112, y: 152}
   m_Spacing: {x: 15, y: 22.2}
   m_Constraint: 0
   m_ConstraintCount: 2
@@ -310,3 +310,4 @@ MonoBehaviour:
   content: {fileID: 8198817378670816185}
   contentResizeTarget: {fileID: 7008389030076885095}
   columnsPerRow: 3
+  centeredHorizontalPadding: 18

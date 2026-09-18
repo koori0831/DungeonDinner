@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Work.Cook.Code.Runtime.Systems;
+using Work.Cook.Code.Runtime.Events;
+using Work.Core.EventBus;
 
 namespace Work.Cook.Code.Info
 {
@@ -29,13 +32,37 @@ namespace Work.Cook.Code.Info
         private InfoBockmarkBtn _currentBockmark;
         private string _currentCategoryDisplayName;
         private ViewHaveInfoEnum _currentDisplayViewType;
-        private string _currentDisplayEntryName;
+        private string _currentDisplayEntryId;
         private bool _isDisplayOpen;
+        private FieldGuideCatalogSO _fieldGuideCatalog;
 
         public void Awake()
         {
             if (buildOnAwake == true)
-                Initialize(initialCategoryDataList);
+            {
+                // The general guide is shared by all scenes; recipe discovery has its own initializer.
+                _fieldGuideCatalog = initialCategoryDataList.Count == 0
+                    ? Resources.Load<FieldGuideCatalogSO>("DungeonFieldGuide") : null;
+                RefreshFieldGuide();
+            }
+        }
+
+        private void OnEnable()
+        {
+            Bus<CookingKnowledgeChangedEvent>.Events += HandleKnowledgeChanged;
+            if (_fieldGuideCatalog != null) RefreshFieldGuide();
+        }
+
+        private void OnDisable() => Bus<CookingKnowledgeChangedEvent>.Events -= HandleKnowledgeChanged;
+        private void HandleKnowledgeChanged(CookingKnowledgeChangedEvent evt)
+        {
+            if (_fieldGuideCatalog != null) RefreshFieldGuide();
+        }
+        private void RefreshFieldGuide()
+        {
+            Initialize(_fieldGuideCatalog != null
+                ? _fieldGuideCatalog.BuildCategories(FindFirstObjectByType<CookingKnowledgeStore>())
+                : initialCategoryDataList);
         }
 
         public void Initialize(IReadOnlyList<InfoDictionaryCategoryData> categories)
@@ -119,6 +146,8 @@ namespace Work.Cook.Code.Info
                 RegisterCategoryLookup(categoryData.DisplayName, view, bockmark);
                 RegisterNavigationContexts(categoryData);
                 view.InitializeField(categoryData.Entries, info => EnableDisplay(categoryData.ViewType, info));
+                if (buildOnAwake)
+                    view.SetCategoryHeading(categoryData.DisplayName, categoryData.Entries?.Count ?? 0);
                 view.Disable();
                 bockmark.Rect.anchoredPosition = new Vector2(default_X_Value, y_Offset * i);
                 string categoryDisplayName = categoryData.DisplayName;
@@ -241,7 +270,7 @@ namespace Work.Cook.Code.Info
 
             _currentScrollView = view;
             _isDisplayOpen = false;
-            _currentDisplayEntryName = null;
+            _currentDisplayEntryId = null;
 
             AllDisableScrollView();
             AllDisableDisplay();
@@ -276,12 +305,15 @@ namespace Work.Cook.Code.Info
                 _currentBockmark.SetSelected(true);
         }
 
-        public void EnableDisplay(ViewHaveInfoEnum key, InfoDictionaryEntryData info)
+        public void EnableDisplay(ViewHaveInfoEnum key, InfoDictionaryEntryData info) => ShowDisplay(key, info, true);
+
+        private void ShowDisplay(ViewHaveInfoEnum key, InfoDictionaryEntryData info, bool userInitiated)
         {
+            if (userInitiated) FindFirstObjectByType<Work.Cook.Code.Runtime.UI.CookingIngredientBagPopup>()?.CollapseForGuide();
             AllDisableScrollView();
             AllDisableDisplay();
             _currentDisplayViewType = key;
-            _currentDisplayEntryName = info != null ? info.DisplayName : null;
+            _currentDisplayEntryId = info != null ? info.EntryId : null;
             _isDisplayOpen = info != null;
 
             if (displayDic.TryGetValue(key, out InfoDisplayPanel display) == true)
@@ -366,7 +398,7 @@ namespace Work.Cook.Code.Info
                 return;
 
             _isDisplayOpen = false;
-            _currentDisplayEntryName = null;
+            _currentDisplayEntryId = null;
             _currentScrollView.Enable();
         }
 
@@ -375,7 +407,7 @@ namespace Work.Cook.Code.Info
             return new DictionaryRestoreState(
                 _currentCategoryDisplayName,
                 _currentDisplayViewType,
-                _currentDisplayEntryName,
+                _currentDisplayEntryId,
                 _isDisplayOpen);
         }
 
@@ -396,10 +428,10 @@ namespace Work.Cook.Code.Info
             DictionaryRestoreState state)
         {
             if (state.IsDisplayOpen == true
-                && string.IsNullOrWhiteSpace(state.EntryDisplayName) == false
-                && TryFindEntry(categories, state.ViewType, state.EntryDisplayName, out InfoDictionaryEntryData entry) == true)
+                && string.IsNullOrWhiteSpace(state.EntryId) == false
+                && TryFindEntry(categories, state.ViewType, state.EntryId, out InfoDictionaryEntryData entry) == true)
             {
-                EnableDisplay(state.ViewType, entry);
+                ShowDisplay(state.ViewType, entry, false);
                 return;
             }
 
@@ -432,12 +464,12 @@ namespace Work.Cook.Code.Info
         private static bool TryFindEntry(
             IReadOnlyList<InfoDictionaryCategoryData> categories,
             ViewHaveInfoEnum viewType,
-            string entryDisplayName,
+            string entryId,
             out InfoDictionaryEntryData entry)
         {
             entry = null;
 
-            if (categories == null || string.IsNullOrWhiteSpace(entryDisplayName) == true)
+            if (categories == null || string.IsNullOrWhiteSpace(entryId) == true)
                 return false;
 
             for (int i = 0; i < categories.Count; i++)
@@ -449,7 +481,7 @@ namespace Work.Cook.Code.Info
                 for (int j = 0; j < category.Entries.Count; j++)
                 {
                     InfoDictionaryEntryData candidate = category.Entries[j];
-                    if (candidate != null && candidate.DisplayName == entryDisplayName)
+                    if (candidate != null && candidate.EntryId == entryId)
                     {
                         entry = candidate;
                         return true;
@@ -512,18 +544,18 @@ namespace Work.Cook.Code.Info
         {
             public readonly string CategoryDisplayName;
             public readonly ViewHaveInfoEnum ViewType;
-            public readonly string EntryDisplayName;
+            public readonly string EntryId;
             public readonly bool IsDisplayOpen;
 
             public DictionaryRestoreState(
                 string categoryDisplayName,
                 ViewHaveInfoEnum viewType,
-                string entryDisplayName,
+                string entryId,
                 bool isDisplayOpen)
             {
                 CategoryDisplayName = categoryDisplayName;
                 ViewType = viewType;
-                EntryDisplayName = entryDisplayName;
+                EntryId = entryId;
                 IsDisplayOpen = isDisplayOpen;
             }
         }

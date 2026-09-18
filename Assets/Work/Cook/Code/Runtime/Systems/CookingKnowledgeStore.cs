@@ -11,9 +11,10 @@ using Work.NPC.Code.Runtime;
 
 namespace Work.Cook.Code.Runtime.Systems
 {
-    public sealed class CookingKnowledgeStore : MonoBehaviour
+    public sealed partial class CookingKnowledgeStore : MonoBehaviour
     {
-        private const int CURRENT_SCHEMA_VERSION = 2;
+        public const string DefaultSaveKey = "DungeonDinner.CookingKnowledge";
+        private const int CURRENT_SCHEMA_VERSION = 3;
 
         [Header("Data")]
         [SerializeField] private CookingDataCatalogSO catalog;
@@ -25,7 +26,7 @@ namespace Work.Cook.Code.Runtime.Systems
         [Header("Persistence")]
         [SerializeField] private bool loadFromPlayerPrefsOnAwake = true;
         [SerializeField] private bool saveToPlayerPrefs = true;
-        [SerializeField] private string playerPrefsKey = "DungeonDinner.CookingKnowledge";
+        [SerializeField] private string playerPrefsKey = DefaultSaveKey;
 
         private readonly HashSet<string> _discoveredRecipeIds =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -250,44 +251,19 @@ namespace Work.Cook.Code.Runtime.Systems
         public bool LearnFromService(DishResult result, NpcDishMatchReport report)
         {
             EnsureInitialized();
-            if (result == null || report == null)
-                return false;
-
-            if (string.IsNullOrWhiteSpace(result.CookingSessionId) == false
-                && _appliedCookingSessionIds.Add(result.CookingSessionId) == false)
-            {
-                return false;
-            }
-
-            bool changed = false;
-            if (result.TargetRecipe != null)
-                changed |= AddAttemptedRecipe(result.TargetRecipe);
-
+            if (result == null || report == null) return false;
+            bool learned = LearnFromResult(result);
+            if (!_servedResultObjects.Add(result)) return learned;
+            if (!string.IsNullOrWhiteSpace(result.CookingSessionId)
+                && !_appliedCookingSessionIds.Add(result.CookingSessionId)) return learned;
             if (result.IsRecipeMatched && result.BaseRecipe != null)
             {
-                changed |= AddAttemptedRecipe(result.BaseRecipe);
-                changed |= AddRecipe(result.BaseRecipe);
-                IReadOnlyList<FoodTagSO> revealedTags = BuildRevealedResultTags(result, report);
-                changed |= RecordRecipeCompletion(result, report, revealedTags);
-                changed |= AddRecipeTags(result.BaseRecipe, revealedTags);
+                var record = GetOrCreateRecipeRecord(CookingKnowledgeKeyUtility.GetRecipeId(result.BaseRecipe));
+                UpdateGuestSummary(record, report);
+                AddRecipeTags(result.BaseRecipe, BuildRevealedResultTags(result, report));
             }
-
-            if (result.PreparedIngredients != null)
-            {
-                for (int i = 0; i < result.PreparedIngredients.Count; i++)
-                {
-                    PreparedIngredientState prepared = result.PreparedIngredients[i];
-                    if (prepared == null)
-                        continue;
-                    changed |= AddTriedIngredient(prepared.Ingredient);
-                    changed |= AddTriedPreparation(prepared.Ingredient, prepared.PreparationOption);
-                    changed |= AddPreparationEffect(prepared.Ingredient, prepared.PreparationOption);
-                }
-            }
-
-            if (changed)
-                CommitChanges();
-            return changed;
+            CommitChanges();
+            return true;
         }
 
         public void ClearKnowledgeForDebug()
@@ -342,6 +318,10 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private void ClearRuntimeData()
         {
+            _discoveredEntryIds.Clear();
+            _recordedResultSessionIds.Clear();
+            _recordedResultObjects.Clear();
+            _servedResultObjects.Clear();
             _discoveredRecipeIds.Clear();
             _knownPreparationEffectKeys.Clear();
             _attemptedRecipeIds.Clear();
@@ -360,13 +340,16 @@ namespace Work.Cook.Code.Runtime.Systems
             if (saveData == null)
                 return;
 
+            AddIds(_discoveredEntryIds, saveData.discoveredEntryIds);
+            AddIds(_recordedResultSessionIds, saveData.recordedResultSessionIds);
+            AddIds(_appliedCookingSessionIds, saveData.servedResultSessionIds);
             AddIds(_discoveredRecipeIds, saveData.discoveredRecipeIds);
             AddIds(_knownPreparationEffectKeys, saveData.knownPreparationEffectKeys);
             AddIds(_attemptedRecipeIds, saveData.attemptedRecipeIds);
             AddIds(_triedIngredientIds, saveData.triedIngredientIds);
             AddIds(_triedPreparationKeys, saveData.triedPreparationKeys);
 
-            bool migrateLegacy = saveData.schemaVersion < CURRENT_SCHEMA_VERSION;
+            bool migrateLegacy = saveData.schemaVersion < 2;
             if (migrateLegacy == false && saveData.recipeRecords != null)
             {
                 for (int i = 0; i < saveData.recipeRecords.Count; i++)
@@ -379,8 +362,10 @@ namespace Work.Cook.Code.Runtime.Systems
                 MigrateLegacyVariants(saveData.knownRecipeVariants);
                 foreach (string recipeId in _discoveredRecipeIds)
                     GetOrCreateRecipeRecord(recipeId);
-                SaveToPlayerPrefs();
             }
+            foreach (var id in _discoveredRecipeIds) _discoveredEntryIds.Add("recipe:" + id);
+            foreach (var id in _triedIngredientIds) _discoveredEntryIds.Add("ingredient:" + id);
+            if (saveData.schemaVersion < CURRENT_SCHEMA_VERSION) SaveToPlayerPrefs();
         }
 
         private void LoadLegacyRecipeTags(IReadOnlyList<KnownRecipeTagSaveData> entries)
@@ -419,6 +404,9 @@ namespace Work.Cook.Code.Runtime.Systems
             CookingKnowledgeSaveData saveData = new CookingKnowledgeSaveData
             {
                 schemaVersion = CURRENT_SCHEMA_VERSION,
+                discoveredEntryIds = new List<string>(_discoveredEntryIds),
+                recordedResultSessionIds = new List<string>(_recordedResultSessionIds),
+                servedResultSessionIds = new List<string>(_appliedCookingSessionIds),
                 recipeRecords = new List<KnownRecipeRecord>(_recipeRecords.Values),
                 discoveredRecipeIds = new List<string>(_discoveredRecipeIds),
                 knownPreparationEffectKeys = new List<string>(_knownPreparationEffectKeys),
@@ -443,6 +431,7 @@ namespace Work.Cook.Code.Runtime.Systems
             if (string.IsNullOrWhiteSpace(recipeId))
                 return false;
             GetOrCreateRecipeRecord(recipeId);
+            _discoveredEntryIds.Add("recipe:" + recipeId);
             if (_discoveredRecipeIds.Add(recipeId) == false)
                 return false;
 
@@ -473,7 +462,7 @@ namespace Work.Cook.Code.Runtime.Systems
             recipeRecord.completionCount++;
             if (result.CraftGrade > recipeRecord.bestCraftGrade)
                 recipeRecord.bestCraftGrade = result.CraftGrade;
-            UpdateGuestSummary(recipeRecord, report);
+
 
             if (result.IsVariant && result.VariantIdentity != null
                                  && string.IsNullOrWhiteSpace(result.VariantId) == false)

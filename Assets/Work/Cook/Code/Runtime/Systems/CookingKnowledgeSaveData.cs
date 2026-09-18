@@ -9,6 +9,9 @@ namespace Work.Cook.Code.Runtime.Systems
     internal sealed class CookingKnowledgeSaveData
     {
         public int schemaVersion;
+        public List<string> discoveredEntryIds = new List<string>();
+        public List<string> recordedResultSessionIds = new List<string>();
+        public List<string> servedResultSessionIds = new List<string>();
         public List<KnownRecipeRecord> recipeRecords = new List<KnownRecipeRecord>();
 
         // Versionless/V1 fields are intentionally retained for one-way migration.

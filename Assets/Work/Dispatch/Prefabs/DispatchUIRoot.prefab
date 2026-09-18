@@ -116,6 +116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 878715a743d66d645b57e6190bf9557d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Work.Dispatch.Code.UI.DispatchScreenPresenter
+  presentationTheme: {fileID: 11400000, guid: 1f74de8162d79184d96b732865d42692, type: 2}
   dispatchManager: {fileID: 9108724000094528630}
   npcQuery: {fileID: 7244647079180279961}
   gameTimeService: {fileID: 474443674778243889}

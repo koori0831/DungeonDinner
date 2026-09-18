@@ -40,6 +40,12 @@ namespace Work.Adventure.Code.UI
 
         private void HandleAddAdventureItemEvent(OnAddAdventureItemAfterEvent item)
         {
+            if (adventureItemIconsDic.TryGetValue(item.itemSO.ItemName, out var existingIcon))
+            {
+                existingIcon.SetCount(item.count);
+                return;
+            }
+
             AdventureItemIconUI iconUI = Instantiate(iconUIPrefab,transform);
             iconUI.Init(item.itemSO.ItemIcon, item.count);
 

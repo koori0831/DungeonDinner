@@ -31,7 +31,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private bool keepNpcConversationVisibleDuringCooking = true;
         [SerializeField] private bool keepRecipeSelectionVisibleBeforePreparation = true;
         [SerializeField] private bool keepRecipeSelectionVisibleDuringInventory = true;
-        [Tooltip("Enable only for legacy layouts that intentionally stack the conversation, recipe, and inventory views.")]
+        [Tooltip("Enable only for legacy layouts that stack recipe and inventory views. Order references remain available independently.")]
         [SerializeField] private bool allowLayeredPrimaryViews;
         [SerializeField] private bool allowRecipeConfirmation;
         [SerializeField] private TMP_FontAsset temporaryUiFontAsset;
@@ -63,6 +63,14 @@ namespace Work.Cook.Code.Runtime.UI
         private CookingRewardWallet _subscribedRewardWallet;
         private readonly List<GameObject> _preparationHiddenViews = new List<GameObject>();
         private bool _isPreparationViewIsolated;
+        private readonly Dictionary<RectTransform, ReferenceRectState> _referenceRects = new Dictionary<RectTransform, ReferenceRectState>();
+        private RectTransform _referenceCanvas;
+        private Vector2 _referenceCanvasSize;
+        private ScrollRect _referenceScroll;
+        private RectMask2D _referenceMask;
+        private bool _referenceScrollWasEnabled;
+        private bool _referenceMaskWasEnabled;
+        private bool _referenceLayoutActive;
         private bool _isMiniGameActive;
         private IngredientSO _pendingMiniGameIngredient;
         private IngredientPreparationOption _pendingMiniGameOption;
@@ -111,6 +119,8 @@ namespace Work.Cook.Code.Runtime.UI
         public DishResult CurrentResult => _currentResult;
         public CookingGameSnapshot CurrentSnapshot => BuildSnapshot();
         public bool AllowRecipeConfirmation => allowRecipeConfirmation;
+        public float CookingReferenceWidth => keepNpcConversationVisibleDuringCooking
+            && npcConversationView != null && IsCookingReferenceScreen(CurrentScreen) ? 400f : 0f;
         public bool HasPendingRewardSettlement => _pendingRewardResult != null && _pendingRewardMatchReport != null;
         public bool HasSettledOutcome => _settledMatchReport != null;
         public NpcDishMatchReport SettledMatchReport => _settledMatchReport;
@@ -137,6 +147,14 @@ namespace Work.Cook.Code.Runtime.UI
         private void OnDisable()
         {
             UnsubscribeBusRequests();
+            RestoreCookingReferenceLayout();
+        }
+
+        private void LateUpdate()
+        {
+            if (CookingReferenceWidth > 0f && (!_referenceLayoutActive || _referenceCanvas == null
+                || _referenceCanvas.rect.size != _referenceCanvasSize))
+                ApplyCookingReferenceLayout();
         }
 
         private void OnDestroy()
@@ -1137,6 +1155,9 @@ namespace Work.Cook.Code.Runtime.UI
         {
             CurrentScreen = screen;
             ApplyViewActiveStates();
+            if (keepNpcConversationVisibleDuringCooking && IsCookingReferenceScreen(screen))
+                npcRunner?.ShowOrderSlipForCooking();
+            ApplyCookingReferenceLayout();
             Bus<CookingGameScreenChangedEvent>.Raise(new CookingGameScreenChangedEvent(this, CurrentScreen));
             PublishSnapshotChanged();
         }
@@ -1151,16 +1172,15 @@ namespace Work.Cook.Code.Runtime.UI
 
             RestorePreparationHiddenViews();
 
-            bool showNpcConversation = CurrentScreen == CookingGameScreenState.NpcConversation;
+            bool showNpcConversation = CurrentScreen == CookingGameScreenState.NpcConversation
+                                       || keepNpcConversationVisibleDuringCooking && IsCookingReferenceScreen(CurrentScreen);
             bool showRecipeSelection = CurrentScreen == CookingGameScreenState.RecipeSelection;
 
             if (allowLayeredPrimaryViews == true)
             {
                 bool beforePreparation = IsBeforePreparation(CurrentScreen);
-                bool duringIngredientSelection = CurrentScreen == CookingGameScreenState.Inventory;
                 showNpcConversation = showNpcConversation
-                                      || keepNpcConversationVisibleBeforePreparation == true && beforePreparation == true
-                                      || keepNpcConversationVisibleDuringCooking == true && duringIngredientSelection == true;
+                                      || keepNpcConversationVisibleBeforePreparation == true && beforePreparation == true;
                 showRecipeSelection = showRecipeSelection
                                       || CurrentScreen == CookingGameScreenState.Inventory
                                       || keepRecipeSelectionVisibleBeforePreparation == true
@@ -1181,7 +1201,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void ApplyPreparationStageViewActiveStates()
         {
-            HideForPreparation(npcConversationView);
+            SetActive(npcConversationView, keepNpcConversationVisibleDuringCooking);
             HideForPreparation(recipeSelectionView);
             HideForPreparation(inventoryView);
             HideForPreparation(resultView);
@@ -1241,6 +1261,124 @@ namespace Work.Cook.Code.Runtime.UI
 
             _preparationHiddenViews.Clear();
             _isPreparationViewIsolated = false;
+        }
+
+        private void ApplyCookingReferenceLayout()
+        {
+            float referenceWidth = CookingReferenceWidth;
+            if (referenceWidth <= 0f)
+            {
+                RestoreCookingReferenceLayout();
+                return;
+            }
+
+            Canvas canvas = FindCanvasFromConnectedViews();
+            _referenceCanvas = canvas != null ? canvas.rootCanvas.transform as RectTransform : null;
+            if (_referenceCanvas == null || _referenceCanvas.rect.width <= referenceWidth) return;
+            _referenceCanvasSize = _referenceCanvas.rect.size;
+            Rect bounds = _referenceCanvas.rect;
+            Rect workArea = new Rect(bounds.xMin, bounds.yMin, bounds.width - referenceWidth, bounds.height);
+            foreach (var view in new[] { preparationView, miniGameView })
+                if (view != null && view.transform is RectTransform rect)
+                    FitReferenceRect(rect, workArea);
+
+            if (resultView != null && resultView.transform is RectTransform resultRect)
+            {
+                RememberReferenceRect(resultRect);
+                var corners = new Vector3[4]; resultRect.GetWorldCorners(corners);
+                float right = _referenceCanvas.InverseTransformPoint(corners[2]).x;
+                float left = _referenceCanvas.InverseTransformPoint(corners[0]).x;
+                float shift = Mathf.Min(0f, workArea.xMax - 24f - right);
+                if (left + shift < workArea.xMin + 24f) shift = workArea.xMin + 24f - left;
+                resultRect.position += _referenceCanvas.TransformVector(new Vector3(shift, 0f, 0f));
+            }
+
+            var hand = preparationView != null ? preparationView.GetComponentInChildren<CookingPreparationHandView>(true) : null;
+            if (hand != null && hand.transform is RectTransform handRect)
+            {
+                RememberReferenceRect(handRect);
+                handRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Min(1500f, workArea.width - 32f));
+            }
+
+            if (npcConversationView.transform is RectTransform chatRect)
+            {
+                float historyPosition = _referenceLayoutActive && _referenceScroll != null ? _referenceScroll.verticalNormalizedPosition : 0f;
+                // Keep the order slip in its existing upper-right position and history below it.
+                FitReferenceRect(chatRect, new Rect(bounds.xMax - referenceWidth + 16f, bounds.yMin + 32f,
+                    referenceWidth - 48f, Mathf.Max(180f, bounds.height - 518f)));
+                var chat = npcConversationView.GetComponentInParent<Work.Chat.Code.ChatPanel>(true);
+                if (chat != null && chat.ContentRoot != null)
+                {
+                    if (!_referenceLayoutActive)
+                    {
+                        RememberReferenceRect(chat.ContentRoot);
+                        chat.ContentRoot.anchorMin = new Vector2(0f, 1f);
+                        chat.ContentRoot.anchorMax = Vector2.one;
+                        chat.ContentRoot.pivot = new Vector2(0.5f, 1f);
+                        chat.ContentRoot.sizeDelta = new Vector2(0f, chat.ContentRoot.sizeDelta.y);
+                        chat.ContentRoot.anchoredPosition = Vector2.zero;
+                        _referenceScroll = chatRect.GetComponent<ScrollRect>();
+                        _referenceScrollWasEnabled = _referenceScroll != null && _referenceScroll.enabled;
+                        if (_referenceScroll == null) _referenceScroll = chatRect.gameObject.AddComponent<ScrollRect>();
+                        _referenceMask = chatRect.GetComponent<RectMask2D>();
+                        _referenceMaskWasEnabled = _referenceMask != null && _referenceMask.enabled;
+                        if (_referenceMask == null) _referenceMask = chatRect.gameObject.AddComponent<RectMask2D>();
+                    }
+                    _referenceScroll.enabled = _referenceMask.enabled = true;
+                    _referenceScroll.content = chat.ContentRoot;
+                    _referenceScroll.viewport = chatRect;
+                    _referenceScroll.horizontal = false;
+                    _referenceScroll.vertical = true;
+                    _referenceScroll.movementType = ScrollRect.MovementType.Clamped;
+                    _referenceScroll.scrollSensitivity = 28f;
+                    chat.RefreshLayout();
+                    _referenceScroll.verticalNormalizedPosition = historyPosition;
+                }
+            }
+            _referenceLayoutActive = true;
+        }
+
+        private void RememberReferenceRect(RectTransform rect)
+        {
+            if (!_referenceRects.ContainsKey(rect)) _referenceRects.Add(rect, new ReferenceRectState(rect));
+        }
+
+        private void FitReferenceRect(RectTransform rect, Rect bounds)
+        {
+            RememberReferenceRect(rect);
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
+            Vector3 scale = _referenceCanvas.lossyScale;
+            Vector3 parentScale = rect.parent.lossyScale;
+            rect.sizeDelta = new Vector2(bounds.width * scale.x / parentScale.x, bounds.height * scale.y / parentScale.y);
+            rect.position = _referenceCanvas.TransformPoint(bounds.center);
+        }
+
+        private void RestoreCookingReferenceLayout()
+        {
+            if (_referenceScroll != null) _referenceScroll.enabled = _referenceScrollWasEnabled;
+            if (_referenceMask != null) _referenceMask.enabled = _referenceMaskWasEnabled;
+            foreach (var saved in _referenceRects)
+                if (saved.Key != null) saved.Value.Restore(saved.Key);
+            _referenceRects.Clear();
+            if (_referenceLayoutActive && npcConversationView != null)
+                npcConversationView.GetComponentInParent<Work.Chat.Code.ChatPanel>(true)?.RefreshLayout();
+            _referenceLayoutActive = false;
+            _referenceCanvas = null;
+        }
+
+        private readonly struct ReferenceRectState
+        {
+            private readonly Vector2 _anchorMin, _anchorMax, _pivot, _position, _size;
+            public ReferenceRectState(RectTransform rect)
+            {
+                _anchorMin = rect.anchorMin; _anchorMax = rect.anchorMax; _pivot = rect.pivot;
+                _position = rect.anchoredPosition; _size = rect.sizeDelta;
+            }
+            public void Restore(RectTransform rect)
+            {
+                rect.anchorMin = _anchorMin; rect.anchorMax = _anchorMax; rect.pivot = _pivot;
+                rect.anchoredPosition = _position; rect.sizeDelta = _size;
+            }
         }
 
         private void EnsureInventoryView()
@@ -1568,6 +1706,13 @@ namespace Work.Cook.Code.Runtime.UI
         {
             return screen == CookingGameScreenState.Preparation
                    || screen == CookingGameScreenState.MiniGame;
+        }
+
+        private static bool IsCookingReferenceScreen(CookingGameScreenState screen)
+        {
+            return screen == CookingGameScreenState.Inventory
+                   || IsPreparationStageScreen(screen)
+                   || screen == CookingGameScreenState.Result;
         }
 
         private ICookingMiniGameView GetMiniGameView()

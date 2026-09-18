@@ -12,6 +12,7 @@ namespace Work.Adventure.Code.DialogMethod
     public class AddAdventureItem : AdventrueDialogEvent
     {
         [SerializeField] private AdventureItemSO itemSo;
+        public AdventureItemSO Item => itemSo;
 
         public override void Init(RectTransform root)
         {

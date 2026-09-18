@@ -1,0 +1,134 @@
+2026-09-08T15:17:16.5540582+09:00
+PASS Find_HolySwordSalt / 성검을 뽑아본다
+PASS Find_HolySwordSalt / 칼로 결정을 긁어낸다
+PASS Find_HolySwordSalt / 망치로 받침대를 부순다
+PASS Meet_MushroomBarber / 칼로 가장자리를 다듬는다
+PASS Meet_MushroomBarber / 망치로 갓 끝을 살짝 누른다
+PASS Meet_MushroomBarber / 부딪히지 않게 길을 안내한다
+PASS Meet_AdventurerTrade / 칼을 주고 식재료를 받는다
+PASS Meet_AdventurerTrade / 망치를 주고 식재료를 받는다
+PASS Meet_AdventurerTrade / 도구는 계속 쓰기로 한다
+PASS Find_BoxSlime / 상자를 기울여 슬라임을 내보낸다
+PASS Find_BoxSlime / 칼로 멀쩡한 줄기만 자른다
+PASS Find_BoxSlime / 망치로 상자를 내려친다
+PASS Find_SaltGoddess / 기도하고 공물을 하나 받는다
+PASS Find_SaltGoddess / 칼로 발치의 결정만 긁는다
+PASS Find_SaltGoddess / 망치로 조각상을 부순다
+PASS Find_BrokenGoddessRepair / 슬라임 점액으로 조각을 붙인다
+PASS Find_BrokenGoddessRepair / 망치로 잔해를 잘게 정리한다
+PASS Find_BrokenGoddessRepair / 조각들을 모아두고 떠난다
+PASS Find_CoconutCrab / 망치로 껍질을 깨뜨린다
+PASS Find_CoconutCrab / 칼로 껍질 틈을 공략한다
+PASS Find_CoconutCrab / 길을 비켜준다
+PASS Meet_SproutSlime / 조용히 따라간다
+PASS Meet_SproutSlime / 주먹으로 공격한다
+PASS Meet_SproutSlime / 새싹을 구경하고 지나간다
+PASS Find_RopeCache / 밧줄을 풀어 챙긴다
+PASS Find_RopeCache / 망치로 칼을 꺼낸다
+PASS Find_RopeCache / 다음 길로 향한다
+PASS Meet_LanternKeeper / 짐 정리를 돕는다
+PASS Meet_LanternKeeper / 채집병을 건넨다
+PASS Meet_LanternKeeper / 다음 길로 향한다
+PASS Find_CookKit / 긴 집게를 챙긴다
+PASS Find_CookKit / 채집병을 챙긴다
+PASS Find_CookKit / 다음 길로 향한다
+PASS Meet_SupplyPorter / 망치를 고른다
+PASS Meet_SupplyPorter / 칼을 고른다
+PASS Meet_SupplyPorter / 다음 길로 향한다
+PASS Meet_RopeWeaver / 점액으로 끝을 고정한다
+PASS Meet_RopeWeaver / 집게로 심지를 손본다
+PASS Meet_RopeWeaver / 다음 길로 향한다
+PASS Meet_BottleTrader / 콘치즈를 건넨다
+PASS Meet_BottleTrader / 암염을 건넨다
+PASS Meet_BottleTrader / 다음 길로 향한다
+PASS Find_LedgePantry / 밧줄을 타고 내려간다
+PASS Find_LedgePantry / 등불로 발판을 찾는다
+PASS Find_LedgePantry / 다음 길로 향한다
+PASS Meet_PitAdventurer / 밧줄을 고정해 준다
+PASS Meet_PitAdventurer / 물을 담아 내려준다
+PASS Meet_PitAdventurer / 다음 길로 향한다
+PASS Find_DarkNest / 등불로 안을 살핀다
+PASS Find_DarkNest / 집게로 틈을 뒤진다
+PASS Find_DarkNest / 다음 길로 향한다
+PASS Find_HotSpringBasket / 집게로 껍질을 잡는다
+PASS Find_HotSpringBasket / 병으로 점액을 뜬다
+PASS Find_HotSpringBasket / 다음 길로 향한다
+PASS Find_StickyPool / 병으로 점액을 모은다
+PASS Find_StickyPool / 집게로 빛나는 것을 집는다
+PASS Find_StickyPool / 다음 길로 향한다
+PASS Find_RootCellar / 밧줄로 문을 당긴다
+PASS Find_RootCellar / 등불로 선반을 살핀다
+PASS Find_RootCellar / 다음 길로 향한다
+PASS Find_HangingPantry / 밧줄로 상자를 내린다
+PASS Find_HangingPantry / 등불로 매듭을 살핀다
+PASS Find_HangingPantry / 다음 길로 향한다
+PASS Find_MossyStair / 밧줄을 난간에 묶는다
+PASS Find_MossyStair / 마른 발판을 찾는다
+PASS Find_MossyStair / 다음 길로 향한다
+PASS Meet_LostMushroomChild / 밧줄 손잡이를 만든다
+PASS Meet_LostMushroomChild / 발자국을 따라간다
+PASS Meet_LostMushroomChild / 다음 길로 향한다
+PASS Find_CrackedStoreroom / 문고리를 당긴다
+PASS Find_CrackedStoreroom / 벽 틈을 비춘다
+PASS Find_CrackedStoreroom / 다음 길로 향한다
+PASS Find_CrabSnare / 덫을 고정한다
+PASS Find_CrabSnare / 집게로 철사를 푼다
+PASS Find_CrabSnare / 다음 길로 향한다
+PASS Find_TiltedSaltCart / 수레를 받쳐 묶는다
+PASS Find_TiltedSaltCart / 바퀴의 돌을 뺀다
+PASS Find_TiltedSaltCart / 다음 길로 향한다
+PASS Find_ThornLunchbox / 손잡이에 밧줄을 건다
+PASS Find_ThornLunchbox / 뚜껑 틈으로 집는다
+PASS Find_ThornLunchbox / 다음 길로 향한다
+PASS Meet_CaughtApron / 선반을 들어 묶는다
+PASS Meet_CaughtApron / 앞치마 매듭을 푼다
+PASS Meet_CaughtApron / 다음 길로 향한다
+PASS Find_SeepingSaltWell / 밧줄을 잡고 내려간다
+PASS Find_SeepingSaltWell / 표면의 점액을 뜬다
+PASS Find_SeepingSaltWell / 다음 길로 향한다
+PASS Meet_LeakingPack / 주머니 입구를 묶어 준다
+PASS Meet_LeakingPack / 흐르는 점액을 받는다
+PASS Meet_LeakingPack / 다음 길로 향한다
+PASS Find_SlimeCurtain / 막을 옆으로 당긴다
+PASS Find_SlimeCurtain / 떨어지는 점액을 받는다
+PASS Find_SlimeCurtain / 다음 길로 향한다
+PASS Meet_MushroomWaterer / 화분을 고정해 준다
+PASS Meet_MushroomWaterer / 샘물을 날라 준다
+PASS Meet_MushroomWaterer / 다음 길로 향한다
+PASS Find_SleepingCrab / 껍질 안쪽을 비춘다
+PASS Find_SleepingCrab / 빈 껍질을 집어 본다
+PASS Find_SleepingCrab / 다음 길로 향한다
+PASS Find_CollapsedShelf / 선반 아래를 비춘다
+PASS Find_CollapsedShelf / 집게로 틈을 더듬는다
+PASS Find_CollapsedShelf / 다음 길로 향한다
+PASS Meet_SootyCook / 화덕 안을 비춘다
+PASS Meet_SootyCook / 뜨거운 돌을 옮긴다
+PASS Meet_SootyCook / 다음 길로 향한다
+PASS Find_GlowingCrack / 다른 틈을 찾아 비춘다
+PASS Find_GlowingCrack / 빛나는 물체를 집는다
+PASS Find_GlowingCrack / 다음 길로 향한다
+PASS Find_DewMushrooms / 바닥의 조각을 살핀다
+PASS Find_DewMushrooms / 끈끈한 방울을 받는다
+PASS Find_DewMushrooms / 다음 길로 향한다
+PASS Meet_StatueCaretaker / 조각상의 홈을 비춘다
+PASS Meet_StatueCaretaker / 물을 가져와 닦는다
+PASS Meet_StatueCaretaker / 다음 길로 향한다
+PASS Find_SlimeTracks / 엷은 흔적을 쫓는다
+PASS Find_SlimeTracks / 웅덩이를 살핀다
+PASS Find_SlimeTracks / 다음 길로 향한다
+PASS Find_SaltDrips / 마른 결정을 찾는다
+PASS Find_SaltDrips / 흐르는 물을 받는다
+PASS Find_SaltDrips / 다음 길로 향한다
+PASS Find_CrabMolting / 껍질 틈을 벌린다
+PASS Find_CrabMolting / 병의 물로 헹군다
+PASS Find_CrabMolting / 다음 길로 향한다
+PASS Find_StickyLatch / 집게로 걸쇠를 돌린다
+PASS Find_StickyLatch / 점액을 모아 걷어낸다
+PASS Find_StickyLatch / 다음 길로 향한다
+PASS Meet_MushroomSplinter / 가시 끝을 집는다
+PASS Meet_MushroomSplinter / 씻을 물을 건넨다
+PASS Meet_MushroomSplinter / 다음 길로 향한다
+PASS Find_SlimePicnic / 깨끗한 부분을 집는다
+PASS Find_SlimePicnic / 점액을 따로 담는다
+PASS Find_SlimePicnic / 다음 길로 향한다
+PASS: all 132 actual UI choices, missing-item locks, ingredient/tool costs, inventory rewards, dialog images and cleanup. No runtime errors, missing glyphs or missing-target tween warnings.

@@ -56,7 +56,7 @@ namespace Work.Chat.Code
             text.text = script;
             RectTransform rectTransform = transform as RectTransform;
             if (rectTransform != null)
-                rectTransform.pivot = new Vector2(isUserChat ? 1f : 0f, rectTransform.pivot.y);
+                rectTransform.pivot = new Vector2(isUserChat ? 0f : 1f, rectTransform.pivot.y);
 
             ApplyBubbleVisual(isUserChat);
             ResizeToText();
@@ -72,12 +72,12 @@ namespace Work.Chat.Code
                 image.type = Image.Type.Sliced;
                 image.preserveAspect = false;
                 image.color = Color.white;
-                text.color = isUserChat == true ? Color.black : Color.white;
+                text.color = isUserChat == true ? new Color(0.24f, 0.14f, 0.08f) : Color.white;
                 return;
             }
 
-            text.color = isUserChat == true ? Color.white : Color.black;
-            image.color = isUserChat == false ? Color.white : Color.black;
+            text.color = isUserChat == true ? Color.black : Color.white;
+            image.color = isUserChat == true ? Color.white : Color.black;
         }
 
         public void SetMaxWidth(float width)

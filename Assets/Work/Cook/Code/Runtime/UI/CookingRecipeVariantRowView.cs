@@ -19,7 +19,7 @@ namespace Work.Cook.Code.Runtime.UI
         {
             GameObject root = new GameObject("VariantRow", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
             root.transform.SetParent(parent, false);
-            root.GetComponent<Image>().color = new Color(0.12f, 0.1f, 0.08f, 0.72f);
+            root.GetComponent<Image>().color = new Color(0.94f, 0.87f, 0.72f, 1f);
             VerticalLayoutGroup layout = root.GetComponent<VerticalLayoutGroup>();
             layout.padding = new RectOffset(10, 10, 8, 8);
             layout.spacing = 6f;
@@ -79,7 +79,7 @@ namespace Work.Cook.Code.Runtime.UI
         {
             GameObject buttonObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
             buttonObject.transform.SetParent(parent, false);
-            buttonObject.GetComponent<Image>().color = new Color(0.86f, 0.72f, 0.45f, 0.9f);
+            buttonObject.GetComponent<Image>().color = new Color(0.86f, 0.72f, 0.45f, 1f);
             buttonObject.GetComponent<LayoutElement>().minHeight = 46f;
             Button button = buttonObject.GetComponent<Button>();
             label = CreateText(buttonObject.transform, "Label", font, 17f);
@@ -101,7 +101,7 @@ namespace Work.Cook.Code.Runtime.UI
             TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
             text.font = font;
             text.fontSize = size;
-            text.color = Color.white;
+            text.color = new Color(0.26f, 0.16f, 0.09f);
             text.textWrappingMode = TextWrappingModes.Normal;
             text.raycastTarget = false;
             return text;

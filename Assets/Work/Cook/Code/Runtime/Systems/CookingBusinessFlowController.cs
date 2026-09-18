@@ -10,6 +10,9 @@ using Work.Cook.Code.Runtime.Events;
 using Work.Cook.Code.Runtime.Integration;
 using Work.Cook.Code.Runtime.UI;
 using Work.TimeSystem;
+using Work.Players.Code.Inventory;
+using Work.Cook.Code.Data;
+using Work.UtillUI.Code;
 
 namespace Work.Cook.Code.Runtime.Systems
 {
@@ -41,7 +44,7 @@ namespace Work.Cook.Code.Runtime.Systems
         [SerializeField] private NpcEncounterDirector encounterDirector;
         [SerializeField] private NpcConversationRunner npcRunner;
         [SerializeField] private GameTimeService gameTimeService;
-        [SerializeField] private bool startFirstCustomerOnStart = true;
+        [SerializeField] private bool startFirstCustomerOnStart;
         [FormerlySerializedAs("startNextCustomerAfterAdvancingDay")]
         [SerializeField] private bool startNextCustomerAfterResuming = true;
         [SerializeField] private RectTransform actionRoot;
@@ -54,6 +57,7 @@ namespace Work.Cook.Code.Runtime.Systems
         [SerializeField] private string resumedText = "다음 영업을 시작합니다.";
         private bool _dishHandedToCurrentCustomer;
         private bool _businessClosed;
+        private bool _pendingPostCustomerAction;
         private CookingRewardGrant _lastRewardGrant;
 
         public void Initialize(CookingGamePanel owner, TMP_FontAsset defaultFontAsset)
@@ -64,6 +68,7 @@ namespace Work.Cook.Code.Runtime.Systems
 
         private void Awake()
         {
+            _businessClosed = !startFirstCustomerOnStart;
             EnsureReferences();
             EnsureControls();
             BindButtons();
@@ -90,9 +95,18 @@ namespace Work.Cook.Code.Runtime.Systems
         public bool StartNextCustomer()
         {
             EnsureReferences();
+            if (npcRunner != null && npcRunner.HasActiveConversation) return false;
+            _pendingPostCustomerAction = false;
             HideActions();
             _dishHandedToCurrentCustomer = false;
             _lastRewardGrant = null;
+
+            if (!HasCookingStock())
+            {
+                ShowCloseShopOnly();
+                SetStatus("재료가 없습니다. 가게를 마감하고 다시 탐험하세요.");
+                return false;
+            }
 
             if (encounterDirector == null)
             {
@@ -110,6 +124,8 @@ namespace Work.Cook.Code.Runtime.Systems
             if (gamePanel != null)
                 Bus<CookingNpcConversationReturnRequestedEvent>.Raise(new CookingNpcConversationReturnRequestedEvent(gamePanel));
 
+            GameUiInput.SetContext(GameUiContext.Conversation);
+
             bool started = encounterDirector.StartEncounter();
             if (started == false)
             {
@@ -121,6 +137,27 @@ namespace Work.Cook.Code.Runtime.Systems
 
             SetStatus(waitingText);
             return true;
+        }
+
+        public void PrepareForFirstAdventure()
+        {
+            _businessClosed = true;
+            startFirstCustomerOnStart = false;
+            HideActions();
+            if (gamePanel != null)
+                Bus<CookingViewsCloseRequestedEvent>.Raise(new CookingViewsCloseRequestedEvent(gamePanel));
+        }
+
+        private static bool HasCookingStock()
+        {
+            var inventory = FindFirstObjectByType<PlayerInventoryModule>();
+            if (inventory == null) return false;
+            for (int i = 0; i < inventory.SlotCapacity; i++)
+            {
+                var slot = inventory.GetSlot(i);
+                if (slot != null && slot.Item is IngredientItemDataSO && slot.Amount > 0) return true;
+            }
+            return false;
         }
 
         public void CloseShop()
@@ -150,6 +187,8 @@ namespace Work.Cook.Code.Runtime.Systems
                 return;
             }
 
+            EnsureReferences();
+
             if (encounterDirector == null)
             {
                 return;
@@ -158,6 +197,15 @@ namespace Work.Cook.Code.Runtime.Systems
             if (_businessClosed == false)
             {
                 return;
+            }
+
+            // Closing spends three time units, so the daily guest limit may still be in effect.
+            // Rest only until the next day; preparation activities may already have advanced it.
+            if (encounterDirector.IsBusinessDayComplete && gameTimeService != null)
+            {
+                int remainingTime = GameTimeDisplayFormatter.GetTimeUntilNextDay(
+                    gameTimeService.CurrentTimeOfDay);
+                gameTimeService.AdvanceTime(remainingTime, GameTimeActivityType.Rest);
             }
 
             _businessClosed = false;
@@ -196,6 +244,13 @@ namespace Work.Cook.Code.Runtime.Systems
                 return;
 
             _dishHandedToCurrentCustomer = false;
+            _pendingPostCustomerAction = true;
+        }
+
+        private void HandleScreenChanged(CookingGameScreenChangedEvent evt)
+        {
+            if (evt.Source != gamePanel || !_pendingPostCustomerAction || gamePanel.CurrentScreen != CookingGameScreenState.None) return;
+            _pendingPostCustomerAction = false;
             ShowPostCustomerAction();
         }
 
@@ -215,12 +270,12 @@ namespace Work.Cook.Code.Runtime.Systems
             EnsureControls();
             SetActive(actionRoot, true);
 
-            bool canContinue = encounterDirector != null && encounterDirector.CanStartEncounter();
+            bool canContinue = HasCookingStock() && encounterDirector != null && encounterDirector.CanStartEncounter();
             if (canContinue == true)
             {
                 SetStatus(BuildProgressText());
                 SetActive(nextCustomerButton, true);
-                SetActive(closeShopButton, false);
+                SetActive(closeShopButton, true);
                 return;
             }
 
@@ -231,7 +286,7 @@ namespace Work.Cook.Code.Runtime.Systems
         {
             EnsureControls();
             SetActive(actionRoot, true);
-            SetStatus(BuildProgressText());
+            SetStatus(HasCookingStock() ? BuildProgressText() : "재료가 없습니다. 가게를 마감하고 다시 탐험하세요.");
             SetActive(nextCustomerButton, false);
             SetActive(closeShopButton, true);
         }
@@ -310,6 +365,7 @@ namespace Work.Cook.Code.Runtime.Systems
             {
                 Bus<CookingDishHandedToNpcEvent>.Events += HandleDishHandedToNpc;
                 Bus<CookingRewardGrantedEvent>.Events += HandleRewardGranted;
+                Bus<CookingGameScreenChangedEvent>.Events += HandleScreenChanged;
             }
             if (npcRunner != null)
                 npcRunner.ConversationCompleted += HandleConversationCompleted;
@@ -322,6 +378,7 @@ namespace Work.Cook.Code.Runtime.Systems
             {
                 Bus<CookingDishHandedToNpcEvent>.Events -= HandleDishHandedToNpc;
                 Bus<CookingRewardGrantedEvent>.Events -= HandleRewardGranted;
+                Bus<CookingGameScreenChangedEvent>.Events -= HandleScreenChanged;
             }
             if (npcRunner != null)
                 npcRunner.ConversationCompleted -= HandleConversationCompleted;

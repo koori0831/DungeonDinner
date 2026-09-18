@@ -130,3 +130,6 @@ InitTestScene*.unity*
 /Docs/NPCSystem/outputs/
 /Tools/NpcAuthoring/
 /TestResults/
+
+# Reproducible local playtest captures
+/FeedbackQA/

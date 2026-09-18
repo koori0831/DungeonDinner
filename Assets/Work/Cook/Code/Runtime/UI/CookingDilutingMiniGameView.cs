@@ -13,6 +13,7 @@ namespace Work.Cook.Code.Runtime.UI
         [SerializeField] private Image pitcherImage;
         [SerializeField] private Image pourStream;
         [SerializeField] private Image mixtureTint;
+        [SerializeField] private RectTransform pourZone;
 
         private CookingMiniGameOverlayProfile _profile;
         private float _waterAmount;
@@ -57,9 +58,9 @@ namespace Work.Cook.Code.Runtime.UI
             if (pourStream != null)
                 pourStream.gameObject.SetActive(false);
             RefreshVisual();
-            Host.SetInstruction("물통을 용기 위로 드래그해 붓고, 원하는 농도에서 손을 떼세요.");
-            Host.SetStatus("색이 부드러워질 때 멈추세요");
-            ConfigureHud("물통을 용기 위로 드래그 · 적정 구간에서 놓기", false, true, true);
+
+
+            ConfigureHud(CookingGesture.Pour, false, true, true);
             RefreshHud();
             SetTimer(_profile.MaximumDuration, _profile.MaximumDuration);
             return true;
@@ -138,7 +139,7 @@ namespace Work.Cook.Code.Runtime.UI
 
             if (pitcherImage != null)
                 pitcherImage.rectTransform.anchoredPosition = _pitcherHome;
-            Host.SetStatus("아직 진합니다 · 물을 더 부으세요");
+
             RefreshHud();
         }
 
@@ -150,7 +151,7 @@ namespace Work.Cook.Code.Runtime.UI
             if (pitcherImage != null)
                 pitcherImage.rectTransform.anchoredPosition = point;
             Rect rect = ((RectTransform)transform).rect;
-            bool aboveVessel = Mathf.Abs(point.x) < rect.width * 0.24f && point.y > -rect.height * 0.05f;
+            bool aboveVessel = pourZone != null && RectTransformUtility.RectangleContainsScreenPoint(pourZone, eventData.position, eventData.pressEventCamera);
             bool nearVessel = Mathf.Abs(point.x) < rect.width * 0.42f && point.y > -rect.height * 0.22f;
             _pouring = aboveVessel;
             _spilling = aboveVessel == false && nearVessel;
@@ -159,12 +160,18 @@ namespace Work.Cook.Code.Runtime.UI
             if (_spilling && _spillWarningShown == false)
             {
                 _spillWarningShown = true;
-                RegisterMistake("물이 용기 밖으로 흐르고 있습니다.");
+                RegisterMistake();
             }
             else if (_spilling == false)
             {
                 _spillWarningShown = false;
             }
+        }
+
+        protected override void OnPointerCancelled()
+        {
+            _pouring = _spilling = false;
+            if (pourStream != null) pourStream.gameObject.SetActive(false);
         }
 
         private void CompletePour(string feedback)
@@ -189,17 +196,7 @@ namespace Work.Cook.Code.Runtime.UI
 
         private void RefreshHud()
         {
-            string label;
-            if (_spilling)
-                label = "흘리는 중 · 용기 중앙으로 옮기세요";
-            else if (_waterAmount < _profile.TargetMin)
-                label = $"아직 진함 · {Mathf.RoundToInt(_waterAmount * 100f)}%";
-            else if (_waterAmount <= _profile.TargetMax)
-                label = "적정 농도 · 지금 손을 떼세요";
-            else
-                label = "너무 묽어지는 중 · 바로 멈추세요";
-
-            SetTargetState(_waterAmount, _profile.TargetMin, _profile.TargetMax, label);
+            SetTargetState(_waterAmount, _profile.TargetMin, _profile.TargetMax);
         }
     }
 }

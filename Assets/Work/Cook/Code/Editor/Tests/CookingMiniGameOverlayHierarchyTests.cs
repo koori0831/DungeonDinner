@@ -17,85 +17,42 @@ namespace DungeonDinner.Cook.EditorTests
         private const string MiniGameAssetFolder = "Assets/Work/Cook/Graphics/UIAsset/CookingMiniGame";
 
         [Test]
-        public void OverlayPrefab_HasReadableActionFeedbackHierarchyAndBindings()
+        public void OverlayPrefab_HasGraphicCuesAndUnmaskedInteractionTargets()
         {
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
-            Assert.That(prefab, Is.Not.Null, "The cooking presentation prefab is missing.");
-
-            Transform overlay = FindDeep(prefab.transform, "CookingMiniGameOverlayRoot");
-            Assert.That(overlay, Is.Not.Null, "The mini-game overlay root is missing.");
-
-            RectTransform targetFrame = FindDeep(overlay, "TargetFrame") as RectTransform;
-            Assert.That(targetFrame, Is.Not.Null);
-            Assert.That(targetFrame.sizeDelta.x, Is.GreaterThanOrEqualTo(520f));
-            Assert.That(targetFrame.sizeDelta.y, Is.GreaterThanOrEqualTo(320f));
-
-            RectTransform actionHud = FindDeep(overlay, "LocalActionHUD") as RectTransform;
-            Assert.That(actionHud, Is.Not.Null);
-            Assert.That(actionHud.sizeDelta.y, Is.GreaterThanOrEqualTo(104f));
-            Assert.That(FindDeep(overlay, "GestureGuide"), Is.Not.Null);
-            Assert.That(FindDeep(overlay, "ProgressGauge"), Is.Not.Null);
-            Assert.That(FindDeep(overlay, "ProgressFill"), Is.Not.Null);
-            Assert.That(FindDeep(overlay, "TargetBand"), Is.Not.Null);
-            Assert.That(FindDeep(overlay, "TargetMarker"), Is.Not.Null);
-            Assert.That(FindDeep(overlay, "TimerGauge"), Is.Not.Null);
-            Assert.That(FindDeep(overlay, "MistakeToast"), Is.Not.Null);
-            Assert.That(FindDeep(overlay, "ResultBadge/Score"), Is.Not.Null);
-            Assert.That(FindDeep(overlay, "ResultBadge/Reason"), Is.Not.Null);
-
-            MonoBehaviour host = overlay.GetComponents<MonoBehaviour>()
-                .FirstOrDefault(component => component != null && component.GetType().Name == "CookingMiniGameOverlayHost");
-            Assert.That(host, Is.Not.Null, "CookingMiniGameOverlayHost is missing.");
-
-            SerializedObject serializedHost = new SerializedObject(host);
-            AssertBound(serializedHost, "actionHudRoot");
-            AssertBound(serializedHost, "progressFill");
-            AssertBound(serializedHost, "targetBand");
-            AssertBound(serializedHost, "targetMarker");
-            AssertBound(serializedHost, "progressField");
-            AssertBound(serializedHost, "gestureField");
-            AssertBound(serializedHost, "timerFill");
-            AssertBound(serializedHost, "mistakeCanvasGroup");
-            AssertBound(serializedHost, "mistakeField");
-            AssertBound(serializedHost, "resultScoreField");
-            AssertBound(serializedHost, "resultReasonField");
-            AssertBound(serializedHost, "synchronizedWorkbenchView");
-            AssertBound(serializedHost, "synchronizedHandView");
-            AssertBound(serializedHost, "synchronizedActiveSlotView");
-            Assert.That(serializedHost.FindProperty("actionHudGap").floatValue, Is.GreaterThanOrEqualTo(24f));
-            Assert.That(serializedHost.FindProperty("mistakeDisplayDuration").floatValue, Is.GreaterThanOrEqualTo(1.1f));
-            Assert.That(serializedHost.FindProperty("useTemporaryFeedbackAudio").boolValue, Is.True);
-
-            RectTransform knifeGuide = FindDeep(overlay, "KnifeGuide") as RectTransform;
-            Assert.That(knifeGuide, Is.Not.Null);
-            Assert.That(knifeGuide.sizeDelta.x, Is.GreaterThanOrEqualTo(36f));
-            Assert.That(knifeGuide.sizeDelta.y, Is.GreaterThanOrEqualTo(96f));
-            Assert.That(knifeGuide.parent.parent, Is.SameAs(targetFrame),
-                "Slicing guides must render above the ingredient alpha mask.");
-
-            for (int index = 1; index <= 3; index++)
+            foreach (string path in new[] { PrefabPath, StandaloneOverlayPrefabPath })
             {
-                RectTransform cutLine = FindDeep(overlay, $"CutLine{index}") as RectTransform;
-                Assert.That(cutLine, Is.Not.Null);
-                Assert.That(cutLine.sizeDelta.x, Is.GreaterThanOrEqualTo(12f));
-                Assert.That(Mathf.Abs(cutLine.anchoredPosition.x), Is.LessThanOrEqualTo(80f));
-                Assert.That(cutLine.sizeDelta.y, Is.LessThanOrEqualTo(180f));
-                Assert.That(cutLine.GetComponent<Image>(), Is.Not.Null);
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.That(prefab, Is.Not.Null);
+                Transform overlay = prefab.name == "CookingMiniGameOverlayRoot" ? prefab.transform : FindDeep(prefab.transform, "CookingMiniGameOverlayRoot");
+                MonoBehaviour host = overlay.GetComponents<MonoBehaviour>().First(c => c != null && c.GetType().Name == "CookingMiniGameOverlayHost");
+                var serializedHost = new SerializedObject(host);
+                foreach (string field in new[] { "actionHudRoot", "instructionField", "progressFill", "targetBand", "targetMarker", "progressField", "timerFill", "gestureGraphic", "resultScoreField", "resultReasonField" })
+                    AssertBound(serializedHost, field);
+                foreach (string removed in new[] { "titleField", "statusField", "gestureField", "mistakeField" })
+                    Assert.That(serializedHost.FindProperty(removed), Is.Null);
+                var result = ((Component)serializedHost.FindProperty("resultCanvasGroup").objectReferenceValue).transform;
+                var progress = (Component)serializedHost.FindProperty("progressField").objectReferenceValue;
+                var instruction = (Component)serializedHost.FindProperty("instructionField").objectReferenceValue;
+                var hud = (Component)serializedHost.FindProperty("actionHudRoot").objectReferenceValue;
+                Assert.That(instruction.transform.parent, Is.EqualTo(hud.transform));
+                Assert.That(instruction.GetComponentInParent<Mask>(), Is.Null, "Instructions must remain outside the ingredient mask.");
+                var paper = hud.transform.Find("PaperBackground");
+                Assert.That(paper, Is.Not.Null, path + ": instruction panel background is missing");
+                Assert.That(paper.GetSiblingIndex(), Is.LessThan(instruction.transform.GetSiblingIndex()),
+                    path + ": opaque paper must render before the instruction text");
+                foreach (var text in overlay.GetComponentsInChildren<MonoBehaviour>(true).Where(c => c != null && c.GetType().Name == "TextMeshProUGUI"))
+                    Assert.That(text == progress || text == instruction || text.transform.IsChildOf(result), Is.True, path + ": unexpected in-game label " + text.name);
+                foreach (string name in new[] { "KnifeGuide", "PestleGuide", "BrushGuide", "ActionGuide", "WasteZone", "StrikeTarget1", "CutLine1", "PourZone" })
+                {
+                    var target = FindDeep(overlay, name);
+                    Assert.That(target, Is.Not.Null, name);
+                    Assert.That(target.GetComponentInParent<Mask>(), Is.Null, name + " is clipped by the ingredient mask");
+                }
+                var waste = FindDeep(overlay, "WasteZone").GetComponent<Image>();
+                Assert.That(waste.color.r, Is.GreaterThan(waste.color.g));
+                Assert.That(waste.color.a, Is.GreaterThan(0.1f));
+                Assert.That(FindDeep(waste.transform, "DestinationDrawing"), Is.Not.Null);
             }
-
-            Assert.That(FindDeep(overlay, "IngredientClickGuide"), Is.Not.Null,
-                "Roasting must keep a visible click/flip guide over the stationary ingredient.");
-            Assert.That(FindDeep(overlay, "PlateZone"), Is.Null,
-                "Transport destination zones must not remain after click interaction migration.");
-            Assert.That(FindDeep(overlay, "LadleGuide"), Is.Null,
-                "The boiling drag tool must not remain after click interaction migration.");
-
-            MonoBehaviour[] temporaryLabels = overlay.GetComponentsInChildren<MonoBehaviour>(true)
-                .Where(component => component != null
-                    && component.name == "TemporaryLabel"
-                    && component.GetType().Name == "TextMeshProUGUI")
-                .ToArray();
-            Assert.That(temporaryLabels.All(HasNonEmptyText), Is.True);
         }
 
         [Test]

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Work.Cook.Code.Info
 {
@@ -15,10 +16,58 @@ namespace Work.Cook.Code.Info
 
         private readonly List<InfoSelectBtn> _selectButtons = new List<InfoSelectBtn>();
         private ScrollRect _scrollRect;
+        private float _lastViewportWidth;
+
+        public void SetCategoryHeading(string category, int count)
+        {
+            var scroll = ResolveScrollRect();
+            if (scroll == null || scroll.viewport == null || selectBtnPrefab == null)
+                return;
+            var sample = selectBtnPrefab.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (sample == null)
+                return;
+            var background = GetComponent<Image>();
+            if (background != null)
+            {
+                background.sprite = null;
+                background.color = new Color(0.97f, 0.94f, 0.86f);
+            }
+            var go = new GameObject("CategoryHeading", typeof(RectTransform), typeof(TextMeshProUGUI));
+            go.transform.SetParent(transform, false);
+            var text = go.GetComponent<TextMeshProUGUI>();
+            text.font = sample.font;
+            text.fontSize = 22;
+            text.fontStyle = FontStyles.Bold;
+            text.color = new Color(0.26f, 0.19f, 0.13f);
+            text.alignment = TextAlignmentOptions.MidlineLeft;
+            text.raycastTarget = false;
+            text.text = category + "  <size=70%>" + count + "종</size>";
+            var rect = text.rectTransform;
+            rect.anchorMin = new Vector2(0, 1);
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(24, -52);
+            rect.offsetMax = new Vector2(-24, -8);
+            scroll.viewport.offsetMax = new Vector2(scroll.viewport.offsetMax.x, -60);
+            InfoDisplayPanel.AddReadingScrollbar(scroll, 64);
+        }
 
         private void Awake()
         {
             _scrollRect = GetComponent<ScrollRect>();
+        }
+
+        private void LateUpdate()
+        {
+            var scroll = ResolveScrollRect();
+            if (scroll == null || scroll.viewport == null)
+                return;
+            float width = scroll.viewport.rect.width;
+            if (width <= 0 || Mathf.Abs(width - _lastViewportWidth) < 0.5f)
+                return;
+            _lastViewportWidth = width;
+            float position = scroll.verticalNormalizedPosition;
+            ResizeContentHeight(_selectButtons.Count);
+            scroll.verticalNormalizedPosition = position;
         }
 
         public void InitializeField(IReadOnlyList<InfoDictionaryEntryData> entries, Action<InfoDictionaryEntryData> action)
@@ -140,10 +189,24 @@ namespace Work.Cook.Code.Info
                 return;
             }
 
-            int columnCount = Mathf.Max(1, columnsPerRow);
+            var scroll = ResolveScrollRect();
+            if (scroll != null && scroll.viewport != null)
+            {
+                resizeTarget.anchorMin = new Vector2(0, 1);
+                resizeTarget.anchorMax = new Vector2(1, 1);
+                resizeTarget.sizeDelta = new Vector2(0, resizeTarget.sizeDelta.y);
+                resizeTarget.anchoredPosition = new Vector2(0, resizeTarget.anchoredPosition.y);
+            }
             int horizontalPadding = Mathf.Max(0, centeredHorizontalPadding);
+            float availableWidth = scroll != null && scroll.viewport != null
+                ? scroll.viewport.rect.width : resizeTarget.rect.width;
+            int fittingColumns = Mathf.FloorToInt((availableWidth - horizontalPadding * 2 + gridLayout.spacing.x)
+                / (gridLayout.cellSize.x + gridLayout.spacing.x));
+            int columnCount = Mathf.Clamp(fittingColumns, 1, Mathf.Max(1, columnsPerRow));
             gridLayout.padding.left = horizontalPadding;
             gridLayout.padding.right = horizontalPadding;
+            gridLayout.padding.top = 20;
+            gridLayout.padding.bottom = 20;
             gridLayout.childAlignment = TextAnchor.UpperCenter;
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             gridLayout.constraintCount = columnCount;
@@ -175,6 +238,7 @@ namespace Work.Cook.Code.Info
             scrollRect.StopMovement();
             scrollRect.verticalNormalizedPosition = 1f;
             scrollRect.horizontalNormalizedPosition = 0f;
+            InfoDisplayPanel.RefreshReadingScrollbar(scrollRect);
         }
 
         private GridLayoutGroup ResolveGridLayout()
